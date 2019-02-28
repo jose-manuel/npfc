@@ -1,0 +1,110 @@
+#!/bin/bash
+
+# This script is used for wrapping the commit process so that nearly everything
+# can be done with one command.
+
+################################## GLOBALS #####################################
+
+WD="/home/gally/Projects/NPFC/src"
+upgraded="false"
+install="false"
+send_to_gwdg="false"
+remote_compil_dir="/home/users/josemanuel.gally/npfc"
+
+################################ FUNCTIONS #####################################
+
+upgrade_version() {
+    upgrade='unset'
+    change_version='unset'
+
+    while true; do
+
+        read -p "Upgrade version? [y/N]: " upgrade
+        upgrade=$(echo $upgrade | tr '[:upper:]' '[:lower:]')
+        if [[ $upgrade = '' || $upgrade = 'n' ]]; then
+            new_version=$curr_version
+            break
+        elif [[ $upgrade = 'y' ]]; then
+            idx_distribution=$(echo $curr_version | cut -d. -f1)
+            idx_version=$(echo $curr_version | cut -d. -f2)
+            idx_release=$(echo $curr_version | cut -d. -f3 | cut -d- -f1)
+            while [[ $change_version != '' && $change_version != 'n' ]]; do
+                upgrade=''
+                read -p "Upgrade to new major release [y/N]: " change_version
+                change_version=$(echo $change_version | tr '[:upper:]' '[:lower:]')
+                if [[ $change_version = '' || $change_version = 'n' ]]; then
+                    # just upgrade release
+                    idx_release=$[ idx_release + 1]
+                elif  [[ $change_version = 'y' ]]; then
+                    idx_release=0
+                    idx_version=$[ idx_version + 1]
+                fi
+                new_version="$idx_distribution.$idx_version.$idx_release"
+                git tag $new_version
+                upgraded="true"
+                # exit nested loop
+                break 2
+            done
+        fi
+    done
+    # update setup.py
+    sed -i "s/    version=.*/    version='${new_version}',/g" setup.py
+}
+
+############################### PARSE ARGUMENTS ################################
+while getopts ":is" opt; do #
+    case $opt in
+        i) install="true";;
+        s) install="true"; send_to_gwdg="true";;
+        \?) echo "Invalid option: -$OPTARG" >&2 ; exit 1;;
+        :)  echo "Option -$OPTARG requires an argument." >&2 ; exit 1;;
+    esac
+done
+
+################################### BEGIN ######################################
+# init
+curr_version=$(git describe --tags)
+cd $WD
+
+# add changes
+git add $WD
+
+# run commitizen prompt
+git cz
+
+# display current git tag
+echo -e "\nCurrent version is: '$curr_version'\n"
+
+# upgrade version
+upgrade_version
+
+echo -e "\nCurrent version is now: '$new_version'\n"
+
+
+# install library
+if [[ $install = 'true' ]]; then
+    # uninstall previous version
+    echo -e "\nUninstalling previous version\n"
+    pip uninstall -y npfc
+    # find out package name
+    package="npfc-${new_version}.tar.gz"
+    echo -e "\nInstalling package '$package'\n"
+    # create archive
+    python setup.py sdist
+    # install archive
+    cd dist
+    pip install $package
+    # install on cluster as well
+    if [[ $send_to_gwdg = 'true' ]]; then
+        echo -e "\nInstalling package '$package' on cluster\n"
+        scp $package gwdg1:$remote_compil_dir
+        # installing directly the package on the cluster does not work. If I enter the commands directly while logged in, it works.
+        # ssh gwdg1 "cd $remote_compil_dir; module load conda; source activate npfc; pip install $package"
+        # ssh gwdg1 "bash $remote_compil_dir/install_npfc.sh $package"
+    fi
+    cd ..
+fi
+
+################################### END ########################################
+# exit code
+exit 0
