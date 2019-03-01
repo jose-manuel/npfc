@@ -53,12 +53,7 @@ def check_arg_positive_number(value: Number) -> bool:
 
 
 def check_arg_input_file(input_file: str) -> bool:
-    """Return True of the input_file exists, raise a ValueError otherwise.
-    If specified, also checks for the expected format of the file, defined by its extension.
-    The extension follows the syntax of the Path().suffixes methods, so 'file.csv' would be ['.csv']
-    and 'file.csv.gz' would be ['.csv', '.gz'].
-
-    .. note:: It might look weird to specify input_format as a list of string instead of a single string (i.e. '.csv.gz' instead of ['.csv', '.gz']). I don't convert them to strings because I have to use first extension to know the output format and second for the compression type.
+    """Return True of the input_file exists, raise an error otherwise.
 
     :param input_file: the input file
     :param input_format: the expected format of the input file
@@ -74,12 +69,10 @@ def check_arg_input_file(input_file: str) -> bool:
 
 def check_arg_output_file(output_file: str, create_parent_dir: bool = True) -> bool:
     """Return True of the output_file has the expected format (deduced from the file extension).
-    The format is specified as as list of str (.i.e. 'file.csv'.gz would be ['.csv', '.gz'], so it complies
-    with the Path().suffixes syntax.
+
     If the parent directory of the output file does not exist, it has to either be created or fail the check.
 
     :param output_file: the output file
-    :param output_format: the expected format of the output file
     :param create_parent_dir: create the output file's parent folder in case it does not exist
     """
     # output_format

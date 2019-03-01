@@ -116,9 +116,9 @@ class Saver:
         Does the actual export to the output file and picks a format based on provided infos.
 
         :param df: the input DataFrame
-        :suffixes: the suffixes of the output file
-        :key: the key for a HDF file
-        :sep: the separator for a CSV file
+        :param suffixes: the suffixes of the output file
+        :param key: the key for a HDF file
+        :param sep: the separator for a CSV file
         """
         if suffixes[0] == '.csv':
             df.to_csv(output_file, sep=sep)
@@ -134,7 +134,7 @@ class Saver:
         """Save the input DataFrame on disk using Saver object parameters.
 
         :param df: the input DataFrame
-        :output_file: the target file
+        :param output_file: the output file
         :return: the list of output files with their number of records
         """
         # check output_file
