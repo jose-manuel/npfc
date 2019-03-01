@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.utils &mdash; npfc 0.0.1-12-g9568e0c documentation</title>
+  <title>npfc.utils &mdash; npfc 0.0.1-13-gcd0eb7d documentation</title>
   
 
   
@@ -56,7 +56,7 @@
             
             
               <div class="version">
-                0.0.1-12-g9568e0c
+                0.0.1-13-gcd0eb7d
               </div>
             
           
@@ -153,6 +153,7 @@
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="c1"># standard</span>
+<span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="k">import</span> <span class="n">Path</span>
 <span class="c1"># docstrings</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">Union</span>
@@ -171,6 +172,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Error! Expected a boolean but got {type(value)} instead (</span><span class="si">{value}</span><span class="s2">).&quot;</span><span class="p">)</span>
+
     <span class="k">return</span> <span class="kc">True</span></div>
 
 
@@ -187,6 +189,7 @@
         <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Error! Expected a positive number but got {type(value)} instead (</span><span class="si">{value}</span><span class="s2">).&quot;</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">value</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Error! Expected a positive number but got </span><span class="si">{value}</span><span class="s2"> instead.&quot;</span><span class="p">)</span>
+
     <span class="k">return</span> <span class="kc">True</span></div>
 
 
@@ -206,6 +209,34 @@
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Error! Input file could not be found at </span><span class="si">{input_file}</span><span class="s2">.&quot;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">input_format</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">path_input_file</span><span class="o">.</span><span class="n">suffixes</span> <span class="o">!=</span> <span class="n">input_format</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Error! Expected &#39;</span><span class="si">{input_format}</span><span class="s2">&#39; for input format but got instead </span><span class="si">{path_input_file.suffixes}</span><span class="s2">.&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="kc">True</span></div>
+
+
+<div class="viewcode-block" id="check_arg_output_file"><a class="viewcode-back" href="../../utils.html#npfc.utils.check_arg_output_file">[docs]</a><span class="k">def</span> <span class="nf">check_arg_output_file</span><span class="p">(</span><span class="n">output_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">output_format</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">create_parent_dir</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Return True of the output_file has the expected format (deduced from the file extension).</span>
+<span class="sd">    The format is specified as as list of str (.i.e. &#39;file.csv&#39;.gz would be [&#39;.csv&#39;, &#39;.gz&#39;], so it complies</span>
+<span class="sd">    with the Path().suffixes syntax.</span>
+<span class="sd">    If the parent directory of the output file does not exist, it has to either be created or fail the check.</span>
+
+<span class="sd">    :param output_file: the output file</span>
+<span class="sd">    :param output_format: the expected format of the output file</span>
+<span class="sd">    :param create_parent_dir: create the output file&#39;s parent folder in case it does not exist</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># output_format</span>
+    <span class="n">path_output_file</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">output_file</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">output_format</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">path_output_file</span><span class="o">.</span><span class="n">suffixes</span> <span class="o">!=</span> <span class="n">output_format</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Error! Expected &#39;</span><span class="si">{output_format}</span><span class="s2">&#39; for output format but got instead </span><span class="si">{path_output_file.suffixes}</span><span class="s2">.&quot;</span><span class="p">)</span>
+
+    <span class="c1"># create_parent_dir</span>
+    <span class="n">output_dir</span> <span class="o">=</span> <span class="n">path_output_file</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="o">.</span><span class="n">parent</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">output_dir</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">create_parent_dir</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Output_dir could not be found at </span><span class="si">{output_dir}</span><span class="s2">, attempting to create it.&quot;</span><span class="p">)</span>
+            <span class="n">output_dir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Error! Output_dir could not be found at </span><span class="si">{output_dir}</span><span class="s2">.&quot;</span><span class="p">)</span>
+
     <span class="k">return</span> <span class="kc">True</span></div>
 </pre></div>
 

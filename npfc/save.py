@@ -97,4 +97,7 @@ class Saver:
     def save(self, df: pd.DataFrame, output_file: str):
         """
         """
+        # check output_file
+        utils.check_arg_output_file(output_file)
+
         pass

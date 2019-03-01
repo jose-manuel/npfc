@@ -6,11 +6,20 @@ Module utils
 # standard
 import logging
 from pathlib import Path
+from itertools import product
 # docstrings
 from typing import Union
 from typing import List
 
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ TYPES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ GLOBALS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+
+# allowed suffixes
+EXTS = [['.sdf'], ['.sdf', '.gz'], ['.sdf', '.zip'],
+        ['.csv'], ['.csv', '.gz'], ['.csv', '.zip'],
+        ['.hdf']]
+
+# types
 Number = Union[int, float]
 
 
@@ -44,7 +53,7 @@ def check_arg_positive_number(value: Number) -> bool:
     return True
 
 
-def check_arg_input_file(input_file: str, input_format: List[str] = None) -> bool:
+def check_arg_input_file(input_file: str) -> bool:
     """Return True of the input_file exists, raise a ValueError otherwise.
     If specified, also checks for the expected format of the file, defined by its extension.
     The extension follows the syntax of the Path().suffixes methods, so 'file.csv' would be ['.csv']
@@ -58,13 +67,13 @@ def check_arg_input_file(input_file: str, input_format: List[str] = None) -> boo
     path_input_file = Path(input_file)
     if not path_input_file.is_file():
         raise ValueError(f"Error! Input file could not be found at {input_file}.")
-    if input_format is not None and path_input_file.suffixes != input_format:
-        raise ValueError(f"Error! Expected '{input_format}' for input format but got instead {path_input_file.suffixes}.")
+    if path_input_file.suffixes not in EXTS:
+        raise ValueError(f"Error! Unexpected '{path_input_file.suffixes}' for input format.")
 
     return True
 
 
-def check_arg_output_file(output_file: str, output_format: List[str] = None, create_parent_dir: bool = True) -> bool:
+def check_arg_output_file(output_file: str, create_parent_dir: bool = True) -> bool:
     """Return True of the output_file has the expected format (deduced from the file extension).
     The format is specified as as list of str (.i.e. 'file.csv'.gz would be ['.csv', '.gz'], so it complies
     with the Path().suffixes syntax.
@@ -76,8 +85,8 @@ def check_arg_output_file(output_file: str, output_format: List[str] = None, cre
     """
     # output_format
     path_output_file = Path(output_file)
-    if output_format is not None and path_output_file.suffixes != output_format:
-        raise ValueError(f"Error! Expected '{output_format}' for output format but got instead {path_output_file.suffixes}.")
+    if path_output_file.suffixes not in EXTS:
+        raise ValueError(f"Error! Unexpected value '{path_output_file.suffixes}' for output format.")
 
     # create_parent_dir
     output_dir = path_output_file.resolve().parent
