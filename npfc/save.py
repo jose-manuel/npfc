@@ -4,6 +4,7 @@ Module save
 """
 from npfc import utils
 
+
 class Saver:
     """A class for saving DataFrames with molecules to different file types."""
 

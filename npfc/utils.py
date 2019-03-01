@@ -30,7 +30,7 @@ def check_arg_positive_number(value: Number) -> bool:
     if value is None:
         return True
     # if not None, then looks what it is
-    if not isinstance(value, Number):
+    if not isinstance(value, Number.__args__):  # might be a hack but Union object is not compatible with isinstance
         raise TypeError(f"Error! Expected a positive number but got {type(value)} instead ({value}).")
     elif value <= 0:
         raise ValueError(f"Error! Expected a positive number but got {value}) instead.")

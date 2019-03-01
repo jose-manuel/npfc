@@ -49,6 +49,9 @@ https://pytest.readthedocs.io/en/2.8.7/skipping.html
 
 https://www.pythonforthelab.com/blog/documenting-with-sphinx-and-readthedocs/
 https://protips.readthedocs.io/git-tag-version.html
+https://github.com/agronholm/sphinx-autodoc-typehints
+https://docs.python.org/3/library/typing.html
+https://stackoverflow.com/questions/45957615/check-a-variable-against-union-type-at-runtime-in-python-3-6
 
 ### Useful links
 
