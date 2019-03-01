@@ -19,7 +19,7 @@ EXTS = [['.sdf'], ['.sdf', '.gz'], ['.sdf', '.zip'],
 
 # types
 Number = Union[int, float]
-Lists = List[List[Union[int, str]]]
+Output_files = List[List[Union[str, int]]]
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 

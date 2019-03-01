@@ -128,7 +128,7 @@ class Saver:
         else:
             raise ValueError(f"Error! Cannot save DataFrame to unexpected format '{suffixes[0]}'.")
 
-    def save(self, df: pd.DataFrame, output_file: str) -> utils.Lists:
+    def save(self, df: pd.DataFrame, output_file: str) -> utils.Output_files:
         """Save the input DataFrame on disk using Saver object parameters.
 
         :param df: the input DataFrame

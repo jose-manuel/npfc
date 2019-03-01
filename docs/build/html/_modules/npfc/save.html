@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.save &mdash; npfc 0.0.2-1-g74b0ff4 documentation</title>
+  <title>npfc.save &mdash; npfc 0.0.2-2-gf74f455 documentation</title>
   
 
   
@@ -56,7 +56,7 @@
             
             
               <div class="version">
-                0.0.2-1-g74b0ff4
+                0.0.2-2-gf74f455
               </div>
             
           
@@ -164,7 +164,6 @@
 <span class="kn">from</span> <span class="nn">rdkit.Chem</span> <span class="k">import</span> <span class="n">PandasTools</span>
 <span class="c1"># docs</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">List</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">Union</span>
 <span class="c1"># dev</span>
 <span class="kn">from</span> <span class="nn">npfc</span> <span class="k">import</span> <span class="n">utils</span>
 
@@ -278,7 +277,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Error! Cannot save DataFrame to unexpected format &#39;</span><span class="si">{suffixes[0]}</span><span class="s2">&#39;.&quot;</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Saver.save"><a class="viewcode-back" href="../../save.html#npfc.save.Saver.save">[docs]</a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">output_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]]:</span>
+<div class="viewcode-block" id="Saver.save"><a class="viewcode-back" href="../../save.html#npfc.save.Saver.save">[docs]</a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">output_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">utils</span><span class="o">.</span><span class="n">Lists</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Save the input DataFrame on disk using Saver object parameters.</span>
 
 <span class="sd">        :param df: the input DataFrame</span>
