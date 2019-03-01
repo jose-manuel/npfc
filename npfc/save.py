@@ -12,3 +12,4 @@ class Saver:
                  chunk_size: int = None,
                  encode_mols: bool = True,
                  col_mol: str = 'mol'):
+        pass
