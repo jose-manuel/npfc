@@ -1,6 +1,9 @@
 """
 Module save
 ================
+
+A module containing the Saver class, used for storing DataFrames with molecules
+on disk.
 """
 
 # standard
@@ -10,7 +13,6 @@ from pathlib import Path
 # data science
 import pandas as pd
 # chemoinformatics
-from rdkit import Chem
 from rdkit.Chem import Mol
 from rdkit.Chem import PandasTools
 # docs
@@ -119,7 +121,6 @@ class Saver:
         :sep: the separator for a CSV file
         """
         if suffixes[0] == '.csv':
-            logging.debug(f"Saved {len(df.index)}")
             df.to_csv(output_file, sep=sep)
         elif suffixes[0] == '.hdf':
             df.to_hdf(output_file, key=key)
@@ -127,6 +128,7 @@ class Saver:
             PandasTools.WriteSDF(df, output_file, molColName=self.col_mol, idName=self.col_id, properties=list(df.columns))
         else:
             raise ValueError(f"Error! Cannot save DataFrame to unexpected format '{suffixes[0]}'.")
+        logging.debug(f"Saved {len(df.index)} records at '{output_file}'.")
 
     def save(self, df: pd.DataFrame, output_file: str) -> utils.Output_files:
         """Save the input DataFrame on disk using Saver object parameters.
@@ -155,7 +157,6 @@ class Saver:
             # single output
             self._save(df, output_file, suffixes=ext_output_file, key=path_output_file.stem, sep='|')
             output_files.append(output_file, len(df.index))
-            logging.debug(f"Saved {len(df.index)} records to '{output_file}'.")
         else:
             # chunks
             start = 0
