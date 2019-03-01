@@ -20,7 +20,7 @@ from typing import List
 # dev
 from npfc import utils
 
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ CLASSES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ CLASSES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 
 class Saver:
@@ -73,7 +73,7 @@ class Saver:
     @chunk_size.setter
     def chunk_size(self, value: int):
         if utils.check_arg_positive_number(value):
-            self._random_seed = value
+            self._chunk_size = value
 
     @property
     def encode_mols(self):
@@ -94,7 +94,7 @@ class Saver:
 
     @property
     def col_id(self):
-        return self._col_mol
+        return self._col_id
 
     @col_id.setter
     def col_id(self, value: str):
@@ -151,19 +151,22 @@ class Saver:
             df = df.sample(frac=1, random_state=self.random_seed)
         # encode molecules
         if self.encode_mols:
-            df[self.col_mol] = df[self.col_mol].map(self.encode_mol_base64)
+            df[self.col_mol] = df[self.col_mol].map(self.encode_mol)
         # chunking
         if self.chunk_size is None:
             # single output
-            self._save(df, output_file, suffixes=ext_output_file, key=path_output_file.stem, sep='|')
-            output_files.append(output_file, len(df.index))
+            self._save(df=df, output_file=output_file, suffixes=ext_output_file, key=path_output_file.stem, sep='|')
+            output_files.append([output_file, len(df.index)])
         else:
             # chunks
             start = 0
             j = 0
             for start in range(0, len(df.index), self.chunk_size):
                 end = start + self.chunk_size
-                output_chunk = str(output_dir) + "/" + output_file.stem + "_" + str(j).zfill(3) + ''.join(ext_output_file)
-                output_files.append(self._save(df.iloc[start:end], ext_output_file[0], output_chunk))
+                output_chunk = str(output_dir) + "/" + path_output_file.stem + "_" + str(j).zfill(3) + ''.join(ext_output_file)
+                self._save(df=df.iloc[start:end], output_file=output_chunk, suffixes=ext_output_file, key=path_output_file.stem, sep='|')
+                output_files.append([output_chunk, len(df.iloc[start:end].index)])
                 j += 1
             logging.debug(f"{len(output_files)} chunks were created")
+
+        return output_files

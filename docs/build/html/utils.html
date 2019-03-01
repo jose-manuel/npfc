@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Module utils &mdash; npfc 0.0.2-4-gc95f140 documentation</title>
+  <title>Module utils &mdash; npfc 0.0.2-5-gd8e93cb documentation</title>
   
 
   
@@ -57,7 +57,7 @@
             
             
               <div class="version">
-                0.0.2-4-gc95f140
+                0.0.2-5-gd8e93cb
               </div>
             
           
@@ -170,14 +170,7 @@
 <dl class="function">
 <dt id="npfc.utils.check_arg_input_file">
 <code class="descclassname">npfc.utils.</code><code class="descname">check_arg_input_file</code><span class="sig-paren">(</span><em>input_file</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/utils.html#check_arg_input_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.utils.check_arg_input_file" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return True of the input_file exists, raise a ValueError otherwise.
-If specified, also checks for the expected format of the file, defined by its extension.
-The extension follows the syntax of the Path().suffixes methods, so ‘file.csv’ would be [‘.csv’]
-and ‘file.csv.gz’ would be [‘.csv’, ‘.gz’].</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">It might look weird to specify input_format as a list of string instead of a single string (i.e. ‘.csv.gz’ instead of [‘.csv’, ‘.gz’]). I don’t convert them to strings because I have to use first extension to know the output format and second for the compression type.</p>
-</div>
+<dd><p>Return True of the input_file exists, raise an error otherwise.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -198,17 +191,14 @@ and ‘file.csv.gz’ would be [‘.csv’, ‘.gz’].</p>
 <dl class="function">
 <dt id="npfc.utils.check_arg_output_file">
 <code class="descclassname">npfc.utils.</code><code class="descname">check_arg_output_file</code><span class="sig-paren">(</span><em>output_file</em>, <em>create_parent_dir=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/utils.html#check_arg_output_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.utils.check_arg_output_file" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return True of the output_file has the expected format (deduced from the file extension).
-The format is specified as as list of str (.i.e. ‘file.csv’.gz would be [‘.csv’, ‘.gz’], so it complies
-with the Path().suffixes syntax.
-If the parent directory of the output file does not exist, it has to either be created or fail the check.</p>
+<dd><p>Return True of the output_file has the expected format (deduced from the file extension).</p>
+<p>If the parent directory of the output file does not exist, it has to either be created or fail the check.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>output_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the output file</li>
-<li><strong>output_format</strong> – the expected format of the output file</li>
 <li><strong>create_parent_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>) – create the output file’s parent folder in case it does not exist</li>
 </ul>
 </td>

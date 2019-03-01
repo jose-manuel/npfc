@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.utils &mdash; npfc 0.0.2-4-gc95f140 documentation</title>
+  <title>npfc.utils &mdash; npfc 0.0.2-5-gd8e93cb documentation</title>
   
 
   
@@ -56,7 +56,7 @@
             
             
               <div class="version">
-                0.0.2-4-gc95f140
+                0.0.2-5-gd8e93cb
               </div>
             
           
@@ -202,12 +202,7 @@
 
 
 <div class="viewcode-block" id="check_arg_input_file"><a class="viewcode-back" href="../../utils.html#npfc.utils.check_arg_input_file">[docs]</a><span class="k">def</span> <span class="nf">check_arg_input_file</span><span class="p">(</span><span class="n">input_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Return True of the input_file exists, raise a ValueError otherwise.</span>
-<span class="sd">    If specified, also checks for the expected format of the file, defined by its extension.</span>
-<span class="sd">    The extension follows the syntax of the Path().suffixes methods, so &#39;file.csv&#39; would be [&#39;.csv&#39;]</span>
-<span class="sd">    and &#39;file.csv.gz&#39; would be [&#39;.csv&#39;, &#39;.gz&#39;].</span>
-
-<span class="sd">    .. note:: It might look weird to specify input_format as a list of string instead of a single string (i.e. &#39;.csv.gz&#39; instead of [&#39;.csv&#39;, &#39;.gz&#39;]). I don&#39;t convert them to strings because I have to use first extension to know the output format and second for the compression type.</span>
+    <span class="sd">&quot;&quot;&quot;Return True of the input_file exists, raise an error otherwise.</span>
 
 <span class="sd">    :param input_file: the input file</span>
 <span class="sd">    :param input_format: the expected format of the input file</span>
@@ -223,12 +218,10 @@
 
 <div class="viewcode-block" id="check_arg_output_file"><a class="viewcode-back" href="../../utils.html#npfc.utils.check_arg_output_file">[docs]</a><span class="k">def</span> <span class="nf">check_arg_output_file</span><span class="p">(</span><span class="n">output_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">create_parent_dir</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Return True of the output_file has the expected format (deduced from the file extension).</span>
-<span class="sd">    The format is specified as as list of str (.i.e. &#39;file.csv&#39;.gz would be [&#39;.csv&#39;, &#39;.gz&#39;], so it complies</span>
-<span class="sd">    with the Path().suffixes syntax.</span>
+
 <span class="sd">    If the parent directory of the output file does not exist, it has to either be created or fail the check.</span>
 
 <span class="sd">    :param output_file: the output file</span>
-<span class="sd">    :param output_format: the expected format of the output file</span>
 <span class="sd">    :param create_parent_dir: create the output file&#39;s parent folder in case it does not exist</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># output_format</span>

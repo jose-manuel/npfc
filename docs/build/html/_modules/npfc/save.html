@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.save &mdash; npfc 0.0.2-4-gc95f140 documentation</title>
+  <title>npfc.save &mdash; npfc 0.0.2-5-gd8e93cb documentation</title>
   
 
   
@@ -56,7 +56,7 @@
             
             
               <div class="version">
-                0.0.2-4-gc95f140
+                0.0.2-5-gd8e93cb
               </div>
             
           
@@ -265,9 +265,9 @@
 <span class="sd">        Does the actual export to the output file and picks a format based on provided infos.</span>
 
 <span class="sd">        :param df: the input DataFrame</span>
-<span class="sd">        :suffixes: the suffixes of the output file</span>
-<span class="sd">        :key: the key for a HDF file</span>
-<span class="sd">        :sep: the separator for a CSV file</span>
+<span class="sd">        :param suffixes: the suffixes of the output file</span>
+<span class="sd">        :param key: the key for a HDF file</span>
+<span class="sd">        :param sep: the separator for a CSV file</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">suffixes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;.csv&#39;</span><span class="p">:</span>
             <span class="n">df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">output_file</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="n">sep</span><span class="p">)</span>
@@ -283,7 +283,7 @@
         <span class="sd">&quot;&quot;&quot;Save the input DataFrame on disk using Saver object parameters.</span>
 
 <span class="sd">        :param df: the input DataFrame</span>
-<span class="sd">        :output_file: the target file</span>
+<span class="sd">        :param output_file: the output file</span>
 <span class="sd">        :return: the list of output files with their number of records</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># check output_file</span>

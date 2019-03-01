@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Union
 from typing import List
 
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ GLOBALS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ GLOBALS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 # allowed suffixes
 EXTS = [['.sdf'], ['.sdf', '.gz'], ['.sdf', '.zip'],
@@ -21,7 +21,7 @@ EXTS = [['.sdf'], ['.sdf', '.gz'], ['.sdf', '.zip'],
 Number = Union[int, float]
 Output_files = List[List[Union[str, int]]]
 
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 
 def check_arg_bool(value: bool) -> bool:
