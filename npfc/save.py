@@ -4,12 +4,17 @@ Module save
 """
 
 # standard
+import logging
 import base64
+from pathlib import Path
 # data science
 import pandas as pd
 # chemoinformatics
 from rdkit import Chem
 from rdkit.Chem import Mol
+from rdkit.Chem import PandasTools
+# docs
+from typing import List
 # dev
 from npfc import utils
 
@@ -24,7 +29,8 @@ class Saver:
                  random_seed: int = None,
                  chunk_size: int = None,
                  encode_mols: bool = True,
-                 col_mol: str = 'mol'):
+                 col_mol: str = 'mol',
+                 col_id: str = 'idm'):
         """Create a Saver object with following parameters:
 
         :param shuffle: randomize records
@@ -38,6 +44,7 @@ class Saver:
         self._chunk_size = chunk_size
         self._encode_mols = encode_mols
         self._col_mol = col_mol
+        self._col_id = col_id
 
     @property
     def shuffle(self):
@@ -83,6 +90,14 @@ class Saver:
     def col_mol(self, value: str):
         self._col_mol = str(value)
 
+    @property
+    def col_id(self):
+        return self._col_mol
+
+    @col_id.setter
+    def col_id(self, value: str):
+        self._col_id = str(value)
+
     def encode_mol(self, mol: Mol) -> str:
         """Convert a molecule to binary and then represent this binary as base64 string.
 
@@ -94,10 +109,60 @@ class Saver:
         except AttributeError:
             return None
 
-    def save(self, df: pd.DataFrame, output_file: str):
+    def _save(self, df: pd.DataFrame, output_file: str, suffixes: List[str], key: str, sep: str):
+        """Helper function for the save method.
+        Does the actual export to the output file and picks a format based on provided infos.
+
+        :param df: the input DataFrame
+        :suffixes: the suffixes of the output file
+        :key: the key for a HDF file
+        :sep: the separator for a CSV file
         """
+        if suffixes[0] == '.csv':
+            logging.debug(f"Saved {len(df.index)}")
+            df.to_csv(output_file, sep=sep)
+        elif suffixes[0] == '.hdf':
+            df.to_hdf(output_file, key=key)
+        elif suffixes[0] == '.sdf':
+            PandasTools.WriteSDF(df, output_file, molColName=self.col_mol, idName=self.col_id, properties=list(df.columns))
+        else:
+            raise ValueError(f"Error! Cannot save DataFrame to unexpected format '{suffixes[0]}'.")
+
+    def save(self, df: pd.DataFrame, output_file: str) -> List[List[str, int]]:
+        """Save the input DataFrame on disk using Saver object parameters.
+
+        :param df: the input DataFrame
+        :output_file: the target file
+        :return: the list of output files with their number of records
         """
         # check output_file
         utils.check_arg_output_file(output_file)
-
-        pass
+        # init
+        path_output_file = Path(output_file)
+        ext_output_file = path_output_file.suffixes
+        output_dir = path_output_file.resolve().parent
+        output_files = []
+        # avoid pandas warnings
+        df = df.copy()
+        # shuffle
+        if self.shuffle:
+            df = df.sample(frac=1, random_state=self.random_seed)
+        # encode molecules
+        if self.encode_mols:
+            df[self.col_mol] = df[self.col_mol].map(self.encode_mol_base64)
+        # chunking
+        if self.chunk_size is None:
+            # single output
+            self._save(df, output_file, suffixes=ext_output_file, key=path_output_file.stem, sep='|')
+            output_files.append(output_file, len(df.index))
+            logging.debug(f"Saved {len(df.index)} records to '{output_file}'.")
+        else:
+            # chunks
+            start = 0
+            j = 0
+            for start in range(0, len(df.index), self.chunk_size):
+                end = start + self.chunk_size
+                output_chunk = str(output_dir) + "/" + output_file.stem + "_" + str(j).zfill(3) + ''.join(ext_output_file)
+                output_files.append(self._save(df.iloc[start:end], ext_output_file[0], output_chunk))
+                j += 1
+            logging.debug(f"{len(output_files)} chunks were created")

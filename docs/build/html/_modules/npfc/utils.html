@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.utils &mdash; npfc 0.0.1-13-gcd0eb7d documentation</title>
+  <title>npfc.utils &mdash; npfc 0.0.1-14-g3b808d9 documentation</title>
   
 
   
@@ -56,7 +56,7 @@
             
             
               <div class="version">
-                0.0.1-13-gcd0eb7d
+                0.0.1-14-g3b808d9
               </div>
             
           
@@ -155,11 +155,20 @@
 <span class="c1"># standard</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="k">import</span> <span class="n">Path</span>
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="k">import</span> <span class="n">product</span>
 <span class="c1"># docstrings</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">Union</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">List</span>
 
-<span class="c1"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ TYPES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#</span>
+
+<span class="c1"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ GLOBALS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#</span>
+
+<span class="c1"># allowed suffixes</span>
+<span class="n">EXTS</span> <span class="o">=</span> <span class="p">[[</span><span class="s1">&#39;.sdf&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;.sdf&#39;</span><span class="p">,</span> <span class="s1">&#39;.gz&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;.sdf&#39;</span><span class="p">,</span> <span class="s1">&#39;.zip&#39;</span><span class="p">],</span>
+        <span class="p">[</span><span class="s1">&#39;.csv&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;.csv&#39;</span><span class="p">,</span> <span class="s1">&#39;.gz&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;.csv&#39;</span><span class="p">,</span> <span class="s1">&#39;.zip&#39;</span><span class="p">],</span>
+        <span class="p">[</span><span class="s1">&#39;.hdf&#39;</span><span class="p">]]</span>
+
+<span class="c1"># types</span>
 <span class="n">Number</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span>
 
 
@@ -193,7 +202,7 @@
     <span class="k">return</span> <span class="kc">True</span></div>
 
 
-<div class="viewcode-block" id="check_arg_input_file"><a class="viewcode-back" href="../../utils.html#npfc.utils.check_arg_input_file">[docs]</a><span class="k">def</span> <span class="nf">check_arg_input_file</span><span class="p">(</span><span class="n">input_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">input_format</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<div class="viewcode-block" id="check_arg_input_file"><a class="viewcode-back" href="../../utils.html#npfc.utils.check_arg_input_file">[docs]</a><span class="k">def</span> <span class="nf">check_arg_input_file</span><span class="p">(</span><span class="n">input_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Return True of the input_file exists, raise a ValueError otherwise.</span>
 <span class="sd">    If specified, also checks for the expected format of the file, defined by its extension.</span>
 <span class="sd">    The extension follows the syntax of the Path().suffixes methods, so &#39;file.csv&#39; would be [&#39;.csv&#39;]</span>
@@ -207,13 +216,13 @@
     <span class="n">path_input_file</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">input_file</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">path_input_file</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Error! Input file could not be found at </span><span class="si">{input_file}</span><span class="s2">.&quot;</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">input_format</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">path_input_file</span><span class="o">.</span><span class="n">suffixes</span> <span class="o">!=</span> <span class="n">input_format</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Error! Expected &#39;</span><span class="si">{input_format}</span><span class="s2">&#39; for input format but got instead </span><span class="si">{path_input_file.suffixes}</span><span class="s2">.&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">path_input_file</span><span class="o">.</span><span class="n">suffixes</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">EXTS</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Error! Unexpected &#39;</span><span class="si">{path_input_file.suffixes}</span><span class="s2">&#39; for input format.&quot;</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="kc">True</span></div>
 
 
-<div class="viewcode-block" id="check_arg_output_file"><a class="viewcode-back" href="../../utils.html#npfc.utils.check_arg_output_file">[docs]</a><span class="k">def</span> <span class="nf">check_arg_output_file</span><span class="p">(</span><span class="n">output_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">output_format</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">create_parent_dir</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<div class="viewcode-block" id="check_arg_output_file"><a class="viewcode-back" href="../../utils.html#npfc.utils.check_arg_output_file">[docs]</a><span class="k">def</span> <span class="nf">check_arg_output_file</span><span class="p">(</span><span class="n">output_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">create_parent_dir</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Return True of the output_file has the expected format (deduced from the file extension).</span>
 <span class="sd">    The format is specified as as list of str (.i.e. &#39;file.csv&#39;.gz would be [&#39;.csv&#39;, &#39;.gz&#39;], so it complies</span>
 <span class="sd">    with the Path().suffixes syntax.</span>
@@ -225,8 +234,8 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># output_format</span>
     <span class="n">path_output_file</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">output_file</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">output_format</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">path_output_file</span><span class="o">.</span><span class="n">suffixes</span> <span class="o">!=</span> <span class="n">output_format</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Error! Expected &#39;</span><span class="si">{output_format}</span><span class="s2">&#39; for output format but got instead </span><span class="si">{path_output_file.suffixes}</span><span class="s2">.&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">path_output_file</span><span class="o">.</span><span class="n">suffixes</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">EXTS</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Error! Unexpected value &#39;</span><span class="si">{path_output_file.suffixes}</span><span class="s2">&#39; for output format.&quot;</span><span class="p">)</span>
 
     <span class="c1"># create_parent_dir</span>
     <span class="n">output_dir</span> <span class="o">=</span> <span class="n">path_output_file</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="o">.</span><span class="n">parent</span>

@@ -6,10 +6,8 @@ Module utils
 # standard
 import logging
 from pathlib import Path
-from itertools import product
 # docstrings
 from typing import Union
-from typing import List
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ GLOBALS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
