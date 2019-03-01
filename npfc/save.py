@@ -44,7 +44,7 @@ def save(df: pd.DataFrame, output_file: str,
          chunk_size: int = None, encode_mols: bool = True,
          col_mol: str = 'mol', col_id: str = 'idm')-> utils.Output_files:
         """A method for saving DataFrames with molecules to different file types.
-        This is handy way of using the Saver class without having to keep a Saver object
+        This is handy way of using the Saver class without having to keep a Saver object.
 
         .. note:: I did this because it was the most easiest way, I guess I'll have to investigate class methods for a better implementation.
 
@@ -81,7 +81,9 @@ class Saver:
                  encode_mols: bool = True,
                  col_mol: str = 'mol',
                  col_id: str = 'idm'):
-        """Create a Saver object with following parameters:
+        """Create a Saver object with below parameters.
+
+        .. note:: The reason I have a class for this is because I wanted to avoid at lot of redundant code. But a class is not that perfect if one Saver object has to instanciated everytime. As a work-around, I also added a save function using this class.
 
         :param shuffle: randomize records
         :param random_seed: a number for reproducing the shuffling

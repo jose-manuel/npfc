@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.save &mdash; npfc 0.0.3 documentation</title>
+  <title>npfc.save &mdash; npfc 0.0.3-1-g3313086 documentation</title>
   
 
   
@@ -56,7 +56,7 @@
             
             
               <div class="version">
-                0.0.3
+                0.0.3-1-g3313086
               </div>
             
           
@@ -183,6 +183,38 @@
         <span class="k">return</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64encode</span><span class="p">(</span><span class="n">mol</span><span class="o">.</span><span class="n">ToBinary</span><span class="p">())</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span>
     <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">None</span></div>
+
+
+<span class="c1"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #</span>
+
+
+<div class="viewcode-block" id="save"><a class="viewcode-back" href="../../save.html#npfc.save.save">[docs]</a><span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">output_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+         <span class="n">shuffle</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">random_seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+         <span class="n">chunk_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">encode_mols</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+         <span class="n">col_mol</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;mol&#39;</span><span class="p">,</span> <span class="n">col_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;idm&#39;</span><span class="p">)</span><span class="o">-&gt;</span> <span class="n">utils</span><span class="o">.</span><span class="n">Output_files</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;A method for saving DataFrames with molecules to different file types.</span>
+<span class="sd">        This is handy way of using the Saver class without having to keep a Saver object</span>
+
+<span class="sd">        .. note:: I did this because it was the most easiest way, I guess I&#39;ll have to investigate class methods for a better implementation.</span>
+
+<span class="sd">        :param df: the input DataFrame</span>
+<span class="sd">        :param output_file: the output file</span>
+<span class="sd">        :param shuffle: randomize records</span>
+<span class="sd">        :param random_seed: a number for reproducing the shuffling</span>
+<span class="sd">        :param chunk_size: the maximum number of records per chunk. If this value is unset, no chunking is performed, otherwise each chunk filename gets appended with a suffix: file_XXX.ext.</span>
+<span class="sd">        :param encode_mols: convert rdkit.Chem.Mol objects to base64 string representation. For HDF format, pandas stops complaining about PerformanceWarning, for csv molecules do not need to parsed again.</span>
+<span class="sd">        :param col_mol: if molecules need to be encoded, then the encoding is perfomed on this column.</span>
+<span class="sd">        :return: the list of output files with their number of records</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">Saver</span><span class="p">(</span><span class="n">shuffle</span><span class="o">=</span><span class="n">shuffle</span><span class="p">,</span>
+                  <span class="n">random_seed</span><span class="o">=</span><span class="n">random_seed</span><span class="p">,</span>
+                  <span class="n">chunk_size</span><span class="o">=</span><span class="n">chunk_size</span><span class="p">,</span>
+                  <span class="n">encode_mols</span><span class="o">=</span><span class="n">encode_mols</span><span class="p">,</span>
+                  <span class="n">col_mol</span><span class="o">=</span><span class="n">col_mol</span><span class="p">,</span>
+                  <span class="n">col_id</span><span class="o">=</span><span class="n">col_id</span><span class="p">,</span>
+                  <span class="p">)</span>
+        <span class="k">return</span> <span class="n">s</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">output_file</span><span class="p">)</span></div>
 
 
 <span class="c1"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ CLASSES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #</span>
