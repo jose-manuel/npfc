@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.save &mdash; npfc 0.0.3-1-g3313086 documentation</title>
+  <title>npfc.save &mdash; npfc 0.0.3-2-g2e8a645 documentation</title>
   
 
   
@@ -56,7 +56,7 @@
             
             
               <div class="version">
-                0.0.3-1-g3313086
+                0.0.3-2-g2e8a645
               </div>
             
           
@@ -193,7 +193,7 @@
          <span class="n">chunk_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">encode_mols</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
          <span class="n">col_mol</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;mol&#39;</span><span class="p">,</span> <span class="n">col_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;idm&#39;</span><span class="p">)</span><span class="o">-&gt;</span> <span class="n">utils</span><span class="o">.</span><span class="n">Output_files</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;A method for saving DataFrames with molecules to different file types.</span>
-<span class="sd">        This is handy way of using the Saver class without having to keep a Saver object</span>
+<span class="sd">        This is handy way of using the Saver class without having to keep a Saver object.</span>
 
 <span class="sd">        .. note:: I did this because it was the most easiest way, I guess I&#39;ll have to investigate class methods for a better implementation.</span>
 
@@ -230,7 +230,9 @@
                  <span class="n">encode_mols</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
                  <span class="n">col_mol</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;mol&#39;</span><span class="p">,</span>
                  <span class="n">col_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;idm&#39;</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Create a Saver object with following parameters:</span>
+        <span class="sd">&quot;&quot;&quot;Create a Saver object with below parameters.</span>
+
+<span class="sd">        .. note:: The reason I have a class for this is because I wanted to avoid at lot of redundant code. But a class is not that perfect if one Saver object has to instanciated everytime. As a work-around, I also added a save function using this class.</span>
 
 <span class="sd">        :param shuffle: randomize records</span>
 <span class="sd">        :param random_seed: a number for reproducing the shuffling</span>

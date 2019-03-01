@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Module save &mdash; npfc 0.0.3-1-g3313086 documentation</title>
+  <title>Module save &mdash; npfc 0.0.3-2-g2e8a645 documentation</title>
   
 
   
@@ -58,7 +58,7 @@
             
             
               <div class="version">
-                0.0.3-1-g3313086
+                0.0.3-2-g2e8a645
               </div>
             
           
@@ -158,7 +158,11 @@ on disk.</p>
 <dt id="npfc.save.Saver">
 <em class="property">class </em><code class="descclassname">npfc.save.</code><code class="descname">Saver</code><span class="sig-paren">(</span><em>shuffle=False</em>, <em>random_seed=None</em>, <em>chunk_size=None</em>, <em>encode_mols=True</em>, <em>col_mol='mol'</em>, <em>col_id='idm'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/save.html#Saver"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.save.Saver" title="Permalink to this definition">¶</a></dt>
 <dd><p>A class for saving DataFrames with molecules to different file types.</p>
-<p>Create a Saver object with following parameters:</p>
+<p>Create a Saver object with below parameters.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The reason I have a class for this is because I wanted to avoid at lot of redundant code. But a class is not that perfect if one Saver object has to instanciated everytime. As a work-around, I also added a save function using this class.</p>
+</div>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -222,7 +226,7 @@ on disk.</p>
 <dt id="npfc.save.save">
 <code class="descclassname">npfc.save.</code><code class="descname">save</code><span class="sig-paren">(</span><em>df</em>, <em>output_file</em>, <em>shuffle=False</em>, <em>random_seed=None</em>, <em>chunk_size=None</em>, <em>encode_mols=True</em>, <em>col_mol='mol'</em>, <em>col_id='idm'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/save.html#save"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.save.save" title="Permalink to this definition">¶</a></dt>
 <dd><p>A method for saving DataFrames with molecules to different file types.
-This is handy way of using the Saver class without having to keep a Saver object</p>
+This is handy way of using the Saver class without having to keep a Saver object.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">I did this because it was the most easiest way, I guess I’ll have to investigate class methods for a better implementation.</p>
