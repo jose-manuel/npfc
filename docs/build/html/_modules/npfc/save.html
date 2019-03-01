@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.save &mdash; npfc 0.0.1-11-g199cac9 documentation</title>
+  <title>npfc.save &mdash; npfc 0.0.1-12-g9568e0c documentation</title>
   
 
   
@@ -56,7 +56,7 @@
             
             
               <div class="version">
-                0.0.1-11-g199cac9
+                0.0.1-12-g9568e0c
               </div>
             
           
@@ -151,7 +151,16 @@
 <span class="sd">Module save</span>
 <span class="sd">================</span>
 <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1"># standard</span>
+<span class="kn">import</span> <span class="nn">base64</span>
+<span class="c1"># chemoinformatics</span>
+<span class="kn">from</span> <span class="nn">rdkit</span> <span class="k">import</span> <span class="n">Chem</span>
+<span class="kn">from</span> <span class="nn">rdkit.Chem</span> <span class="k">import</span> <span class="n">Mol</span>
+<span class="c1"># dev</span>
 <span class="kn">from</span> <span class="nn">npfc</span> <span class="k">import</span> <span class="n">utils</span>
+
+<span class="c1"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ CLASSES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#</span>
 
 
 <div class="viewcode-block" id="Saver"><a class="viewcode-back" href="../../save.html#npfc.save.Saver">[docs]</a><span class="k">class</span> <span class="nc">Saver</span><span class="p">:</span>
@@ -219,7 +228,18 @@
 
     <span class="nd">@col_mol</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span> <span class="nf">col_mol</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_col_mol</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_col_mol</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Saver.encode_mol"><a class="viewcode-back" href="../../save.html#npfc.save.Saver.encode_mol">[docs]</a>    <span class="k">def</span> <span class="nf">encode_mol</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mol</span><span class="p">:</span> <span class="n">Mol</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Convert a molecule to binary and then represent this binary as base64 string.</span>
+
+<span class="sd">        :param mol: the input molecule</span>
+<span class="sd">        :return: the molecule in base64</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64encode</span><span class="p">(</span><span class="n">mol</span><span class="o">.</span><span class="n">ToBinary</span><span class="p">())</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span></div></div>
 </pre></div>
 
            </div>

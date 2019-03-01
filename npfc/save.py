@@ -5,6 +5,8 @@ Module save
 
 # standard
 import base64
+# data science
+import pandas as pd
 # chemoinformatics
 from rdkit import Chem
 from rdkit.Chem import Mol
@@ -91,3 +93,8 @@ class Saver:
             return base64.b64encode(mol.ToBinary()).decode()
         except AttributeError:
             return None
+
+    def save(self, df: pd.DataFrame, output_file: str):
+        """
+        """
+        pass

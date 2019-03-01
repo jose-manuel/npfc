@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.utils &mdash; npfc 0.0.1-11-g199cac9 documentation</title>
+  <title>npfc.utils &mdash; npfc 0.0.1-12-g9568e0c documentation</title>
   
 
   
@@ -56,7 +56,7 @@
             
             
               <div class="version">
-                0.0.1-11-g199cac9
+                0.0.1-12-g9568e0c
               </div>
             
           
@@ -154,6 +154,7 @@
 
 <span class="c1"># standard</span>
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="k">import</span> <span class="n">Path</span>
+<span class="c1"># docstrings</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">Union</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">List</span>
 
@@ -195,10 +196,10 @@
 <span class="sd">    The extension follows the syntax of the Path().suffixes methods, so &#39;file.csv&#39; would be [&#39;.csv&#39;]</span>
 <span class="sd">    and &#39;file.csv.gz&#39; would be [&#39;.csv&#39;, &#39;.gz&#39;].</span>
 
+<span class="sd">    .. note:: It might look weird to specify input_format as a list of string instead of a single string (i.e. &#39;.csv.gz&#39; instead of [&#39;.csv&#39;, &#39;.gz&#39;]). I don&#39;t convert them to strings because I have to use first extension to know the output format and second for the compression type.</span>
+
 <span class="sd">    :param input_file: the input file</span>
 <span class="sd">    :param input_format: the expected format of the input file</span>
-
-<span class="sd">    .. note:: It might look weird to specify input_format as a list of string instead of a single string (i.e. &#39;.csv.gz&#39; instead of [&#39;.csv&#39;, &#39;.gz&#39;]). I don&#39;t convert them to strings because I have to use first extension to know the output format and second for the compression type.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">path_input_file</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">input_file</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">path_input_file</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
