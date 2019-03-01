@@ -117,6 +117,8 @@ The script commit provides an useful interface for committing changes as it auto
     6) install it locally
     7) send the archive to the cluster.
 
+Also, the atom plugin git-log can be summoned with ctrl+shift+p to visualize the history of versions.
+
 
 ## Stuff to think about
 
