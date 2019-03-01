@@ -48,8 +48,8 @@ def decode_mol_base64(string: str) -> Mol:
 def from_pgsql(dbname: str,
                user: str,
                psql: str,
-               db_id: str,
-               db_mol: str,
+               src_id: str,
+               src_mol: str,
                mol_format: str = None,
                col_mol: str = 'mol',
                col_id: str = 'idm',
@@ -65,14 +65,14 @@ def from_pgsql(dbname: str,
     :param pgsql: the posgresql statement to execute
     :param mol_format: the molecular format to use to parse the molecules. If none is specified then no parsing is performed. Currently only molblock and smiles are allowed
     :param col_mol: the column with the molecules to parse
-    :param keep_db_cols: keep db_id and db_mol columns in output DataFrame. This does not impact any other column extracted from the psql query
+    :param keep_db_cols: keep src_id and src_mol columns in output DataFrame. This does not impact any other column extracted from the psql query
     :return: a DataFrame with Mol objects
     """
-    logging.debug(f"Retrieving data from dbname={dbname} wiht user={user} with psql:\n{psql}\nwith db_id={db_id}, db_mol={db_mol}, col_mol={col_mol}, col_id={col_id} and keep_db_cols={keep_db_cols}\n")
+    logging.debug(f"Retrieving data from dbname={dbname} wiht user={user} with psql:\n{psql}\nwith src_id={src_id}, src_mol={src_mol}, col_mol={col_mol}, col_id={col_id} and keep_db_cols={keep_db_cols}\n")
     if mol_format not in ('molblock', 'smiles', None):
         raise ValueError(f"Format '{mol_format}' is currently not supported. Please use either 'molblock' or 'sdf'.")
-    if db_id is None:
-        raise ValueError(f"db_id needs to be defined but values None.")
+    if src_id is None:
+        raise ValueError(f"src_id needs to be defined but values None.")
     # establish connection
     conn = psycopg2.connect(dbname=dbname, user=user)
     cur = conn.cursor()
@@ -84,21 +84,21 @@ def from_pgsql(dbname: str,
     df.columns = [c[0] for c in cur.description]
     # check for columns
     if mol_format is not None:
-        if db_mol not in df.columns:
-            raise ValueError(f"db_mol '{db_mol}' could not be found in pgsql query results.\nAvailable columns are: {list(df.columns.values)}")
+        if src_mol not in df.columns:
+            raise ValueError(f"src_mol '{src_mol}' could not be found in pgsql query results.\nAvailable columns are: {list(df.columns.values)}")
         # convert mol_col to RDKit
-        df[col_mol] = df[db_mol].map(CONVERTERS[mol_format])
+        df[col_mol] = df[src_mol].map(CONVERTERS[mol_format])
 
     # cleaning up
-    if col_id != db_id:
-        df[col_id] = df[db_id]
+    if col_id != src_id:
+        df[col_id] = df[src_id]
     if not keep_db_cols:
-        df.drop([db_id, db_mol], axis=1, inplace=True)
+        df.drop([src_id, src_mol], axis=1, inplace=True)
 
     return df
 
 
-def from_sdf(input_sdf: str, id_sdf: str = '_Name',
+def from_sdf(input_sdf: str, src_id: str = '_Name',
              col_id: str = 'idm',  col_mol: str = 'mol',
              keep_props: bool = True, cols_list: List[str] = []) -> pd.DataFrame:
     """Load molecules from a SDF file.
@@ -107,8 +107,10 @@ def from_sdf(input_sdf: str, id_sdf: str = '_Name',
     without parsing to retrieve all properties and then with parsing to retrieve
     the molecular structure, if possible.
 
+    .. note:: If keep_props is set to True, then only the last molecule is used for determing what properties should be retrieved. This could be an issue if the input SDF has unconsistent properties.
+
     :param input_sdf: the input sdf filename
-    :param id_sdf: the SDF property to use for defining the col_id
+    :param src_id: the SDF property to use for defining the col_id
     :param col_id: the column to use to generate the 'idm' column, used as single identifier
     :param keep_props: keep all properties found in the SDF. If set to False, then only 'idm' and 'mol' columns are present in the DataFrame
     :return: a DataFrame with Mol objects
@@ -130,12 +132,13 @@ def from_sdf(input_sdf: str, id_sdf: str = '_Name',
             row['_Name'] = mol_raw.GetProp('_Name')
         else:
             row['_Name'] = f'NONAME_{i}'
-
+        # mol
         row[col_mol] = mol
+        # src_id
         try:
-            row[col_id] = row[id_sdf]
+            row[col_id] = row[src_id]
         except KeyError:
-            logging.warning(f"No property {id_sdf} could be found for record #{i}, setting {col_id} to 'NOID_{i}'")
+            logging.warning(f"No property {src_id} could be found for record #{i}, setting {col_id} to 'NOID_{i}'")
             row[col_id] = f"NOID_{i}"
         # delete properties
         if not keep_props:
@@ -147,7 +150,7 @@ def from_sdf(input_sdf: str, id_sdf: str = '_Name',
         rows.append(row)
         row_idx.append(i)
         i += 1
-    df = pd.DataFrame(rows, index=row_idx)
+    df = pd.DataFrame(rows, index=row_idx, columns=[col_mol, col_id] + [k for k in row.keys() if k not in (col_mol, col_id)])
     # restaure list format
     if len(cols_list) > 0:
         for c in cols_list:
@@ -210,7 +213,7 @@ def from_csv(input_csv: str, decode_mols: bool = True,
         if col_mol not in df.columns:
             raise ValueError(f"col_mol {col_mol} could not be found in DataFrame, available columns are: {list(df.columns.values)}")
         else:
-            df[col_mol] = df[col_mol].map(_decode_mol_base64)
+            df[col_mol] = df[col_mol].map(decode_mol_base64)
     # restaure list format
     if len(cols_list) > 0:
         for c in cols_list:

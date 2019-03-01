@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.load &mdash; npfc 0.0.3-5-g32ef7b3 documentation</title>
+  <title>npfc.load &mdash; npfc 0.0.3-6-g3bba647 documentation</title>
   
 
   
@@ -56,7 +56,7 @@
             
             
               <div class="version">
-                0.0.3-5-g32ef7b3
+                0.0.3-6-g3bba647
               </div>
             
           
@@ -216,7 +216,7 @@
 <span class="sd">    :param mol_format: the molecular format to use to parse the molecules. If none is specified then no parsing is performed. Currently only molblock and smiles are allowed</span>
 <span class="sd">    :param col_mol: the column with the molecules to parse</span>
 <span class="sd">    :param keep_db_cols: keep db_id and db_mol columns in output DataFrame. This does not impact any other column extracted from the psql query</span>
-<span class="sd">    :return: the output DataFrame containing molecules as RDKit Mol objects</span>
+<span class="sd">    :return: a DataFrame with Mol objects</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Retrieving data from dbname=</span><span class="si">{dbname}</span><span class="s2"> wiht user=</span><span class="si">{user}</span><span class="s2"> with psql:</span><span class="se">\n</span><span class="si">{psql}</span><span class="se">\n</span><span class="s2">with db_id=</span><span class="si">{db_id}</span><span class="s2">, db_mol=</span><span class="si">{db_mol}</span><span class="s2">, col_mol=</span><span class="si">{col_mol}</span><span class="s2">, col_id=</span><span class="si">{col_id}</span><span class="s2"> and keep_db_cols=</span><span class="si">{keep_db_cols}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">mol_format</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;molblock&#39;</span><span class="p">,</span> <span class="s1">&#39;smiles&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
@@ -261,7 +261,7 @@
 <span class="sd">    :param id_sdf: the SDF property to use for defining the col_id</span>
 <span class="sd">    :param col_id: the column to use to generate the &#39;idm&#39; column, used as single identifier</span>
 <span class="sd">    :param keep_props: keep all properties found in the SDF. If set to False, then only &#39;idm&#39; and &#39;mol&#39; columns are present in the DataFrame</span>
-<span class="sd">    :return: the output DataFrame containing molecules as RDKit Mol objects</span>
+<span class="sd">    :return: a DataFrame with Mol objects</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Checking if input_sdf exists at </span><span class="si">{input_sdf}</span><span class="s2">&quot;</span><span class="p">)</span>
     <span class="c1"># check for filename</span>
@@ -314,7 +314,7 @@
 <span class="sd">    :param input_hdf: the input hdf filename</span>
 <span class="sd">    :param decode_mols: use base64 to decode molecules encoded as strings</span>
 <span class="sd">    :param col_mol: the DataFrame column name where molecules are stored</span>
-<span class="sd">    :return: the output DataFrame</span>
+<span class="sd">    :return: a DataFrame with Mol objects</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># check for filename</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Checking if input_hdf exists at </span><span class="si">{input_hdf}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -346,7 +346,7 @@
 <span class="sd">    :param input_csv: the input hdf filename</span>
 <span class="sd">    :param decode_mols: use base64 to decode molecules encoded as strings</span>
 <span class="sd">    :param col_mol: the DataFrame column name where molecules are stored</span>
-<span class="sd">    :return: the output DataFrame</span>
+<span class="sd">    :return: a DataFrame with Mol objects</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># check for filename</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Checking if input_hdf exists at </span><span class="si">{input_csv}</span><span class="s2">&quot;</span><span class="p">)</span>
