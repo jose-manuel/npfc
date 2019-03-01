@@ -33,7 +33,12 @@ CONVERTERS = {'molblock': lambda x: Chem.MolFromMolBlock(x),
 
 
 def decode_mol_base64(string: str) -> Mol:
-    """Convert a string to a RDKit Mol object."""
+    """Convert a string to a RDKit Mol object.
+
+    :param string: a string with a Mol object in bytes with a base64 string representation
+    :return: a RDKit Mol object upon success, None otherwise
+
+    """
     try:
         return Chem.Mol(base64.b64decode(string))
     except TypeError:
@@ -61,7 +66,7 @@ def from_pgsql(dbname: str,
     :param mol_format: the molecular format to use to parse the molecules. If none is specified then no parsing is performed. Currently only molblock and smiles are allowed
     :param col_mol: the column with the molecules to parse
     :param keep_db_cols: keep db_id and db_mol columns in output DataFrame. This does not impact any other column extracted from the psql query
-    :return df: the output DataFrame containing molecules as RDKit Mol objects
+    :return: the output DataFrame containing molecules as RDKit Mol objects
     """
     logging.debug(f"Retrieving data from dbname={dbname} wiht user={user} with psql:\n{psql}\nwith db_id={db_id}, db_mol={db_mol}, col_mol={col_mol}, col_id={col_id} and keep_db_cols={keep_db_cols}\n")
     if mol_format not in ('molblock', 'smiles', None):
@@ -106,7 +111,7 @@ def from_sdf(input_sdf: str, id_sdf: str = '_Name',
     :param id_sdf: the SDF property to use for defining the col_id
     :param col_id: the column to use to generate the 'idm' column, used as single identifier
     :param keep_props: keep all properties found in the SDF. If set to False, then only 'idm' and 'mol' columns are present in the DataFrame
-    :return df: the output DataFrame containing molecules as RDKit Mol objects
+    :return: the output DataFrame containing molecules as RDKit Mol objects
     """
     logging.debug(f"Checking if input_sdf exists at {input_sdf}")
     # check for filename
@@ -159,7 +164,7 @@ def from_hdf(input_hdf: str, decode_mols: bool = True, col_mol: str = 'mol')-> p
     :param input_hdf: the input hdf filename
     :param decode_mols: use base64 to decode molecules encoded as strings
     :param col_mol: the DataFrame column name where molecules are stored
-    :return df: the output DataFrame
+    :return: the output DataFrame
     """
     # check for filename
     logging.debug(f"Checking if input_hdf exists at {input_hdf}")
@@ -191,7 +196,7 @@ def from_csv(input_csv: str, decode_mols: bool = True,
     :param input_csv: the input hdf filename
     :param decode_mols: use base64 to decode molecules encoded as strings
     :param col_mol: the DataFrame column name where molecules are stored
-    :return df: the output DataFrame
+    :return: the output DataFrame
     """
     # check for filename
     logging.debug(f"Checking if input_hdf exists at {input_csv}")
