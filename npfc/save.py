@@ -26,3 +26,47 @@ class Saver:
         self._chunk_size = chunk_size
         self._encode_mols = encode_mols
         self._col_mol = col_mol
+
+    @property
+    def shuffle(self):
+        return self._shuffle
+
+    @shuffle.setter
+    def shuffle(self, value: bool):
+        self._shuffle = value
+
+    @property
+    def random_seed(self):
+        return self._random_seed
+
+    @random_seed.setter
+    def random_seed(self, value: int = None):
+        if type(value) is not None and value < 1:
+            raise ValueError(f"Error! A positive value was expected for setting random_seed, but got '{value}'")
+        self._random_seed = value
+
+    @property
+    def chunk_size(self):
+        return self._chunk_size
+
+    @chunk_size.setter
+    def chunk_size(self, value: int = None):
+        if type(value) is not None and value < 1:
+            raise ValueError(f"Error! A positive value was expected for setting chunk_size, but got '{value}'")
+        self._random_seed = value
+
+    @property
+    def encode_mols(self):
+        return self._encode_mols
+
+    @encode_mols.setter
+    def encode_mols(self, value):
+        self._encode_mols = value
+
+    @property
+    def col_mol(self):
+        return self._col_mol
+
+    @col_mol.setter
+    def col_mol(self, value: str):
+        self._col_mol = str(value)
