@@ -97,8 +97,8 @@ Then open the file docs/build/index.rst with firefox and enjoy!
 
 ## Manage package version
 
-The package version is deduced from the latest git tag. If commits were pushed without
-any bump in version, then a suffix is added to the version number (i.e.e 0.0.20-4-g1ac82ee).
+Use the command commit found in bin folder. If commits were pushed without any
+bump in version, then a suffix is added to the version number (i.e.e 0.0.20-4-g1ac82ee).
 The setup.py extracts the version tag from the git repo and the init.py defines the
 package version using the setup.py file.
 
