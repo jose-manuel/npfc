@@ -15,6 +15,7 @@ from rdkit.Chem import Mol
 from rdkit.Chem import PandasTools
 # docs
 from typing import List
+from typing import Union
 # dev
 from npfc import utils
 
@@ -128,7 +129,7 @@ class Saver:
         else:
             raise ValueError(f"Error! Cannot save DataFrame to unexpected format '{suffixes[0]}'.")
 
-    def save(self, df: pd.DataFrame, output_file: str) -> List[List[str, int]]:
+    def save(self, df: pd.DataFrame, output_file: str) -> List[List[Union[str, int]]]:
         """Save the input DataFrame on disk using Saver object parameters.
 
         :param df: the input DataFrame
