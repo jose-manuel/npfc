@@ -36,7 +36,7 @@ def decode_mol_base64(string: str) -> Mol:
     """Convert a string to a RDKit Mol object.
 
     :param string: a string with a Mol object in bytes with a base64 string representation
-    :return: a RDKit Mol object upon success, None otherwise
+    :return: a Mol object upon success, None otherwise
 
     """
     try:
@@ -45,14 +45,10 @@ def decode_mol_base64(string: str) -> Mol:
         return None
 
 
-def from_pgsql(dbname: str,
-               user: str,
-               psql: str,
-               src_id: str,
-               src_mol: str,
-               mol_format: str = None,
-               col_mol: str = 'mol',
-               col_id: str = 'idm',
+def from_pgsql(dbname: str, user: str,
+               psql: str, src_id: str,
+               src_mol: str, mol_format: str = None,
+               col_mol: str = 'mol', col_id: str = 'idm',
                keep_db_cols: bool = False) -> pd.DataFrame:
     """Load molecules from a PGSQL query.
     The col_mol will is parsed by RDKit depending on the mol_format argument.
@@ -107,7 +103,7 @@ def from_sdf(input_sdf: str, src_id: str = '_Name',
     without parsing to retrieve all properties and then with parsing to retrieve
     the molecular structure, if possible.
 
-    .. note:: If keep_props is set to True, then only the last molecule is used for determing what properties should be retrieved. This could be an issue if the input SDF has unconsistent properties.
+    .. warning:: If keep_props is set to True, then only the last molecule is used for determing what properties should be retrieved. This could be an issue if the input SDF has unconsistent properties.
 
     :param input_sdf: the input sdf filename
     :param src_id: the SDF property to use for defining the col_id
