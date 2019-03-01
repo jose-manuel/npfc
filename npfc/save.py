@@ -20,6 +20,22 @@ from typing import List
 # dev
 from npfc import utils
 
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
+def encode_mol(mol: Mol) -> str:
+    """Convert a molecule to binary and then represent this binary as base64 string.
+
+    :param mol: the input molecule
+    :return: the molecule in base64
+    """
+    try:
+        return base64.b64encode(mol.ToBinary()).decode()
+    except AttributeError:
+        return None
+
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ CLASSES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 
@@ -100,17 +116,6 @@ class Saver:
     def col_id(self, value: str):
         self._col_id = str(value)
 
-    def encode_mol(self, mol: Mol) -> str:
-        """Convert a molecule to binary and then represent this binary as base64 string.
-
-        :param mol: the input molecule
-        :return: the molecule in base64
-        """
-        try:
-            return base64.b64encode(mol.ToBinary()).decode()
-        except AttributeError:
-            return None
-
     def _save(self, df: pd.DataFrame, output_file: str, suffixes: List[str], key: str, sep: str):
         """Helper function for the save method.
         Does the actual export to the output file and picks a format based on provided infos.
@@ -154,7 +159,7 @@ class Saver:
             df = df.sample(frac=1, random_state=self.random_seed)
         # encode molecules
         if self.encode_mols and ext_output_file[0] != '.sdf':
-            df[self.col_mol] = df[self.col_mol].map(self.encode_mol)
+            df[self.col_mol] = df[self.col_mol].map(encode_mol)
         # chunking
         if self.chunk_size is None:
             # single output
