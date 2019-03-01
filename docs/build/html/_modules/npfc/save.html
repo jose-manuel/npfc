@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.save &mdash; npfc 0.0.2 documentation</title>
+  <title>npfc.save &mdash; npfc 0.0.2-1-g74b0ff4 documentation</title>
   
 
   
@@ -56,7 +56,7 @@
             
             
               <div class="version">
-                0.0.2
+                0.0.2-1-g74b0ff4
               </div>
             
           
@@ -82,6 +82,7 @@
             
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../save.html">Module save</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../utils.html">Module utils</a></li>
 </ul>
 
@@ -152,12 +153,18 @@
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="c1"># standard</span>
+<span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">base64</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="k">import</span> <span class="n">Path</span>
 <span class="c1"># data science</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 <span class="c1"># chemoinformatics</span>
 <span class="kn">from</span> <span class="nn">rdkit</span> <span class="k">import</span> <span class="n">Chem</span>
 <span class="kn">from</span> <span class="nn">rdkit.Chem</span> <span class="k">import</span> <span class="n">Mol</span>
+<span class="kn">from</span> <span class="nn">rdkit.Chem</span> <span class="k">import</span> <span class="n">PandasTools</span>
+<span class="c1"># docs</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">List</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">Union</span>
 <span class="c1"># dev</span>
 <span class="kn">from</span> <span class="nn">npfc</span> <span class="k">import</span> <span class="n">utils</span>
 
@@ -172,7 +179,8 @@
                  <span class="n">random_seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                  <span class="n">chunk_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                  <span class="n">encode_mols</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-                 <span class="n">col_mol</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;mol&#39;</span><span class="p">):</span>
+                 <span class="n">col_mol</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;mol&#39;</span><span class="p">,</span>
+                 <span class="n">col_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;idm&#39;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Create a Saver object with following parameters:</span>
 
 <span class="sd">        :param shuffle: randomize records</span>
@@ -186,6 +194,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_chunk_size</span> <span class="o">=</span> <span class="n">chunk_size</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_encode_mols</span> <span class="o">=</span> <span class="n">encode_mols</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_col_mol</span> <span class="o">=</span> <span class="n">col_mol</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_col_id</span> <span class="o">=</span> <span class="n">col_id</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">shuffle</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -231,6 +240,14 @@
     <span class="k">def</span> <span class="nf">col_mol</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_col_mol</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
 
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">col_id</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_col_mol</span>
+
+    <span class="nd">@col_id</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">col_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_col_id</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
 <div class="viewcode-block" id="Saver.encode_mol"><a class="viewcode-back" href="../../save.html#npfc.save.Saver.encode_mol">[docs]</a>    <span class="k">def</span> <span class="nf">encode_mol</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mol</span><span class="p">:</span> <span class="n">Mol</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Convert a molecule to binary and then represent this binary as base64 string.</span>
 
@@ -242,13 +259,63 @@
         <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span></div>
 
-<div class="viewcode-block" id="Saver.save"><a class="viewcode-back" href="../../save.html#npfc.save.Saver.save">[docs]</a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">output_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">_save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">output_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">suffixes</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">sep</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Helper function for the save method.</span>
+<span class="sd">        Does the actual export to the output file and picks a format based on provided infos.</span>
+
+<span class="sd">        :param df: the input DataFrame</span>
+<span class="sd">        :suffixes: the suffixes of the output file</span>
+<span class="sd">        :key: the key for a HDF file</span>
+<span class="sd">        :sep: the separator for a CSV file</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">suffixes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;.csv&#39;</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Saved {len(df.index)}&quot;</span><span class="p">)</span>
+            <span class="n">df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">output_file</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="n">sep</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">suffixes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;.hdf&#39;</span><span class="p">:</span>
+            <span class="n">df</span><span class="o">.</span><span class="n">to_hdf</span><span class="p">(</span><span class="n">output_file</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">key</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">suffixes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;.sdf&#39;</span><span class="p">:</span>
+            <span class="n">PandasTools</span><span class="o">.</span><span class="n">WriteSDF</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">output_file</span><span class="p">,</span> <span class="n">molColName</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">col_mol</span><span class="p">,</span> <span class="n">idName</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">col_id</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Error! Cannot save DataFrame to unexpected format &#39;</span><span class="si">{suffixes[0]}</span><span class="s2">&#39;.&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Saver.save"><a class="viewcode-back" href="../../save.html#npfc.save.Saver.save">[docs]</a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span> <span class="n">output_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]]:</span>
+        <span class="sd">&quot;&quot;&quot;Save the input DataFrame on disk using Saver object parameters.</span>
+
+<span class="sd">        :param df: the input DataFrame</span>
+<span class="sd">        :output_file: the target file</span>
+<span class="sd">        :return: the list of output files with their number of records</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># check output_file</span>
         <span class="n">utils</span><span class="o">.</span><span class="n">check_arg_output_file</span><span class="p">(</span><span class="n">output_file</span><span class="p">)</span>
-
-        <span class="k">pass</span></div></div>
+        <span class="c1"># init</span>
+        <span class="n">path_output_file</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">output_file</span><span class="p">)</span>
+        <span class="n">ext_output_file</span> <span class="o">=</span> <span class="n">path_output_file</span><span class="o">.</span><span class="n">suffixes</span>
+        <span class="n">output_dir</span> <span class="o">=</span> <span class="n">path_output_file</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="o">.</span><span class="n">parent</span>
+        <span class="n">output_files</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c1"># avoid pandas warnings</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="c1"># shuffle</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">shuffle</span><span class="p">:</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">frac</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">random_seed</span><span class="p">)</span>
+        <span class="c1"># encode molecules</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">encode_mols</span><span class="p">:</span>
+            <span class="n">df</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">col_mol</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">col_mol</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">encode_mol_base64</span><span class="p">)</span>
+        <span class="c1"># chunking</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">chunk_size</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># single output</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_save</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">output_file</span><span class="p">,</span> <span class="n">suffixes</span><span class="o">=</span><span class="n">ext_output_file</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">path_output_file</span><span class="o">.</span><span class="n">stem</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;|&#39;</span><span class="p">)</span>
+            <span class="n">output_files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">output_file</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="p">))</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Saved {len(df.index)} records to &#39;</span><span class="si">{output_file}</span><span class="s2">&#39;.&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># chunks</span>
+            <span class="n">start</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">j</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">start</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">chunk_size</span><span class="p">):</span>
+                <span class="n">end</span> <span class="o">=</span> <span class="n">start</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">chunk_size</span>
+                <span class="n">output_chunk</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">output_dir</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span> <span class="o">+</span> <span class="n">output_file</span><span class="o">.</span><span class="n">stem</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">j</span><span class="p">)</span><span class="o">.</span><span class="n">zfill</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ext_output_file</span><span class="p">)</span>
+                <span class="n">output_files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_save</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">],</span> <span class="n">ext_output_file</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">output_chunk</span><span class="p">))</span>
+                <span class="n">j</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;{len(output_files)} chunks were created&quot;</span><span class="p">)</span></div></div>
 </pre></div>
 
            </div>

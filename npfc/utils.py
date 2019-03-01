@@ -8,7 +8,7 @@ import logging
 from pathlib import Path
 # docstrings
 from typing import Union
-
+from typing import List
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ GLOBALS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 
@@ -19,9 +19,10 @@ EXTS = [['.sdf'], ['.sdf', '.gz'], ['.sdf', '.zip'],
 
 # types
 Number = Union[int, float]
-
+Lists = List[List[Union[int, str]]]
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+
 
 def check_arg_bool(value: bool) -> bool:
     """Return True of the value is indeed a boolean, raise a TypeError otherwise.
