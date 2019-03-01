@@ -2,7 +2,16 @@
 Module save
 ================
 """
+
+# standard
+import base64
+# chemoinformatics
+from rdkit import Chem
+from rdkit.Chem import Mol
+# dev
 from npfc import utils
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ CLASSES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 
 
 class Saver:
@@ -71,3 +80,14 @@ class Saver:
     @col_mol.setter
     def col_mol(self, value: str):
         self._col_mol = str(value)
+
+    def encode_mol(self, mol: Mol) -> str:
+        """Convert a molecule to binary and then represent this binary as base64 string.
+
+        :param mol: the input molecule
+        :return: the molecule in base64
+        """
+        try:
+            return base64.b64encode(mol.ToBinary()).decode()
+        except AttributeError:
+            return None

@@ -18,8 +18,7 @@ available. Please have a look and enjoy, any feedback is welcome!
    :caption: Contents:
 
    save
-
-
+   utils
 
 Indices and tables
 ==================
