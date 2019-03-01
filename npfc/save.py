@@ -5,6 +5,7 @@ Module save
 
 
 class Saver:
+    """A class for saving DataFrames with molecules to different file types."""
 
     def __init__(self,
                  shuffle: bool = False,
@@ -12,6 +13,14 @@ class Saver:
                  chunk_size: int = None,
                  encode_mols: bool = True,
                  col_mol: str = 'mol'):
+        """Create a Saver object with following parameters:
+
+        :param shuffle: randomize records
+        :param random_seed: a number for reproducing the shuffling
+        :param chunk_size: the maximum number of records per chunk. If this value is unset, no chunking is performed, otherwise each chunk filename gets appended with a suffix: file_XXX.ext.
+        :param encode_mols: convert rdkit.Chem.Mol objects to base64 string representation. For HDF format, pandas stops complaining about PerformanceWarning, for csv molecules do not need to parsed again.
+        :param col_mol: if molecules need to be encoded, then the encoding is perfomed on this column.
+        """
         self._shuffle = shuffle
         self._random_seed = random_seed
         self._chunk_size = chunk_size
