@@ -8,6 +8,7 @@
 WD="/home/gally/Projects/NPFC/src"
 upgraded="false"
 install="false"
+regen_docs="false"
 send_to_gwdg="false"
 remote_compil_dir="/home/users/josemanuel.gally/npfc"
 
@@ -52,10 +53,11 @@ upgrade_version() {
 }
 
 ############################### PARSE ARGUMENTS ################################
-while getopts ":is" opt; do #
+while getopts ":isd" opt; do #
     case $opt in
         i) install="true";;
         s) install="true"; send_to_gwdg="true";;
+        d) regen_docs="true";;
         \?) echo "Invalid option: -$OPTARG" >&2 ; exit 1;;
         :)  echo "Option -$OPTARG requires an argument." >&2 ; exit 1;;
     esac
@@ -80,7 +82,6 @@ upgrade_version
 
 echo -e "\nCurrent version is now: '$new_version'\n"
 
-
 # install library
 if [[ $install = 'true' ]]; then
     # uninstall previous version
@@ -104,6 +105,11 @@ if [[ $install = 'true' ]]; then
     fi
     cd ..
 fi
+
+echo -e "\nRegenerating the docs...\n"
+cd docs
+make html
+cd ..
 
 ################################### END ########################################
 # exit code
