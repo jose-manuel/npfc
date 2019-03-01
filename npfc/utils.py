@@ -48,6 +48,8 @@ def check_arg_input_file(input_file: str, input_format: List[str] = None) -> boo
 
     :param input_file: the input file
     :param input_format: the expected format of the input file
+
+    .. note:: It might look weird to specify input_format as a list of string instead of a single string (i.e. '.csv.gz' instead of ['.csv', '.gz']). I don't convert them to strings because I have to use first extension to know the output format and second for the compression type.
     """
     path_input_file = Path(input_file)
     if not path_input_file.is_file():
