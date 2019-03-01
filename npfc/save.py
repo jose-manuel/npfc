@@ -144,13 +144,16 @@ class Saver:
         ext_output_file = path_output_file.suffixes
         output_dir = path_output_file.resolve().parent
         output_files = []
+        # for sdf, molecules cannot be encoded
+        if ext_output_file[0] == '.sdf' and self.encode_mols:
+            logging.warning(f"Format is SDF, so molecules are not encoded.")
         # avoid pandas warnings
         df = df.copy()
         # shuffle
         if self.shuffle:
             df = df.sample(frac=1, random_state=self.random_seed)
         # encode molecules
-        if self.encode_mols:
+        if self.encode_mols and ext_output_file[0] != '.sdf':
             df[self.col_mol] = df[self.col_mol].map(self.encode_mol)
         # chunking
         if self.chunk_size is None:

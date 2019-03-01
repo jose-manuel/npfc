@@ -69,7 +69,10 @@ def test_save_simple(saver, df_mols, output_file_prefix):
     # csv
     outputs_csv = saver.save(df_mols, output_file_prefix + '_simple.csv')
     assert Path(outputs_csv[0][0]).is_file() is True and outputs_csv[0][1] == 5
-#
+    # sdf
+    outputs_sdf = saver.save(df_mols, output_file_prefix + '_simple.sdf')
+    assert Path(outputs_sdf[0][0]).is_file() is True and outputs_sdf[0][1] == 5
+
 
 def test_save_chunks(saver, df_mols, output_file_prefix):
 
@@ -91,7 +94,7 @@ def test_save_chunks(saver, df_mols, output_file_prefix):
 def test_save_compressed(saver, df_mols, output_file_prefix):
     # test simple export but to an archive (for csv only)
     saver.chunk_size = None
-    outputs_csv_compressed = saver.save(df_mols, output_file_prefix + '.csv.gz')
-    assert Path(outputs_csv_compressed[0][0]).is_file() is True and outputs_csv_compressed[0][1] == 5
     outputs_csv_compressed = saver.save(df_mols, output_file_prefix + '.csv.zip')
+    assert Path(outputs_csv_compressed[0][0]).is_file() is True and outputs_csv_compressed[0][1] == 5
+    outputs_csv_compressed = saver.save(df_mols, output_file_prefix + '.sdf.gz')
     assert Path(outputs_csv_compressed[0][0]).is_file() is True and outputs_csv_compressed[0][1] == 5
