@@ -18,7 +18,7 @@ import pandas as pd
 from rdkit import Chem
 from rdkit.Chem import Mol
 # docs
-from type import List
+from typing import List
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ GLOBALS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
