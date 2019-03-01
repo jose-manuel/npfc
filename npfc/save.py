@@ -36,6 +36,38 @@ def encode_mol(mol: Mol) -> str:
         return None
 
 
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
+def save(df: pd.DataFrame, output_file: str,
+         shuffle: bool = False, random_seed: int = None,
+         chunk_size: int = None, encode_mols: bool = True,
+         col_mol: str = 'mol', col_id: str = 'idm')-> utils.Output_files:
+        """A method for saving DataFrames with molecules to different file types.
+        This is handy way of using the Saver class without having to keep a Saver object
+
+        .. note:: I did this because it was the most easiest way, I guess I'll have to investigate class methods for a better implementation.
+
+        :param df: the input DataFrame
+        :param output_file: the output file
+        :param shuffle: randomize records
+        :param random_seed: a number for reproducing the shuffling
+        :param chunk_size: the maximum number of records per chunk. If this value is unset, no chunking is performed, otherwise each chunk filename gets appended with a suffix: file_XXX.ext.
+        :param encode_mols: convert rdkit.Chem.Mol objects to base64 string representation. For HDF format, pandas stops complaining about PerformanceWarning, for csv molecules do not need to parsed again.
+        :param col_mol: if molecules need to be encoded, then the encoding is perfomed on this column.
+        :return: the list of output files with their number of records
+
+        """
+        s = Saver(shuffle=shuffle,
+                  random_seed=random_seed,
+                  chunk_size=chunk_size,
+                  encode_mols=encode_mols,
+                  col_mol=col_mol,
+                  col_id=col_id,
+                  )
+        return s.save(df, output_file)
+
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ CLASSES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 
