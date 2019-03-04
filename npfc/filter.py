@@ -15,8 +15,10 @@ from rdkit.Chem import rdMolDescriptors
 
 
 class Filter:
+    """A class for filtering molecules based on molecular descriptors."""
 
     def __init__(self):
+        """Create a Filter object with following descriptors:"""
         self.descriptors = {'hac': lambda x: x.GetNumAtoms(),
                             'molweight': lambda x: round(Descriptors.ExactMolWt(x), 4),
                             'nrings': lambda x: rdMolDescriptors.CalcNumRings(x),
