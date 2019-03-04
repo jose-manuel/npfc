@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Module standardize &mdash; npfc 0.0.5-10-gc38cb7a documentation</title>
+  <title>Module standardize &mdash; npfc 0.0.5-11-g03623e0 documentation</title>
   
 
   
@@ -58,7 +58,7 @@
             
             
               <div class="version">
-                0.0.5-10-gc38cb7a
+                0.0.5-11-g03623e0
               </div>
             
           
@@ -230,7 +230,7 @@
 <code class="descname">mark_dupl</code><span class="sig-paren">(</span><em>df</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#DuplicateFilter.mark_dupl"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.DuplicateFilter.mark_dupl" title="Permalink to this definition">¶</a></dt>
 <dd><p>Mark duplicate entries found in df or in ref. Designed to work from
 within Standardizer.run only as it updates columns ‘status’ and ‘task’ to
-respectively ‘filter’ and ‘filter_duplicates’. Might still be useful if exposed.</p>
+respectively ‘filtered’ and ‘filter_duplicates’. Might still be useful if exposed.</p>
 <p>Moreover, update the reference file (if specified) by using a lock (from utils module) so that
 no other processes can modify it at the same time. This enables a safe duplicate
 molecules filtering accross chunks without having to gather everything in a single file.</p>
@@ -300,7 +300,7 @@ on a protocol that the user can modify.</p>
 <p>By default this protocol consists in 12 tasks applied to each molecule invidually:</p>
 <blockquote>
 <div><ol class="arabic simple">
-<li><strong>sanitize</strong>: structural check to make sure molecules can be used safely</li>
+<li><strong>initiate_mol</strong>: check if the molecule passed the RDKit conversion</li>
 <li><strong>disconnect_metal</strong>: break bonds involving metallic atoms, resulting in potentially several molecules per structure.</li>
 <li><strong>keep_largest</strong>: retrieve only the largest molecule (molecular weight in Da) from a structure. Medchem elements are preferred over others, independant from size.</li>
 <li><strong>filter_hac</strong>: filter molecules with a heavy atom count not in the accepted range. By default: hac &gt; 3.</li>
@@ -319,47 +319,15 @@ on a protocol that the user can modify.</p>
 <blockquote>
 <div><ul class="simple">
 <li>the ‘mol’ column: updated structure (only for the protocol)</li>
-<li>the ‘status’ column: either standardized, filter or error.</li>
+<li>the ‘status’ column: either passed, filtered or error.</li>
 <li>the ‘task’ column: the latest task that was applied to the molecule.</li>
 </ul>
 </div></blockquote>
-<p>The global variable DESCRIPTORS contains keywords for computing descriptors used for filters.
-Although this could be expanded quite easily if needed, there is currently only four descriptors implemented:</p>
-<blockquote>
-<div><ul class="simple">
-<li>molweight: molecular weight (Da)</li>
-<li>hac: heavy atom count</li>
-<li>nrings: number of rings (Smallest Sets of Smallest Rings or SSSR)</li>
-<li>elements: atomic symbols</li>
-</ul>
-</div></blockquote>
-<p>Two different kind of operations can be defined:</p>
-<blockquote>
-<div><ul class="simple">
-<li>numeric: use of comparison operators such as &lt;, &gt;, &lt;=, &gt;=, == and != for numeric comparisons.</li>
-<li>set: use of ‘ in ‘ or ‘ not in ‘ (spaces are required!) for inclusions/exclusions.</li>
-</ul>
-</div></blockquote>
-<p>Examples of possible operations:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="s1">&#39;0 &lt; molweight &lt;= 1000.0&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="s1">&#39;hac &gt; 3&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="s1">&#39;nrings != 0&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="s1">&#39;elements in H,C,N,O&#39;</span>
-</pre></div>
-</div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">For now, the user can only change the task order and the values of filters, but it would be relatively easy to add more functionality.</p>
 </div>
 <div class="admonition-todo admonition" id="index-2">
-<p class="first admonition-title">Todo</p>
-<p class="last">Add an argument to specify a configuration file in json.</p>
-</div>
-<div class="admonition-todo admonition" id="index-3">
-<p class="first admonition-title">Todo</p>
-<p class="last">Rename standardized status to ready or passed, something shorter. Also filter should be filtered.</p>
-</div>
-<div class="admonition-todo admonition" id="index-4">
 <p class="first admonition-title">Todo</p>
 <p class="last">Check latest publication sent by Prof. H. Waldmann, there might be an open-source tool for deglycosylating structures, which could become a new task.</p>
 </div>
@@ -439,7 +407,7 @@ canonical tautomer enumeration, and stereochemistry centers unlabelling</p>
 <tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a></td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">three DataFrames separated by status:<ul class="simple">
-<li>standardized</li>
+<li>passed</li>
 <li>filtered</li>
 <li>error</li>
 </ul>

@@ -7,6 +7,7 @@ Tests for the standardize module.
 import pandas as pd
 # chemoinformatics
 from rdkit import Chem
+from rdkit import RDLogger
 from rdkit.Chem import rdinchi
 from rdkit.Chem.MolStandardize.metal import MetalDisconnector
 from rdkit.Chem.MolStandardize.normalize import Normalizer
@@ -17,6 +18,9 @@ from npfc.standardize import Standardizer
 from npfc.standardize import FullUncharger
 from npfc.standardize import DuplicateFilter
 
+# configure logging
+lg = RDLogger.logger()
+lg.setLevel(RDLogger.CRITICAL)
 # import logging
 # logging.basicConfig(level=logging.DEBUG)
 
@@ -207,3 +211,12 @@ def test_run_protocol(standardizer, mols, mols_bad):
     assert len(df_passed.index) == 11
     assert len(df_error.index) == 3
     assert len(df_filtered.index) == 8
+
+
+@pytest.mark.skip   # decorators are set only once, so the TIMEOUT value cannot be changed inside of the decorators. no idea for a work-around now so just skip the test as it is long.
+def test_standardizer_timeout(mols_timeout, standardizer_fast):
+    """Test if timeout is enforced and can be configured."""
+    mol, status, task = standardizer_fast.run(mols_timeout['timeout'])
+    assert isinstance(mol, Chem.Mol) is True
+    assert status == 'filtered'
+    assert task == 'timeout'
