@@ -1,0 +1,459 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>npfc.fragment &mdash; npfc 0.0.6-1-g6453e7b documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> npfc
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.0.6-1-g6453e7b
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../load.html">Module load</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../save.html">Module save</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../filter.html">Module filter</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../standardize.html">Module standardize</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../fragment.html">Module fragment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../utils.html">Module utils</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">npfc</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>npfc.fragment</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for npfc.fragment</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Module fragment</span>
+<span class="sd">===============</span>
+<span class="sd">This modules contains two classes:</span>
+
+<span class="sd">    - Matcher for substructure search</span>
+<span class="sd">    - Classifier for classifying fragment combinations</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1"># standard</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="k">import</span> <span class="n">product</span>
+<span class="c1"># data science</span>
+<span class="kn">from</span> <span class="nn">pandas</span> <span class="k">import</span> <span class="n">DataFrame</span>
+<span class="c1"># chemoinformatics</span>
+<span class="kn">from</span> <span class="nn">rdkit.Chem</span> <span class="k">import</span> <span class="n">Mol</span>
+<span class="kn">from</span> <span class="nn">rdkit.Chem</span> <span class="k">import</span> <span class="n">AllChem</span>
+
+<span class="c1"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ CLASSES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #</span>
+
+
+<div class="viewcode-block" id="Matcher"><a class="viewcode-back" href="../../fragment.html#npfc.fragment.Matcher">[docs]</a><span class="k">class</span> <span class="nc">Matcher</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Create a Matcher object.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+<div class="viewcode-block" id="Matcher.run"><a class="viewcode-back" href="../../fragment.html#npfc.fragment.Matcher.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df_mols</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">,</span> <span class="n">df_frags</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">,</span>
+            <span class="n">col_mol_mols</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;mol&#39;</span><span class="p">,</span> <span class="n">col_mol_frags</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;mol&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Create a DataFrame recording every substructure (fragment) match in the</span>
+<span class="sd">        input molecule DataFrame.</span>
+
+<span class="sd">        A record is composed of 4 fields:</span>
+
+<span class="sd">        1) idm: the id of the molecule (rowid from df_mols)</span>
+<span class="sd">        2) idf: the id of the fragment (rowid from df_frags)</span>
+<span class="sd">        3) aidxf: the atom indices of the fragment found in the molecule</span>
+<span class="sd">        4) mol_perc: the percentage of the molecule the fragment represents (based on hac)</span>
+
+<span class="sd">        :param df_mols: the input DataFrame with molecules</span>
+<span class="sd">        :param df_frags: the input DataFrame with fragments to use for substructure search</span>
+<span class="sd">        :param col_mol_frags: the input DataFrame column name with the fragments</span>
+<span class="sd">        :return: the substructure matches as a DataFrame</span>
+
+<span class="sd">        .. note:: Rowids labelled idm are used for recording of combinations: mols =&gt; idm, frags =&gt; idf</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># init</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">d</span><span class="p">[</span><span class="s1">&#39;idm&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">d</span><span class="p">[</span><span class="s1">&#39;idf&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">d</span><span class="p">[</span><span class="s1">&#39;aidxf&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">d</span><span class="p">[</span><span class="s1">&#39;mol_perc&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># proportion of the molecule the substructure represents</span>
+        <span class="c1"># begin</span>
+        <span class="k">for</span> <span class="n">idm</span><span class="p">,</span> <span class="n">rowm</span> <span class="ow">in</span> <span class="n">df_mols</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+            <span class="n">hac</span> <span class="o">=</span> <span class="n">rowm</span><span class="p">[</span><span class="n">col_mol_mols</span><span class="p">]</span><span class="o">.</span><span class="n">GetNumAtoms</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">idq</span><span class="p">,</span> <span class="n">rowq</span> <span class="ow">in</span> <span class="n">df_frags</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+                <span class="n">matches</span> <span class="o">=</span> <span class="n">rowm</span><span class="p">[</span><span class="n">col_mol_mols</span><span class="p">]</span><span class="o">.</span><span class="n">GetSubstructMatches</span><span class="p">(</span><span class="n">rowq</span><span class="p">[</span><span class="n">col_mol_frags</span><span class="p">])</span>
+                <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">matches</span><span class="p">:</span>
+                    <span class="n">d</span><span class="p">[</span><span class="s1">&#39;idm&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">idm</span><span class="p">)</span>
+                    <span class="n">d</span><span class="p">[</span><span class="s1">&#39;idf&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">idq</span><span class="p">)</span>
+                    <span class="n">d</span><span class="p">[</span><span class="s1">&#39;aidxf&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">m</span><span class="p">))</span>  <span class="c1"># set for intersections later</span>
+                    <span class="n">d</span><span class="p">[</span><span class="s1">&#39;mol_perc&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">m</span><span class="p">)</span><span class="o">/</span><span class="n">hac</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">DataFrame</span><span class="p">(</span><span class="n">d</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="CombinationClassifier"><a class="viewcode-back" href="../../fragment.html#npfc.fragment.CombinationClassifier">[docs]</a><span class="k">class</span> <span class="nc">CombinationClassifier</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;A class useful for classifying fragment combinations.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create an instance of FragmentCombinationClassifier.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="CombinationClassifier.get_rings_between_two_fragments"><a class="viewcode-back" href="../../fragment.html#npfc.fragment.CombinationClassifier.get_rings_between_two_fragments">[docs]</a>    <span class="k">def</span> <span class="nf">get_rings_between_two_fragments</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mol</span><span class="p">:</span> <span class="n">Mol</span><span class="p">,</span> <span class="n">aidxf1</span><span class="p">:</span> <span class="nb">set</span><span class="p">,</span> <span class="n">aidxf2</span><span class="p">:</span> <span class="nb">set</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Returns the atom indices of every ring that connects two fragments together, defined by atom indices.</span>
+
+<span class="sd">        :param mol: the input molecule</span>
+<span class="sd">        :param aidxf1: the atom indices of the first fragment found in the molecule</span>
+<span class="sd">        :param aidxf2: the atom indices of the second fragment found in the molecule</span>
+<span class="sd">        :return: a list of intermediary rings between both fragments and defined by atom indices</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ri</span> <span class="o">=</span> <span class="n">mol</span><span class="o">.</span><span class="n">GetRingInfo</span><span class="p">()</span>
+        <span class="n">intermediary_rings</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">ar</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ri</span><span class="o">.</span><span class="n">AtomRings</span><span class="p">()):</span>
+            <span class="n">sar</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">ar</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">sar</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">aidxf1</span><span class="p">)</span> <span class="ow">and</span> <span class="n">sar</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">aidxf2</span><span class="p">):</span>
+                <span class="n">intermediary_rings</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sar</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">intermediary_rings</span></div>
+
+<div class="viewcode-block" id="CombinationClassifier.get_shortest_path_between_frags"><a class="viewcode-back" href="../../fragment.html#npfc.fragment.CombinationClassifier.get_shortest_path_between_frags">[docs]</a>    <span class="k">def</span> <span class="nf">get_shortest_path_between_frags</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mol</span><span class="p">:</span> <span class="n">Mol</span><span class="p">,</span> <span class="n">aidxf1</span><span class="p">:</span> <span class="nb">set</span><span class="p">,</span> <span class="n">aidxf2</span><span class="p">:</span> <span class="nb">set</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Return the shortest path within a molecule between two fragments defined by atom indices.</span>
+<span class="sd">        First and last atom indices are part of respectively fragment 1 and fragment 2, so they should not</span>
+<span class="sd">        be considered when estimating the distance between fragments.</span>
+
+<span class="sd">        (i.e. distance = len(shortest_path) - 2)</span>
+
+<span class="sd">        :param mol: The input molecule.</span>
+<span class="sd">        :param aidxf1: the atom indices of the first fragment found in the molecule</span>
+<span class="sd">        :param aidxf2: the atom indices of the second fragment found in the molecule</span>
+<span class="sd">        :return: the atom indices of the shortest path between both fragments. The first index is the attachment point from fragment 1 whereas the last index is the attachment point from fragment 2</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># 1/ compute every pairwise atom combination between both fragments</span>
+        <span class="n">pairwise_combinations</span> <span class="o">=</span> <span class="n">product</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">aidxf1</span><span class="p">),</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">aidxf2</span><span class="p">))</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;pairwise_combinations: </span><span class="si">{pairwise_combinations}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="c1"># 2/ for each of those, compute the shortest path possible</span>
+        <span class="n">all_paths</span> <span class="o">=</span> <span class="p">[</span><span class="n">AllChem</span><span class="o">.</span><span class="n">GetShortestPath</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">pc</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">pc</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="k">for</span> <span class="n">pc</span> <span class="ow">in</span> <span class="n">pairwise_combinations</span><span class="p">]</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;all_paths: </span><span class="si">{all_paths}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="c1"># 3/ return one of the shortest pathes</span>
+        <span class="k">return</span> <span class="nb">min</span><span class="p">(</span><span class="n">all_paths</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="CombinationClassifier.classify_fragment_combination"><a class="viewcode-back" href="../../fragment.html#npfc.fragment.CombinationClassifier.classify_fragment_combination">[docs]</a>    <span class="k">def</span> <span class="nf">classify_fragment_combination</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mol</span><span class="p">:</span> <span class="n">Mol</span><span class="p">,</span> <span class="n">aidxf1</span><span class="p">:</span> <span class="nb">set</span><span class="p">,</span> <span class="n">aidxf2</span><span class="p">:</span> <span class="nb">set</span><span class="p">,</span> <span class="n">cutoff</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Classify a fragment combination found in a molecule as a dictionary</span>
+<span class="sd">        with category, type and subtype values.</span>
+
+<span class="sd">        Possible classifications are:</span>
+
+<span class="sd">        - fusion</span>
+<span class="sd">            - spiro</span>
+<span class="sd">            - edge</span>
+<span class="sd">            - bridged</span>
+<span class="sd">            - unkown</span>
+<span class="sd">            - false_positive</span>
+<span class="sd">                - substructure</span>
+<span class="sd">        - connection</span>
+<span class="sd">            - monopodal</span>
+<span class="sd">            - bipodal</span>
+<span class="sd">                - spiro</span>
+<span class="sd">                - edge</span>
+<span class="sd">                - bridged</span>
+<span class="sd">            - tripodal</span>
+<span class="sd">                - spiro</span>
+<span class="sd">                - edge</span>
+<span class="sd">                - bridged</span>
+<span class="sd">            - unknown</span>
+<span class="sd">                - spiro</span>
+<span class="sd">                - edge (##TODO: find an example molecule for this!)</span>
+<span class="sd">                - bridged</span>
+<span class="sd">            - false_positive</span>
+<span class="sd">                - cutoff</span>
+
+<span class="sd">        :param mol: the input molecule</span>
+<span class="sd">        :param aidxf1: the atom indices of the first fragment found in the molecule</span>
+<span class="sd">        :param aidxf2: the atom indices of the second fragment found in the molecule</span>
+<span class="sd">        :return: the dictionary specifying fragment combination category, type and subtype</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;cuttoff: </span><span class="si">{cutoff}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="c1"># get atoms in common in fragment 1 and fragment 2</span>
+        <span class="n">aidx_fused</span> <span class="o">=</span> <span class="n">aidxf1</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">aidxf2</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;aidx_fused: </span><span class="si">{aidx_fused}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="c1"># in case of overlapping fragments in the queries, we get overlapping matches</span>
+        <span class="k">if</span> <span class="n">aidxf1</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="n">aidxf2</span><span class="p">)</span> <span class="ow">or</span> <span class="n">aidxf2</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="n">aidxf1</span><span class="p">):</span>
+            <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;category&#39;</span><span class="p">:</span> <span class="s1">&#39;fusion&#39;</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;false_positive&#39;</span><span class="p">,</span> <span class="s1">&#39;subtype&#39;</span><span class="p">:</span> <span class="s1">&#39;substructure&#39;</span><span class="p">}</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">aidx_fused</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">category</span> <span class="o">=</span> <span class="s1">&#39;fusion&#39;</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">aidx_fused</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;category&#39;</span><span class="p">:</span> <span class="n">category</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;spiro&#39;</span><span class="p">,</span> <span class="s1">&#39;subtype&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">}</span>
+            <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">aidx_fused</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;category&#39;</span><span class="p">:</span> <span class="n">category</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;edge&#39;</span><span class="p">,</span> <span class="s1">&#39;subtype&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">}</span>
+            <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">aidx_fused</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;category&#39;</span><span class="p">:</span> <span class="n">category</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;bridged&#39;</span><span class="p">,</span> <span class="s1">&#39;subtype&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">}</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">sssr</span> <span class="o">=</span> <span class="n">mol</span><span class="o">.</span><span class="n">GetRingInfo</span><span class="p">()</span><span class="o">.</span><span class="n">AtomRings</span><span class="p">()</span>  <span class="c1"># smallest sets of smallest rings</span>
+                <span class="k">for</span> <span class="n">aidxr</span> <span class="ow">in</span> <span class="n">sssr</span><span class="p">:</span>
+                    <span class="c1"># if at least one ring is completely present in the overlap between fragments,</span>
+                    <span class="c1"># then it&#39;s a false positive due to the fragments overlap qnd not a combination.</span>
+                    <span class="k">if</span> <span class="nb">set</span><span class="p">(</span><span class="n">aidxr</span><span class="p">)</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="n">aidx_fused</span><span class="p">):</span>
+                        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;category&#39;</span><span class="p">:</span> <span class="n">category</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;false_positive&#39;</span><span class="p">,</span> <span class="s1">&#39;subtype&#39;</span><span class="p">:</span> <span class="s1">&#39;overlap&#39;</span><span class="p">}</span>
+                <span class="c1"># something unknown with &gt; 3 fused atoms!</span>
+                <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;category&#39;</span><span class="p">:</span> <span class="n">category</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;unknown&#39;</span><span class="p">,</span> <span class="s1">&#39;subtype&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">}</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">category</span> <span class="o">=</span> <span class="s1">&#39;connection&#39;</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;category: </span><span class="si">{category}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">shortest_path_between_frags</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_shortest_path_between_frags</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">aidxf1</span><span class="p">,</span> <span class="n">aidxf2</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;shortest_path_between_frags: </span><span class="si">{shortest_path_between_frags}</span><span class="s2"> ({len(shortest_path_between_frags)})&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">shortest_path_between_frags</span><span class="p">)</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">&gt;</span> <span class="n">cutoff</span><span class="p">:</span>  <span class="c1"># begin and end atoms are in the shortest path but should not be considered for cutoff</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;shortest_path_between_frags is greater than cutoff ({len(shortest_path_between_frags) - 2} &gt; </span><span class="si">{cutoff}</span><span class="s2">)&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;category&#39;</span><span class="p">:</span> <span class="n">category</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;false_positive&#39;</span><span class="p">,</span> <span class="s1">&#39;subtype&#39;</span><span class="p">:</span> <span class="s1">&#39;cutoff&#39;</span><span class="p">}</span>
+            <span class="n">intermediary_rings</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_rings_between_two_fragments</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">aidxf1</span><span class="p">,</span> <span class="n">aidxf2</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">intermediary_rings</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;category&#39;</span><span class="p">:</span> <span class="n">category</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;monopodal&#39;</span><span class="p">,</span> <span class="s1">&#39;subtype&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">}</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">intermediary_rings</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_rings_between_two_fragments</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">aidxf1</span><span class="p">,</span> <span class="n">aidxf2</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">intermediary_rings</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="nb">type</span> <span class="o">=</span> <span class="s1">&#39;bipodal&#39;</span>  <span class="c1"># 1 intermediary ring, which are defined by intersection of aidx, so at least always 1 for each fragment!</span>
+                    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_fcc_subtype</span><span class="p">(</span><span class="n">category</span><span class="p">,</span> <span class="nb">type</span><span class="p">,</span> <span class="n">aidxf1</span><span class="p">,</span> <span class="n">aidxf2</span><span class="p">,</span> <span class="n">intermediary_rings</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">intermediary_rings</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                    <span class="nb">type</span> <span class="o">=</span> <span class="s1">&#39;tripodal&#39;</span>
+                    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_fcc_subtype</span><span class="p">(</span><span class="n">category</span><span class="p">,</span> <span class="nb">type</span><span class="p">,</span> <span class="n">aidxf1</span><span class="p">,</span> <span class="n">aidxf2</span><span class="p">,</span> <span class="n">intermediary_rings</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="nb">type</span> <span class="o">=</span> <span class="s1">&#39;unknown&#39;</span>
+                    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_fcc_subtype</span><span class="p">(</span><span class="n">category</span><span class="p">,</span> <span class="nb">type</span><span class="p">,</span> <span class="n">aidxf1</span><span class="p">,</span> <span class="n">aidxf2</span><span class="p">,</span> <span class="n">intermediary_rings</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_get_fcc_subtype</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">category</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">aidxf1</span><span class="p">:</span> <span class="nb">set</span><span class="p">,</span> <span class="n">aidxf2</span><span class="p">:</span> <span class="nb">set</span><span class="p">,</span> <span class="n">intermediary_rings</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Return the subtype (spiro, edge, bridged) for bipodal, tripodal and unknown connections.</span>
+
+<span class="sd">        :param category: the fragment combination category (connection)</span>
+<span class="sd">        :param type: the fragment combination type (bipodal, tripodal or unknown)</span>
+<span class="sd">        :param aidxf1: the atom indices of the first fragment found in the molecule</span>
+<span class="sd">        :param aidxf2: the atom indices of the second fragment found in the molecule</span>
+<span class="sd">        :param intermediary_rings: the list of intermediary rings between both fragments and defined by atom indices</span>
+<span class="sd">        :return: the dictionary specifying fragment combination category, type and subtype</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">ir</span> <span class="ow">in</span> <span class="n">intermediary_rings</span><span class="p">:</span>
+            <span class="n">intersect_1</span> <span class="o">=</span> <span class="n">ir</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">aidxf1</span><span class="p">)</span>
+            <span class="n">intersect_2</span> <span class="o">=</span> <span class="n">ir</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">aidxf2</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;ir:</span><span class="si">{ir}</span><span class="s2"> =&gt; intersect_1: </span><span class="si">{intersect_1}</span><span class="s2"> ({len(intersect_1)}), intersect_2: </span><span class="si">{intersect_2}</span><span class="s2"> ({len(intersect_2)})&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">intersect_1</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">intersect_2</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;category&#39;</span><span class="p">:</span> <span class="n">category</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="nb">type</span><span class="p">,</span> <span class="s1">&#39;subtype&#39;</span><span class="p">:</span> <span class="s1">&#39;spiro&#39;</span><span class="p">}</span>
+            <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">intersect_1</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">intersect_2</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;category&#39;</span><span class="p">:</span> <span class="n">category</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="nb">type</span><span class="p">,</span> <span class="s1">&#39;subtype&#39;</span><span class="p">:</span> <span class="s1">&#39;bridged&#39;</span><span class="p">}</span>
+            <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">intersect_1</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">3</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">intersect_2</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">3</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;category&#39;</span><span class="p">:</span> <span class="n">category</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="nb">type</span><span class="p">,</span> <span class="s1">&#39;subtype&#39;</span><span class="p">:</span> <span class="s1">&#39;unknown&#39;</span><span class="p">}</span>
+        <span class="c1"># edge otherwise</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;category&#39;</span><span class="p">:</span> <span class="n">category</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="nb">type</span><span class="p">,</span> <span class="s1">&#39;subtype&#39;</span><span class="p">:</span> <span class="s1">&#39;edge&#39;</span><span class="p">}</span>
+
+<div class="viewcode-block" id="CombinationClassifier.classify_fragment_combinations"><a class="viewcode-back" href="../../fragment.html#npfc.fragment.CombinationClassifier.classify_fragment_combinations">[docs]</a>    <span class="k">def</span> <span class="nf">classify_fragment_combinations</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df_mols</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">,</span> <span class="n">df_aidxf</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Return a DataFrame with all fragment combination categories for a given set of</span>
+<span class="sd">        molecules and fragment atom indices obtained by substructure search.</span>
+<span class="sd">        For more details about category, type and subtype, see doc in method classify_fragment_combination.</span>
+
+<span class="sd">        The output DataFrame contains 8 columns decribing each fragment combination:</span>
+
+<span class="sd">        1) idm: the id of the molecule</span>
+<span class="sd">        2) idf1: the id of fragment 1</span>
+<span class="sd">        3) idf2: the id of fragment 2</span>
+<span class="sd">        4) category</span>
+<span class="sd">        5) type</span>
+<span class="sd">        6) subtype</span>
+<span class="sd">        7) aidxf1: the atom indices of fragment 1 found in the molecule</span>
+<span class="sd">        8) aidxf2: the atom indices of fragment 2 found in the molecule</span>
+
+<span class="sd">        :param df_mols: the input DataFrame with molecules</span>
+<span class="sd">        :param df_aidxf: the input DataFrame with substructure matches</span>
+<span class="sd">        :return: a DataFrame with all fragment combination classifications</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ds_fcc</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">gid</span><span class="p">,</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">df_aidxf</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">&#39;idm&#39;</span><span class="p">):</span>
+            <span class="n">mol</span> <span class="o">=</span> <span class="n">df_mols</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">gid</span><span class="p">][</span><span class="s1">&#39;mol&#39;</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">g</span><span class="p">)):</span>
+                <span class="n">aidxf1</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s1">&#39;aidxf&#39;</span><span class="p">]</span>
+                <span class="n">idf1</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s1">&#39;idf&#39;</span><span class="p">]</span>
+                <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">g</span><span class="p">)):</span>
+                    <span class="n">aidxf2</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="s1">&#39;aidxf&#39;</span><span class="p">]</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Classifying m=</span><span class="si">{gid}</span><span class="s2">, f1=</span><span class="si">{idf1}</span><span class="s2">, f2=</span><span class="si">{g.iloc[j][&#39;idf&#39;]}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="n">d_fcc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">classify_fragment_combination</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">aidxf1</span><span class="p">,</span> <span class="n">aidxf2</span><span class="p">)</span>
+
+                    <span class="c1"># record fragment combination</span>
+                    <span class="n">d_fcc</span><span class="p">[</span><span class="s1">&#39;idm&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">gid</span>
+                    <span class="n">d_fcc</span><span class="p">[</span><span class="s1">&#39;idf1&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">idf1</span>
+                    <span class="n">d_fcc</span><span class="p">[</span><span class="s1">&#39;idf2&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="s1">&#39;idf&#39;</span><span class="p">]</span>
+                    <span class="n">d_fcc</span><span class="p">[</span><span class="s1">&#39;aidxf1&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">aidxf1</span>
+                    <span class="n">d_fcc</span><span class="p">[</span><span class="s1">&#39;aidxf2&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">aidxf2</span>
+                    <span class="n">ds_fcc</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d_fcc</span><span class="p">)</span>
+        <span class="c1"># dataframe with columns in given order</span>
+        <span class="k">return</span> <span class="n">DataFrame</span><span class="p">(</span><span class="n">ds_fcc</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;idm&#39;</span><span class="p">,</span> <span class="s1">&#39;idf1&#39;</span><span class="p">,</span> <span class="s1">&#39;idf2&#39;</span><span class="p">,</span> <span class="s1">&#39;category&#39;</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">,</span> <span class="s1">&#39;subtype&#39;</span><span class="p">,</span> <span class="s1">&#39;aidxf1&#39;</span><span class="p">,</span> <span class="s1">&#39;aidxf2&#39;</span><span class="p">])</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Dr. Jose-Manuel Gally
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../_static/language_data.js"></script>
+    
+
+  
+
+  <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

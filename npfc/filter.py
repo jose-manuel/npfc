@@ -14,6 +14,9 @@ from rdkit.Chem import Descriptors
 from rdkit.Chem import rdMolDescriptors
 
 
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ CLASSES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
 class Filter:
     """A class for filtering molecules based on molecular descriptors."""
 

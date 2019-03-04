@@ -21,6 +21,7 @@ available. Please have a look and enjoy, any feedback is welcome!
    save
    filter
    standardize
+   fragment
    utils
 
 Indices and tables
