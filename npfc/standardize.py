@@ -292,6 +292,7 @@ class Standardizer(Filter):
                  ):
         """Create a Standardizer object."""
         # normal attributes
+        self.elements_medchem = elements_medchem
         if protocol is None:
             self._protocol = {'tasks': ['sanitize',
                                         'disconnect_metal',
