@@ -4,12 +4,13 @@ Module standardize
 This modules is used to standardize molecules and molecular DataFrames.
 """
 
-# data handling
+# standard
 import logging
 import timeout_decorator
 import copy
 from pathlib import Path
 # data handling
+import json
 from itertools import chain
 import pandas as pd
 # chemoinformatics
@@ -326,10 +327,17 @@ class Standardizer(Filter):
 
     @protocol.setter
     def protocol(self, protocol):
-        if 'tasks' not in protocol.keys():
-            raise ValueError("invalid protocol format (no 'tasks' key found)")
-        elif not isinstance(protocol['tasks'], list) and not isinstance(protocol['tasks'], tuple):
-            raise ValueError("invalid protocol format ('tasks' key is neither list or tuple)")
+        # input is a json file => convert it to a dict
+        if isinstance(protocol, str):
+            utils.check_arg_input_file(protocol)
+            with open(protocol) as f:
+                protocol = json.load(f)
+        # input is a dict
+        if isinstance(protocol, dict):
+            if 'tasks' not in protocol.keys():
+                raise ValueError("invalid protocol format (no 'tasks' key found)")
+            elif not isinstance(protocol['tasks'], list) and not isinstance(protocol['tasks'], tuple):
+                raise ValueError("invalid protocol format ('tasks' key is neither list or tuple)")
         # update default protocol
         self._protocol.update(protocol)
 
