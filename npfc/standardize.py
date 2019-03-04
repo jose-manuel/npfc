@@ -291,6 +291,8 @@ class Standardizer(Filter):
                  elements_medchem={'H', 'C', 'N', 'O', 'F', 'P', 'S', 'Cl', 'Br', 'I'}
                  ):
         """Create a Standardizer object."""
+        # inherit Filter attributes
+        super(Standardizer, self).__init__()
         # normal attributes
         self.elements_medchem = elements_medchem
         if protocol is None:
