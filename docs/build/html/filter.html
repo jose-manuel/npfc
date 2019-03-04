@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Module filter &mdash; npfc 0.0.4-2-gc078728 documentation</title>
+  <title>Module filter &mdash; npfc 0.0.4-3-g1ec1499 documentation</title>
   
 
   
@@ -58,7 +58,7 @@
             
             
               <div class="version">
-                0.0.4-2-gc078728
+                0.0.4-3-g1ec1499
               </div>
             
           
@@ -156,6 +156,44 @@
 <h1>Module filter<a class="headerlink" href="#module-filter" title="Permalink to this headline">¶</a></h1>
 <p>This modules contains the class Filter, which is used to filter molecules using
 molecular descriptors.</p>
+<dl class="class">
+<dt id="npfc.filter.Filter">
+<em class="property">class </em><code class="descclassname">npfc.filter.</code><code class="descname">Filter</code><a class="reference internal" href="_modules/npfc/filter.html#Filter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.filter.Filter" title="Permalink to this definition">¶</a></dt>
+<dd><p>A class for filtering molecules based on molecular descriptors.</p>
+<p>Create a Filter object with following descriptors:</p>
+<dl class="method">
+<dt id="npfc.filter.Filter.filter_mol">
+<code class="descname">filter_mol</code><span class="sig-paren">(</span><em>mol</em>, <em>expr</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/filter.html#Filter.filter_mol"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.filter.Filter.filter_mol" title="Permalink to this definition">¶</a></dt>
+<dd><p>Filter a molecule based on an expression.
+Two types of expressions are currently supported:</p>
+<blockquote>
+<div><ul class="simple">
+<li>inclusion/exclusions: ‘elements not in C, N, O’, ‘elements in C, N, O’</li>
+<li>numeric: ‘hac &gt; 3’, ‘100.0 &lt; molweight &lt;= 1000.0’, ‘nrings’ != 0, ‘nrings == 0’</li>
+</ul>
+</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>mol</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Mol</span></code>) – the input molecule</li>
+<li><strong>expr</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the filter to apply</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">True if the molecule passes the filter, False otherwise</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 
 

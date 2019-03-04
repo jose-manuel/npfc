@@ -18,29 +18,31 @@ class Filter:
     """A class for filtering molecules based on molecular descriptors."""
 
     def __init__(self):
-        """Create a Filter object with following descriptors:"""
+        """Create a Filter object."""
         self.descriptors = {'hac': lambda x: x.GetNumAtoms(),
                             'molweight': lambda x: round(Descriptors.ExactMolWt(x), 4),
                             'nrings': lambda x: rdMolDescriptors.CalcNumRings(x),
                             'elements': lambda x: set([a.GetSymbol() for a in x.GetAtoms()]),
                             }
 
-    def filter_mol(self, mol: Mol, expr: str) -> bool:
-        f"""Filter a molecule based on an expression.
+    def filter_mol(self, mol: Mol, expr: str) -> bool:  # TODO: add docstring for listing implemented descriptors
+        """Filter a molecule based on an expression.
         Two types of expressions are currently supported:
 
-            - inclusion/exclusions: 'elements not in C, N, O', 'elements in C, N, O'
-            - numeric: 'hac > 3', '100.0 < molweight <= 1000.0', 'nrings' != 0, 'nrings == 0'
-
-        List of currently supported descriptors:
-        {', '.join([k for k in self.descriptors.keys()])}
-
+            - inclusion/exclusion
+                - 'elements not in C, N, O'
+                - 'elements in C, N, O'
+            - numeric
+                - 'hac > 3'
+                - '100.0 < molweight <= 1000.0'
+                - 'nrings' != 0
+                - 'nrings == 0'
 
         :param mol: the input molecule
         :param expr: the filter to apply
         :return: True if the molecule passes the filter, False otherwise
         """
-
+        # init
         expr = expr.lower()
         split_expr = expr.lower().split()
         # filters of type: 'elements in C, N, O'
