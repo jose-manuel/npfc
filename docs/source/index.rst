@@ -19,6 +19,7 @@ available. Please have a look and enjoy, any feedback is welcome!
 
    load
    save
+   filter
    utils
 
 Indices and tables
