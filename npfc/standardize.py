@@ -109,11 +109,41 @@ class DuplicateFilter:
 
         """
         self._on = on
-        self.col_mol = col_mol
-        self.col_id = col_id
-        self.col_id_synonyms = self.col_id + "_synonyms"
-        self.ref_file = ref_file
+        self._col_mol = col_mol
+        self._col_id = col_id
+        self._col_id_synonyms = self.col_id + "_synonyms"
+        self._ref_file = ref_file
         logging.debug(f"Initialized a new DuplicateFilter object")
+
+    @property
+    def col_id(self) -> str:
+        return self._col_id
+
+    @col_id.setter
+    def col_id(self, value: str) -> None:
+        if value is None:
+            raise ValueError(f"Error! col_id cannot be '{value}'.")
+        self._col_id = value
+
+    @property
+    def col_mol(self) -> str:
+        return self._col_mol
+
+    @col_mol.setter
+    def col_mol(self, value: str) -> None:
+        if value is None:
+            raise ValueError(f"Error! col_mol cannot be '{value}'.")
+        self._col_mol = value
+
+    @property
+    def ref_file(self) -> str:
+        return self._ref_file
+
+    @ref_file.setter
+    def ref_file(self, value: str) -> None:
+        if value is not None and not isinstance(value, str):
+            raise ValueError(f"Error! Either None or a str are expected for ref_file, not '{value}' ({type(value)}).")
+        self._ref_file = value
 
     @property
     def on(self):
@@ -155,8 +185,8 @@ class DuplicateFilter:
         df.drop(self.on, axis=1, inplace=True)
         # define synonyms in current dataframe
         df_synonyms = pd.DataFrame(df.groupby(self.on)[self.col_id].apply(list))
-        df_synonyms.rename({self.col_id: self.col_id_synonyms}, axis=1, inplace=True)
-        df_synonyms[self.col_id] = df_synonyms[self.col_id_synonyms].map(lambda x: x[0])
+        df_synonyms.rename({self.col_id: self._col_id_synonyms}, axis=1, inplace=True)
+        df_synonyms[self.col_id] = df_synonyms[self._col_id_synonyms].map(lambda x: x[0])
 
         # df_synonyms[self.col_id] = df_synonyms[self.col_id_synonyms].map(lambda x: x[0])
         # use information stored in ref file as well, if provided
@@ -169,9 +199,9 @@ class DuplicateFilter:
             with utils.SafeHDF5Store(self.ref_file) as store:
                 df_ref = store[key]
                 df_ref = pd.concat([df_ref, df_synonyms])
-                df_ref = pd.DataFrame(df_ref.groupby(self.on)[self.col_id_synonyms].apply(list))
-                df_ref[self.col_id_synonyms] = df_ref[self.col_id_synonyms].map(lambda x: list(chain.from_iterable(x)))
-                df_ref[self.col_id] = df_ref[self.col_id_synonyms].map(lambda x: x[0])
+                df_ref = pd.DataFrame(df_ref.groupby(self.on)[self._col_id_synonyms].apply(list))
+                df_ref[self._col_id_synonyms] = df_ref[self._col_id_synonyms].map(lambda x: list(chain.from_iterable(x)))
+                df_ref[self.col_id] = df_ref[self._col_id_synonyms].map(lambda x: x[0])
                 df_ref.to_hdf(self.ref_file, key=key)
             return df_ref
         else:
