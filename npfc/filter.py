@@ -43,13 +43,12 @@ class Filter:
         :return: True if the molecule passes the filter, False otherwise
         """
         # init
-        expr = expr.lower()
-        split_expr = expr.lower().split()
+        split_expr = [s.lower() for s in expr.lower().split()]
         # filters of type: 'elements in C, N, O'
         if 'in' in split_expr:  # 'in' or 'not in'
             return self._eval_set_expr(mol, expr)
         # filters of type: 'hac > 3'
-        return self._eval_numeric_expr(mol, expr)
+        return self._eval_numeric_expr(mol, expr.lower())
 
     def _eval_numeric_expr(self, mol, expr):
         """
@@ -66,7 +65,7 @@ class Filter:
         split_expr = self._split_expr(expr)  # something like 'molweight', '<=', '1000'
         # replace descriptor names by their values
         split_expr = [self.descriptors[k](mol) if k in self.descriptors.keys() else k for k in split_expr]  # now it is '250.0', '<=', '1000'
-        logging.debug(f"applying numeric filter: {split_expr}")
+        logging.debug(f"applying numeric filter: {' '.join(str(v) for v in split_expr)}")
         # convert all values extracted as string into their type
         split_expr = [float(x) if x not in split_expr[1::2] else x for x in split_expr]  # and now it is 250.0, '<=', 1000.0
         # operators are always at odd positions, whereas values are at even positions
@@ -112,7 +111,7 @@ class Filter:
         expr_split = [e.replace(" ", "") for e in expr.split(op)]
         descriptor = self.descriptors[expr_split[0]](mol)  # left
         values = set(expr_split[1].split(","))  # right
-        logging.debug(f"applying inclusion/exclusion filter: {' '.join([descriptor, op, values])}")
+        logging.debug(f"applying inclusion/exclusion filter: {''.join(str(v) for v in [descriptor, op, values])}")
         if (op == ' in ' and descriptor.issubset(values)) or (op == ' not in ' and not descriptor.issubset(values)):
             return True
         else:
