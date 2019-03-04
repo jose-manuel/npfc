@@ -4,5 +4,4 @@ dist/
 .pytest_cache/
 .eggs/
 *.egg-info/
-tests/data/test_export_df_to_hdf*.hdf
-tests/data/test_remove_dupl.hdf
+tests/tmp
