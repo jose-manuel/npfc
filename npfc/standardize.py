@@ -291,9 +291,9 @@ class Standardizer(Filter):
                  elements_medchem={'H', 'C', 'N', 'O', 'F', 'P', 'S', 'Cl', 'Br', 'I'}
                  ):
         """Create a Standardizer object."""
-        # inherit Filter attributes
+        # filter
         super(Standardizer, self).__init__()
-        # normal attributes
+        # standardizer
         self.elements_medchem = elements_medchem
         if protocol is None:
             self._protocol = {'tasks': ['sanitize',
@@ -314,8 +314,6 @@ class Standardizer(Filter):
                               'filter_nrings': 'nrings > 0',
                               'filter_medchem': f'elements in {", ".join(str(x) for x in self.elements_medchem)}',
                               }
-        # attributes
-
         # workers
         self.metal_disconnector = MetalDisconnector()
         self.normalizer = Normalizer()
