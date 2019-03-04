@@ -46,6 +46,7 @@ def check_arg_positive_number(value: Number) -> bool:
 
     :param value: the argument to test
     """
+    logging.debug(f"value is {value} ({type(value)})")
     # possible value for Number is None if argument is left unset
     if value is None:
         return True
@@ -66,7 +67,7 @@ def check_arg_input_file(input_file: str) -> bool:
     """
     path_input_file = Path(input_file)
     if not path_input_file.is_file():
-        raise ValueError(f"Error! Input file could not be found at {input_file}.")
+        raise ValueError(f"Error! Input file could not be found at '{input_file}'.")
     if path_input_file.suffixes not in EXTS_INPUT:
         raise ValueError(f"Error! Unexpected '{path_input_file.suffixes}' for input format.")
 
@@ -90,10 +91,10 @@ def check_arg_output_file(output_file: str, create_parent_dir: bool = True) -> b
     output_dir = path_output_file.resolve().parent
     if not output_dir.is_dir():
         if create_parent_dir:
-            logging.warning(f"Output_dir could not be found at {output_dir}, attempting to create it.")
+            logging.warning(f"Output_dir could not be found at '{output_dir}', attempting to create it.")
             output_dir.mkdir(parents=True, exist_ok=True)
         else:
-            raise ValueError(f"Error! Output_dir could not be found at {output_dir}.")
+            raise ValueError(f"Error! Output_dir could not be found at '{output_dir}'.")
 
     return True
 
@@ -107,7 +108,7 @@ def check_arg_config_file(config_file: str) -> bool:
     """
     path_config_file = Path(config_file)
     if not path_config_file.is_file():
-        raise ValueError(f"Error! Input file could not be found at {config_file}.")
+        raise ValueError(f"Error! Input file could not be found at '{config_file}'.")
     if path_config_file.suffixes not in EXTS_CONFIG:
         raise ValueError(f"Error! Unexpected '{path_config_file.suffixes}' for config format.")
 
