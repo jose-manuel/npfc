@@ -9,6 +9,8 @@ from rdkit import Chem
 import pytest
 from npfc.filter import Filter
 
+# import logging
+# logging.basicConfig(level=logging.DEBUG)
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FIXTURES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 

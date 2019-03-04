@@ -3,14 +3,22 @@ Module test_04_standardize
 ====================
 Tests for the standardize module.
 """
+# data science
+import pandas as pd
 # chemoinformatics
 from rdkit import Chem
+from rdkit.Chem import rdinchi
+from rdkit.Chem.MolStandardize.metal import MetalDisconnector
+from rdkit.Chem.MolStandardize.normalize import Normalizer
+from rdkit.Chem.MolStandardize.tautomer import TautomerCanonicalizer
 # tests
 import pytest
 from npfc.standardize import Standardizer
 from npfc.standardize import FullUncharger
 from npfc.standardize import DuplicateFilter
 
+# import logging
+# logging.basicConfig(level=logging.DEBUG)
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FIXTURES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
@@ -95,6 +103,12 @@ def test_fu_full_uncharge(full_uncharger, mols):
     assert Chem.MolToSmiles(mol_clean) == "CC(C)(C)C1CCc2nnc[n+](O)c2C1"
 
 
+def test_std_disconnect_metal(standardizer, mols):
+    """Test if the MetalDisconnector works as expected to disconnect metals."""
+    mol_clean = standardizer.metal_disconnector.disconnect(mols['metal'])
+    assert len(Chem.GetMolFrags(mol_clean)) == 3
+
+
 def test_std_init(standardizer):
     # default parameters
     assert set(standardizer.protocol.keys()) == set(['tasks', 'filter_hac', 'filter_molweight', 'filter_nrings', 'filter_medchem'])
@@ -111,6 +125,11 @@ def test_std_init(standardizer):
                                               'canonicalize',
                                               'remove_stereo',
                                               ]
+    # workers
+    assert isinstance(standardizer.metal_disconnector, MetalDisconnector)
+    assert isinstance(standardizer.normalizer, Normalizer)
+    assert isinstance(standardizer.canonicalizer, TautomerCanonicalizer)
+
     # from a json file
     json_config = 'tests/tmp/std_protocol.json'
     with open(json_config, 'w') as JSON:
@@ -120,3 +139,71 @@ def test_std_init(standardizer):
     standardizer.protocol = json_config
     assert standardizer.protocol['tasks'] == ["sanitize", "filter_molweight"]
     assert standardizer.protocol['filter_molweight'] == "100.0 <= molweight <= 1000.0"
+
+
+def test_std_keep_largest(standardizer, mols):
+    """Test if largest fragments are extracted from mixtures."""
+    # mol with smaller fragments and store molweight property
+    mol_clean = standardizer.keep_largest(mols['mixture_1'])
+    assert Chem.MolToSmiles(mol_clean) == "NCCCCN(CCCN)Cc1ccc(B(O)O)cc1"
+    # mol with larger non-medchem fragments, do not store molweight property
+    mol_clean = standardizer.keep_largest(mols['mixture_2'])
+    assert Chem.MolToSmiles(mol_clean) == "C1CCCCC1"
+    # mol with only one fragment without sanitize
+    mol_clean = standardizer.keep_largest(mols['tautomer_1'])
+    assert Chem.MolToSmiles(mol_clean) == "O=C1C=CC=CC1"
+
+
+def test_std_normalize(mols, standardizer):
+    """Test if wrongly defined functional groups are normalized."""
+    assert Chem.MolToSmiles(mols['normalize']) == "O=C(O[Na])c1ccc(C[S+2]([O-])[O-])cc1"
+    mol_clean = standardizer.normalizer.normalize(mols['normalize'])
+    assert Chem.MolToSmiles(mol_clean) == "O=C(O[Na])c1ccc(C[S](=O)=O)cc1"
+
+
+def test_std_canonicalize(mols, standardizer):
+    """Test if inchikeys obtained from different tautomers are the same after canonicalization."""
+    # case 1
+    assert rdinchi.MolToInchiKey(mols['tautomer_1']) == "WQPDQJCBHQPNCZ-UHFFFAOYSA-N"
+    mol_clean = standardizer.canonicalizer.canonicalize(mols['tautomer_1'])
+    assert rdinchi.MolToInchiKey(mol_clean) == "ISWSIDIOOBJBQZ-UHFFFAOYSA-N"
+
+    # case 2
+    assert rdinchi.MolToInchiKey(mols['tautomer_2']) == "ISWSIDIOOBJBQZ-UHFFFAOYSA-N"
+    mol_clean = standardizer.canonicalizer.canonicalize(mols['tautomer_2'])
+    assert rdinchi.MolToInchiKey(mol_clean) == "ISWSIDIOOBJBQZ-UHFFFAOYSA-N"
+
+
+def test_std_remove_stereochemistry(mols):
+    """Test if all stereochemistry centers (chiral and double bonds) are removed."""
+    # chirality
+    assert Chem.FindMolChiralCenters(mols['stereo_chiral'], includeUnassigned=True) == [(5, 'S')]
+    Chem.RemoveStereochemistry(mols['stereo_chiral'])  # mol_ini is modified inplace
+    assert Chem.FindMolChiralCenters(mols['stereo_chiral'], includeUnassigned=True) == [(5, '?')]
+    # doublebond
+    stereo_doublebond = [b.GetStereo() for b in mols['stereo_doublebond'].GetBonds() if b.GetStereo() != Chem.rdchem.BondStereo.STEREONONE]
+    assert stereo_doublebond == [Chem.rdchem.BondStereo.STEREOE]
+    Chem.RemoveStereochemistry(mols['stereo_doublebond'])  # mol_ini is modified inplace
+    stereo_doublebond = [b.GetStereo() for b in mols['stereo_doublebond'].GetBonds() if b.GetStereo() != Chem.rdchem.BondStereo.STEREONONE]
+    assert stereo_doublebond == []  # ideally it should be set to Chem.rdchem.BondStereo.STEREOANY, but whatever obscure reason it is set to STEREONONE...
+
+
+def test_run_protocol(standardizer, mols, mols_bad):
+    """Run default standardization protocol."""
+    # initiate a global df_mols
+    d = {}
+    d['mol'] = []
+    d['idm'] = []
+    for k, m in mols.items():
+        d['idm'].append(k)
+        d['mol'].append(m)
+    for k, m in mols_bad.items():
+        d['idm'].append(k)
+        d['mol'].append(m)
+    df_mols = pd.DataFrame(d)
+    assert len(df_mols.index) == 22
+    # run default protocol
+    df_passed, df_filtered, df_error = standardizer.run_df(df_mols)
+    assert len(df_passed.index) == 11
+    assert len(df_error.index) == 3
+    assert len(df_filtered.index) == 8

@@ -281,40 +281,47 @@ class Standardizer(Filter):
     """
 
     def __init__(self,
-                 protocol=None,
-                 col_mol='mol',
-                 col_id='idm',
-                 filter_duplicates=True,
-                 ref_file=None,
-                 on='inchikey',
-                 ref_dataset=None,
-                 suffix=None,
-                 elements_medchem={'H', 'C', 'N', 'O', 'F', 'P', 'S', 'Cl', 'Br', 'I'}
+                 protocol: str = None,
+                 col_mol: str = 'mol',
+                 col_id: str = 'idm',
+                 filter_duplicates: bool = True,
+                 ref_file: str = None,
+                 on: str = 'inchikey',
+                 # ref_dataset=None,
+                 suffix: str = None,
+                 elements_medchem: set = {'H', 'B', 'C', 'N', 'O', 'F', 'P', 'S', 'Cl', 'Br', 'I'}
                  ):
         """Create a Standardizer object."""
         # filter
         super(Standardizer, self).__init__()
         # standardizer
-        self.elements_medchem = elements_medchem
+        self._elements_medchem = elements_medchem
+        self._col_id = col_id
+        self._col_mol = col_mol
+        self._filter_duplicates = filter_duplicates
+        self._on = on
+        self._suffix = suffix
+        self._ref_file = ref_file
+        self._default_protocol = {'tasks': ['sanitize',
+                                            'disconnect_metal',
+                                            'keep_largest',
+                                            'filter_hac',
+                                            'filter_molweight',
+                                            'filter_nrings',
+                                            'filter_medchem',
+                                            'remove_isotopes',
+                                            'normalize',
+                                            'uncharge',
+                                            'canonicalize',
+                                            'remove_stereo',
+                                            ],
+                                  'filter_hac': 'hac > 3',
+                                  'filter_molweight': 'molweight <= 1000.0',
+                                  'filter_nrings': 'nrings > 0',
+                                  'filter_medchem': f'elements in {", ".join(str(x) for x in self.elements_medchem)}',
+                                  }
         if protocol is None:
-            self._protocol = {'tasks': ['sanitize',
-                                        'disconnect_metal',
-                                        'keep_largest',
-                                        'filter_hac',
-                                        'filter_molweight',
-                                        'filter_nrings',
-                                        'filter_medchem',
-                                        'remove_isotopes',
-                                        'normalize',
-                                        'uncharge',
-                                        'canonicalize',
-                                        'remove_stereo',
-                                        ],
-                              'filter_hac': 'hac > 3',
-                              'filter_molweight': 'molweight <= 1000.0',
-                              'filter_nrings': 'nrings > 0',
-                              'filter_medchem': f'elements in {", ".join(str(x) for x in self.elements_medchem)}',
-                              }
+            self._protocol = self._default_protocol
         # workers
         self.metal_disconnector = MetalDisconnector()
         self.normalizer = Normalizer()
@@ -340,6 +347,77 @@ class Standardizer(Filter):
                 raise ValueError("invalid protocol format ('tasks' key is neither list or tuple)")
         # update default protocol
         self._protocol.update(protocol)
+
+    @property
+    def col_id(self):
+        return self._col_id
+
+    @col_id.setter
+    def col_id(self, value):
+        if value is None:
+            raise ValueError(f"Error! col_id cannot be '{value}'.")
+        self._col_id = value
+
+    @property
+    def col_mol(self):
+        return self._col_mol
+
+    @col_mol.setter
+    def col_mol(self, value):
+        if value is None:
+            raise ValueError(f"Error! col_mol cannot be '{value}'.")
+        self._col_mol = value
+
+    @property
+    def elements_medchem(self):
+        return self._elements_medchem
+
+    @elements_medchem.setter
+    def elements_medchem(self, value):
+        if not isinstance(value, set):
+            raise ValueError(f"Error! elements_medchem should be a set of strings, not '{value}' ({type(value)}).")
+        elif not all([isinstance(v, str) for v in value]):
+            raise ValueError(f"Error! elements_medchem should be a set of strings, not '{value}' ({type(value)}).")
+        self._elements_medchem = value
+
+    @property
+    def filter_duplicates(self):
+        return self._filter_duplicates
+
+    @filter_duplicates.setter
+    def filter_duplicates(self, value):
+        utils.check_arg_bool(value)
+        self._filter_duplicates = value
+
+    @property
+    def on(self):
+        return self._on
+
+    @on.setter
+    def on(self, value):
+        if value is None:
+            raise ValueError(f"Error! on cannot be '{value}'.")
+        self._on = value
+
+    @property
+    def suffix(self):
+        return self._suffix
+
+    @suffix.setter
+    def suffix(self, value):
+        if value is not None and not isinstance(value, str):
+            raise ValueError(f"Error! Either None or a str are expected for suffix, not '{value}' ({type(value)}).")
+        self._suffix = value
+
+    @property
+    def ref_file(self):
+        return self._ref_file
+
+    @ref_file.setter
+    def ref_file(self, value):
+        if value is not None and not isinstance(value, str):
+            raise ValueError(f"Error! Either None or a str are expected for ref_file, not '{value}' ({type(value)}).")
+        self._ref_file = value
 
     def remove_isotopes(self, mol):
         """Return a molecule without any isotopes.
@@ -373,15 +451,18 @@ class Standardizer(Filter):
             return mol
         # otherwise, we have to compare the fragments
         # init
+        logging.debug(f"found {len(frags)} fragments")
         largest_molweight = -1.0  # so we are sure to update this on the first iteration
         largest_frag = None
         largest_is_medchem = False
         # begin
-        for frag in frags:
+        for i, frag in enumerate(frags):
             # is_medchem
             is_medchem = self.filter_mol(frag, f'elements in {", ".join(str(x) for x in self.elements_medchem)}')
+            logging.debug(f"fragment #{i} is medchem: {is_medchem}")
             # molweight
             molweight = Descriptors.ExactMolWt(frag)
+            logging.debug(f"fragment #{i} molweight: {molweight}")
             # compare to the current largest fragment
             update_largest = False
             if not largest_is_medchem:

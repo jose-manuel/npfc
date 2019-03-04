@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.utils &mdash; npfc 0.0.5-8-g2902454 documentation</title>
+  <title>npfc.utils &mdash; npfc 0.0.5-9-gcb3997e documentation</title>
   
 
   
@@ -56,7 +56,7 @@
             
             
               <div class="version">
-                0.0.5-8-g2902454
+                0.0.5-9-gcb3997e
               </div>
             
           
@@ -168,9 +168,11 @@
 <span class="c1"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ GLOBALS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #</span>
 
 <span class="c1"># allowed suffixes</span>
-<span class="n">EXTS</span> <span class="o">=</span> <span class="p">[[</span><span class="s1">&#39;.sdf&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;.sdf&#39;</span><span class="p">,</span> <span class="s1">&#39;.gz&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;.sdf&#39;</span><span class="p">,</span> <span class="s1">&#39;.zip&#39;</span><span class="p">],</span>
-        <span class="p">[</span><span class="s1">&#39;.csv&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;.csv&#39;</span><span class="p">,</span> <span class="s1">&#39;.gz&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;.csv&#39;</span><span class="p">,</span> <span class="s1">&#39;.zip&#39;</span><span class="p">],</span>
-        <span class="p">[</span><span class="s1">&#39;.hdf&#39;</span><span class="p">]]</span>
+<span class="n">EXTS_INPUT</span> <span class="o">=</span> <span class="p">[[</span><span class="s1">&#39;.sdf&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;.sdf&#39;</span><span class="p">,</span> <span class="s1">&#39;.gz&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;.sdf&#39;</span><span class="p">,</span> <span class="s1">&#39;.zip&#39;</span><span class="p">],</span>
+              <span class="p">[</span><span class="s1">&#39;.csv&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;.csv&#39;</span><span class="p">,</span> <span class="s1">&#39;.gz&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;.csv&#39;</span><span class="p">,</span> <span class="s1">&#39;.zip&#39;</span><span class="p">],</span>
+              <span class="p">[</span><span class="s1">&#39;.hdf&#39;</span><span class="p">]]</span>
+
+<span class="n">EXTS_CONFIG</span> <span class="o">=</span> <span class="p">[[</span><span class="s1">&#39;.json&#39;</span><span class="p">]]</span>
 
 <span class="c1"># types</span>
 <span class="n">Number</span> <span class="o">=</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span>
@@ -216,7 +218,7 @@
     <span class="n">path_input_file</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">input_file</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">path_input_file</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Error! Input file could not be found at </span><span class="si">{input_file}</span><span class="s2">.&quot;</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">path_input_file</span><span class="o">.</span><span class="n">suffixes</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">EXTS</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">path_input_file</span><span class="o">.</span><span class="n">suffixes</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">EXTS_INPUT</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Error! Unexpected &#39;</span><span class="si">{path_input_file.suffixes}</span><span class="s2">&#39; for input format.&quot;</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="kc">True</span></div>
@@ -232,7 +234,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># output_format</span>
     <span class="n">path_output_file</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">output_file</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">path_output_file</span><span class="o">.</span><span class="n">suffixes</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">EXTS</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">path_output_file</span><span class="o">.</span><span class="n">suffixes</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">EXTS_INPUT</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Error! Unexpected value &#39;</span><span class="si">{path_output_file.suffixes}</span><span class="s2">&#39; for output format.&quot;</span><span class="p">)</span>
 
     <span class="c1"># create_parent_dir</span>
@@ -246,6 +248,21 @@
 
     <span class="k">return</span> <span class="kc">True</span></div>
 
+
+<div class="viewcode-block" id="check_arg_config_file"><a class="viewcode-back" href="../../utils.html#npfc.utils.check_arg_config_file">[docs]</a><span class="k">def</span> <span class="nf">check_arg_config_file</span><span class="p">(</span><span class="n">config_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Return True of the config_file exists, raise an error otherwise.</span>
+
+
+<span class="sd">    :param input_file: the input file</span>
+<span class="sd">    :param input_format: the expected format of the input file</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">path_config_file</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">config_file</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">path_config_file</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Error! Input file could not be found at </span><span class="si">{config_file}</span><span class="s2">.&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">path_config_file</span><span class="o">.</span><span class="n">suffixes</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">EXTS_CONFIG</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Error! Unexpected &#39;</span><span class="si">{path_config_file.suffixes}</span><span class="s2">&#39; for config format.&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="kc">True</span></div>
 
 <span class="c1"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ CLASSES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #</span>
 
