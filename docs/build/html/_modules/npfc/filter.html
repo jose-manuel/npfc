@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.filter &mdash; npfc 0.0.4-3-g1ec1499 documentation</title>
+  <title>npfc.filter &mdash; npfc 0.0.4-4-ga7b3f44 documentation</title>
   
 
   
@@ -56,7 +56,7 @@
             
             
               <div class="version">
-                0.0.4-3-g1ec1499
+                0.0.4-4-ga7b3f44
               </div>
             
           
@@ -169,25 +169,31 @@
     <span class="sd">&quot;&quot;&quot;A class for filtering molecules based on molecular descriptors.&quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Create a Filter object with following descriptors:&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Create a Filter object.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">descriptors</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;hac&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">GetNumAtoms</span><span class="p">(),</span>
                             <span class="s1">&#39;molweight&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="n">Descriptors</span><span class="o">.</span><span class="n">ExactMolWt</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="mi">4</span><span class="p">),</span>
                             <span class="s1">&#39;nrings&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">rdMolDescriptors</span><span class="o">.</span><span class="n">CalcNumRings</span><span class="p">(</span><span class="n">x</span><span class="p">),</span>
                             <span class="s1">&#39;elements&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">set</span><span class="p">([</span><span class="n">a</span><span class="o">.</span><span class="n">GetSymbol</span><span class="p">()</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">x</span><span class="o">.</span><span class="n">GetAtoms</span><span class="p">()]),</span>
                             <span class="p">}</span>
 
-<div class="viewcode-block" id="Filter.filter_mol"><a class="viewcode-back" href="../../filter.html#npfc.filter.Filter.filter_mol">[docs]</a>    <span class="k">def</span> <span class="nf">filter_mol</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mol</span><span class="p">:</span> <span class="n">Mol</span><span class="p">,</span> <span class="n">expr</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<div class="viewcode-block" id="Filter.filter_mol"><a class="viewcode-back" href="../../filter.html#npfc.filter.Filter.filter_mol">[docs]</a>    <span class="k">def</span> <span class="nf">filter_mol</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mol</span><span class="p">:</span> <span class="n">Mol</span><span class="p">,</span> <span class="n">expr</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>  <span class="c1"># TODO: add docstring for listing implemented descriptors</span>
         <span class="sd">&quot;&quot;&quot;Filter a molecule based on an expression.</span>
 <span class="sd">        Two types of expressions are currently supported:</span>
 
-<span class="sd">            - inclusion/exclusions: &#39;elements not in C, N, O&#39;, &#39;elements in C, N, O&#39;</span>
-<span class="sd">            - numeric: &#39;hac &gt; 3&#39;, &#39;100.0 &lt; molweight &lt;= 1000.0&#39;, &#39;nrings&#39; != 0, &#39;nrings == 0&#39;</span>
+<span class="sd">            - inclusion/exclusion</span>
+<span class="sd">                - &#39;elements not in C, N, O&#39;</span>
+<span class="sd">                - &#39;elements in C, N, O&#39;</span>
+<span class="sd">            - numeric</span>
+<span class="sd">                - &#39;hac &gt; 3&#39;</span>
+<span class="sd">                - &#39;100.0 &lt; molweight &lt;= 1000.0&#39;</span>
+<span class="sd">                - &#39;nrings&#39; != 0</span>
+<span class="sd">                - &#39;nrings == 0&#39;</span>
 
 <span class="sd">        :param mol: the input molecule</span>
 <span class="sd">        :param expr: the filter to apply</span>
 <span class="sd">        :return: True if the molecule passes the filter, False otherwise</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-
+        <span class="c1"># init</span>
         <span class="n">expr</span> <span class="o">=</span> <span class="n">expr</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
         <span class="n">split_expr</span> <span class="o">=</span> <span class="n">expr</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
         <span class="c1"># filters of type: &#39;elements in C, N, O&#39;</span>

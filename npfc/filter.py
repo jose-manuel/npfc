@@ -35,7 +35,7 @@ class Filter:
             - numeric
                 - 'hac > 3'
                 - '100.0 < molweight <= 1000.0'
-                - 'nrings' != 0
+                - 'nrings' != 0'
                 - 'nrings == 0'
 
         :param mol: the input molecule
