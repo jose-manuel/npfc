@@ -13,8 +13,10 @@ from pathlib import Path
 import json
 from itertools import chain
 import pandas as pd
+from pandas import DataFrame
 # chemoinformatics
 from rdkit import Chem
+from rdkit.Chem import Mol
 from rdkit.Chem import rdinchi
 from rdkit.Chem import Descriptors
 from rdkit.Chem import rdmolops
@@ -59,15 +61,13 @@ class FullUncharger(Uncharger):
         self.q_neg_2 = Chem.MolFromSmarts("[*;-2]")
         logging.debug(f"Initialized a new FullUncharger object")
 
-    def full_uncharge(self, mol):
+    def full_uncharge(self, mol: Mol) -> Mol:
         """Neutralize molecule by adding/removing hydrogens.
         Does not attempt to preserve zwitterions.
         For now takes into account only charges of -2 and +2.
 
-        :param mol: The input molecule.
-        :type mol: : rdkit.Chem.Mol
-        :return mol: The uncharged molecule.
-        :rtype mol: : rdkit.Chem.Mol
+        :param mol: the input molecule
+        :return: the uncharged molecule
         """
         logging.debug(f"Uncharging a molecule")
         mol = copy.deepcopy(mol)
@@ -94,17 +94,16 @@ class FullUncharger(Uncharger):
 class DuplicateFilter:
     """A class used for filtering duplicate molecules in on or several DataFrame(s)."""
 
-    def __init__(self, on='inchikey', ref_file=None, col_mol='mol', col_id='idm'):
+    def __init__(self, on: str = 'inchikey',
+                 ref_file: str = None,
+                 col_mol: str = 'mol',
+                 col_id: str = 'idm'):
         """Create an instance of DuplicateFilter with following parameters:
 
         :param on: The property to use for identifying duplicate molecules.
-        :type on: str
         :param ref_file: The path to the reference file used to store synonyms.
-        :type ref_file: str
         :param col_mol: The DataFrame column name where molecules are stored.
-        :type col_mol: str
         :param col_id: The DataFrame column name where molecule identifiers are stored.
-        :type col_id: str
 
         .. note:: For now, only the 'inchikey' property works for the 'on' parameter. Moreover InchIKey are computed wether provided or not.
 
@@ -126,7 +125,7 @@ class DuplicateFilter:
             raise ValueError(f"for now argument 'on' only accepts 'inchikey' as value, not '{value}'")
         self._on = value
 
-    def find_synonyms(self, df):
+    def find_synonyms(self, df: DataFrame) -> DataFrame:
         """Find synonyms within a DataFrame.
 
         The Synonyms DataFrame follows the follow syntax:
@@ -135,9 +134,7 @@ class DuplicateFilter:
         - idm: The id of the molecule that was kept (first element of idm_synonyms).
 
         :param df: The input DataFrame.
-        :type df: pandas DataFrame
-        :return df_synonyms: The output DataFrame containg synonyms for identifying duplicate molecules.
-        :rtype: pandas.DataFrame
+        :return: The output DataFrame containg synonyms for identifying duplicate molecules.
 
         .. warning:: make sure there is no duplicate idm before using this function, as the final filtering of duplicates is performed with a whitelist based on idm.
 
@@ -180,11 +177,10 @@ class DuplicateFilter:
         else:
             return df_synonyms
 
-    def init_ref_file(self):
+    def init_ref_file(self) -> bool:
         """Initiate an empty reference hdf for identifying duplicates.
 
         :return: True if the reference file could be initialized, False otherwise.
-        :rtype: bool
         """
         try:
             # delete file if it already exists
@@ -201,25 +197,23 @@ class DuplicateFilter:
         except ValueError:  # certainly not the only kind of error but PEP8 is against using just plain except.
             return False
 
-    def mark_dupl(self, df):
+    def mark_dupl(self, df: DataFrame) -> DataFrame:
         """Mark duplicate entries found in df or in ref. Designed to work from
         within Standardizer.run only as it updates columns 'status' and 'task' to
-        respectively 'filter' and 'filter_duplicates'. Might still be useful if exposed.
+        respectively 'filtered' and 'filter_duplicates'. Might still be useful if exposed.
 
 
         Moreover, update the reference file (if specified) by using a lock (from utils module) so that
         no other processes can modify it at the same time. This enables a safe duplicate
         molecules filtering accross chunks without having to gather everything in a single file.
 
-        :param df: The input DataFrame.
-        :type df: pandas.DataFrame
-        :return df_marked: The output DataFrame.
-        :type df_marked: pandas.DataFrame
+        :param df: the input DataFrame
+        :return: the output DataFrame
         """
         # any molecule whose id is not in df_synonyms[col_id] is a duplicate of another
         df_synonyms = self.find_synonyms(df)
         df = df.copy()  # supress warnings, but might significantly slow down the process..?
-        df.loc[~df.loc[:, self.col_id].isin(df_synonyms.loc[:, self.col_id]), ['status', 'task']] = ('filter', 'filter_dupl')
+        df.loc[~df.loc[:, self.col_id].isin(df_synonyms.loc[:, self.col_id]), ['status', 'task']] = ('filtered', 'filter_dupl')
         return df
 
 
@@ -229,7 +223,7 @@ class Standardizer(Filter):
 
     By default this protocol consists in 12 tasks applied to each molecule invidually:
 
-        1) **sanitize**: structural check to make sure molecules can be used safely
+        1) **initiate_mol**: check if the molecule passed the RDKit conversion
         2) **disconnect_metal**: break bonds involving metallic atoms, resulting in potentially several molecules per structure.
         3) **keep_largest**: retrieve only the largest molecule (molecular weight in Da) from a structure. Medchem elements are preferred over others, independant from size.
         4) **filter_hac**: filter molecules with a heavy atom count not in the accepted range. By default: hac > 3.
@@ -247,35 +241,10 @@ class Standardizer(Filter):
     This results in new columns in the input DataFrame:
 
         - the 'mol' column: updated structure (only for the protocol)
-        - the 'status' column: either standardized, filter or error.
+        - the 'status' column: either passed, filtered or error.
         - the 'task' column: the latest task that was applied to the molecule.
 
-    The global variable DESCRIPTORS contains keywords for computing descriptors used for filters.
-    Although this could be expanded quite easily if needed, there is currently only four descriptors implemented:
-
-        - molweight: molecular weight (Da)
-        - hac: heavy atom count
-        - nrings: number of rings (Smallest Sets of Smallest Rings or SSSR)
-        - elements: atomic symbols
-
-    Two different kind of operations can be defined:
-
-        - numeric: use of comparison operators such as <, >, <=, >=, == and != for numeric comparisons.
-        - set: use of ' in ' or ' not in ' (spaces are required!) for inclusions/exclusions.
-
-    Examples of possible operations:
-
-        >>> '0 < molweight <= 1000.0'
-        >>> 'hac > 3'
-        >>> 'nrings != 0'
-        >>> 'elements in H,C,N,O'
-
-
     .. note:: For now, the user can only change the task order and the values of filters, but it would be relatively easy to add more functionality.
-
-    .. todo:: Add an argument to specify a configuration file in json.
-
-    .. todo:: Rename standardized status to ready or passed, something shorter. Also filter should be filtered.
 
     .. todo:: Check latest publication sent by Prof. H. Waldmann, there might be an open-source tool for deglycosylating structures, which could become a new task.
     """
@@ -333,7 +302,7 @@ class Standardizer(Filter):
         return self._protocol
 
     @protocol.setter
-    def protocol(self, protocol):
+    def protocol(self, protocol: str):
         # input is a json file => convert it to a dict
         if isinstance(protocol, str):
             utils.check_arg_config_file(protocol)
@@ -349,31 +318,31 @@ class Standardizer(Filter):
         self._protocol.update(protocol)
 
     @property
-    def col_id(self):
+    def col_id(self) -> str:
         return self._col_id
 
     @col_id.setter
-    def col_id(self, value):
+    def col_id(self, value: str) -> None:
         if value is None:
             raise ValueError(f"Error! col_id cannot be '{value}'.")
         self._col_id = value
 
     @property
-    def col_mol(self):
+    def col_mol(self) -> str:
         return self._col_mol
 
     @col_mol.setter
-    def col_mol(self, value):
+    def col_mol(self, value: str) -> None:
         if value is None:
             raise ValueError(f"Error! col_mol cannot be '{value}'.")
         self._col_mol = value
 
     @property
-    def elements_medchem(self):
+    def elements_medchem(self) -> set:
         return self._elements_medchem
 
     @elements_medchem.setter
-    def elements_medchem(self, value):
+    def elements_medchem(self, value: set) -> None:
         if not isinstance(value, set):
             raise ValueError(f"Error! elements_medchem should be a set of strings, not '{value}' ({type(value)}).")
         elif not all([isinstance(v, str) for v in value]):
@@ -381,69 +350,63 @@ class Standardizer(Filter):
         self._elements_medchem = value
 
     @property
-    def filter_duplicates(self):
+    def filter_duplicates(self) -> bool:
         return self._filter_duplicates
 
     @filter_duplicates.setter
-    def filter_duplicates(self, value):
+    def filter_duplicates(self, value: str) -> None:
         utils.check_arg_bool(value)
         self._filter_duplicates = value
 
     @property
-    def on(self):
+    def on(self) -> str:
         return self._on
 
     @on.setter
-    def on(self, value):
+    def on(self, value: str) -> None:
         if value is None:
             raise ValueError(f"Error! on cannot be '{value}'.")
         self._on = value
 
     @property
-    def suffix(self):
+    def suffix(self) -> str:
         return self._suffix
 
     @suffix.setter
-    def suffix(self, value):
+    def suffix(self, value: str) -> None:
         if value is not None and not isinstance(value, str):
             raise ValueError(f"Error! Either None or a str are expected for suffix, not '{value}' ({type(value)}).")
         self._suffix = value
 
     @property
-    def ref_file(self):
+    def ref_file(self) -> str:
         return self._ref_file
 
     @ref_file.setter
-    def ref_file(self, value):
+    def ref_file(self, value: str) -> None:
         if value is not None and not isinstance(value, str):
             raise ValueError(f"Error! Either None or a str are expected for ref_file, not '{value}' ({type(value)}).")
         self._ref_file = value
 
-    def remove_isotopes(self, mol):
+    def remove_isotopes(self, mol: Mol) -> Mol:
         """Return a molecule without any isotopes.
 
-        :param mol: The input molecule.
-        :type mol: : rdkit.Chem.Mol
-        :return mol: The molecule without isotope.
-        :rtype mol: : rdkit.Chem.Mol
+        :param mol: the input molecule
+        :return: the molecule without isotope
         """
         for a in mol.GetAtoms():
             a.SetIsotope(0)
         return mol
 
-    def keep_largest(self, mol):
+    def keep_largest(self, mol: Mol) -> Mol:
         """Return the largest molecule found in a molecular structure. Molecules with
         only elements usually used in medicinal chemistry are preferred over others,
         no matter their molecular weight.
         The list of medchem elements is contained in the protocol paramater of the Standardizer object:
         (protocol['filter_medchem']).
 
-        :param mol: The input molecule(s).
-        :type mol: rdkit.Chem.Mol
-        :param store_molweight: Store 'molweight' property in molecule (as str, with precision=4) so it can be used later.
-        :type store_molweight: bool
-        :return mol: The largest molecule of the input structure.
-        :rtype mol: rdkit.Chem.Mol
+        :param mol: the input molecule(s)
+        :return: the largest molecule
         """
         frags = Chem.GetMolFrags(mol, asMols=True, sanitizeFrags=True)
         # no need to look further if we have only one fragment!
@@ -486,17 +449,15 @@ class Standardizer(Filter):
         return largest_frag
 
     @timeout_decorator.timeout(TIMEOUT)
-    def _run(self, mol):
+    def _run(self, mol: Mol) -> tuple:
         """Helper function for run.
         Contains all tasks defined within the protocol. Since some operations are
         expansive and could last a very long time for complex molecules (normalize, canonicalize),
         a timeout value is set globally. The run function is the one that can catch the exception
         raised by timeouts.
 
-        :param mol: The input molecule.
-        :type mol: rdkit.Chem.Mol
-        :return result: A tuple containing the molecule, its status and the further task name it reached.
-        :rtype: tuple
+        :param mol: the input molecule
+        :return: a tuple containing the molecule, its status and the further task name it reached
         """
 
         # initiate_mol
@@ -524,7 +485,7 @@ class Standardizer(Filter):
             elif task == 'filter_medchem' or task == 'filter_hac' or task == 'filter_molweight' or task == 'filter_nrings':
                 try:
                     if not self.filter_mol(mol, self._protocol[task]):
-                        return (mol, 'filter', task)
+                        return (mol, 'filtered', task)
                 except ValueError:
                     return (mol, 'error', task)
 
@@ -573,23 +534,21 @@ class Standardizer(Filter):
             else:
                 raise ValueError(f"Unknown task: {task}")
         # a molecule that passed all the protocole!
-        return (mol, 'standardized', 'passed')
+        return (mol, 'passed', 'standardize')
 
-    def run(self, mol):
+    def run(self, mol: Mol) -> tuple:
         """Execute the standardization protocol on a molecule.
         Molecule that exceed the timeout value are filtered with a task='timeout'.
 
-        :param mol: The input molecule.
-        :type mol: rdkit.Chem.Mol
-        :return result: A tuple containing the molecule, its status and the further task name it reached.
-        :rtype: tuple
+        :param mol: the input molecule
+        :return: a tuple containing the molecule, its status and the further task name it reached
         """
         try:
             return self._run(mol)
         except timeout_decorator.TimeoutError:
-            return (mol, 'filter', 'timeout')
+            return (mol, 'filtered', 'timeout')
 
-    def run_df(self, df):
+    def run_df(self, df: DataFrame) -> tuple:
         """Apply the standardization protocol on a DataFrame, with the possibility of directly filtering duplicate entries as well.
         This can be very useful as the standardization process can expose duplicate entries due to salts removal, neutralization,
         canonical tautomer enumeration, and stereochemistry centers unlabelling
@@ -597,15 +556,12 @@ class Standardizer(Filter):
         If a reference file is specified, duplicate removals becomes possible accross chunks.
 
 
-        :param mol: The input molecule.
-        :type mol: rdkit.Chem.Mol
-        :return results: Three DataFrames separated by status:
+        :param df: the input DataFrame
+        :return: three DataFrames separated by status:
 
-            - standardized
+            - passed
             - filtered
             - error
-
-        :rtype: tuple
 
         .. note:: As a side effect, the output DataFrames get indexed by idm and standardized entries keep their 'inchikey' column (mandatory for now).
         """
@@ -614,8 +570,8 @@ class Standardizer(Filter):
         df[self.col_mol], df['status'], df['task'] = zip(*df[self.col_mol].map(self.run))
         # do not apply filter duplicates on molecules with errors or that were already filtered for x reasons
         df_error = df[df['status'] == 'error']
-        df_filtered = df[df['status'] == 'filter']
-        df = df[df['status'] == 'standardized']
+        df_filtered = df[df['status'] == 'filtered']
+        df = df[df['status'] == 'passed']
         # filter duplicates
         if self.filter_duplicates:
             dupl_filter = DuplicateFilter(on=self.on, col_mol=self.col_mol, col_id=self.col_id, ref_file=self.ref_file)
@@ -625,7 +581,7 @@ class Standardizer(Filter):
             df.index = df[self.col_id]
             df.drop(self.col_id, axis=1, inplace=True)
             # separate dupl from the rest
-            df_filtered = pd.concat([df_filtered, df[df['status'] == 'filter']], join='inner')  # drop inchikey col as the info is stored in ref_file anyway
-            df = df[df['status'] == 'standardized']
+            df_filtered = pd.concat([df_filtered, df[df['status'] == 'filtered']], join='inner')  # drop inchikey col as the info is stored in ref_file anyway
+            df = df[df['status'] == 'passed']
         # tuple of dataframes
         return (df, df_filtered, df_error)

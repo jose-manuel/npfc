@@ -20,6 +20,7 @@ available. Please have a look and enjoy, any feedback is welcome!
    load
    save
    filter
+   standardize
    utils
 
 Indices and tables

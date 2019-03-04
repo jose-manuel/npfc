@@ -1,0 +1,816 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>npfc.standardize &mdash; npfc 0.0.5-10-gc38cb7a documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> npfc
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.0.5-10-gc38cb7a
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../load.html">Module load</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../save.html">Module save</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../filter.html">Module filter</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../standardize.html">Module standardize</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../utils.html">Module utils</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">npfc</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>npfc.standardize</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for npfc.standardize</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Module standardize</span>
+<span class="sd">===================</span>
+<span class="sd">This modules is used to standardize molecules and molecular DataFrames.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1"># standard</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">timeout_decorator</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="k">import</span> <span class="n">Path</span>
+<span class="c1"># data handling</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="k">import</span> <span class="n">chain</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">pandas</span> <span class="k">import</span> <span class="n">DataFrame</span>
+<span class="c1"># chemoinformatics</span>
+<span class="kn">from</span> <span class="nn">rdkit</span> <span class="k">import</span> <span class="n">Chem</span>
+<span class="kn">from</span> <span class="nn">rdkit.Chem</span> <span class="k">import</span> <span class="n">Mol</span>
+<span class="kn">from</span> <span class="nn">rdkit.Chem</span> <span class="k">import</span> <span class="n">rdinchi</span>
+<span class="kn">from</span> <span class="nn">rdkit.Chem</span> <span class="k">import</span> <span class="n">Descriptors</span>
+<span class="kn">from</span> <span class="nn">rdkit.Chem</span> <span class="k">import</span> <span class="n">rdmolops</span>
+<span class="kn">from</span> <span class="nn">rdkit.Chem.MolStandardize.metal</span> <span class="k">import</span> <span class="n">MetalDisconnector</span>
+<span class="kn">from</span> <span class="nn">rdkit.Chem.MolStandardize.charge</span> <span class="k">import</span> <span class="n">Uncharger</span>
+<span class="kn">from</span> <span class="nn">rdkit.Chem.MolStandardize.normalize</span> <span class="k">import</span> <span class="n">Normalizer</span>
+<span class="kn">from</span> <span class="nn">rdkit.Chem.MolStandardize.tautomer</span> <span class="k">import</span> <span class="n">TautomerCanonicalizer</span>
+<span class="c1"># dev library</span>
+<span class="kn">from</span> <span class="nn">npfc</span> <span class="k">import</span> <span class="n">utils</span>
+<span class="kn">from</span> <span class="nn">npfc.filter</span> <span class="k">import</span> <span class="n">Filter</span>
+
+<span class="c1"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ GLOBALS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #</span>
+
+<span class="n">TIMEOUT</span> <span class="o">=</span> <span class="mi">10</span>  <span class="c1"># TODO: find a way to specify a timeout value for a given Standardizer instance</span>
+
+<span class="c1"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ CLASSES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #</span>
+
+
+<div class="viewcode-block" id="FullUncharger"><a class="viewcode-back" href="../../standardize.html#npfc.standardize.FullUncharger">[docs]</a><span class="k">class</span> <span class="nc">FullUncharger</span><span class="p">(</span><span class="n">Uncharger</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A class derived from rdkit.Chem.MolStandardize.charge.Uncharger, so</span>
+<span class="sd">    instead of attempting to create zwitterions all possible charges are removed</span>
+<span class="sd">    from the molecule.</span>
+
+<span class="sd">    For instance:</span>
+
+<span class="sd">    &gt;&gt;&gt; # Uncharger:</span>
+<span class="sd">    &gt;&gt;&gt; [O-][N+](C)(C)C[O-] -&gt; [O-][N+](C)(C)CO</span>
+
+<span class="sd">    &gt;&gt;&gt; # FullUncharger:</span>
+<span class="sd">    &gt;&gt;&gt; [O-][N+](C)(C)C[O-] -&gt; O[N+](C)(C)CO</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create an instance of FullUncharger.</span>
+
+<span class="sd">        .. todo:: This will remove charges from -2 to +2 only. This could be improved using more general smarts?</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># some smarts to use to find charges</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">q_pos_1</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">MolFromSmarts</span><span class="p">(</span><span class="s2">&quot;[*;+]&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">q_pos_2</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">MolFromSmarts</span><span class="p">(</span><span class="s2">&quot;[*;+2]&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">q_neg_1</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">MolFromSmarts</span><span class="p">(</span><span class="s2">&quot;[*;-]&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">q_neg_2</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">MolFromSmarts</span><span class="p">(</span><span class="s2">&quot;[*;-2]&quot;</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Initialized a new FullUncharger object&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="FullUncharger.full_uncharge"><a class="viewcode-back" href="../../standardize.html#npfc.standardize.FullUncharger.full_uncharge">[docs]</a>    <span class="k">def</span> <span class="nf">full_uncharge</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mol</span><span class="p">:</span> <span class="n">Mol</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Mol</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Neutralize molecule by adding/removing hydrogens.</span>
+<span class="sd">        Does not attempt to preserve zwitterions.</span>
+<span class="sd">        For now takes into account only charges of -2 and +2.</span>
+
+<span class="sd">        :param mol: the input molecule</span>
+<span class="sd">        :return: the uncharged molecule</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Uncharging a molecule&quot;</span><span class="p">)</span>
+        <span class="n">mol</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
+        <span class="c1"># Get atom ids for matches</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">mol</span><span class="o">.</span><span class="n">GetSubstructMatches</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">q_pos_1</span><span class="p">)]</span>   <span class="c1"># +1</span>
+        <span class="n">p</span> <span class="o">+=</span> <span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">mol</span><span class="o">.</span><span class="n">GetSubstructMatches</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">q_pos_2</span><span class="p">)]</span>  <span class="c1"># +2</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">mol</span><span class="o">.</span><span class="n">GetSubstructMatches</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">q_neg_1</span><span class="p">)]</span>  <span class="c1"># -1</span>
+        <span class="n">n</span> <span class="o">+=</span> <span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">mol</span><span class="o">.</span><span class="n">GetSubstructMatches</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">q_neg_2</span><span class="p">)]</span>  <span class="c1"># -2</span>
+        <span class="c1"># remove positive charges</span>
+        <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="p">[</span><span class="n">mol</span><span class="o">.</span><span class="n">GetAtomWithIdx</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">p</span><span class="p">]:</span>
+            <span class="c1"># Remove hydrogen and reduce formal change until neutral or no more hydrogens</span>
+            <span class="k">while</span> <span class="n">atom</span><span class="o">.</span><span class="n">GetFormalCharge</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">atom</span><span class="o">.</span><span class="n">GetNumExplicitHs</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">atom</span><span class="o">.</span><span class="n">SetNumExplicitHs</span><span class="p">(</span><span class="n">atom</span><span class="o">.</span><span class="n">GetNumExplicitHs</span><span class="p">()</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="n">atom</span><span class="o">.</span><span class="n">SetFormalCharge</span><span class="p">(</span><span class="n">atom</span><span class="o">.</span><span class="n">GetFormalCharge</span><span class="p">()</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="c1"># remove negative charges</span>
+        <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="p">[</span><span class="n">mol</span><span class="o">.</span><span class="n">GetAtomWithIdx</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">n</span><span class="p">]:</span>
+            <span class="c1"># Add hydrogen and increase formal change until neutral</span>
+            <span class="k">while</span> <span class="n">atom</span><span class="o">.</span><span class="n">GetFormalCharge</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">atom</span><span class="o">.</span><span class="n">SetNumExplicitHs</span><span class="p">(</span><span class="n">atom</span><span class="o">.</span><span class="n">GetNumExplicitHs</span><span class="p">()</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="n">atom</span><span class="o">.</span><span class="n">SetFormalCharge</span><span class="p">(</span><span class="n">atom</span><span class="o">.</span><span class="n">GetFormalCharge</span><span class="p">()</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">mol</span></div></div>
+
+
+<div class="viewcode-block" id="DuplicateFilter"><a class="viewcode-back" href="../../standardize.html#npfc.standardize.DuplicateFilter">[docs]</a><span class="k">class</span> <span class="nc">DuplicateFilter</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;A class used for filtering duplicate molecules in on or several DataFrame(s).&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">on</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;inchikey&#39;</span><span class="p">,</span>
+                 <span class="n">ref_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">col_mol</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;mol&#39;</span><span class="p">,</span>
+                 <span class="n">col_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;idm&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create an instance of DuplicateFilter with following parameters:</span>
+
+<span class="sd">        :param on: The property to use for identifying duplicate molecules.</span>
+<span class="sd">        :param ref_file: The path to the reference file used to store synonyms.</span>
+<span class="sd">        :param col_mol: The DataFrame column name where molecules are stored.</span>
+<span class="sd">        :param col_id: The DataFrame column name where molecule identifiers are stored.</span>
+
+<span class="sd">        .. note:: For now, only the &#39;inchikey&#39; property works for the &#39;on&#39; parameter. Moreover InchIKey are computed wether provided or not.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_on</span> <span class="o">=</span> <span class="n">on</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">col_mol</span> <span class="o">=</span> <span class="n">col_mol</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">col_id</span> <span class="o">=</span> <span class="n">col_id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">col_id_synonyms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">col_id</span> <span class="o">+</span> <span class="s2">&quot;_synonyms&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ref_file</span> <span class="o">=</span> <span class="n">ref_file</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Initialized a new DuplicateFilter object&quot;</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">on</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on</span>
+
+    <span class="nd">@on</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">on</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="o">!=</span> <span class="s1">&#39;inchikey&#39;</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;for now argument &#39;on&#39; only accepts &#39;inchikey&#39; as value, not &#39;</span><span class="si">{value}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_on</span> <span class="o">=</span> <span class="n">value</span>
+
+<div class="viewcode-block" id="DuplicateFilter.find_synonyms"><a class="viewcode-back" href="../../standardize.html#npfc.standardize.DuplicateFilter.find_synonyms">[docs]</a>    <span class="k">def</span> <span class="nf">find_synonyms</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Find synonyms within a DataFrame.</span>
+
+<span class="sd">        The Synonyms DataFrame follows the follow syntax:</span>
+<span class="sd">        - rowid: The InChIKey of the molecule (&#39;inchikey&#39;).</span>
+<span class="sd">        - idm_synonyms: The list of all molecule ids sharing the same InChIKey.</span>
+<span class="sd">        - idm: The id of the molecule that was kept (first element of idm_synonyms).</span>
+
+<span class="sd">        :param df: The input DataFrame.</span>
+<span class="sd">        :return: The output DataFrame containg synonyms for identifying duplicate molecules.</span>
+
+<span class="sd">        .. warning:: make sure there is no duplicate idm before using this function, as the final filtering of duplicates is performed with a whitelist based on idm.</span>
+
+<span class="sd">        .. todo:: optimize code (table format for reference file, numpy for setting up lists when grouping?)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># check on col_mol</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">col_mol</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Error! No column </span><span class="si">{self.col_mol}</span><span class="s2"> found for col_mol parameter.&quot;</span><span class="p">)</span>
+        <span class="c1"># check on on</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">on</span> <span class="o">!=</span> <span class="s1">&#39;inchikey&#39;</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Error! Unauthorized value for on parameter (</span><span class="si">{self.on}</span><span class="s2">).&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">on</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Column </span><span class="si">{self.on}</span><span class="s2"> not found, so computing it.&quot;</span><span class="p">)</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>  <span class="c1"># this certainly removes the pandas warnings but is it the right way of doing this?</span>
+            <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="bp">self</span><span class="o">.</span><span class="n">on</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="bp">self</span><span class="o">.</span><span class="n">col_mol</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">rdinchi</span><span class="o">.</span><span class="n">MolToInchiKey</span><span class="p">)</span>
+        <span class="c1"># init</span>
+        <span class="n">df</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">on</span><span class="p">]</span>
+        <span class="n">df</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">on</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="c1"># define synonyms in current dataframe</span>
+        <span class="n">df_synonyms</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">on</span><span class="p">)[</span><span class="bp">self</span><span class="o">.</span><span class="n">col_id</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="nb">list</span><span class="p">))</span>
+        <span class="n">df_synonyms</span><span class="o">.</span><span class="n">rename</span><span class="p">({</span><span class="bp">self</span><span class="o">.</span><span class="n">col_id</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">col_id_synonyms</span><span class="p">},</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">df_synonyms</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">col_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_synonyms</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">col_id_synonyms</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="c1"># df_synonyms[self.col_id] = df_synonyms[self.col_id_synonyms].map(lambda x: x[0])</span>
+        <span class="c1"># use information stored in ref file as well, if provided</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ref_file</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ref_file</span><span class="p">)</span><span class="o">.</span><span class="n">stem</span>
+            <span class="c1"># init ref file if does not exist already</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ref_file</span><span class="p">)</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">init_ref_file</span><span class="p">()</span>
+            <span class="c1"># open it with a lock as we&#39;ll need to update it at the end</span>
+            <span class="k">with</span> <span class="n">utils</span><span class="o">.</span><span class="n">SafeHDF5Store</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ref_file</span><span class="p">)</span> <span class="k">as</span> <span class="n">store</span><span class="p">:</span>
+                <span class="n">df_ref</span> <span class="o">=</span> <span class="n">store</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+                <span class="n">df_ref</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">df_ref</span><span class="p">,</span> <span class="n">df_synonyms</span><span class="p">])</span>
+                <span class="n">df_ref</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">df_ref</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">on</span><span class="p">)[</span><span class="bp">self</span><span class="o">.</span><span class="n">col_id_synonyms</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="nb">list</span><span class="p">))</span>
+                <span class="n">df_ref</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">col_id_synonyms</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_ref</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">col_id_synonyms</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">chain</span><span class="o">.</span><span class="n">from_iterable</span><span class="p">(</span><span class="n">x</span><span class="p">)))</span>
+                <span class="n">df_ref</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">col_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_ref</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">col_id_synonyms</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="n">df_ref</span><span class="o">.</span><span class="n">to_hdf</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ref_file</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">key</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">df_ref</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">df_synonyms</span></div>
+
+<div class="viewcode-block" id="DuplicateFilter.init_ref_file"><a class="viewcode-back" href="../../standardize.html#npfc.standardize.DuplicateFilter.init_ref_file">[docs]</a>    <span class="k">def</span> <span class="nf">init_ref_file</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Initiate an empty reference hdf for identifying duplicates.</span>
+
+<span class="sd">        :return: True if the reference file could be initialized, False otherwise.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># delete file if it already exists</span>
+            <span class="k">if</span> <span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ref_file</span><span class="p">)</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+                <span class="n">Path</span><span class="o">.</span><span class="n">unlink</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ref_file</span><span class="p">)</span>
+            <span class="c1"># init</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ref_file</span><span class="p">)</span><span class="o">.</span><span class="n">stem</span>
+            <span class="c1"># create a new ref file</span>
+            <span class="n">df_ref</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="bp">self</span><span class="o">.</span><span class="n">on</span><span class="p">:</span> <span class="p">[],</span> <span class="bp">self</span><span class="o">.</span><span class="n">col_id_synonyms</span><span class="p">:</span> <span class="p">[],</span> <span class="bp">self</span><span class="o">.</span><span class="n">col_id</span><span class="p">:</span> <span class="p">[]})</span>
+            <span class="n">df_ref</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">df_ref</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">on</span><span class="p">]</span>
+            <span class="n">df_ref</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">on</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">df_ref</span><span class="o">.</span><span class="n">to_hdf</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ref_file</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">key</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>  <span class="c1"># certainly not the only kind of error but PEP8 is against using just plain except.</span>
+            <span class="k">return</span> <span class="kc">False</span></div>
+
+<div class="viewcode-block" id="DuplicateFilter.mark_dupl"><a class="viewcode-back" href="../../standardize.html#npfc.standardize.DuplicateFilter.mark_dupl">[docs]</a>    <span class="k">def</span> <span class="nf">mark_dupl</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Mark duplicate entries found in df or in ref. Designed to work from</span>
+<span class="sd">        within Standardizer.run only as it updates columns &#39;status&#39; and &#39;task&#39; to</span>
+<span class="sd">        respectively &#39;filter&#39; and &#39;filter_duplicates&#39;. Might still be useful if exposed.</span>
+
+
+<span class="sd">        Moreover, update the reference file (if specified) by using a lock (from utils module) so that</span>
+<span class="sd">        no other processes can modify it at the same time. This enables a safe duplicate</span>
+<span class="sd">        molecules filtering accross chunks without having to gather everything in a single file.</span>
+
+<span class="sd">        :param df: the input DataFrame</span>
+<span class="sd">        :return: the output DataFrame</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># any molecule whose id is not in df_synonyms[col_id] is a duplicate of another</span>
+        <span class="n">df_synonyms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">find_synonyms</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>  <span class="c1"># supress warnings, but might significantly slow down the process..?</span>
+        <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="o">~</span><span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="bp">self</span><span class="o">.</span><span class="n">col_id</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">df_synonyms</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="bp">self</span><span class="o">.</span><span class="n">col_id</span><span class="p">]),</span> <span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">,</span> <span class="s1">&#39;task&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;filter&#39;</span><span class="p">,</span> <span class="s1">&#39;filter_dupl&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">df</span></div></div>
+
+
+<div class="viewcode-block" id="Standardizer"><a class="viewcode-back" href="../../standardize.html#npfc.standardize.Standardizer">[docs]</a><span class="k">class</span> <span class="nc">Standardizer</span><span class="p">(</span><span class="n">Filter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A class for standardizing molecular structures. The standardization itself is based</span>
+<span class="sd">    on a protocol that the user can modify.</span>
+
+<span class="sd">    By default this protocol consists in 12 tasks applied to each molecule invidually:</span>
+
+<span class="sd">        1) **sanitize**: structural check to make sure molecules can be used safely</span>
+<span class="sd">        2) **disconnect_metal**: break bonds involving metallic atoms, resulting in potentially several molecules per structure.</span>
+<span class="sd">        3) **keep_largest**: retrieve only the largest molecule (molecular weight in Da) from a structure. Medchem elements are preferred over others, independant from size.</span>
+<span class="sd">        4) **filter_hac**: filter molecules with a heavy atom count not in the accepted range. By default: hac &gt; 3.</span>
+<span class="sd">        5) **filter_molweight**: filter molecules with a molecular weight not in the accepted range. By default: molweight &lt;= 1000.0.</span>
+<span class="sd">        6) **filter_nrings**: filter molecules with a number of rings (Smallest Sets of Smallest Rings or SSSR) not in the accepted range. By default: nrings &gt; 0.</span>
+<span class="sd">        7) **filter_medchem**: filter molecules with elements not considered as medchem. By default: elements in H, B, C, N, O, F, P, S, Cl, Br, I.</span>
+<span class="sd">        8) **remove_isotopes**: set all atoms to their most common isotope (i.e. 14C becomes 12C which is C).</span>
+<span class="sd">        9) **normalize**: always write the same functional groups in the same manner.</span>
+<span class="sd">        10) **uncharge**: remove all charges on a molecule when it is possible. This is different from rdkit.Chem.MolStandardize.charge module as there is no attempt for reaching the zwitterion.</span>
+<span class="sd">        11) **canonicalize**: enumerate the canonical tautomer.</span>
+<span class="sd">        12) **remove_stereo**: remove all remaining stereochemistry flags on the molecule.</span>
+
+<span class="sd">    Finally, duplicate entries can be filtered using InChiKeys when postprocessing the DataFrame with molecules (argument in the run_df method).</span>
+
+<span class="sd">    This results in new columns in the input DataFrame:</span>
+
+<span class="sd">        - the &#39;mol&#39; column: updated structure (only for the protocol)</span>
+<span class="sd">        - the &#39;status&#39; column: either standardized, filter or error.</span>
+<span class="sd">        - the &#39;task&#39; column: the latest task that was applied to the molecule.</span>
+
+<span class="sd">    The global variable DESCRIPTORS contains keywords for computing descriptors used for filters.</span>
+<span class="sd">    Although this could be expanded quite easily if needed, there is currently only four descriptors implemented:</span>
+
+<span class="sd">        - molweight: molecular weight (Da)</span>
+<span class="sd">        - hac: heavy atom count</span>
+<span class="sd">        - nrings: number of rings (Smallest Sets of Smallest Rings or SSSR)</span>
+<span class="sd">        - elements: atomic symbols</span>
+
+<span class="sd">    Two different kind of operations can be defined:</span>
+
+<span class="sd">        - numeric: use of comparison operators such as &lt;, &gt;, &lt;=, &gt;=, == and != for numeric comparisons.</span>
+<span class="sd">        - set: use of &#39; in &#39; or &#39; not in &#39; (spaces are required!) for inclusions/exclusions.</span>
+
+<span class="sd">    Examples of possible operations:</span>
+
+<span class="sd">        &gt;&gt;&gt; &#39;0 &lt; molweight &lt;= 1000.0&#39;</span>
+<span class="sd">        &gt;&gt;&gt; &#39;hac &gt; 3&#39;</span>
+<span class="sd">        &gt;&gt;&gt; &#39;nrings != 0&#39;</span>
+<span class="sd">        &gt;&gt;&gt; &#39;elements in H,C,N,O&#39;</span>
+
+
+<span class="sd">    .. note:: For now, the user can only change the task order and the values of filters, but it would be relatively easy to add more functionality.</span>
+
+<span class="sd">    .. todo:: Add an argument to specify a configuration file in json.</span>
+
+<span class="sd">    .. todo:: Rename standardized status to ready or passed, something shorter. Also filter should be filtered.</span>
+
+<span class="sd">    .. todo:: Check latest publication sent by Prof. H. Waldmann, there might be an open-source tool for deglycosylating structures, which could become a new task.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">protocol</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">col_mol</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;mol&#39;</span><span class="p">,</span>
+                 <span class="n">col_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;idm&#39;</span><span class="p">,</span>
+                 <span class="n">filter_duplicates</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+                 <span class="n">ref_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">on</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;inchikey&#39;</span><span class="p">,</span>
+                 <span class="c1"># ref_dataset=None,</span>
+                 <span class="n">suffix</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                 <span class="n">elements_medchem</span><span class="p">:</span> <span class="nb">set</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;H&#39;</span><span class="p">,</span> <span class="s1">&#39;B&#39;</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="s1">&#39;N&#39;</span><span class="p">,</span> <span class="s1">&#39;O&#39;</span><span class="p">,</span> <span class="s1">&#39;F&#39;</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">,</span> <span class="s1">&#39;S&#39;</span><span class="p">,</span> <span class="s1">&#39;Cl&#39;</span><span class="p">,</span> <span class="s1">&#39;Br&#39;</span><span class="p">,</span> <span class="s1">&#39;I&#39;</span><span class="p">}</span>
+                 <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a Standardizer object.&quot;&quot;&quot;</span>
+        <span class="c1"># filter</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">Standardizer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="c1"># standardizer</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_elements_medchem</span> <span class="o">=</span> <span class="n">elements_medchem</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_col_id</span> <span class="o">=</span> <span class="n">col_id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_col_mol</span> <span class="o">=</span> <span class="n">col_mol</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_filter_duplicates</span> <span class="o">=</span> <span class="n">filter_duplicates</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_on</span> <span class="o">=</span> <span class="n">on</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_suffix</span> <span class="o">=</span> <span class="n">suffix</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ref_file</span> <span class="o">=</span> <span class="n">ref_file</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_default_protocol</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;tasks&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;sanitize&#39;</span><span class="p">,</span>
+                                            <span class="s1">&#39;disconnect_metal&#39;</span><span class="p">,</span>
+                                            <span class="s1">&#39;keep_largest&#39;</span><span class="p">,</span>
+                                            <span class="s1">&#39;filter_hac&#39;</span><span class="p">,</span>
+                                            <span class="s1">&#39;filter_molweight&#39;</span><span class="p">,</span>
+                                            <span class="s1">&#39;filter_nrings&#39;</span><span class="p">,</span>
+                                            <span class="s1">&#39;filter_medchem&#39;</span><span class="p">,</span>
+                                            <span class="s1">&#39;remove_isotopes&#39;</span><span class="p">,</span>
+                                            <span class="s1">&#39;normalize&#39;</span><span class="p">,</span>
+                                            <span class="s1">&#39;uncharge&#39;</span><span class="p">,</span>
+                                            <span class="s1">&#39;canonicalize&#39;</span><span class="p">,</span>
+                                            <span class="s1">&#39;remove_stereo&#39;</span><span class="p">,</span>
+                                            <span class="p">],</span>
+                                  <span class="s1">&#39;filter_hac&#39;</span><span class="p">:</span> <span class="s1">&#39;hac &gt; 3&#39;</span><span class="p">,</span>
+                                  <span class="s1">&#39;filter_molweight&#39;</span><span class="p">:</span> <span class="s1">&#39;molweight &lt;= 1000.0&#39;</span><span class="p">,</span>
+                                  <span class="s1">&#39;filter_nrings&#39;</span><span class="p">:</span> <span class="s1">&#39;nrings &gt; 0&#39;</span><span class="p">,</span>
+                                  <span class="s1">&#39;filter_medchem&#39;</span><span class="p">:</span> <span class="n">f</span><span class="s1">&#39;elements in {&quot;, &quot;.join(str(x) for x in self.elements_medchem)}&#39;</span><span class="p">,</span>
+                                  <span class="p">}</span>
+        <span class="k">if</span> <span class="n">protocol</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_protocol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default_protocol</span>
+        <span class="c1"># workers</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">metal_disconnector</span> <span class="o">=</span> <span class="n">MetalDisconnector</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">normalizer</span> <span class="o">=</span> <span class="n">Normalizer</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">full_uncharger</span> <span class="o">=</span> <span class="n">FullUncharger</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">canonicalizer</span> <span class="o">=</span> <span class="n">TautomerCanonicalizer</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">protocol</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_protocol</span>
+
+    <span class="nd">@protocol</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">protocol</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">protocol</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="c1"># input is a json file =&gt; convert it to a dict</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">protocol</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">utils</span><span class="o">.</span><span class="n">check_arg_config_file</span><span class="p">(</span><span class="n">protocol</span><span class="p">)</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">protocol</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">protocol</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        <span class="c1"># input is a dict</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">protocol</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="k">if</span> <span class="s1">&#39;tasks&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">protocol</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;invalid protocol format (no &#39;tasks&#39; key found)&quot;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">protocol</span><span class="p">[</span><span class="s1">&#39;tasks&#39;</span><span class="p">],</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">protocol</span><span class="p">[</span><span class="s1">&#39;tasks&#39;</span><span class="p">],</span> <span class="nb">tuple</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;invalid protocol format (&#39;tasks&#39; key is neither list or tuple)&quot;</span><span class="p">)</span>
+        <span class="c1"># update default protocol</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_protocol</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">protocol</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">col_id</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_col_id</span>
+
+    <span class="nd">@col_id</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">col_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Error! col_id cannot be &#39;</span><span class="si">{value}</span><span class="s2">&#39;.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_col_id</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">col_mol</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_col_mol</span>
+
+    <span class="nd">@col_mol</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">col_mol</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Error! col_mol cannot be &#39;</span><span class="si">{value}</span><span class="s2">&#39;.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_col_mol</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">elements_medchem</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">set</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_elements_medchem</span>
+
+    <span class="nd">@elements_medchem</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">elements_medchem</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">set</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">set</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Error! elements_medchem should be a set of strings, not &#39;</span><span class="si">{value}</span><span class="s2">&#39; ({type(value)}).&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">([</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">value</span><span class="p">]):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Error! elements_medchem should be a set of strings, not &#39;</span><span class="si">{value}</span><span class="s2">&#39; ({type(value)}).&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_elements_medchem</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">filter_duplicates</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filter_duplicates</span>
+
+    <span class="nd">@filter_duplicates</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">filter_duplicates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">utils</span><span class="o">.</span><span class="n">check_arg_bool</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_filter_duplicates</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">on</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on</span>
+
+    <span class="nd">@on</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">on</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Error! on cannot be &#39;</span><span class="si">{value}</span><span class="s2">&#39;.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_on</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">suffix</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_suffix</span>
+
+    <span class="nd">@suffix</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">suffix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Error! Either None or a str are expected for suffix, not &#39;</span><span class="si">{value}</span><span class="s2">&#39; ({type(value)}).&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_suffix</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">ref_file</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ref_file</span>
+
+    <span class="nd">@ref_file</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">ref_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Error! Either None or a str are expected for ref_file, not &#39;</span><span class="si">{value}</span><span class="s2">&#39; ({type(value)}).&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ref_file</span> <span class="o">=</span> <span class="n">value</span>
+
+<div class="viewcode-block" id="Standardizer.remove_isotopes"><a class="viewcode-back" href="../../standardize.html#npfc.standardize.Standardizer.remove_isotopes">[docs]</a>    <span class="k">def</span> <span class="nf">remove_isotopes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mol</span><span class="p">:</span> <span class="n">Mol</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Mol</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Return a molecule without any isotopes.</span>
+
+<span class="sd">        :param mol: the input molecule</span>
+<span class="sd">        :return: the molecule without isotope</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">mol</span><span class="o">.</span><span class="n">GetAtoms</span><span class="p">():</span>
+            <span class="n">a</span><span class="o">.</span><span class="n">SetIsotope</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">mol</span></div>
+
+<div class="viewcode-block" id="Standardizer.keep_largest"><a class="viewcode-back" href="../../standardize.html#npfc.standardize.Standardizer.keep_largest">[docs]</a>    <span class="k">def</span> <span class="nf">keep_largest</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mol</span><span class="p">:</span> <span class="n">Mol</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Mol</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Return the largest molecule found in a molecular structure. Molecules with</span>
+<span class="sd">        only elements usually used in medicinal chemistry are preferred over others,</span>
+<span class="sd">        no matter their molecular weight.</span>
+<span class="sd">        The list of medchem elements is contained in the protocol paramater of the Standardizer object:</span>
+<span class="sd">        (protocol[&#39;filter_medchem&#39;]).</span>
+
+<span class="sd">        :param mol: the input molecule(s)</span>
+<span class="sd">        :return: the largest molecule</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">frags</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">GetMolFrags</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">asMols</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sanitizeFrags</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="c1"># no need to look further if we have only one fragment!</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">frags</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">mol</span>
+        <span class="c1"># otherwise, we have to compare the fragments</span>
+        <span class="c1"># init</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;found {len(frags)} fragments&quot;</span><span class="p">)</span>
+        <span class="n">largest_molweight</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span>  <span class="c1"># so we are sure to update this on the first iteration</span>
+        <span class="n">largest_frag</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">largest_is_medchem</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="c1"># begin</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">frag</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">frags</span><span class="p">):</span>
+            <span class="c1"># is_medchem</span>
+            <span class="n">is_medchem</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter_mol</span><span class="p">(</span><span class="n">frag</span><span class="p">,</span> <span class="n">f</span><span class="s1">&#39;elements in {&quot;, &quot;.join(str(x) for x in self.elements_medchem)}&#39;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;fragment #</span><span class="si">{i}</span><span class="s2"> is medchem: </span><span class="si">{is_medchem}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="c1"># molweight</span>
+            <span class="n">molweight</span> <span class="o">=</span> <span class="n">Descriptors</span><span class="o">.</span><span class="n">ExactMolWt</span><span class="p">(</span><span class="n">frag</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;fragment #</span><span class="si">{i}</span><span class="s2"> molweight: </span><span class="si">{molweight}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="c1"># compare to the current largest fragment</span>
+            <span class="n">update_largest</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">largest_is_medchem</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">is_medchem</span><span class="p">:</span>
+                    <span class="n">update_largest</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">molweight</span> <span class="o">&gt;</span> <span class="n">largest_molweight</span><span class="p">:</span>
+                        <span class="n">update_largest</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">is_medchem</span><span class="p">:</span>
+                    <span class="k">pass</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">molweight</span> <span class="o">&gt;</span> <span class="n">largest_molweight</span><span class="p">:</span>
+                        <span class="n">update_largest</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="c1"># update largest</span>
+            <span class="k">if</span> <span class="n">update_largest</span><span class="p">:</span>
+                <span class="n">largest_is_medchem</span> <span class="o">=</span> <span class="n">is_medchem</span>
+                <span class="n">largest_frag</span> <span class="o">=</span> <span class="n">frag</span>
+                <span class="n">largest_molweight</span> <span class="o">=</span> <span class="n">molweight</span>
+        <span class="c1"># store molweight in case we need it later</span>
+        <span class="k">return</span> <span class="n">largest_frag</span></div>
+
+    <span class="nd">@timeout_decorator</span><span class="o">.</span><span class="n">timeout</span><span class="p">(</span><span class="n">TIMEOUT</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mol</span><span class="p">:</span> <span class="n">Mol</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Helper function for run.</span>
+<span class="sd">        Contains all tasks defined within the protocol. Since some operations are</span>
+<span class="sd">        expansive and could last a very long time for complex molecules (normalize, canonicalize),</span>
+<span class="sd">        a timeout value is set globally. The run function is the one that can catch the exception</span>
+<span class="sd">        raised by timeouts.</span>
+
+<span class="sd">        :param mol: the input molecule</span>
+<span class="sd">        :return: a tuple containing the molecule, its status and the further task name it reached</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># initiate_mol</span>
+        <span class="k">if</span> <span class="n">mol</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="s1">&#39;error&#39;</span><span class="p">,</span> <span class="s1">&#39;initiate_mol&#39;</span><span class="p">)</span>
+
+        <span class="c1"># begin protocol</span>
+        <span class="n">mol</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_protocol</span><span class="p">[</span><span class="s1">&#39;tasks&#39;</span><span class="p">]:</span>
+            <span class="c1"># metals</span>
+            <span class="k">if</span> <span class="n">task</span> <span class="o">==</span> <span class="s1">&#39;disconnect_metal&#39;</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">mol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">metal_disconnector</span><span class="o">.</span><span class="n">disconnect</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="s1">&#39;error&#39;</span><span class="p">,</span> <span class="s1">&#39;disconnect_metal&#39;</span><span class="p">)</span>
+
+            <span class="c1"># fragments</span>
+            <span class="k">elif</span> <span class="n">task</span> <span class="o">==</span> <span class="s1">&#39;keep_largest&#39;</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">mol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">keep_largest</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="s1">&#39;error&#39;</span><span class="p">,</span> <span class="s1">&#39;keep_largest&#39;</span><span class="p">)</span>
+
+            <span class="c1"># filters</span>
+            <span class="k">elif</span> <span class="n">task</span> <span class="o">==</span> <span class="s1">&#39;filter_medchem&#39;</span> <span class="ow">or</span> <span class="n">task</span> <span class="o">==</span> <span class="s1">&#39;filter_hac&#39;</span> <span class="ow">or</span> <span class="n">task</span> <span class="o">==</span> <span class="s1">&#39;filter_molweight&#39;</span> <span class="ow">or</span> <span class="n">task</span> <span class="o">==</span> <span class="s1">&#39;filter_nrings&#39;</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter_mol</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_protocol</span><span class="p">[</span><span class="n">task</span><span class="p">]):</span>
+                        <span class="k">return</span> <span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="s1">&#39;filter&#39;</span><span class="p">,</span> <span class="n">task</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="s1">&#39;error&#39;</span><span class="p">,</span> <span class="n">task</span><span class="p">)</span>
+
+            <span class="c1"># sanitize</span>
+            <span class="k">elif</span> <span class="n">task</span> <span class="o">==</span> <span class="s1">&#39;sanitize&#39;</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">Chem</span><span class="o">.</span><span class="n">SanitizeMol</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="s1">&#39;error&#39;</span><span class="p">,</span> <span class="n">task</span><span class="p">)</span>
+            <span class="c1"># remove_isotopes</span>
+            <span class="k">elif</span> <span class="n">task</span> <span class="o">==</span> <span class="s1">&#39;remove_isotopes&#39;</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">mol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">remove_isotopes</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="s1">&#39;error&#39;</span><span class="p">,</span> <span class="n">task</span><span class="p">)</span>
+
+            <span class="c1"># normalize</span>
+            <span class="k">elif</span> <span class="n">task</span> <span class="o">==</span> <span class="s1">&#39;normalize&#39;</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">mol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">normalizer</span><span class="o">.</span><span class="n">normalize</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="s1">&#39;error&#39;</span><span class="p">,</span> <span class="n">task</span><span class="p">)</span>
+            <span class="c1"># uncharge</span>
+            <span class="k">elif</span> <span class="n">task</span> <span class="o">==</span> <span class="s1">&#39;uncharge&#39;</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">mol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">full_uncharger</span><span class="o">.</span><span class="n">full_uncharge</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="s1">&#39;error&#39;</span><span class="p">,</span> <span class="n">task</span><span class="p">)</span>
+
+            <span class="c1"># canonicalize</span>
+            <span class="k">elif</span> <span class="n">task</span> <span class="o">==</span> <span class="s1">&#39;canonicalize&#39;</span><span class="p">:</span>
+                <span class="c1"># canonicalize</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">mol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">canonicalizer</span><span class="o">.</span><span class="n">canonicalize</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
+                <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">RuntimeError</span><span class="p">):</span>
+                    <span class="k">return</span> <span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="s1">&#39;error&#39;</span><span class="p">,</span> <span class="n">task</span><span class="p">)</span>
+
+            <span class="c1"># remove_stereo</span>
+            <span class="k">elif</span> <span class="n">task</span> <span class="o">==</span> <span class="s1">&#39;remove_stereo&#39;</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">rdmolops</span><span class="o">.</span><span class="n">RemoveStereochemistry</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="s1">&#39;error&#39;</span><span class="p">,</span> <span class="n">task</span><span class="p">)</span>
+
+            <span class="c1"># something else?</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Unknown task: </span><span class="si">{task}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="c1"># a molecule that passed all the protocole!</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="s1">&#39;standardized&#39;</span><span class="p">,</span> <span class="s1">&#39;passed&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Standardizer.run"><a class="viewcode-back" href="../../standardize.html#npfc.standardize.Standardizer.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mol</span><span class="p">:</span> <span class="n">Mol</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Execute the standardization protocol on a molecule.</span>
+<span class="sd">        Molecule that exceed the timeout value are filtered with a task=&#39;timeout&#39;.</span>
+
+<span class="sd">        :param mol: the input molecule</span>
+<span class="sd">        :return: a tuple containing the molecule, its status and the further task name it reached</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_run</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">timeout_decorator</span><span class="o">.</span><span class="n">TimeoutError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="s1">&#39;filter&#39;</span><span class="p">,</span> <span class="s1">&#39;timeout&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Standardizer.run_df"><a class="viewcode-back" href="../../standardize.html#npfc.standardize.Standardizer.run_df">[docs]</a>    <span class="k">def</span> <span class="nf">run_df</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Apply the standardization protocol on a DataFrame, with the possibility of directly filtering duplicate entries as well.</span>
+<span class="sd">        This can be very useful as the standardization process can expose duplicate entries due to salts removal, neutralization,</span>
+<span class="sd">        canonical tautomer enumeration, and stereochemistry centers unlabelling</span>
+
+<span class="sd">        If a reference file is specified, duplicate removals becomes possible accross chunks.</span>
+
+
+<span class="sd">        :param df: the input DataFrame</span>
+<span class="sd">        :return: three DataFrames separated by status:</span>
+
+<span class="sd">            - standardized</span>
+<span class="sd">            - filtered</span>
+<span class="sd">            - error</span>
+
+<span class="sd">        .. note:: As a side effect, the output DataFrames get indexed by idm and standardized entries keep their &#39;inchikey&#39; column (mandatory for now).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># run standardization protocol</span>
+        <span class="n">df</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">col_id</span><span class="p">]</span>
+        <span class="n">df</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">col_mol</span><span class="p">],</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">],</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;task&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">df</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">col_mol</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">run</span><span class="p">))</span>
+        <span class="c1"># do not apply filter duplicates on molecules with errors or that were already filtered for x reasons</span>
+        <span class="n">df_error</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;error&#39;</span><span class="p">]</span>
+        <span class="n">df_filtered</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;filter&#39;</span><span class="p">]</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;standardized&#39;</span><span class="p">]</span>
+        <span class="c1"># filter duplicates</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter_duplicates</span><span class="p">:</span>
+            <span class="n">dupl_filter</span> <span class="o">=</span> <span class="n">DuplicateFilter</span><span class="p">(</span><span class="n">on</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">on</span><span class="p">,</span> <span class="n">col_mol</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">col_mol</span><span class="p">,</span> <span class="n">col_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">col_id</span><span class="p">,</span> <span class="n">ref_file</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ref_file</span><span class="p">)</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">dupl_filter</span><span class="o">.</span><span class="n">mark_dupl</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+            <span class="c1"># clean up for postprocess</span>
+            <span class="n">df</span><span class="p">[</span><span class="n">dupl_filter</span><span class="o">.</span><span class="n">on</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">index</span>
+            <span class="n">df</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">col_id</span><span class="p">]</span>
+            <span class="n">df</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">col_id</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="c1"># separate dupl from the rest</span>
+            <span class="n">df_filtered</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">df_filtered</span><span class="p">,</span> <span class="n">df</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;filter&#39;</span><span class="p">]],</span> <span class="n">join</span><span class="o">=</span><span class="s1">&#39;inner&#39;</span><span class="p">)</span>  <span class="c1"># drop inchikey col as the info is stored in ref_file anyway</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;standardized&#39;</span><span class="p">]</span>
+        <span class="c1"># tuple of dataframes</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">df_filtered</span><span class="p">,</span> <span class="n">df_error</span><span class="p">)</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Dr. Jose-Manuel Gally
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../_static/language_data.js"></script>
+    
+
+  
+
+  <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
