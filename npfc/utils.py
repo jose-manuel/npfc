@@ -6,6 +6,10 @@ Module utils
 # standard
 import logging
 from pathlib import Path
+import os
+import time
+# data science
+from pandas import HDFStore
 # docstrings
 from typing import Union
 from typing import List
@@ -90,3 +94,32 @@ def check_arg_output_file(output_file: str, create_parent_dir: bool = True) -> b
             raise ValueError(f"Error! Output_dir could not be found at {output_dir}.")
 
     return True
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ CLASSES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
+class SafeHDF5Store(HDFStore):
+    """Implement safe HDFStore by obtaining file lock. Multiple writes will queue if lock is not obtained.
+
+    Copied from https://stackoverflow.com/questions/41231678/obtaining-a-exclusive-lock-when-writing-to-an-hdf5-file.
+    """
+
+    def __init__(self, *args, **kwargs):
+        """Initialize and obtain file lock."""
+        interval = kwargs.pop('probe_interval', 1)
+        self._lock = "%s.lock" % args[0]
+        while True:
+            try:
+                self._flock = os.open(self._lock, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+                break
+            except (IOError, OSError):
+                time.sleep(interval)
+
+        HDFStore.__init__(self, *args, **kwargs)
+
+    def __exit__(self, *args, **kwargs):
+        """Exit and remove file lock."""
+        HDFStore.__exit__(self, *args, **kwargs)
+        os.close(self._flock)
+        os.remove(self._lock)

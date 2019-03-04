@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.load &mdash; npfc 0.0.3-7-g60745a7 documentation</title>
+  <title>npfc.load &mdash; npfc 0.0.4 documentation</title>
   
 
   
@@ -56,7 +56,7 @@
             
             
               <div class="version">
-                0.0.3-7-g60745a7
+                0.0.4
               </div>
             
           
@@ -186,7 +186,7 @@
     <span class="sd">&quot;&quot;&quot;Convert a string to a RDKit Mol object.</span>
 
 <span class="sd">    :param string: a string with a Mol object in bytes with a base64 string representation</span>
-<span class="sd">    :return: a RDKit Mol object upon success, None otherwise</span>
+<span class="sd">    :return: a Mol object upon success, None otherwise</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">try</span><span class="p">:</span>
@@ -195,14 +195,10 @@
         <span class="k">return</span> <span class="kc">None</span></div>
 
 
-<div class="viewcode-block" id="from_pgsql"><a class="viewcode-back" href="../../load.html#npfc.load.from_pgsql">[docs]</a><span class="k">def</span> <span class="nf">from_pgsql</span><span class="p">(</span><span class="n">dbname</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-               <span class="n">user</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-               <span class="n">psql</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-               <span class="n">src_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-               <span class="n">src_mol</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-               <span class="n">mol_format</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-               <span class="n">col_mol</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;mol&#39;</span><span class="p">,</span>
-               <span class="n">col_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;idm&#39;</span><span class="p">,</span>
+<div class="viewcode-block" id="from_pgsql"><a class="viewcode-back" href="../../load.html#npfc.load.from_pgsql">[docs]</a><span class="k">def</span> <span class="nf">from_pgsql</span><span class="p">(</span><span class="n">dbname</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">user</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+               <span class="n">psql</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">src_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+               <span class="n">src_mol</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">mol_format</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+               <span class="n">col_mol</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;mol&#39;</span><span class="p">,</span> <span class="n">col_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;idm&#39;</span><span class="p">,</span>
                <span class="n">keep_db_cols</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Load molecules from a PGSQL query.</span>
 <span class="sd">    The col_mol will is parsed by RDKit depending on the mol_format argument.</span>
@@ -257,7 +253,7 @@
 <span class="sd">    without parsing to retrieve all properties and then with parsing to retrieve</span>
 <span class="sd">    the molecular structure, if possible.</span>
 
-<span class="sd">    .. note:: If keep_props is set to True, then only the last molecule is used for determing what properties should be retrieved. This could be an issue if the input SDF has unconsistent properties.</span>
+<span class="sd">    .. warning:: If keep_props is set to True, then only the last molecule is used for determing what properties should be retrieved. This could be an issue if the input SDF has unconsistent properties.</span>
 
 <span class="sd">    :param input_sdf: the input sdf filename</span>
 <span class="sd">    :param src_id: the SDF property to use for defining the col_id</span>

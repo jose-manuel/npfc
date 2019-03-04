@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Module load &mdash; npfc 0.0.3-7-g60745a7 documentation</title>
+  <title>Module load &mdash; npfc 0.0.4 documentation</title>
   
 
   
@@ -58,7 +58,7 @@
             
             
               <div class="version">
-                0.0.3-7-g60745a7
+                0.0.4
               </div>
             
           
@@ -167,7 +167,7 @@ on disk.</p>
 </tr>
 <tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><code class="xref py py-class docutils literal notranslate"><span class="pre">Mol</span></code></td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">a RDKit Mol object upon success, None otherwise</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">a Mol object upon success, None otherwise</td>
 </tr>
 </tbody>
 </table>
@@ -269,8 +269,8 @@ It is heavily inspired from PandasTools but differs as molecules with errors are
 not silently discarded but stored as None instead. Also, each molecule is read first
 without parsing to retrieve all properties and then with parsing to retrieve
 the molecular structure, if possible.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
 <p class="last">If keep_props is set to True, then only the last molecule is used for determing what properties should be retrieved. This could be an issue if the input SDF has unconsistent properties.</p>
 </div>
 <table class="docutils field-list" frame="void" rules="none">
