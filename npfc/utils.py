@@ -17,9 +17,11 @@ from typing import List
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ GLOBALS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 # allowed suffixes
-EXTS = [['.sdf'], ['.sdf', '.gz'], ['.sdf', '.zip'],
-        ['.csv'], ['.csv', '.gz'], ['.csv', '.zip'],
-        ['.hdf']]
+EXTS_INPUT = [['.sdf'], ['.sdf', '.gz'], ['.sdf', '.zip'],
+              ['.csv'], ['.csv', '.gz'], ['.csv', '.zip'],
+              ['.hdf']]
+
+EXTS_CONFIG = [['.json']]
 
 # types
 Number = Union[int, float]
@@ -65,7 +67,7 @@ def check_arg_input_file(input_file: str) -> bool:
     path_input_file = Path(input_file)
     if not path_input_file.is_file():
         raise ValueError(f"Error! Input file could not be found at {input_file}.")
-    if path_input_file.suffixes not in EXTS:
+    if path_input_file.suffixes not in EXTS_INPUT:
         raise ValueError(f"Error! Unexpected '{path_input_file.suffixes}' for input format.")
 
     return True
@@ -81,7 +83,7 @@ def check_arg_output_file(output_file: str, create_parent_dir: bool = True) -> b
     """
     # output_format
     path_output_file = Path(output_file)
-    if path_output_file.suffixes not in EXTS:
+    if path_output_file.suffixes not in EXTS_INPUT:
         raise ValueError(f"Error! Unexpected value '{path_output_file.suffixes}' for output format.")
 
     # create_parent_dir
@@ -95,6 +97,21 @@ def check_arg_output_file(output_file: str, create_parent_dir: bool = True) -> b
 
     return True
 
+
+def check_arg_config_file(config_file: str) -> bool:
+    """Return True of the config_file exists, raise an error otherwise.
+
+
+    :param input_file: the input file
+    :param input_format: the expected format of the input file
+    """
+    path_config_file = Path(config_file)
+    if not path_config_file.is_file():
+        raise ValueError(f"Error! Input file could not be found at {config_file}.")
+    if path_config_file.suffixes not in EXTS_CONFIG:
+        raise ValueError(f"Error! Unexpected '{path_config_file.suffixes}' for config format.")
+
+    return True
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ CLASSES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 

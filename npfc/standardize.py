@@ -329,7 +329,7 @@ class Standardizer(Filter):
     def protocol(self, protocol):
         # input is a json file => convert it to a dict
         if isinstance(protocol, str):
-            utils.check_arg_input_file(protocol)
+            utils.check_arg_config_file(protocol)
             with open(protocol) as f:
                 protocol = json.load(f)
         # input is a dict

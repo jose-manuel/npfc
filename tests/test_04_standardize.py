@@ -83,7 +83,7 @@ def mols_bad():
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ TESTS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 
-def test_standardizer_full_uncharge(full_uncharger, mols):
+def test_fu_full_uncharge(full_uncharger, mols):
     """Test if all charges are removed when possible."""
     # neutral_all
     assert Chem.MolToSmiles(mols['neutral_all']) == "C=C([O-])[C@@H]([NH3+])CC1CCC1"
@@ -93,3 +93,30 @@ def test_standardizer_full_uncharge(full_uncharger, mols):
     assert Chem.MolToSmiles(mols['neutral_neg']) == "CC(C)(C)C1CCc2nnc[n+]([O-])c2C1"
     mol_clean = full_uncharger.full_uncharge(mols['neutral_neg'])
     assert Chem.MolToSmiles(mol_clean) == "CC(C)(C)C1CCc2nnc[n+](O)c2C1"
+
+
+def test_std_init(standardizer):
+    # default parameters
+    assert set(standardizer.protocol.keys()) == set(['tasks', 'filter_hac', 'filter_molweight', 'filter_nrings', 'filter_medchem'])
+    assert standardizer.protocol['tasks'] == ['sanitize',
+                                              'disconnect_metal',
+                                              'keep_largest',
+                                              'filter_hac',
+                                              'filter_molweight',
+                                              'filter_nrings',
+                                              'filter_medchem',
+                                              'remove_isotopes',
+                                              'normalize',
+                                              'uncharge',
+                                              'canonicalize',
+                                              'remove_stereo',
+                                              ]
+    # from a json file
+    json_config = 'tests/tmp/std_protocol.json'
+    with open(json_config, 'w') as JSON:
+        JSON.write('''{
+                    "tasks": ["sanitize", "filter_molweight"],
+                    "filter_molweight": "100.0 <= molweight <= 1000.0"\n}''')
+    standardizer.protocol = json_config
+    assert standardizer.protocol['tasks'] == ["sanitize", "filter_molweight"]
+    assert standardizer.protocol['filter_molweight'] == "100.0 <= molweight <= 1000.0"

@@ -1,0 +1,4 @@
+{
+                    "tasks": ["sanitize", "filter_molweight"],
+                    "filter_molweight": "100.0 <= molweight <= 1000.0"
+}
