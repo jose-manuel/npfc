@@ -1,0 +1,5 @@
+#!/usr/bin/env python
+
+import npfc
+
+print(f"npfc: {npfc.__version__}")
