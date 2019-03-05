@@ -15,29 +15,27 @@ from npfc import utils
 # import logging
 # logging.basicConfig(level=logging.DEBUG)
 
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FIXTURES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
-
-
-@pytest.fixture
-def store():
-    """An instance of the SafeHDF5Store class."""
-    # remove previous lock in case of interruption, otherwise tests hang and produce a core dump
-    path_lock = Path('tests/tmp/store.hdf.lock')
-    if path_lock.is_file():
-        path_lock.unlink()
-    return utils.SafeHDF5Store('tests/tmp/store.hdf')  # stack overflow if no file is specified
-
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ TESTS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 
-def test_shs_init(store):
+def test_shs_init():
     """Test if a SafeHDF5Store object can be instanciated and the lock is used."""
-    assert isinstance(store, utils.SafeHDF5Store) is True
-    path_lock = Path('tests/tmp/store.hdf.lock')
-    assert path_lock.is_file() is True
-    # remove lock before exiting
-    path_lock.unlink()
+    store = 'tests/tmp/store.hdf'
+    # remove an eventual lock from previous run
+    path_lock = Path(store + '.lock')
+    if path_lock.is_file():
+        path_lock.unlink()
+    # open a store object using with allows for automatic exit. If exit is not performed,
+    # then core dumps due to stack overflows can happen. This can be prevented by deleting
+    # the lock file manually.
+    with utils.SafeHDF5Store(store) as STORE:
+        # instance of SafeHDF5Store
+        assert isinstance(STORE, utils.SafeHDF5Store) is True
+        # lock created
+        assert path_lock.is_file() is True
+    # lock removed
+    assert path_lock.is_file() is False
 
 
 def test_check_arg_bool():

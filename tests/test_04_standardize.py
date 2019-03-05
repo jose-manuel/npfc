@@ -3,6 +3,8 @@ Module test_04_standardize
 ====================
 Tests for the standardize module.
 """
+# standard
+from pathlib import Path
 # data science
 import pandas as pd
 # chemoinformatics
@@ -25,6 +27,12 @@ lg.setLevel(RDLogger.CRITICAL)
 # logging.basicConfig(level=logging.DEBUG)
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FIXTURES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
+@pytest.fixture
+def input_files_dupl():
+    wd = Path('tests/tmp')
+    return [str(f) for f in list(wd.glob('test_save_dupl_*.csv.gz'))]
 
 
 @pytest.fixture
@@ -192,8 +200,9 @@ def test_std_remove_stereochemistry(mols):
     assert stereo_doublebond == []  # ideally it should be set to Chem.rdchem.BondStereo.STEREOANY, but whatever obscure reason it is set to STEREONONE...
 
 
-def test_remove_dupl(standardizer):
+def test_remove_dupl(standardizer, input_files_dupl):
     """Remove duplicates accross chunks using a syn file"""
+    print('\n', input_files_dupl)
     pass
 
 

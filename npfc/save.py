@@ -197,7 +197,7 @@ class Saver:
         # chunking
         if self.chunk_size is None:
             # single output
-            self._save(df=df, output_file=output_file, suffixes=ext_output_file, key=path_output_file.stem, sep='|')
+            self._save(df=df, output_file=output_file, suffixes=ext_output_file, key=path_output_file.stem.split('.')[0], sep='|')
             output_files.append([output_file, len(df.index)])
         else:
             # chunks
@@ -205,8 +205,8 @@ class Saver:
             j = 0
             for start in range(0, len(df.index), self.chunk_size):
                 end = start + self.chunk_size
-                output_chunk = str(output_dir) + "/" + path_output_file.stem + "_" + str(j).zfill(3) + ''.join(ext_output_file)
-                self._save(df=df.iloc[start:end], output_file=output_chunk, suffixes=ext_output_file, key=path_output_file.stem, sep='|')
+                output_chunk = str(output_dir) + "/" + path_output_file.stem.split('.')[0] + "_" + str(j).zfill(3) + ''.join(ext_output_file)  # stem returns file.csv for file.csv.gz
+                self._save(df=df.iloc[start:end], output_file=output_chunk, suffixes=ext_output_file, key=path_output_file.stem.split('.')[0], sep='|')
                 output_files.append([output_chunk, len(df.iloc[start:end].index)])
                 j += 1
             logging.debug(f"{len(output_files)} chunks were created")

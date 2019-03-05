@@ -170,7 +170,7 @@ def from_hdf(input_hdf: str, decode_mols: bool = True, col_mol: str = 'mol')-> p
     if not Path(input_hdf).is_file():
         raise ValueError(f"Error! File input_sdf could not be found at '{input_hdf}'.")
     # init
-    key = Path(input_hdf).stem
+    key = Path(input_hdf).stem.split('.')[0]
     logging.debug(f"Key for hdf is {key}")
     # read data
     df = pd.read_hdf(input_hdf, key=key)
