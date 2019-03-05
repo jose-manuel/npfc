@@ -6,7 +6,6 @@ import re
 __version__ = re.sub('^v', '', os.popen('git describe --tags').read().strip())
 
 
-
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
@@ -15,7 +14,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="npfc",
-    version='0.0.6-5-g76d49d4',
+    version='0.0.6-6-ga6609ac',
     author="Jose-Manuel Gally",
     author_email="josemanuel.gally@mpi-dortmund.mpg.de",
     description="A package for classifying fragment combinations in molecules",
