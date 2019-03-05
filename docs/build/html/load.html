@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>&lt;no title&gt; &mdash; npfc 0.0.6-13-g925a7f1 documentation</title>
+  <title>Module load &mdash; npfc 0.0.6-14-gf1db24d documentation</title>
   
 
   
@@ -58,7 +58,7 @@
             
             
               <div class="version">
-                0.0.6-13-g925a7f1
+                0.0.6-14-gf1db24d
               </div>
             
           
@@ -83,7 +83,8 @@
             
             
               <p class="caption"><span class="caption-text">Contents:</span></p>
-<ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Module load</a></li>
 <li class="toctree-l1"><a class="reference internal" href="save.html">Module save</a></li>
 <li class="toctree-l1"><a class="reference internal" href="filter.html">Module filter</a></li>
 <li class="toctree-l1"><a class="reference internal" href="standardize.html">Module standardize</a></li>
@@ -134,7 +135,7 @@
     
       <li><a href="index.html">Docs</a> &raquo;</li>
         
-      <li>&lt;no title&gt;</li>
+      <li>Module load</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -153,7 +154,152 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  
+  <span class="target" id="module-npfc.load"></span><div class="section" id="module-load">
+<h1>Module load<a class="headerlink" href="#module-load" title="Permalink to this headline">¶</a></h1>
+<p>A module containing the Loader class, used for storing DataFrames with molecules
+on disk.</p>
+<dl class="function">
+<dt id="npfc.load.decode_mol_base64">
+<code class="descclassname">npfc.load.</code><code class="descname">decode_mol_base64</code><span class="sig-paren">(</span><em>string</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/load.html#decode_mol_base64"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.load.decode_mol_base64" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a string to a RDKit Mol object.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>string</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – a string with a Mol object in bytes with a base64 string representation</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><code class="xref py py-class docutils literal notranslate"><span class="pre">Mol</span></code></td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">a Mol object upon success, None otherwise</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="npfc.load.from_csv">
+<code class="descclassname">npfc.load.</code><code class="descname">from_csv</code><span class="sig-paren">(</span><em>input_csv</em>, <em>decode_mols=True</em>, <em>col_mol='mol'</em>, <em>col_id='idm'</em>, <em>sep='|'</em>, <em>keep_props=True</em>, <em>cols_list=[]</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/load.html#from_csv"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.load.from_csv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load molecules from a CSV file.
+In case molecules were stored with encoding (base64), they need to be decoded
+before using them as RDKit molecules.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>input_csv</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the input hdf filename</li>
+<li><strong>decode_mols</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>) – use base64 to decode molecules encoded as strings</li>
+<li><strong>col_mol</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the DataFrame column name where molecules are stored</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a DataFrame with Mol objects</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="npfc.load.from_hdf">
+<code class="descclassname">npfc.load.</code><code class="descname">from_hdf</code><span class="sig-paren">(</span><em>input_hdf</em>, <em>decode_mols=True</em>, <em>col_mol='mol'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/load.html#from_hdf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.load.from_hdf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load molecules from a HDF file.
+In case molecules were stored with encoding (base64), they need to be decoded
+before using them as RDKit molecules.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>input_hdf</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the input hdf filename</li>
+<li><strong>decode_mols</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>) – use base64 to decode molecules encoded as strings</li>
+<li><strong>col_mol</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the DataFrame column name where molecules are stored</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a DataFrame with Mol objects</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="npfc.load.from_pgsql">
+<code class="descclassname">npfc.load.</code><code class="descname">from_pgsql</code><span class="sig-paren">(</span><em>dbname</em>, <em>user</em>, <em>psql</em>, <em>src_id</em>, <em>src_mol</em>, <em>mol_format=None</em>, <em>col_mol='mol'</em>, <em>col_id='idm'</em>, <em>keep_db_cols=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/load.html#from_pgsql"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.load.from_pgsql" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load molecules from a PGSQL query.
+The col_mol will is parsed by RDKit depending on the mol_format argument.
+If no mol_format is specified, then the column is returned untouched.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">For this function to work, you need to be able to log into the target database without prompt. Tested only with ChEMBL24 with default ports.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>dbname</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the input postgres database name</li>
+<li><strong>user</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the user name for logging into database</li>
+<li><strong>pgsql</strong> – the posgresql statement to execute</li>
+<li><strong>mol_format</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.7)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]) – the molecular format to use to parse the molecules. If none is specified then no parsing is performed. Currently only molblock and smiles are allowed</li>
+<li><strong>col_mol</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the column with the molecules to parse</li>
+<li><strong>keep_db_cols</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>) – keep src_id and src_mol columns in output DataFrame. This does not impact any other column extracted from the psql query</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a DataFrame with Mol objects</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="npfc.load.from_sdf">
+<code class="descclassname">npfc.load.</code><code class="descname">from_sdf</code><span class="sig-paren">(</span><em>input_sdf</em>, <em>src_id='_Name'</em>, <em>col_id='idm'</em>, <em>col_mol='mol'</em>, <em>keep_props=True</em>, <em>cols_list=[]</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/load.html#from_sdf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.load.from_sdf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load molecules from a SDF file.
+It is heavily inspired from PandasTools but differs as molecules with errors are
+not silently discarded but stored as None instead. Also, each molecule is read first
+without parsing to retrieve all properties and then with parsing to retrieve
+the molecular structure, if possible.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">If keep_props is set to True, then only the last molecule is used for determing what properties should be retrieved. This could be an issue if the input SDF has unconsistent properties.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>input_sdf</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the input sdf filename</li>
+<li><strong>src_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the SDF property to use for defining the col_id</li>
+<li><strong>col_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the column to use to generate the ‘idm’ column, used as single identifier</li>
+<li><strong>keep_props</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>) – keep all properties found in the SDF. If set to False, then only ‘idm’ and ‘mol’ columns are present in the DataFrame</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a DataFrame with Mol objects</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+
 
            </div>
            

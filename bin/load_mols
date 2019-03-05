@@ -41,14 +41,16 @@ def main():
 
     # init
     d0 = datetime.now()
-    description = "Script used for loading molecules into CSV or HDF files."
+    description = """Script used for loading molecules from SDF, CSV or HDF files, convert them into RDKit objects and export them into CSV or HDF files.
+    Molecules that failed the RDKit conversion have None for structure but their properties, if any, remain.
+    """
 
     # parameters CLI
 
     parser = argparse.ArgumentParser(description=description, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('input_mols', type=str, default=None, help="Input file.")
     parser.add_argument('output_mols', type=str, default=None, help="Output file. If chunking, then it is used as prefix.")
-    parser.add_argument('-n', '--nrecords', type=utils.check_arg_positive_number, default=None, help="Maximum number of records within a chunk. None means no chunking.")
+    parser.add_argument('-n', '--nrecords', type=int, default=None, help="Maximum number of records within a chunk. None means no chunking.")
     parser.add_argument('-s', '--shuffle', type=bool, default=True, help="Shuffle records.")
     parser.add_argument('-k', '--keep_props', type=bool, default=False, help="Keep all properties found in the source, in addition to molid and mol columns.")
     parser.add_argument('-e', '--encode_mols', type=bool, default=True, help="Encode/decode molecules into base64 strings.")
@@ -59,7 +61,7 @@ def main():
     parser.add_argument('--col_id', type=str, default='idm', help="Identifier column in the output file.")
     parser.add_argument('--col_mol', type=str, default='mol', help="Molecule column in the output file.")
     parser.add_argument('--col_sep', type=str, default='|', help="Separator to use in case the output file is a csv.")
-
+    parser.add_argument('--random_seed', type=int, default=None, help="Value to specify to make shuffling reproducible.")
     parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
     args = parser.parse_args()
 
@@ -74,11 +76,10 @@ def main():
 
     # parse arguments
 
-    path_input = Path(args.input_mols)
-    path_output = Path(args.output_mols)
     # check on args values not already checked by argparse
     utils.check_arg_input_file(args.input_mols)
     utils.check_arg_output_file(args.output_mols)
+    utils.check_arg_positive_number(args.nrecords)
 
     # display infos
 
@@ -102,13 +103,17 @@ def main():
     logging.info("LOG".ljust(pad) + f"{args.log}")
 
     # begin
+    logging.info("BEGIN")
 
-    # loading mols
+    # load mols
+    logging.info("LOADING MOLECULES")
     d1 = datetime.now()
-
     suffixes = Path(args.input_mols).suffixes
     if suffixes[0] == '.sdf':
-        df_mols = load.from_sdf(args.input_mols, col_id=args.src_id, keep_props=args.keep_props)
+        df_mols = load.from_sdf(args.input_mols,
+                                col_id=args.src_id,
+                                keep_props=args.keep_props,
+                                )
     elif suffixes[0] == '.csv':
         df_mols = load.from_csv(args.input_mols,
                                 col_mol=args.src_mol,
@@ -117,9 +122,43 @@ def main():
                                 sep=args.col_sep,
                                 cols_list=args.src_lists,
                                 )
+    else:   # check on argument for input does not leave any other option than sdf, csv or hdf
+        df_mols = load.from_hdf(args.input_mols,
+                                decode_mols=args.encode_mols,
+                                col_mol=args.src_mol,
+                                )
 
+    num_failed = df_mols['mol'].isna().sum()
+    logging.info(f"LOADED {len(df_mols)} RECORDS WITH {num_failed} FAILURE(S)")
 
+    # save mols
+    d2 = datetime.now()
+    logging.info("SAVING MOLECULES")
+    outputs_files = save.save(df_mols,
+                              args.output_mols,
+                              col_mol=args.col_mol,
+                              col_id=args.col_id,
+                              chunk_size=args.nrecords,
+                              shuffle=args.shuffle,
+                              encode_mols=args.encode_mols,
+                              random_seed=args.random_seed,
+                              )
+    # display results
+    for output in outputs_files:
+        logging.info(f"SAVED {output[1]} RECORDS AT {output[0]}")
+    d3 = datetime.now()
+
+    # end
+
+    logging.info("END")
+    logger.info("COMPUTATIONAL TIME: CONFIGURING JOB".ljust(pad * 2) + f"{d1-d0}")
+    logger.info("COMPUTATIONAL TIME: LOADING MOLECULES".ljust(pad * 2) + f"{d2-d1}")
+    logger.info("COMPUTATIONAL TIME: SAVING MOLECULES".ljust(pad * 2) + f"{d3-d2}")
+    logger.info("COMPUTATIONAL TIME: TOTAL".ljust(pad * 2) + f"{d3-d0}")
+
+    sys.exit(0)
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ RUN ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
 
 if __name__ == '__main__':
     main()
