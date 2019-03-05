@@ -18,8 +18,9 @@ from rdkit import RDLogger
 import npfc
 from npfc import load
 from npfc import save
+from npfc import utils
 
-description = """
+"""
 Script load_mols
 ==========================
 This script is used for loading molecules from SDF, CSV or HDF files and then
@@ -33,28 +34,69 @@ Examples:
     >>> chunk_db.py -d chembl24 -u gally -p psql -f format -m 'mol' -o dir/chembl.hdf -n 10000
 """
 
-def main():
-    d0 = datetime.now()
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
-    description = """read_mols. Script used for """
+
+def main():
+
+    # init
+    d0 = datetime.now()
+    description = "Script used for loading molecules into CSV or HDF files."
 
     # parameters CLI
+
     parser = argparse.ArgumentParser(description=description, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('input_mols', type=str, default=None, help="<chembl> for triggering predefined scenario for chembl data extraction.")
-    parser.add_argument('output_mols', type=str, default=None, help="")
-    parser.add_argument('-n', '--nrecords', type=utils._argparse_positive_int, default=10000, help="Maximum number of records within a chunk. No chunking by default.")
+    parser.add_argument('input_mols', type=str, default=None, help="Input file.")
+    parser.add_argument('output_mols', type=str, default=None, help="Output file. If chunking, then it is used as prefix.")
+    parser.add_argument('-n', '--nrecords', type=utils.check_arg_positive_number, default=None, help="Maximum number of records within a chunk. None means no chunking.")
     parser.add_argument('-s', '--shuffle', type=bool, default=True, help="Shuffle records.")
     parser.add_argument('-k', '--keep_props', type=bool, default=False, help="Keep all properties found in the source, in addition to molid and mol columns.")
     parser.add_argument('-e', '--encode_mols', type=bool, default=True, help="Encode molecules into base64 format.")
-    parser.add_argument('--src_id', type=str, default='_Name', help="")
-    parser.add_argument('--src_mol', type=str, default='mol', help="")
-    parser.add_argument('--col_mol', type=str, default='mol', help="")
-    parser.add_argument('--col_id', type=str, default='idm', help="")
+    parser.add_argument('--src_id', type=str, default='idm', help="Identifier column in the source file.")
+    parser.add_argument('--src_mol', type=str, default='mol', help="Molecule column in the source file.")
+    parser.add_argument('--col_id', type=str, default='idm', help="Identifier column in the output file.")
+    parser.add_argument('--col_mol', type=str, default='mol', help="Molecule column in the output file.")
     parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
     args = parser.parse_args()
 
+    # logging
 
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+    logger = utils._configure_logger(args.log)
+    logger.info("RUNNING LOAD_MOLS")
+    warnings.filterwarnings('ignore', category=pd.io.pytables.PerformanceWarning)  # if None is returned instead of a molecule, do not complain about mixed types
+    pad = 40
+    lg = RDLogger.logger()
+    lg.setLevel(RDLogger.CRITICAL)
+
+    # parse arguments
+
+    path_input = Path(args.input_mols)
+    path_output = Path(args.output_mols)
+    # check on args values not already checked by argparse
+    utils.check_arg_input_file(args.input_mols)
+    utils.check_arg_output_file(args.output_mols)
+
+    # display infos
+
+    # versions
+    logger.info("LIBRARY VERSIONS")
+    logger.info("rdkit".ljust(pad) + f"{rdkit.__version__}")
+    logger.info("pandas".ljust(pad) + f"{pd.__version__}")
+    logger.info("npfc".ljust(pad) + f"{npfc.__version__}")
+    # arguments
+    logger.info("ARGUMENTS:")
+    logging.info("INPUT_MOLS".ljust(pad) + f"{args.input_mols}")
+    logging.info("OUT_MOLS".ljust(pad) + f"{args.input_mols}")
+    logging.info("NRECORDS".ljust(pad) + f"{args.nrecords}")
+    logging.info("SHUFFLE".ljust(pad) + f"{args.shuffle}")
+    logging.info("KEEP_PROPS".ljust(pad) + f"{args.keep_props}")
+    logging.info("ENCODE_MOLS".ljust(pad) + f"{args.encode_mols}")
+    logging.info("SRC_ID".ljust(pad) + f"{args.src_id}")
+    logging.info("SRC_MOL".ljust(pad) + f"{args.src_mol}")
+    logging.info("COL_MOL".ljust(pad) + f"{args.col_mol}")
+    logging.info("COL_ID".ljust(pad) + f"{args.col_id}")
+    logging.info("LOG".ljust(pad) + f"{args.log}")
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ RUN ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 if __name__ == '__main__':
     main()

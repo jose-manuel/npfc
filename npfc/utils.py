@@ -122,6 +122,19 @@ def check_arg_config_file(config_file: str) -> bool:
 
     return True
 
+
+def _configure_logger(log_level: str) -> logging:
+    """Configure the logging in a centralized way. This is useful for scripts mostly.
+
+    :param log_level: the logging level to use, accepted values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.
+    """
+    numeric_level = getattr(logging, log_level.upper(), None)
+    if not isinstance(numeric_level, int):
+        raise ValueError(f'Invalid log level: {log_level}')
+    logging.basicConfig(level=numeric_level, format='%(asctime)s -- %(levelname)s -- %(message)s')
+    logger = logging.getLogger(__name__)
+    return logger
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ CLASSES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 
