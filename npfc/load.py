@@ -205,7 +205,8 @@ def from_hdf(input_hdf: str, decode_mols: bool = True, col_mol: str = 'mol')-> p
 
 
 def from_csv(input_csv: str, decode_mols: bool = True,
-             col_mol: str = 'mol', sep: str = '|',
+             col_mol: str = 'mol', col_id: str = 'idm',
+             sep: str = '|',, keep_props: bool = True,
              cols_list: List[str] = []) -> pd.DataFrame:
     """Load molecules from a CSV file.
     In case molecules were stored with encoding (base64), they need to be decoded
@@ -239,5 +240,8 @@ def from_csv(input_csv: str, decode_mols: bool = True,
     if len(cols_list) > 0:
         for c in cols_list:
             df[c] = df[c].map(json.loads)
+    # keep_props
+    if not keep_props:
+        df.drop([c for c in df.columns if c not in (col_id, col_mol)], axis=1, inplace=True)
 
     return df
