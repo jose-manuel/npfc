@@ -19,7 +19,7 @@ import pytest
 from npfc.standardize import Standardizer
 from npfc.standardize import FullUncharger
 from npfc.standardize import DuplicateFilter
-from npfc.load import from_csv
+from npfc import load
 # configure logging
 lg = RDLogger.logger()
 lg.setLevel(RDLogger.CRITICAL)
@@ -202,11 +202,31 @@ def test_std_remove_stereochemistry(mols):
 
 def test_remove_dupl(standardizer, input_files_dupl):
     """Remove duplicates accross chunks using a syn file"""
-    print('\n', input_files_dupl)
     standardizer.protocol = {'tasks': []}  # remove duplicates only
+    ref_file = 'tests/tmp/test_save_dupl_ref.hdf'
+    # without ref file
+    passed = 0
+    filtered = 0
+    error = 0
     for f in input_files_dupl:
-        df = from_csv(f)
-        # print(df)
+        df = load.from_csv(f)
+        df_passed, df_filtered, df_error = standardizer.run_df(df)
+        passed += len(df_passed.index)
+        filtered += len(df_filtered.index)
+        error += len(df_error.index)
+    assert passed == 6 and filtered == 1 and error == 0
+    # with ref_file
+    passed = 0
+    filtered = 0
+    error = 0
+    standardizer.ref_file = ref_file
+    for f in input_files_dupl:
+        df = load.from_csv(f)
+        df_passed, df_filtered, df_error = standardizer.run_df(df)
+        passed += len(df_passed.index)
+        filtered += len(df_filtered.index)
+        error += len(df_error.index)
+    assert passed == 4 and filtered == 3 and error == 0
 
 
 def test_run_protocol(standardizer, mols, mols_bad):

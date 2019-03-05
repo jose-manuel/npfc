@@ -79,6 +79,7 @@ def test_from_csv(input_csv):
     assert list(df.columns.values) == ['mol', 'idm']
     assert isinstance(df.iloc[0]['mol'], Mol)
 
+
 def test_from_csv_gz(input_csv):
     """Read a csv file with encoded molecules."""
     df = load.from_csv(input_csv + '.gz')

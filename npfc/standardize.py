@@ -188,7 +188,7 @@ class DuplicateFilter:
         df_synonyms.rename({self.col_id: self._col_id_synonyms}, axis=1, inplace=True)
         df_synonyms[self.col_id] = df_synonyms[self._col_id_synonyms].map(lambda x: x[0])
 
-        # df_synonyms[self.col_id] = df_synonyms[self.col_id_synonyms].map(lambda x: x[0])
+        # df_synonyms[self.col_id] = df_synonyms[self._col_id_synonyms].map(lambda x: x[0])
         # use information stored in ref file as well, if provided
         if self.ref_file is not None:
             key = Path(self.ref_file).stem
@@ -219,7 +219,7 @@ class DuplicateFilter:
             # init
             key = Path(self.ref_file).stem
             # create a new ref file
-            df_ref = pd.DataFrame({self.on: [], self.col_id_synonyms: [], self.col_id: []})
+            df_ref = pd.DataFrame({self.on: [], self._col_id_synonyms: [], self.col_id: []})
             df_ref.index = df_ref[self.on]
             df_ref.drop(self.on, axis=1, inplace=True)
             df_ref.to_hdf(self.ref_file, key=key)

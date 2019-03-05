@@ -48,9 +48,10 @@ def df_mols():
 @pytest.fixture
 def df_mols_dupl():
     """Example of a DataFrame with some duplicate molecules. Supposed to be exported as chunks."""
-    df = pd.DataFrame({'mol': ['C1CCCCC1', 'FC1CCCCC1', 'C1CCCCC1', 'NC1CCCCC1', 'C1CCCCC1'],   # 3 dupl
-                       'idm': ['mol1', 'mol2', 'mol3', 'mol4', 'mol5'],
+    df = pd.DataFrame({'mol': ['C1CCCCC1', 'C1CCCCC1', 'C1CCCCC1', 'NC1CCCCC1', 'FC1CCCCC1', '[Cl]C1CCCCC1', 'C1CCCCC1'],   # 4/7 are dupl
                        })
+    df['idm'] = [f"mol_{i}" for i in range(len(df.index))]
+
     df['mol'] = df['mol'].map(Chem.MolFromSmiles)
     return df
 
@@ -115,7 +116,8 @@ def test_save_func_dupl(df_mols_dupl, output_file_prefix):
     outputs_csv = save.save(df_mols_dupl, output_file_prefix + '_dupl.csv.gz', chunk_size=2)
     assert Path(outputs_csv[0][0]).is_file() and outputs_csv[0][1] == 2
     assert Path(outputs_csv[1][0]).is_file() and outputs_csv[1][1] == 2
-    assert Path(outputs_csv[2][0]).is_file() and outputs_csv[2][1] == 1
+    assert Path(outputs_csv[2][0]).is_file() and outputs_csv[2][1] == 2
+    assert Path(outputs_csv[3][0]).is_file() and outputs_csv[3][1] == 1
 
 
 def test_save_compressed(saver, df_mols, output_file_prefix):
