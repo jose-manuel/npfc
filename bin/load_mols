@@ -58,8 +58,8 @@ def main():
     parser.add_argument('--src_mol', type=str, default='mol', help="Molecule column in the source file.")
     parser.add_argument('--src_sep', type=str, default='|', help="Separator to use in case the input file is a csv.")
     parser.add_argument('--src_lists', type=str, default=[], help="Columns to convert from str to list if the input file is a csv.")
-    parser.add_argument('--col_id', type=str, default='idm', help="Identifier column in the output file.")
-    parser.add_argument('--col_mol', type=str, default='mol', help="Molecule column in the output file.")
+    parser.add_argument('--out_id', type=str, default='idm', help="Identifier column in the output file.")
+    parser.add_argument('--out_mol', type=str, default='mol', help="Molecule column in the output file.")
     parser.add_argument('--col_sep', type=str, default='|', help="Separator to use in case the output file is a csv.")
     parser.add_argument('--random_seed', type=int, default=None, help="Value to specify to make shuffling reproducible.")
     parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
@@ -80,6 +80,20 @@ def main():
     utils.check_arg_input_file(args.input_mols)
     utils.check_arg_output_file(args.output_mols)
     utils.check_arg_positive_number(args.nrecords)
+    # src infos
+    src_suffixes = Path(args.input_mols).suffixes
+    src_format = src_suffixes[0]
+    if len(src_suffixes) > 1:
+        src_compression = utils.get_conversion(src_suffixes[1])
+    else:
+        src_compression = None
+    # out infos
+    out_suffixes = Path(args.output_mols).suffixes
+    out_format = out_suffixes[0]
+    if len(out_suffixes) > 1:
+        out_compression = utils.get_conversion(out_suffixes[1])
+    else:
+        out_compression = None
 
     # display infos
 
@@ -98,8 +112,12 @@ def main():
     logging.info("ENCODE_MOLS".ljust(pad) + f"{args.encode_mols}")
     logging.info("SRC_ID".ljust(pad) + f"{args.src_id}")
     logging.info("SRC_MOL".ljust(pad) + f"{args.src_mol}")
-    logging.info("COL_MOL".ljust(pad) + f"{args.col_mol}")
-    logging.info("COL_ID".ljust(pad) + f"{args.col_id}")
+    logging.info("SRC_FORMAT".ljust(pad) + f"{src_format}")
+    logging.info("SRC_COMPRESSION".ljust(pad) + f"{src_compression}")
+    logging.info("OUT_MOL".ljust(pad) + f"{args.out_mol}")
+    logging.info("OUT_ID".ljust(pad) + f"{args.out_id}")
+    logging.info("OUT_FORMAT".ljust(pad) + f"{out_format}")
+    logging.info("OUT_COMPRESSION".ljust(pad) + f"{out_compression}")
     logging.info("LOG".ljust(pad) + f"{args.log}")
 
     # begin
@@ -108,13 +126,12 @@ def main():
     # load mols
     logging.info("LOADING MOLECULES")
     d1 = datetime.now()
-    suffixes = Path(args.input_mols).suffixes
-    if suffixes[0] == '.sdf':
+    if src_format == '.sdf':
         df_mols = load.from_sdf(args.input_mols,
                                 col_id=args.src_id,
                                 keep_props=args.keep_props,
                                 )
-    elif suffixes[0] == '.csv':
+    elif src_format == '.csv':
         df_mols = load.from_csv(args.input_mols,
                                 col_mol=args.src_mol,
                                 keep_props=args.keep_props,
@@ -136,8 +153,8 @@ def main():
     logging.info("SAVING MOLECULES")
     outputs_files = save.save(df_mols,
                               args.output_mols,
-                              col_mol=args.col_mol,
-                              col_id=args.col_id,
+                              col_mol=args.out_mol,
+                              col_id=args.out_id,
                               chunk_size=args.nrecords,
                               shuffle=args.shuffle,
                               encode_mols=args.encode_mols,
