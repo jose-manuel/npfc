@@ -41,6 +41,7 @@ def df_mols():
                        'idm': ['mol1', 'mol2', 'mol3', 'mol4', 'mol5'],
                        })
     df['mol'] = df['mol'].map(Chem.MolFromSmiles)
+    # df['prop'] = [f"MOL{i}" for i in range(len(df.index))]  # triggers pandas warnings
     return df
 
 
@@ -76,13 +77,13 @@ def test_init(saver, output_file_prefix):
 def test_save_simple(saver, df_mols, output_file_prefix):
     """Test several cases (shuffle, encode) for saving molecules into different formats (hdf, csv)."""
     # hdf
-    outputs_hdf = saver.save(df_mols, output_file_prefix + '_simple.hdf')
+    outputs_hdf = saver.save(df_mols, output_file_prefix + '.hdf')
     assert Path(outputs_hdf[0][0]).is_file() is True and outputs_hdf[0][1] == 5
     # csv
-    outputs_csv = saver.save(df_mols, output_file_prefix + '_simple.csv')
+    outputs_csv = saver.save(df_mols, output_file_prefix + '.csv')
     assert Path(outputs_csv[0][0]).is_file() is True and outputs_csv[0][1] == 5
     # sdf
-    outputs_sdf = saver.save(df_mols, output_file_prefix + '_simple.sdf')
+    outputs_sdf = saver.save(df_mols, output_file_prefix + '.sdf')
     assert Path(outputs_sdf[0][0]).is_file() is True and outputs_sdf[0][1] == 5
 
 
@@ -120,7 +121,7 @@ def test_save_func_dupl(df_mols_dupl, output_file_prefix):
 def test_save_compressed(saver, df_mols, output_file_prefix):
     # test simple export but to an archive (for csv only)
     saver.chunk_size = None
-    outputs_csv_compressed = saver.save(df_mols, output_file_prefix + '.csv.zip')
+    outputs_csv_compressed = saver.save(df_mols, output_file_prefix + '.csv.gz')
     assert Path(outputs_csv_compressed[0][0]).is_file() is True and outputs_csv_compressed[0][1] == 5
     outputs_csv_compressed = saver.save(df_mols, output_file_prefix + '.sdf.gz')
     assert Path(outputs_csv_compressed[0][0]).is_file() is True and outputs_csv_compressed[0][1] == 5

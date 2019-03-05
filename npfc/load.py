@@ -8,6 +8,7 @@ on disk.
 
 # standard
 import logging
+import gzip
 from pathlib import Path
 import base64
 import json
@@ -19,6 +20,8 @@ from rdkit import Chem
 from rdkit.Chem import Mol
 # docs
 from typing import List
+# dev
+from npfc import utils
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ GLOBALS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
@@ -113,38 +116,54 @@ def from_sdf(input_sdf: str, src_id: str = '_Name',
     """
     logging.debug(f"Checking if input_sdf exists at {input_sdf}")
     # check for filename
-    if not Path(input_sdf).is_file():
-        raise ValueError(f"Error! File input_sdf could not be found at {input_sdf}.")
-    # begin
+    utils.check_arg_input_file(input_sdf)
+    # get suffixes
+    suffixes = Path(input_sdf).suffixes
+    # get the correct file handlers
+    if len(suffixes) == 1:
+        FH = open(input_sdf, 'rb')
+        FH_raw = open(input_sdf, 'rb')
+    else:
+        if utils.get_conversion(suffixes[1]) == 'gzip':
+            FH = gzip.open(input_sdf)
+            FH_raw = gzip.open(input_sdf)
+        else:
+            raise ValueError(f"Error! Unknown compression type: '{suffixes}'.")
+    # init
     i = 0
     rows = []
     row_idx = []
     # double iteration over sdf but generators so it should be ok memory-wise
-    for mol, mol_raw in zip(Chem.ForwardSDMolSupplier(input_sdf), Chem.ForwardSDMolSupplier(input_sdf, sanitize=False)):
-        # properties
-        row = dict((k, mol_raw.GetProp(k)) for k in mol_raw.GetPropNames())
-        # molecule title
-        if mol_raw.GetProp('_Name') != '':
-            row['_Name'] = mol_raw.GetProp('_Name')
-        else:
-            row['_Name'] = f'NONAME_{i}'
-        # mol
-        row[col_mol] = mol
-        # src_id
+    for mol, mol_raw in zip(Chem.ForwardSDMolSupplier(FH), Chem.ForwardSDMolSupplier(FH_raw, sanitize=False)):
         try:
-            row[col_id] = row[src_id]
-        except KeyError:
-            logging.warning(f"No property {src_id} could be found for record #{i}, setting {col_id} to 'NOID_{i}'")
-            row[col_id] = f"NOID_{i}"
-        # delete properties
-        if not keep_props:
-            tmp = row.copy()
-            for k in tmp.keys():
-                if k != col_mol and k != col_id:
-                    del row[k]
+            # properties
+            row = dict((k, mol_raw.GetProp(k)) for k in mol_raw.GetPropNames())
+            # molecule title
+            if mol_raw.GetProp('_Name') != '':
+                row['_Name'] = mol_raw.GetProp('_Name')
+            else:
+                row['_Name'] = f'NONAME_{i}'
+            # mol
+            row[col_mol] = mol
+            # src_id
+            try:
+                row[col_id] = row[src_id]
+            except KeyError:
+                logging.warning(f"No property {src_id} could be found for record #{i}, setting {col_id} to 'NOID_{i}'")
+                row[col_id] = f"NOID_{i}"
+            # delete properties
+            if not keep_props:
+                tmp = row.copy()
+                for k in tmp.keys():
+                    if k != col_mol and k != col_id:
+                        del row[k]
+        except AttributeError:
+            logging.warning("Molecule #{i} could not be parsed and was skipped!")
+            row = None
         # record entry
-        rows.append(row)
-        row_idx.append(i)
+        if row is not None:
+            rows.append(row)
+            row_idx.append(i)
         i += 1
     df = pd.DataFrame(rows, index=row_idx, columns=[col_mol, col_id] + [k for k in row.keys() if k not in (col_mol, col_id)])
     # restaure list format
@@ -199,11 +218,17 @@ def from_csv(input_csv: str, decode_mols: bool = True,
     """
     # check for filename
     logging.debug(f"Checking if input_hdf exists at {input_csv}")
-    if not Path(input_csv).is_file():
-        raise ValueError(f"File input_csv could not be found at {input_csv}")
-    # read data
-    df = pd.read_csv(input_csv, sep=sep, index_col='Unnamed: 0')
+    utils.check_arg_input_file(input_csv)
+    # read file according to its compression
+    suffixes = Path(input_csv).suffixes
+    if len(suffixes) == 1:
+        # read data
+        df = pd.read_csv(input_csv, sep=sep, index_col='Unnamed: 0')
+    else:
+        compression = utils.get_conversion(suffixes[1])
+        df = pd.read_csv(input_csv, sep=sep, index_col='Unnamed: 0', compression=compression)
     logging.debug(f"Found {len(df.index)} records in input_hdf")
+    # process data
     if decode_mols:
         logging.debug(f"Decoding structures")
         if col_mol not in df.columns:

@@ -17,8 +17,8 @@ from typing import List
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ GLOBALS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 # allowed suffixes
-EXTS_INPUT = [['.sdf'], ['.sdf', '.gz'], ['.sdf', '.zip'],
-              ['.csv'], ['.csv', '.gz'], ['.csv', '.zip'],
+EXTS_INPUT = [['.sdf'], ['.sdf', '.gz'],
+              ['.csv'], ['.csv', '.gz'],
               ['.hdf']]
 
 EXTS_CONFIG = [['.json']]
@@ -28,6 +28,14 @@ Number = Union[int, float]
 Output_files = List[List[Union[str, int]]]
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
+def get_conversion(suffix: str) -> str:
+    """Return the expected keywords for using compression schemes in pandas based on file suffix."""
+    if suffix == '.gz':
+        return 'gzip'
+    else:
+        raise ValueError(f"Error! Unexpected value for compression suffix: '{suffix}'.")
 
 
 def check_arg_bool(value: bool) -> bool:
