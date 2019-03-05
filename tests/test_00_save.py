@@ -44,6 +44,15 @@ def df_mols():
     return df
 
 
+@pytest.fixture
+def df_mols_dupl():
+    """Example of a DataFrame with some duplicate molecules. Supposed to be exported as chunks."""
+    df = pd.DataFrame({'mol': ['C1CCCCC1', 'FC1CCCCC1', 'C1CCCCC1', 'NC1CCCCC1', 'C1CCCCC1'],   # 3 dupl
+                       'idm': ['mol1', 'mol2', 'mol3', 'mol4', 'mol5'],
+                       })
+    df['mol'] = df['mol'].map(Chem.MolFromSmiles)
+    return df
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ TESTS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 
@@ -89,6 +98,20 @@ def test_save_chunks(saver, df_mols, output_file_prefix):
     assert Path(outputs_hdf[2][0]).is_file() and outputs_hdf[2][1] == 1
     # csv
     outputs_csv = saver.save(df_mols, output_file_prefix + '_chunks.csv')
+    assert Path(outputs_csv[0][0]).is_file() and outputs_csv[0][1] == 2
+    assert Path(outputs_csv[1][0]).is_file() and outputs_csv[1][1] == 2
+    assert Path(outputs_csv[2][0]).is_file() and outputs_csv[2][1] == 1
+    # sdf
+    outputs_sdf = saver.save(df_mols, output_file_prefix + '_chunks.sdf')
+    assert Path(outputs_sdf[0][0]).is_file() and outputs_sdf[0][1] == 2
+    assert Path(outputs_sdf[1][0]).is_file() and outputs_sdf[1][1] == 2
+    assert Path(outputs_sdf[2][0]).is_file() and outputs_sdf[2][1] == 1
+
+
+def test_save_func_dupl(df_mols_dupl, output_file_prefix):
+    """Save molecules using the save function instead of using a Saver object.
+    Produced chunks are used for testing the removal of duplicates."""
+    outputs_csv = save.save(df_mols_dupl, output_file_prefix + '_dupl.csv.gz', chunk_size=2)
     assert Path(outputs_csv[0][0]).is_file() and outputs_csv[0][1] == 2
     assert Path(outputs_csv[1][0]).is_file() and outputs_csv[1][1] == 2
     assert Path(outputs_csv[2][0]).is_file() and outputs_csv[2][1] == 1

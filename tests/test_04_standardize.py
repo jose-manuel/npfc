@@ -192,6 +192,11 @@ def test_std_remove_stereochemistry(mols):
     assert stereo_doublebond == []  # ideally it should be set to Chem.rdchem.BondStereo.STEREOANY, but whatever obscure reason it is set to STEREONONE...
 
 
+def test_remove_dupl(standardizer):
+    """Remove duplicates accross chunks using a syn file"""
+    pass
+
+
 def test_run_protocol(standardizer, mols, mols_bad):
     """Run default standardization protocol."""
     # initiate a global df_mols
