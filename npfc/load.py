@@ -206,7 +206,7 @@ def from_hdf(input_hdf: str, decode_mols: bool = True, col_mol: str = 'mol')-> p
 
 def from_csv(input_csv: str, decode_mols: bool = True,
              col_mol: str = 'mol', col_id: str = 'idm',
-             sep: str = '|',, keep_props: bool = True,
+             sep: str = '|', keep_props: bool = True,
              cols_list: List[str] = []) -> pd.DataFrame:
     """Load molecules from a CSV file.
     In case molecules were stored with encoding (base64), they need to be decoded
