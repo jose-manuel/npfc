@@ -170,12 +170,12 @@ def main():
 
     # end
 
-    logging.info("END")
+    logging.info("SUMMARY")
     logger.info("COMPUTATIONAL TIME: CONFIGURING JOB".ljust(pad * 2) + f"{d1-d0}")
     logger.info("COMPUTATIONAL TIME: LOADING MOLECULES".ljust(pad * 2) + f"{d2-d1}")
     logger.info("COMPUTATIONAL TIME: SAVING MOLECULES".ljust(pad * 2) + f"{d3-d2}")
     logger.info("COMPUTATIONAL TIME: TOTAL".ljust(pad * 2) + f"{d3-d0}")
-
+    logging.info("END")
     sys.exit(0)
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ RUN ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
