@@ -592,7 +592,7 @@ class Standardizer(Filter):
             - filtered
             - error
 
-        .. note:: As a side effect, the output DataFrames get indexed by idm and standardized entries keep their 'inchikey' column (mandatory for now).
+        .. note:: As a side effect, the output DataFrames get indexed by idm. The 'inchikey' col is not returned, but the values can be accessed using the reference file.
         """
         # run standardization protocol
         df.index = df[self.col_id]
@@ -606,16 +606,11 @@ class Standardizer(Filter):
             dupl_filter = DuplicateFilter(on=self.on, col_mol=self.col_mol, col_id=self.col_id, ref_file=self.ref_file)
             df = dupl_filter.mark_dupl(df)
             # clean up for postprocess
-             ####### ####### ####### ####### #######
-            print("")
-            df['mol'] = df['mol'].map(Chem.MolToSmiles)
-            print(df)
-             ####### ####### ####### ####### #######
-            df[dupl_filter.on] = df.index
             df.index = df[self.col_id]
             df.drop(self.col_id, axis=1, inplace=True)
             # separate dupl from the rest
             df_filtered = pd.concat([df_filtered, df[df['status'] == 'filtered']], join='inner')  # drop inchikey col as the info is stored in ref_file anyway
             df = df[df['status'] == 'passed']
+
         # tuple of dataframes
         return (df, df_filtered, df_error)

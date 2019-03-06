@@ -21,10 +21,11 @@ from npfc.standardize import FullUncharger
 from npfc.standardize import DuplicateFilter
 from npfc import load
 # configure logging
-lg = RDLogger.logger()
-lg.setLevel(RDLogger.CRITICAL)
 # import logging
 # logging.basicConfig(level=logging.DEBUG)
+lg = RDLogger.logger()
+lg.setLevel(RDLogger.CRITICAL)
+
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FIXTURES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
@@ -124,8 +125,7 @@ def test_std_disconnect_metal(standardizer, mols):
 def test_std_init(standardizer):
     # default parameters
     assert set(standardizer.protocol.keys()) == set(['tasks', 'filter_hac', 'filter_molweight', 'filter_nrings', 'filter_medchem'])
-    assert standardizer.protocol['tasks'] == ['sanitize',
-                                              'disconnect_metal',
+    assert standardizer.protocol['tasks'] == ['disconnect_metal',
                                               'keep_largest',
                                               'filter_hac',
                                               'filter_molweight',

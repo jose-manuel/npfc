@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.standardize &mdash; npfc 0.0.6-21-g4811049 documentation</title>
+  <title>npfc.standardize &mdash; npfc 0.0.6-22-g30cb190 documentation</title>
   
 
   
@@ -56,7 +56,7 @@
             
             
               <div class="version">
-                0.0.6-21-g4811049
+                0.0.6-22-g30cb190
               </div>
             
           
@@ -759,6 +759,11 @@
             <span class="n">dupl_filter</span> <span class="o">=</span> <span class="n">DuplicateFilter</span><span class="p">(</span><span class="n">on</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">on</span><span class="p">,</span> <span class="n">col_mol</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">col_mol</span><span class="p">,</span> <span class="n">col_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">col_id</span><span class="p">,</span> <span class="n">ref_file</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ref_file</span><span class="p">)</span>
             <span class="n">df</span> <span class="o">=</span> <span class="n">dupl_filter</span><span class="o">.</span><span class="n">mark_dupl</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
             <span class="c1"># clean up for postprocess</span>
+             <span class="c1">####### ####### ####### ####### #######</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+            <span class="n">df</span><span class="p">[</span><span class="s1">&#39;mol&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;mol&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">Chem</span><span class="o">.</span><span class="n">MolToSmiles</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+             <span class="c1">####### ####### ####### ####### #######</span>
             <span class="n">df</span><span class="p">[</span><span class="n">dupl_filter</span><span class="o">.</span><span class="n">on</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">index</span>
             <span class="n">df</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">col_id</span><span class="p">]</span>
             <span class="n">df</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">col_id</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
