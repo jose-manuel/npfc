@@ -114,11 +114,12 @@ def check_arg_config_file(config_file: str) -> bool:
     :param input_file: the input file
     :param input_format: the expected format of the input file
     """
-    path_config_file = Path(config_file)
-    if not path_config_file.is_file():
-        raise ValueError(f"Error! Input file could not be found at '{config_file}'.")
-    if path_config_file.suffixes not in EXTS_CONFIG:
-        raise ValueError(f"Error! Unexpected '{path_config_file.suffixes}' for config format.")
+    if config_file is not None:
+        path_config_file = Path(config_file)
+        if not path_config_file.is_file():
+            raise ValueError(f"Error! Input file could not be found at '{config_file}'.")
+        elif path_config_file.suffixes not in EXTS_CONFIG:
+            raise ValueError(f"Error! Unexpected '{path_config_file.suffixes}' for config format.")
 
     return True
 

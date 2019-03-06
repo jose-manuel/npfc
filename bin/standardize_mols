@@ -61,3 +61,33 @@ def main():
     parser.add_argument('--col_sep', type=str, default='|', help="Separator to use in case the output file is a csv.")
     parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
     args = parser.parse_args()
+
+    # logging
+
+    logger = utils._configure_logger(args.log)
+    logger.info("RUNNING STANDARDIZE_MOLS")
+    warnings.filterwarnings('ignore', category=pd.io.pytables.PerformanceWarning)  # if None is returned instead of a molecule, do not complain about mixed types
+    pad = 40
+    lg = RDLogger.logger()
+    lg.setLevel(RDLogger.CRITICAL)
+
+    # parse arguments
+
+    # check on args values not already checked by argparse
+    utils.check_arg_input_file(args.input_mols)
+    utils.check_arg_output_file(args.output_mols)
+    utils.check_arg_positive_number(args.nrecords)
+    # src infos
+    src_suffixes = Path(args.input_mols).suffixes
+    src_format = src_suffixes[0]
+    if len(src_suffixes) > 1:
+        src_compression = utils.get_conversion(src_suffixes[1])
+    else:
+        src_compression = None
+    # out infos
+    out_suffixes = Path(args.output_mols).suffixes
+    out_format = out_suffixes[0]
+    if len(out_suffixes) > 1:
+        out_compression = utils.get_conversion(out_suffixes[1])
+    else:
+        out_compression = None

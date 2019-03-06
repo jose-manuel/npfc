@@ -175,7 +175,7 @@ class Saver:
                 PandasTools.WriteSDF(df, output_file, molColName=self.col_mol, idName=self.col_id, properties=list(df.columns))
             elif len(suffixes) > 1:
                 # init
-                output_file_base = Path(output_file).stem
+                output_file_base = '.'.join(output_file.split('.')[:-1])
                 compression = utils.get_conversion(suffixes[1])
                 # write the uncompressed file
                 PandasTools.WriteSDF(df, output_file_base, molColName=self.col_mol, idName=self.col_id, properties=list(df.columns))
@@ -184,6 +184,8 @@ class Saver:
                     with open(output_file_base, 'rb') as OUTPUT:
                         with gzip.open(output_file, 'wb') as ARCHIVE:
                             shutil.copyfileobj(OUTPUT, ARCHIVE)
+                    # delete the uncompressed file as it is only a byproduct
+                    Path(output_file_base).unlink()
                 else:
                     raise ValueError(f"Error! Unknown compression format: {compression}")
             else:
