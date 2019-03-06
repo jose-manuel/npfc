@@ -301,8 +301,7 @@ class Standardizer(Filter):
         self._on = on
         self._suffix = suffix
         self._ref_file = ref_file
-        self._default_protocol = {'tasks': ['sanitize',
-                                            'disconnect_metal',
+        self._default_protocol = {'tasks': ['disconnect_metal',
                                             'keep_largest',
                                             'filter_hac',
                                             'filter_molweight',

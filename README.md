@@ -125,10 +125,6 @@ Also, the atom plugin git-log can be summoned with ctrl+shift+p to visualize the
 - add extlinks to RDKit documentation (~ MolVS)
 - tweak Sanitizeflags to mimic KNIME Mol2RDKit node behavior (partial sanitization).
 - implement a git hook so that only changes that pass all tests are committed.
-- implement useful logs with at the module level
 - build up a workflow using snakemake
-- add more checks for inputs for classes/functions
-- automatic __version__ var from git tag (versioneer)
-- harmonize git commits (commitizen)
 - automatic release changelog (standard-version)
-- install and use sphinx-autodoc-typehints for much nice docstrings
+- ref_file for duplicate entries removal should be defined in the protocol

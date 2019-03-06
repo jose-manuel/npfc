@@ -107,7 +107,7 @@ def main():
     # arguments
     logger.info("ARGUMENTS")
     logging.info("INPUT_MOLS".ljust(pad) + f"{args.input_mols}")
-    logging.info("OUT_MOLS".ljust(pad) + f"{args.input_mols}")
+    logging.info("OUTPUT_MOLS".ljust(pad) + f"{args.output_mols}")
     logging.info("NRECORDS".ljust(pad) + f"{args.nrecords}")
     logging.info("SHUFFLE".ljust(pad) + f"{args.shuffle}")
     logging.info("KEEP_PROPS".ljust(pad) + f"{args.keep_props}")

@@ -23,7 +23,7 @@ import npfc
 from npfc import load
 from npfc import save
 from npfc import utils
-
+from npfc import standardize
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
@@ -49,16 +49,17 @@ def main():
 
     parser = argparse.ArgumentParser(description=description, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('input_mols', type=str, default=None, help="Input file.")
-    parser.add_argument('output_mols', type=str, default=None, help="Output file.")
-    parser.add_argument('-p', 'protocol', type=str, default=None, help="Configuration file in JSON for specifying a standardization protocol. See the docs for the default protocol.")
-    parser.add_argument('-e', '--encode_mols', type=bool, default=True, help="Encode/decode molecules into base64 strings for I/O.")
-    parser.add_argument('--src_id', type=str, default='idm', help="Identifier column in the source file.")
-    parser.add_argument('--src_mol', type=str, default='mol', help="Molecule column in the source file.")
-    parser.add_argument('--src_sep', type=str, default='|', help="Separator to use in case the input file is a csv.")
-    parser.add_argument('--src_lists', type=str, default=[], help="Columns to convert from str to list if the input file is a csv.")
+    parser.add_argument('-o', '--output_template', type=str, default=None, help="Output name to use as template for outputs (i.e. tests/output.csv.gz would be tests/output_passed.csv.gz). If none is specified then input_mols is used instead.")
+    parser.add_argument('-p', '--protocol', type=str, default=None, help="Configuration file in JSON for specifying a standardization protocol. See the docs for the default protocol.")
+    parser.add_argument('-r', '--ref_file', type=str, default=None, help="Reference file for identifying duplicate molecules. If none is specified, then one is created in the output folder.")
+    parser.add_argument('-d', '--decode_mols', type=bool, default=True, help="Decode molecules into base64 strings for input.")
+    parser.add_argument('-e', '--encode_mols', type=bool, default=True, help="Encode molecules into base64 strings for output.")
+    parser.add_argument('--in_id', type=str, default='idm', help="Identifier column in the source file.")
+    parser.add_argument('--in_mol', type=str, default='mol', help="Molecule column in the source file.")
+    parser.add_argument('--in_sep', type=str, default='|', help="Separator to use in case the input file is a csv.")
     parser.add_argument('--out_id', type=str, default='idm', help="Identifier column in the output file.")
     parser.add_argument('--out_mol', type=str, default='mol', help="Molecule column in the output file.")
-    parser.add_argument('--col_sep', type=str, default='|', help="Separator to use in case the output file is a csv.")
+    parser.add_argument('--out_sep', type=str, default='|', help="Separator to use in case the output file is a csv.")
     parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
     args = parser.parse_args()
 
@@ -74,20 +75,112 @@ def main():
     # parse arguments
 
     # check on args values not already checked by argparse
-    utils.check_arg_input_file(args.input_mols)
-    utils.check_arg_output_file(args.output_mols)
-    utils.check_arg_positive_number(args.nrecords)
-    # src infos
-    src_suffixes = Path(args.input_mols).suffixes
-    src_format = src_suffixes[0]
-    if len(src_suffixes) > 1:
-        src_compression = utils.get_conversion(src_suffixes[1])
+    if args.output_template is None:
+        logger.warning("OUTPUT_TEMPLATE NOT DEFINED, USING INPUT_MOLS INSTEAD")
+        output_template = args.input_mols
     else:
-        src_compression = None
+        output_template = args.output_template
+    output_dir = Path(output_template).resolve().parent
+    utils.check_arg_input_file(args.input_mols)
+    utils.check_arg_output_file(output_template)
+    utils.check_arg_config_file(args.protocol)
+    if args.protocol is None:
+        logger.warning("PROTOCOL IS NOT DEFINED, USING DEFAULT ONE")
+    # in infos
+    in_suffixes = Path(args.input_mols).suffixes
+    in_format = in_suffixes[0]
+    if len(in_suffixes) > 1:
+        in_compression = utils.get_conversion(in_suffixes[1])
+    else:
+        in_compression = None
     # out infos
-    out_suffixes = Path(args.output_mols).suffixes
+    path_output_template = Path(output_template)
+    out_suffixes = path_output_template.suffixes
     out_format = out_suffixes[0]
     if len(out_suffixes) > 1:
         out_compression = utils.get_conversion(out_suffixes[1])
     else:
         out_compression = None
+    # define outputs
+    output_basename = str(output_dir) + "/" + path_output_template.stem.split(".")[0]
+    output_passed = output_basename + "_passed" + ''.join(out_suffixes)
+    output_filtered = output_basename + "_filtered" + ''.join(out_suffixes)
+    output_error = output_basename + "_error" + ''.join(out_suffixes)
+    if args.ref_file is None:
+        output_ref = output_basename + "_ref" + '.hdf'
+        logger.warning(f"REF_FILE NOT DEFINED, SETTING IT TO '{output_ref}'")
+
+    else:
+        output_ref = args.ref_file
+    utils.check_arg_output_file(output_ref)   # TODO add an argument to utils. funcs for specifying one format only
+
+    # display infos
+
+    # versions
+    logger.info("LIBRARY VERSIONS")
+    logger.info("rdkit".ljust(pad) + f"{rdkit.__version__}")
+    logger.info("pandas".ljust(pad) + f"{pd.__version__}")
+    logger.info("npfc".ljust(pad) + f"{npfc.__version__}")
+    # arguments
+    logger.info("ARGUMENTS")
+    logging.info("INPUT_MOLS".ljust(pad) + f"{args.input_mols}")
+    logging.info("OUTPUT_TEMPLATE".ljust(pad) + f"{output_template}")
+    logging.info("OUTPUT_DIR".ljust(pad) + f"{output_dir}")
+    logging.info("PROTOCOL".ljust(pad) + f"{args.protocol}")
+    logging.info("REF_FILE".ljust(pad) + f"{output_ref}")
+    logging.info("ENCODE_MOLS".ljust(pad) + f"{args.encode_mols}")
+    logging.info("DECODE_MOLS".ljust(pad) + f"{args.decode_mols}")
+    logging.info("IN_ID".ljust(pad) + f"{args.in_id}")
+    logging.info("IN_MOL".ljust(pad) + f"{args.in_mol}")
+    logging.info("IN_FORMAT".ljust(pad) + f"{in_format}")
+    logging.info("IN_COMPRESSION".ljust(pad) + f"{in_compression}")
+    logging.info("OUT_MOL".ljust(pad) + f"{args.out_mol}")
+    logging.info("OUT_ID".ljust(pad) + f"{args.out_id}")
+    logging.info("OUT_FORMAT".ljust(pad) + f"{out_format}")
+    logging.info("OUT_COMPRESSION".ljust(pad) + f"{out_compression}")
+    logging.info("LOG".ljust(pad) + f"{args.log}")
+    # display outputs
+    logger.info("OUTPUT FILES:")
+    logger.info("OUTPUT_PASSED".ljust(pad) + f"{output_passed}")
+    logger.info("OUTPUT_FILTERED".ljust(pad) + f"{output_filtered}")
+    logger.info("OUTPUT_ERROR".ljust(pad) + f"{output_error}")
+    logger.info("OUTPUT_REF".ljust(pad) + f"{output_ref}")
+    # begin
+    logging.info("BEGIN")
+
+    # load mols
+    logging.info("LOADING MOLECULES")
+    d1 = datetime.now()
+    if in_format == '.sdf':
+        df_mols = load.from_sdf(args.input_mols,
+                                col_id=args.in_id,
+                                keep_props=True,
+                                )
+    elif in_format == '.csv':
+        df_mols = load.from_csv(args.input_mols,
+                                col_mol=args.in_mol,
+                                keep_props=True,
+                                decode_mols=args.decode_mols,
+                                sep=args.in_sep,
+                                )
+    else:   # check on argument for input does not leave any other option than sdf, csv or hdf
+        df_mols = load.from_hdf(args.input_mols,
+                                decode_mols=args.decode_mols,
+                                col_mol=args.in_mol,
+                                )
+
+    num_failed = df_mols['mol'].isna().sum()
+    logging.info(f"LOADED {len(df_mols)} RECORDS WITH {num_failed} FAILURE(S)")
+
+    # standardize molecules
+    logger.info(f"STANDARDIZING MOLECULES:")
+    s = standardize.Standardizer()
+    for i, task in enumerate(s._protocol['tasks']):
+        logger.info(f"TASK #{str(i+1).zfill(2)} {task}")
+    logger.info("TIMEOUT FOR ABOVE TASKS".ljust(pad) + f"{standardize.TIMEOUT} SEC")
+    logger.info(f"FINAL TASK: FILTER DUPLICATES")
+    logger.info(f"RUN STANDARDIZATION")
+
+
+if __name__ == '__main__':
+    main()

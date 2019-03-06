@@ -107,6 +107,22 @@ def check_arg_output_file(output_file: str, create_parent_dir: bool = True) -> b
     return True
 
 
+def check_arg_output_dir(output_dir: str) -> bool:
+    """Return True of the output_dir can exist.
+
+    If the parent directory of the output dir does not exist, it has to either be created or fail the check.
+
+    :param output_dir: the output directory
+    :param create_parent_dir: create the output file's parent folder in case it does not exist
+    """
+    # output_format
+    path_output_file = Path(output_dir)
+    if not path_output_file.is_folder():
+        path_output_file.mkdir(parents=True, exist_ok=True)
+
+    return True
+
+
 def check_arg_config_file(config_file: str) -> bool:
     """Return True of the config_file exists, raise an error otherwise.
 
