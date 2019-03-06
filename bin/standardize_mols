@@ -85,7 +85,7 @@ def main():
     utils.check_arg_output_file(output_template)
     utils.check_arg_config_file(args.protocol)
     if args.protocol is None:
-        logger.warning("PROTOCOL IS NOT DEFINED, USING DEFAULT ONE")
+        logger.warning("PROTOCOL IS NOT DEFINED, USING DEFAULT")
     # in infos
     in_suffixes = Path(args.input_mols).suffixes
     in_format = in_suffixes[0]
@@ -126,7 +126,10 @@ def main():
     logging.info("INPUT_MOLS".ljust(pad) + f"{args.input_mols}")
     logging.info("OUTPUT_TEMPLATE".ljust(pad) + f"{output_template}")
     logging.info("OUTPUT_DIR".ljust(pad) + f"{output_dir}")
-    logging.info("PROTOCOL".ljust(pad) + f"{args.protocol}")
+    if args.protocol is None:
+        logging.info("PROTOCOL".ljust(pad) + "DEFAULT")
+    else:
+        logging.info("PROTOCOL".ljust(pad) + f"{args.protocol}")
     logging.info("REF_FILE".ljust(pad) + f"{output_ref}")
     logging.info("ENCODE_MOLS".ljust(pad) + f"{args.encode_mols}")
     logging.info("DECODE_MOLS".ljust(pad) + f"{args.decode_mols}")
@@ -173,23 +176,56 @@ def main():
     logging.info(f"LOADED {len(df_mols)} RECORDS WITH {num_failed} FAILURE(S)")
 
     # standardize molecules
+
+    # describe protocol
+    d2 = datetime.now()
+
     logger.info(f"STANDARDIZING MOLECULES")
     logger.info(f"PROTOCOL:")
     s = standardize.Standardizer(ref_file=output_ref)
     [logger.info(f"TASK #{str(i+1).zfill(2)} {task}") for i, task in enumerate(s._protocol['tasks'])]
     [logger.info(f"OPTION {opt}".ljust(pad) + f"{value}") for opt, value in s._protocol.items() if opt != 'tasks']
-    # for i, task in enumerate(s._protocol['tasks']):
-    #     logger.info(f"TASK #{str(i+1).zfill(2)} {task}")
-    # for i, opt in s._protocol.keys() if opt != 'tasks':
-    #     logger.info(f"OPT #")
     logger.info("TIMEOUT FOR ABOVE TASKS".ljust(pad) + f"{standardize.TIMEOUT} SEC")
     logger.info(f"FILTER DUPLICATES IS SET TO TRUE")
+    # run protocol
     logger.info(f"RUN STANDARDIZATION")
     df_passed, df_filtered, df_error = s.run_df(df_mols)
-    from rdkit import Chem
-    df_passed['mol'] = df_passed['mol'].map(Chem.MolToSmiles)
-    print(df_passed)
 
+    # save results
+    d3 = datetime.now()
+
+    logger.info(f"RESULTS:")
+    num_passed = len(df_passed.index)
+    num_filtered = len(df_filtered.index)
+    num_error = len(df_error.index)
+    # passed
+    logger.info(f"NUMBER OF PASSED: {num_passed}")
+    if num_passed > 0:
+        outputs = save.save(df_passed, output_passed)
+        logger.info(f"SAVED {outputs[0][1]} RECORDS AT {outputs[0][0]}")
+    # filtered
+    logger.info(f"NUMBER OF FILTERED: {num_filtered}")
+    if num_filtered > 0:
+        outputs = save.save(df_filtered, output_filtered)
+        logger.info(f"SAVED {outputs[0][1]} RECORDS AT {outputs[0][0]}")
+    # error
+    logger.info(f"NUMBER OF ERRORS: {len(df_error.index)}")
+    if num_error > 0:
+        outputs = save.save(df_error, output_error)
+        logger.info(f"SAVED {outputs[0][1]} RECORDS AT {outputs[0][0]}")
+
+    d4 = datetime.now()
+
+    # end
+
+    logging.info("SUMMARY")
+    logger.info("COMPUTATIONAL TIME: CONFIGURING JOB".ljust(pad * 2) + f"{d1-d0}")
+    logger.info("COMPUTATIONAL TIME: LOADING MOLECULES".ljust(pad * 2) + f"{d2-d1}")
+    logger.info("COMPUTATIONAL TIME: STANDARDIZING MOLECULES".ljust(pad * 2) + f"{d3-d2}")
+    logger.info("COMPUTATIONAL TIME: SAVING MOLECULES".ljust(pad * 2) + f"{d4-d3}")
+    logger.info("COMPUTATIONAL TIME: TOTAL".ljust(pad * 2) + f"{d4-d0}")
+    logging.info("END")
+    sys.exit(0)
 
 
 if __name__ == '__main__':
