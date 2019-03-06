@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.utils &mdash; npfc 0.0.6-20-g16ef8a8 documentation</title>
+  <title>npfc.utils &mdash; npfc 0.0.6-21-g4811049 documentation</title>
   
 
   
@@ -56,7 +56,7 @@
             
             
               <div class="version">
-                0.0.6-20-g16ef8a8
+                0.0.6-21-g4811049
               </div>
             
           
@@ -256,6 +256,22 @@
             <span class="n">output_dir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Error! Output_dir could not be found at &#39;</span><span class="si">{output_dir}</span><span class="s2">&#39;.&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="kc">True</span></div>
+
+
+<div class="viewcode-block" id="check_arg_output_dir"><a class="viewcode-back" href="../../utils.html#npfc.utils.check_arg_output_dir">[docs]</a><span class="k">def</span> <span class="nf">check_arg_output_dir</span><span class="p">(</span><span class="n">output_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Return True of the output_dir can exist.</span>
+
+<span class="sd">    If the parent directory of the output dir does not exist, it has to either be created or fail the check.</span>
+
+<span class="sd">    :param output_dir: the output directory</span>
+<span class="sd">    :param create_parent_dir: create the output file&#39;s parent folder in case it does not exist</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># output_format</span>
+    <span class="n">path_output_file</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">output_dir</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">path_output_file</span><span class="o">.</span><span class="n">is_folder</span><span class="p">():</span>
+        <span class="n">path_output_file</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="kc">True</span></div>
 

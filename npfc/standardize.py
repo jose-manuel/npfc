@@ -606,6 +606,11 @@ class Standardizer(Filter):
             dupl_filter = DuplicateFilter(on=self.on, col_mol=self.col_mol, col_id=self.col_id, ref_file=self.ref_file)
             df = dupl_filter.mark_dupl(df)
             # clean up for postprocess
+             ####### ####### ####### ####### #######
+            print("")
+            df['mol'] = df['mol'].map(Chem.MolToSmiles)
+            print(df)
+             ####### ####### ####### ####### #######
             df[dupl_filter.on] = df.index
             df.index = df[self.col_id]
             df.drop(self.col_id, axis=1, inplace=True)

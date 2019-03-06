@@ -117,12 +117,12 @@ def main():
     # display infos
 
     # versions
-    logger.info("LIBRARY VERSIONS")
+    logger.info("LIBRARY VERSIONS:")
     logger.info("rdkit".ljust(pad) + f"{rdkit.__version__}")
     logger.info("pandas".ljust(pad) + f"{pd.__version__}")
     logger.info("npfc".ljust(pad) + f"{npfc.__version__}")
     # arguments
-    logger.info("ARGUMENTS")
+    logger.info("ARGUMENTS:")
     logging.info("INPUT_MOLS".ljust(pad) + f"{args.input_mols}")
     logging.info("OUTPUT_TEMPLATE".ljust(pad) + f"{output_template}")
     logging.info("OUTPUT_DIR".ljust(pad) + f"{output_dir}")
@@ -173,13 +173,23 @@ def main():
     logging.info(f"LOADED {len(df_mols)} RECORDS WITH {num_failed} FAILURE(S)")
 
     # standardize molecules
-    logger.info(f"STANDARDIZING MOLECULES:")
-    s = standardize.Standardizer()
-    for i, task in enumerate(s._protocol['tasks']):
-        logger.info(f"TASK #{str(i+1).zfill(2)} {task}")
+    logger.info(f"STANDARDIZING MOLECULES")
+    logger.info(f"PROTOCOL:")
+    s = standardize.Standardizer(ref_file=output_ref)
+    [logger.info(f"TASK #{str(i+1).zfill(2)} {task}") for i, task in enumerate(s._protocol['tasks'])]
+    [logger.info(f"OPTION {opt}".ljust(pad) + f"{value}") for opt, value in s._protocol.items() if opt != 'tasks']
+    # for i, task in enumerate(s._protocol['tasks']):
+    #     logger.info(f"TASK #{str(i+1).zfill(2)} {task}")
+    # for i, opt in s._protocol.keys() if opt != 'tasks':
+    #     logger.info(f"OPT #")
     logger.info("TIMEOUT FOR ABOVE TASKS".ljust(pad) + f"{standardize.TIMEOUT} SEC")
-    logger.info(f"FINAL TASK: FILTER DUPLICATES")
+    logger.info(f"FILTER DUPLICATES IS SET TO TRUE")
     logger.info(f"RUN STANDARDIZATION")
+    df_passed, df_filtered, df_error = s.run_df(df_mols)
+    from rdkit import Chem
+    df_passed['mol'] = df_passed['mol'].map(Chem.MolToSmiles)
+    print(df_passed)
+
 
 
 if __name__ == '__main__':
