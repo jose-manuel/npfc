@@ -1,1 +1,63 @@
 #!/usr/bin/env python
+
+"""
+Script standardize_mols
+==========================
+This script is used for standardizing molecules.
+"""
+
+# standard
+import sys
+import warnings
+from pathlib import Path
+from datetime import datetime
+import logging
+import argparse
+# data
+import pandas as pd
+# chemoinformatics
+import rdkit
+from rdkit import RDLogger
+# custom libraries
+import npfc
+from npfc import load
+from npfc import save
+from npfc import utils
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
+def main():
+
+    # init
+    d0 = datetime.now()
+    description = """Script used for loading molecules from SDF, CSV or HDF files, convert them into RDKit objects and export them into CSV or HDF files.
+    Molecules that failed the RDKit conversion have None for structure but their properties, if any, remain.
+
+    It uses the installed npfc libary in your favorite env manager.
+
+    Examples:
+
+        >>> # Convert a SDF into a HDF using molecule titles as molecule id
+        >>> load_mols file_in.sdf file_out.hdf --src_id _Name
+        >>> # Chunk a CSV file into SDF files of 100 randomly ordered records while keeping all properties
+        >>> load_mols file_in.csv file_out.sdf -n 100 -k True -s True --src_id prop1 --src_mol mol --out_id _Name
+    """
+
+    # parameters CLI
+
+    parser = argparse.ArgumentParser(description=description, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument('input_mols', type=str, default=None, help="Input file.")
+    parser.add_argument('output_mols', type=str, default=None, help="Output file.")
+    parser.add_argument('-p', 'protocol', type=str, default=None, help="Configuration file in JSON for specifying a standardization protocol. See the docs for the default protocol.")
+    parser.add_argument('-e', '--encode_mols', type=bool, default=True, help="Encode/decode molecules into base64 strings for I/O.")
+    parser.add_argument('--src_id', type=str, default='idm', help="Identifier column in the source file.")
+    parser.add_argument('--src_mol', type=str, default='mol', help="Molecule column in the source file.")
+    parser.add_argument('--src_sep', type=str, default='|', help="Separator to use in case the input file is a csv.")
+    parser.add_argument('--src_lists', type=str, default=[], help="Columns to convert from str to list if the input file is a csv.")
+    parser.add_argument('--out_id', type=str, default='idm', help="Identifier column in the output file.")
+    parser.add_argument('--out_mol', type=str, default='mol', help="Molecule column in the output file.")
+    parser.add_argument('--col_sep', type=str, default='|', help="Separator to use in case the output file is a csv.")
+    parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
+    args = parser.parse_args()
