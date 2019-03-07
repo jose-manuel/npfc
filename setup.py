@@ -30,5 +30,7 @@ setuptools.setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    scripts=['bin/load_mols'],
+    scripts=['bin/load_mols',
+             'bin/standardize_mols',
+             ],
 )

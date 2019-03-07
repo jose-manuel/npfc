@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.load &mdash; npfc 0.0.7 documentation</title>
+  <title>npfc.load &mdash; npfc 0.0.7-1-gc339930 documentation</title>
   
 
   
@@ -56,7 +56,7 @@
             
             
               <div class="version">
-                0.0.7
+                0.0.7-1-gc339930
               </div>
             
           
@@ -311,7 +311,7 @@
                     <span class="k">if</span> <span class="n">k</span> <span class="o">!=</span> <span class="n">col_mol</span> <span class="ow">and</span> <span class="n">k</span> <span class="o">!=</span> <span class="n">col_id</span><span class="p">:</span>
                         <span class="k">del</span> <span class="n">row</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
         <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Molecule #</span><span class="si">{i}</span><span class="s2"> could not be parsed and was skipped!&quot;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Molecule #</span><span class="si">{i}</span><span class="s2"> could not be parsed and was skipped!&quot;</span><span class="p">)</span>
             <span class="n">row</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="c1"># record entry</span>
         <span class="k">if</span> <span class="n">row</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>

@@ -68,6 +68,9 @@ https://stackoverflow.com/questions/22219004/grouping-rows-in-list-in-pandas-gro
 Better logging
 https://stackoverflow.com/questions/10973362/python-logging-function-name-file-name-line-number-using-a-single-file
 
+Changelog
+https://stackoverflow.com/questions/3523534/good-ways-to-manage-a-changelog-using-git
+
 Postgresql queries optimization
 https://www.postgresql.org/docs/8.3/queries-limit.html
 
@@ -119,6 +122,11 @@ The script commit provides an useful interface for committing changes as it auto
 
 Also, the atom plugin git-log can be summoned with ctrl+shift+p to visualize the history of versions.
 
+## Snakemake
+
+create task tree:
+>>> snakemake --dag | dot -Tsvg > dag.svg
+
 
 ## Stuff to think about
 
@@ -126,5 +134,5 @@ Also, the atom plugin git-log can be summoned with ctrl+shift+p to visualize the
 - tweak Sanitizeflags to mimic KNIME Mol2RDKit node behavior (partial sanitization).
 - implement a git hook so that only changes that pass all tests are committed.
 - build up a workflow using snakemake
-- automatic release changelog (standard-version)
+- automatic release changelog (standard-version?)
 - ref_file for duplicate entries removal should be defined in the protocol
