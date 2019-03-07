@@ -41,7 +41,7 @@ def df_mols():
                        'idm': ['mol1', 'mol2', 'mol3', 'mol4', 'mol5'],
                        })
     df['mol'] = df['mol'].map(Chem.MolFromSmiles)
-    # df['prop'] = [f"MOL{i}" for i in range(len(df.index))]  # triggers pandas warnings
+    df['prop'] = [f"MOL{i}" for i in range(len(df.index))]  # triggers pandas warnings
     return df
 
 

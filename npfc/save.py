@@ -38,9 +38,6 @@ def encode_mol(mol: Mol) -> str:
         return None
 
 
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
-
-
 def save(df: pd.DataFrame, output_file: str,
          shuffle: bool = False, random_seed: int = None,
          chunk_size: int = None, encode_mols: bool = True,

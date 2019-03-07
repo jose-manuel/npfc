@@ -158,7 +158,7 @@ def from_sdf(input_sdf: str, src_id: str = '_Name',
                     if k != col_mol and k != col_id:
                         del row[k]
         except AttributeError:
-            logging.warning("Molecule #{i} could not be parsed and was skipped!")
+            logging.warning(f"Molecule #{i} could not be parsed and was skipped!")
             row = None
         # record entry
         if row is not None:
