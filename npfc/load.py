@@ -29,6 +29,7 @@ from npfc import utils
 CONVERTERS = {'molblock': lambda x: Chem.MolFromMolBlock(x),
               'smiles': lambda x: Chem.MolFromSmiles(x),
               'base64': lambda x: decode_mol_base64,
+              'rdkit': lambda x: x,  # nothing to do here, but removes the needs for more if/elif
               }
 
 
@@ -97,151 +98,279 @@ def from_pgsql(dbname: str, user: str,
     return df
 
 
-def from_sdf(input_sdf: str, src_id: str = '_Name',
-             col_id: str = 'idm',  col_mol: str = 'mol',
-             keep_props: bool = True, cols_list: List[str] = []) -> pd.DataFrame:
-    """Load molecules from a SDF file.
-    It is heavily inspired from PandasTools but differs as molecules with errors are
-    not silently discarded but stored as None instead. Also, each molecule is read first
-    without parsing to retrieve all properties and then with parsing to retrieve
-    the molecular structure, if possible.
 
-    .. warning:: If keep_props is set to True, then only the last molecule is used for determing what properties should be retrieved. This could be an issue if the input SDF has unconsistent properties.
 
-    :param input_sdf: the input sdf filename
-    :param src_id: the SDF property to use for defining the col_id
-    :param col_id: the column to use to generate the 'idm' column, used as single identifier
-    :param keep_props: keep all properties found in the SDF. If set to False, then only 'idm' and 'mol' columns are present in the DataFrame
-    :return: a DataFrame with Mol objects
-    """
-    logging.debug(f"Checking if input_sdf exists at {input_sdf}")
-    # check for filename
-    utils.check_arg_input_file(input_sdf)
-    # get suffixes
-    suffixes = Path(input_sdf).suffixes
-    # get the correct file handlers
-    if len(suffixes) == 1:
-        FH = open(input_sdf, 'rb')
-        FH_raw = open(input_sdf, 'rb')
-    else:
-        if utils.get_conversion(suffixes[1]) == 'gzip':
-            FH = gzip.open(input_sdf)
-            FH_raw = gzip.open(input_sdf)
+
+class Load:
+
+    FORMATS = [None, 'rdkit', 'molblock', 'smiles']
+
+    def __init__(self,
+                 input_file: str,
+                 in_id: str = 'idm',
+                 in_mol: str = 'mol',
+                 in_sep: str = '|',
+                 mol_format: str = None,
+                 out_id: str = 'idm',
+                 out_mol: str = 'mol',
+                 keep_props: bool = True,
+                 decode: bool = True,
+                 cols_list: List[str] = [],
+                 ):
+        pass
+
+    def file(cls,
+             input_file: str,
+             in_id: str = 'idm',
+             in_mol: str = 'mol',
+             in_sep: str = '|',
+             mol_format: str = 'rdkit',
+             out_id: str = 'idm',
+             out_mol: str = 'mol',
+             keep_props: bool = True,
+             decode: bool = True,
+             cols_list: List[str] = [],
+             ):
+        # check arguments
+
+        # input_file
+        utils.check_arg_input_file(input_file)
+        suffixes = Path(input_file).suffixes
+        # suffixes were already checked for validity in utils function
+        if len(suffixes) == 1:
+            compression = None
         else:
-            raise ValueError(f"Error! Unknown compression type: '{suffixes}'.")
-    # init
-    i = 0
-    rows = []
-    row_idx = []
-    # double iteration over sdf but generators so it should be ok memory-wise
-    for mol, mol_raw in zip(Chem.ForwardSDMolSupplier(FH), Chem.ForwardSDMolSupplier(FH_raw, sanitize=False)):
-        try:
-            # properties
-            row = dict((k, mol_raw.GetProp(k)) for k in mol_raw.GetPropNames())
-            # molecule title
-            if mol_raw.GetProp('_Name') != '':
-                row['_Name'] = mol_raw.GetProp('_Name')
-            else:
-                row['_Name'] = f'NONAME_{i}'
-            # mol
-            row[col_mol] = mol
-            # src_id
-            try:
-                row[col_id] = row[src_id]
-            except KeyError:
-                logging.warning(f"No property {src_id} could be found for record #{i}, setting {col_id} to 'NOID_{i}'")
-                row[col_id] = f"NOID_{i}"
-            # delete properties
-            if not keep_props:
-                tmp = row.copy()
-                for k in tmp.keys():
-                    if k != col_mol and k != col_id:
-                        del row[k]
-        except AttributeError:
-            logging.warning(f"Molecule #{i} could not be parsed and was skipped!")
-            row = None
-        # record entry
-        if row is not None:
-            rows.append(row)
-            row_idx.append(i)
-        i += 1
-    df = pd.DataFrame(rows, index=row_idx, columns=[col_mol, col_id] + [k for k in row.keys() if k not in (col_mol, col_id)])
-    # restaure list format
-    if len(cols_list) > 0:
-        for c in cols_list:
-            df[c] = df[c].map(json.loads)
+            compression = suffixes[1]
 
-    return df
+        # mol_format
+        if mol_format not in cls.FORMATS:
+            raise ValueError(f"Error! Unknown mol_format: {mol_format}")
+        # keep_props
+        utils.check_arg_bool(keep_props)
+        # decode
+        utils.check_arg_bool(decode)
+        #
 
+    # this method is a class method
+    file = classmethod(file)
 
-def from_hdf(input_hdf: str, decode_mols: bool = True, col_mol: str = 'mol')-> pd.DataFrame:
-    """Load molecules from a HDF file.
-    In case molecules were stored with encoding (base64), they need to be decoded
-    before using them as RDKit molecules.
+    def _from_sdf():
+        pass
 
-    :param input_hdf: the input hdf filename
-    :param decode_mols: use base64 to decode molecules encoded as strings
-    :param col_mol: the DataFrame column name where molecules are stored
-    :return: a DataFrame with Mol objects
-    """
-    # check for filename
-    logging.debug(f"Checking if input_hdf exists at {input_hdf}")
-    if not Path(input_hdf).is_file():
-        raise ValueError(f"Error! File input_sdf could not be found at '{input_hdf}'.")
-    # init
-    key = Path(input_hdf).stem.split('.')[0]
-    logging.debug(f"Key for hdf is {key}")
-    # read data
-    df = pd.read_hdf(input_hdf, key=key)
-    logging.debug(f"Found {len(df.index)} records in input_hdf")
-    if decode_mols:
-        logging.debug(f"Decoding structures")
-        if col_mol not in df.columns:
-            raise ValueError(f"Error! Parameter col_mol {col_mol} could not be found in DataFrame, available columns are: '{list(df.columns.values)}'.")
-        else:
-            df[col_mol] = df[col_mol].map(decode_mol_base64)
+    def _from_hdf():
+        pass
 
-    return df
+    def _from_csv():
+        pass
 
-
-def from_csv(input_csv: str, decode_mols: bool = True,
-             col_mol: str = 'mol', col_id: str = 'idm',
-             sep: str = '|', keep_props: bool = True,
-             cols_list: List[str] = []) -> pd.DataFrame:
-    """Load molecules from a CSV file.
-    In case molecules were stored with encoding (base64), they need to be decoded
-    before using them as RDKit molecules.
-
-    :param input_csv: the input hdf filename
-    :param decode_mols: use base64 to decode molecules encoded as strings
-    :param col_mol: the DataFrame column name where molecules are stored
-    :return: a DataFrame with Mol objects
-    """
-    # check for filename
-    logging.debug(f"Checking if input_hdf exists at {input_csv}")
-    utils.check_arg_input_file(input_csv)
-    # read file according to its compression
-    suffixes = Path(input_csv).suffixes
-    if len(suffixes) == 1:
-        # read data
-        df = pd.read_csv(input_csv, sep=sep, index_col='Unnamed: 0')
-    else:
-        compression = utils.get_conversion(suffixes[1])
-        df = pd.read_csv(input_csv, sep=sep, index_col='Unnamed: 0', compression=compression)
-    logging.debug(f"Found {len(df.index)} records in input_hdf")
-    # process data
-    if decode_mols:
-        logging.debug(f"Decoding structures")
-        if col_mol not in df.columns:
-            raise ValueError(f"col_mol {col_mol} could not be found in DataFrame, available columns are: {list(df.columns.values)}")
-        else:
-            df[col_mol] = df[col_mol].map(decode_mol_base64)
-    # restaure list format
-    if len(cols_list) > 0:
-        for c in cols_list:
-            df[c] = df[c].map(json.loads)
-    # keep_props
-    if not keep_props:
-        df.drop([c for c in df.columns if c not in (col_id, col_mol)], axis=1, inplace=True)
-
-    return df
+# col mol could be None
+# col id could be None
+#
+# def from_sdf(input_sdf: str,
+#              src_id: str = '_Name',
+#              col_id: str = 'idm',
+#              col_mol: str = 'mol',
+#              keep_props: bool = True,
+#              cols_list: List[str] = []) -> pd.DataFrame:
+#     """Load molecules from a SDF file.
+#     It is heavily inspired from PandasTools but differs as molecules with errors are
+#     not silently discarded but stored as None instead. Also, each molecule is read first
+#     without parsing to retrieve all properties and then with parsing to retrieve
+#     the molecular structure, if possible.
+#
+#     .. warning:: If keep_props is set to True, then only the last molecule is used for determing what properties should be retrieved. This could be an issue if the input SDF has unconsistent properties.
+#
+#     :param input_sdf: the input sdf filename
+#     :param src_id: the SDF property to use for defining the col_id
+#     :param col_id: the column to use to generate the 'idm' column, used as single identifier
+#     :param keep_props: keep all properties found in the SDF. If set to False, then only 'idm' and 'mol' columns are present in the DataFrame
+#     :return: a DataFrame with Mol objects
+#     """
+#     logging.debug(f"Checking if input_sdf exists at {input_sdf}")
+#     # check for filename
+#     utils.check_arg_input_file(input_sdf)
+#     # get suffixes
+#     suffixes = Path(input_sdf).suffixes
+#     # get the correct file handlers
+#     if len(suffixes) == 1:
+#         FH = open(input_sdf, 'rb')
+#         FH_raw = open(input_sdf, 'rb')
+#     else:
+#         if utils.get_conversion(suffixes[1]) == 'gzip':
+#             FH = gzip.open(input_sdf)
+#             FH_raw = gzip.open(input_sdf)
+#         else:
+#             raise ValueError(f"Error! Unknown compression type: '{suffixes}'.")
+#     # init
+#     i = 0
+#     rows = []
+#     row_idx = []
+#     # double iteration over sdf but generators so it should be ok memory-wise
+#     for mol, mol_raw in zip(Chem.ForwardSDMolSupplier(FH), Chem.ForwardSDMolSupplier(FH_raw, sanitize=False)):
+#         try:
+#             # properties
+#             row = dict((k, mol_raw.GetProp(k)) for k in mol_raw.GetPropNames())
+#             # molecule title
+#             if mol_raw.GetProp('_Name') != '':
+#                 row['_Name'] = mol_raw.GetProp('_Name')
+#             else:
+#                 row['_Name'] = f'NONAME_{i}'
+#             # mol
+#             row[col_mol] = mol
+#             # src_id
+#             try:
+#                 row[col_id] = row[src_id]
+#             except KeyError:
+#                 logging.warning(f"No property {src_id} could be found for record #{i}, setting {col_id} to 'NOID_{i}'")
+#                 row[col_id] = f"NOID_{i}"
+#             # delete properties
+#             if not keep_props:
+#                 tmp = row.copy()
+#                 for k in tmp.keys():
+#                     if k != col_mol and k != col_id:
+#                         del row[k]
+#         except AttributeError:
+#             logging.warning(f"Molecule #{i} could not be parsed and was skipped!")
+#             row = None
+#         # record entry
+#         if row is not None:
+#             rows.append(row)
+#             row_idx.append(i)
+#         i += 1
+#     df = pd.DataFrame(rows, index=row_idx, columns=[col_mol, col_id] + [k for k in row.keys() if k not in (col_mol, col_id)])
+#     # restaure list format
+#     if len(cols_list) > 0:
+#         for c in cols_list:
+#             df[c] = df[c].map(json.loads)
+#
+#     return df
+#
+#
+# def from_hdf(input_hdf: str, decode_mols: bool = True, col_mol: str = 'mol')-> pd.DataFrame:
+#     """Load molecules from a HDF file.
+#     In case molecules were stored with encoding (base64), they need to be decoded
+#     before using them as RDKit molecules.
+#
+#     :param input_hdf: the input hdf filename
+#     :param decode_mols: use base64 to decode molecules encoded as strings
+#     :param col_mol: the DataFrame column name where molecules are stored
+#     :return: a DataFrame with Mol objects
+#     """
+#     # check for filename
+#     logging.debug(f"Checking if input_hdf exists at {input_hdf}")
+#     if not Path(input_hdf).is_file():
+#         raise ValueError(f"Error! File input_sdf could not be found at '{input_hdf}'.")
+#     # init
+#     key = Path(input_hdf).stem.split('.')[0]
+#     logging.debug(f"Key for hdf is {key}")
+#     # read data
+#     df = pd.read_hdf(input_hdf, key=key)
+#     logging.debug(f"Found {len(df.index)} records in input_hdf")
+#     if decode_mols:
+#         logging.debug(f"Decoding structures")
+#         if col_mol not in df.columns:
+#             raise ValueError(f"Error! Parameter col_mol {col_mol} could not be found in DataFrame, available columns are: '{list(df.columns.values)}'.")
+#         else:
+#             df[col_mol] = df[col_mol].map(decode_mol_base64)
+#
+#     return df
+#
+#
+# def from_csv(input_csv: str,
+#              mol_format: str = 'rdkit',
+#              decode_mols: bool = True,
+#              col_mol: str = 'mol',
+#              col_id: str = 'idm',
+#              sep: str = '|',
+#              keep_props: bool = True,
+#              cols_list: List[str] = []) -> pd.DataFrame:
+#     """Load molecules from a CSV file.
+#     In case molecules were stored with encoding (base64), they need to be decoded
+#     before using them as RDKit molecules.
+#
+#     :param input_csv: the input hdf filename
+#     :param decode_mols: use base64 to decode molecules encoded as strings
+#     :param col_mol: the DataFrame column name where molecules are stored
+#     :return: a DataFrame with Mol objects
+#     """
+#     # check for filename
+#     logging.debug(f"Checking if input_hdf exists at {input_csv}")
+#     utils.check_arg_input_file(input_csv)
+#     # read file according to its compression
+#     suffixes = Path(input_csv).suffixes
+#     if len(suffixes) == 1:
+#         # read data
+#         df = pd.read_csv(input_csv, sep=sep, index_col='Unnamed: 0')
+#     else:
+#         compression = utils.get_conversion(suffixes[1])
+#         try:
+#             df = pd.read_csv(input_csv, sep=sep, index_col='Unnamed: 0', compression=compression)  # in case csv comes with rowidx, use rowidx
+#         except KeyError:
+#             df = pd.read_csv(input_csv, sep=sep, compression=compression)
+#     logging.debug(f"Found {len(df.index)} records in input_hdf")
+#     # process data
+#     df[col_mol] = df[col_mol].map(CONVERTERS[format])
+#     num_failed = df[col_mol].isna().sum()
+#     if num_failed > 0:
+#         logging.warning(f"{num_failed} structures could not be initialized from format '{format}'")
+#     if decode_mols:
+#         logging.debug(f"Decoding structures")
+#         if col_mol not in df.columns:
+#             raise ValueError(f"col_mol {col_mol} could not be found in DataFrame, available columns are: {list(df.columns.values)}")
+#         else:
+#             df[col_mol] = df[col_mol].map(decode_mol_base64)
+#     # restaure list format
+#     if len(cols_list) > 0:
+#         for c in cols_list:
+#             df[c] = df[c].map(json.loads)
+#     # keep_props
+#     if not keep_props:
+#         df.drop([c for c in df.columns if c not in (col_id, col_mol)], axis=1, inplace=True)
+#
+#     return df
+#
+#
+# def from_file(input_file: str,
+#               decode_mols: bool = True,
+#               src_id: str = '_Name',
+#               col_mol: str = 'mol',
+#               col_id: str = 'idm',
+#               sep: str = '|',
+#               keep_props: bool = True,
+#               cols_list: List[str] = []):
+#     """Load molecules from a file with molecules (i.e. SDF, HDF or CSV).
+#     In case molecules were stored with encoding (base64), they need to be decoded
+#     before using them as RDKit molecules.
+#
+#     :param input_file: the input filename (sdf, hdf or csv)
+#     :param decode_mols: use base64 to decode molecules encoded as strings
+#     :param col_mol: the DataFrame column name where molecules are stored
+#     :return: a DataFrame with Mol objects
+#     """
+#     # check input file
+#     utils.check_arg_input_file(input_file)
+#     # check format and compression
+#     input_format = Path(input_file).suffixes[0]
+#
+#     if input_format == '.sdf':
+#         df_mols = from_sdf(input_file,
+#                            src_id=src_id,
+#                            col_mol=col_mol,
+#                            col_id=col_id,
+#                            keep_props=keep_props,
+#                            )
+#     elif input_format == '.csv':
+#         df_mols = from_csv(input_file,
+#                            col_id=col_id,
+#                            col_mol=col_mol,
+#                            keep_props=keep_props,
+#                            decode_mols=decode_mols,
+#                            sep=sep,
+#                            )
+#     else:   # check on argument for input does not leave any other option than sdf, csv or hdf
+#         df_mols = from_hdf(input_file,
+#                            decode_mols=decode_mols,
+#                            col_mol=col_mol,
+#                            )
+#
+#         return df_mols

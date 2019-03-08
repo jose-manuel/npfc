@@ -1,0 +1,186 @@
+#!/usr/bin/env python
+
+"""
+Script substruct_mols
+==========================
+This script is used for identifying substructures in molecules by generating a
+DataFrame that can be further processed.
+"""
+
+# standard
+import sys
+import warnings
+from pathlib import Path
+from datetime import datetime
+import logging
+import argparse
+# data
+import pandas as pd
+# chemoinformatics
+import rdkit
+from rdkit import RDLogger
+# custom libraries
+import npfc
+from npfc import load
+from npfc import save
+from npfc import utils
+from npfc import standardize
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
+def main():
+
+    # init
+    d0 = datetime.now()
+    description = """Search for substructures in molecules.
+
+    This command uses the installed npfc libary in your favorite env manager.
+
+    """
+
+    # parameters CLI
+
+    parser = argparse.ArgumentParser(description=description, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument('minput', type=str, default=None, help="Input file.")
+    parser.add_argument('-m', '--mid', type=str, default='idm', help="Identifier column in the molecules file. If not specified, rowids are used instead (_Name for SDF).")
+    parser.add_argument('--mdecode', type=bool, default=True, help="Decode molecules from base64 strings.")
+    parser.add_argument('--mmol', type=str, default='mol', help="Molecule column for csv or hdf files.")
+    parser.add_argument('--msep', type=str, default='|', help="Separator to use in case the input file is a csv.")
+    parser.add_argument('finput', type=str, default=None, help="Input frags.")
+    parser.add_argument('-f', '--fid', type=str, default='idm', help="Identifier column in the fragments file. If not specified, rowids are used instead (_Name for SDF).")
+    parser.add_argument('--fdecode', type=bool, default=True, help="Decode fragments from base64 strings.")
+    parser.add_argument('--fmol', type=str, default='mol', help="Molecule column for csv or hdf files.")
+    parser.add_argument('--fsep', type=str, default='|', help="Separator to use in case the input file is a csv.")
+    parser.add_argument('output', type=str, default=None, help="Output file with substructures.")
+    parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
+    args = parser.parse_args()
+
+    # logging
+    logger = utils._configure_logger(args.log)
+    logger.info("RUNNING STANDARDIZE_MOLS")
+    warnings.filterwarnings('ignore', category=pd.io.pytables.PerformanceWarning)  # if None is returned instead of a molecule, do not complain about mixed types
+    pad = 40
+    lg = RDLogger.logger()
+    lg.setLevel(RDLogger.CRITICAL)
+
+    # parse arguments
+
+    # minput
+    utils.check_arg_input_file(args.minput)
+    path_minput = Path(args.minput)
+    msuffixes = path_minput.suffixes
+    if len(msuffixes) > 1:
+        mcompression = utils.get_conversion(msuffixes[1])
+    else:
+        mcompression = None
+    mformat = msuffixes[0]
+
+    # finput
+    utils.check_arg_input_file(args.finput)
+    path_finput = Path(args.finput)
+    fsuffixes = path_finput.suffixes
+    if len(fsuffixes) > 1:
+        fcompression = utils.get_conversion(fsuffixes[1])
+    else:
+        fcompression = None
+    fformat = fsuffixes[0]
+
+    # output
+    utils.check_arg_output_file(args.output)
+    path_output = Path(args.input_frags)
+    output_suffixes = path_output.suffixes
+    if len(output_suffixes) > 1:
+        output_compression = utils.get_conversion(output_suffixes[1])
+    else:
+        output_compression = None
+    output_format = output_suffixes[0]
+
+    # display infos
+
+    # versions
+    logger.info("LIBRARY VERSIONS:")
+    logger.info("rdkit".ljust(pad) + f"{rdkit.__version__}")
+    logger.info("pandas".ljust(pad) + f"{pd.__version__}")
+    logger.info("npfc".ljust(pad) + f"{npfc.__version__}")
+    # arguments
+    logger.info("ARGUMENTS:")
+    logging.info("MINPUT".ljust(pad) + f"{args.minput}")
+    logging.info("MFORMAT".ljust(pad) + f"{args.minput}")
+    logging.info("MCOMPRESSION".ljust(pad) + f"{args.minput}")
+    logging.info("MID".ljust(pad) + f"{args.mid}")
+    logging.info("MMOL".ljust(pad) + f"{args.mmol}")
+    if mformat == '.csv':
+        logging.info("MSEP".ljust(pad) + f"{args.msep}")
+    if mformat != '.sdf':
+        logging.info("MDECODE".ljust(pad) + f"{args.msep}")
+    logging.info("FINPUT".ljust(pad) + f"{args.finput}")
+    logging.info("FFORMAT".ljust(pad) + f"{fformat}")
+    logging.info("FCOMPRESSION".ljust(pad) + f"{fcompression}")
+    logging.info("FID".ljust(pad) + f"{args.fid}")
+    logging.info("FMOL".ljust(pad) + f"{args.fmol}")
+    if fformat == '.csv':
+        logging.info("FSEP".ljust(pad) + f"{args.fsep}")
+    if fformat != '.sdf':
+        logging.info("FDECODE".ljust(pad) + f"{args.fdecode}")
+    logging.info("OUTPUT".ljust(pad) + f"{args.output}")
+    logging.info("LOG".ljust(pad) + f"{args.log}")
+
+    # begin
+
+    logging.info("BEGIN")
+
+    # load mols
+    logging.info("LOADING MOLECULES")
+    d1 = datetime.now()
+    if mformat == '.sdf':
+        df_mols = load.from_sdf(args.minput,
+                                col_mol=args.mmol,
+                                col_id=args.mid,
+                                keep_props=True,
+                                )
+    elif mformat == '.csv':
+        df_mols = load.from_csv(args.minput,
+                                col_id=args.mid,
+                                col_mol=args.mmol,
+                                keep_props=True,
+                                decode_mols=args.mdecode,
+                                sep=args.msep,
+                                )
+    else:   # check on argument for input does not leave any other option than sdf, csv or hdf
+        df_mols = load.from_hdf(args.minput,
+                                decode_mols=args.mdecode,
+                                col_mol=args.mmol,
+                                )
+
+    num_failed = df_mols[args.mmol].isna().sum()
+    logging.info(f"LOADED {len(df_mols)} RECORDS WITH {num_failed} FAILURE(S)")
+
+    # load frags
+    logging.info("LOADING MOLECULES")
+    d1 = datetime.now()
+    if mformat == '.sdf':
+        df_mols = load.from_sdf(args.minput,
+                                col_mol=args.mmol,
+                                col_id=args.mid,
+                                keep_props=True,
+                                )
+    elif mformat == '.csv':
+        df_mols = load.from_csv(args.minput,
+                                col_id=args.mid,
+                                col_mol=args.mmol,
+                                keep_props=True,
+                                decode_mols=args.mdecode,
+                                sep=args.msep,
+                                )
+    else:   # check on argument for input does not leave any other option than sdf, csv or hdf
+        df_mols = load.from_hdf(args.minput,
+                                decode_mols=args.mdecode,
+                                col_mol=args.mmol,
+                                )
+
+    num_failed = df_mols[args.mmol].isna().sum()
+    logging.info(f"LOADED {len(df_mols)} RECORDS WITH {num_failed} FAILURE(S)")
+
+if __name__ == '__main__':
+    main()

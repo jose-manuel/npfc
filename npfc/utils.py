@@ -30,12 +30,36 @@ Output_files = List[List[Union[str, int]]]
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 
-def get_conversion(suffix: str) -> str:
-    """Return the expected keywords for using compression schemes in pandas based on file suffix."""
-    if suffix == '.gz':
-        return 'gzip'
+def get_file_format(suffixes: List[str]) -> tuple:
+    """Deduce how the file should be parsed based on its suffixes
+
+    >>> from pathlib import Path
+    >>> from npfc import utils
+    >>> utils.get_file_format(Path('file.csv.gz').suffixes)
+    >>> # returns ('CSV', 'gzip')
+    >>> utils.get_file_format(Path('file.sdf').suffixes)
+    >>> # returns ('SDF', None)
+
+    :param suffixes: suffixes of a file
+    :return: a tuple with syntax (format, compression)
+    """
+    # is the file an archive?
+    if len(suffixes) > 1:
+        compression = suffixes[1]
+        # special case for gzip so .gz files can be read directly with pandas
+        if compression == '.gz':
+            compression = 'gzip'
+        else:
+            raise ValueError(f"Error! Unexpected value for compression suffix: '{compression}'.")
     else:
-        raise ValueError(f"Error! Unexpected value for compression suffix: '{suffix}'.")
+        compression = None
+    #
+    if suffixes[0] in ('.sdf', '.mol', '.sd'):
+        return ('SDF', compression)
+    elif suffixes[0] == '.csv':
+        return ('CSV', compression)
+    elif suffixes[0] in ('.hdf', 'hf5'):
+        return ('HDF', compression)
 
 
 def check_arg_bool(value: bool) -> bool:
