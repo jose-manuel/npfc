@@ -198,6 +198,9 @@ def main():
     num_passed = len(df_passed.index)
     num_filtered = len(df_filtered.index)
     num_error = len(df_error.index)
+    logger.info(''.join([f"{header}".ljust(10) for header in ('PASSED', 'FILTERED', 'ERROR')]))
+    logger.info(''.join([f"{header}".ljust(10) for header in (num_passed, num_filtered, num_error)]))
+
     # passed
     logger.info(f"NUMBER OF PASSED: {num_passed}")
     outputs = save.save(df_passed, output_passed)
@@ -207,7 +210,7 @@ def main():
     outputs = save.save(df_filtered, output_filtered)
     logger.info(f"SAVED {outputs[0][1]} RECORDS AT {outputs[0][0]}")
     # error
-    logger.info(f"NUMBER OF ERRORS: {len(df_error.index)}")
+    logger.info(f"NUMBER OF ERRORS: {num_error}")
     outputs = save.save(df_error, output_error)
     logger.info(f"SAVED {outputs[0][1]} RECORDS AT {outputs[0][0]}")
 
