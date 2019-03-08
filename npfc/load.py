@@ -135,13 +135,7 @@ class Load:
 
         # input_file
         utils.check_arg_input_file(input_file)
-        suffixes = Path(input_file).suffixes
-        # suffixes were already checked for validity in utils function
-        if len(suffixes) == 1:
-            compression = None
-        else:
-            compression = suffixes[1]
-
+        format, compression = utils.get_file_format(Path(input_file).suffixes)
         # mol_format
         if mol_format not in cls.FORMATS:
             raise ValueError(f"Error! Unknown mol_format: {mol_format}")

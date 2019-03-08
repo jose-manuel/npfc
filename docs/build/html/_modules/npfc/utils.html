@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.utils &mdash; npfc 0.0.8-2-g612939c documentation</title>
+  <title>npfc.utils &mdash; npfc 0.0.9 documentation</title>
   
 
   
@@ -56,7 +56,7 @@
             
             
               <div class="version">
-                0.0.8-2-g612939c
+                0.0.9
               </div>
             
           
@@ -183,12 +183,36 @@
 <span class="c1"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #</span>
 
 
-<div class="viewcode-block" id="get_conversion"><a class="viewcode-back" href="../../utils.html#npfc.utils.get_conversion">[docs]</a><span class="k">def</span> <span class="nf">get_conversion</span><span class="p">(</span><span class="n">suffix</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Return the expected keywords for using compression schemes in pandas based on file suffix.&quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">suffix</span> <span class="o">==</span> <span class="s1">&#39;.gz&#39;</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s1">&#39;gzip&#39;</span>
+<div class="viewcode-block" id="get_file_format"><a class="viewcode-back" href="../../utils.html#npfc.utils.get_file_format">[docs]</a><span class="k">def</span> <span class="nf">get_file_format</span><span class="p">(</span><span class="n">suffixes</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Deduce how the file should be parsed based on its suffixes</span>
+
+<span class="sd">    &gt;&gt;&gt; from pathlib import Path</span>
+<span class="sd">    &gt;&gt;&gt; from npfc import utils</span>
+<span class="sd">    &gt;&gt;&gt; utils.get_file_format(Path(&#39;file.csv.gz&#39;).suffixes)</span>
+<span class="sd">    &gt;&gt;&gt; # returns (&#39;CSV&#39;, &#39;gzip&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; utils.get_file_format(Path(&#39;file.sdf&#39;).suffixes)</span>
+<span class="sd">    &gt;&gt;&gt; # returns (&#39;SDF&#39;, None)</span>
+
+<span class="sd">    :param suffixes: suffixes of a file</span>
+<span class="sd">    :return: a tuple with syntax (format, compression)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># is the file an archive?</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">suffixes</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">compression</span> <span class="o">=</span> <span class="n">suffixes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="c1"># special case for gzip so .gz files can be read directly with pandas</span>
+        <span class="k">if</span> <span class="n">compression</span> <span class="o">==</span> <span class="s1">&#39;.gz&#39;</span><span class="p">:</span>
+            <span class="n">compression</span> <span class="o">=</span> <span class="s1">&#39;gzip&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Error! Unexpected value for compression suffix: &#39;</span><span class="si">{compression}</span><span class="s2">&#39;.&quot;</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Error! Unexpected value for compression suffix: &#39;</span><span class="si">{suffix}</span><span class="s2">&#39;.&quot;</span><span class="p">)</span></div>
+        <span class="n">compression</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="c1">#</span>
+    <span class="k">if</span> <span class="n">suffixes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;.sdf&#39;</span><span class="p">,</span> <span class="s1">&#39;.mol&#39;</span><span class="p">,</span> <span class="s1">&#39;.sd&#39;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="s1">&#39;SDF&#39;</span><span class="p">,</span> <span class="n">compression</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">suffixes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;.csv&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="s1">&#39;CSV&#39;</span><span class="p">,</span> <span class="n">compression</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">suffixes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;.hdf&#39;</span><span class="p">,</span> <span class="s1">&#39;hf5&#39;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="s1">&#39;HDF&#39;</span><span class="p">,</span> <span class="n">compression</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="check_arg_bool"><a class="viewcode-back" href="../../utils.html#npfc.utils.check_arg_bool">[docs]</a><span class="k">def</span> <span class="nf">check_arg_bool</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>

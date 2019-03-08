@@ -31,7 +31,10 @@ Output_files = List[List[Union[str, int]]]
 
 
 def get_file_format(suffixes: List[str]) -> tuple:
-    """Deduce how the file should be parsed based on its suffixes
+    """Deduce how the file should be parsed based on its suffixes.
+
+    Only compressions for one single file with initial extension still visibile
+    work (see example below).
 
     >>> from pathlib import Path
     >>> from npfc import utils
