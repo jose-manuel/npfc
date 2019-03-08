@@ -214,7 +214,9 @@ class Saver:
         if self.shuffle:
             df = df.sample(frac=1, random_state=self.random_seed)
         # encode molecules
-        if self.encode_mols and ext_output_file[0] != '.sdf':
+        if len(df.index) == 0:
+            logging.warning("DataFrame is empty, skip molecule encoding.")
+        elif self.encode_mols and ext_output_file[0] != '.sdf':
             df[self.col_mol] = df[self.col_mol].map(encode_mol)
         # chunking
         if self.chunk_size is None:
