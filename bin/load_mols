@@ -59,7 +59,6 @@ def main():
     parser.add_argument('--in_id', type=str, default='idm', help="Identifier column in the source file.")
     parser.add_argument('--in_mol', type=str, default='mol', help="Molecule column in the source file.")
     parser.add_argument('--in_sep', type=str, default='|', help="Separator to use in case the input file is a csv.")
-    parser.add_argument('--in_lists', type=str, default=[], help="Columns to convert from str to list if the input file is a csv.")
     parser.add_argument('--out_id', type=str, default='idm', help="Identifier column in the output file.")
     parser.add_argument('--out_mol', type=str, default='mol', help="Molecule column in the output file.")
     parser.add_argument('--col_sep', type=str, default='|', help="Separator to use in case the output file is a csv.")
@@ -83,19 +82,9 @@ def main():
     utils.check_arg_output_file(args.output_mols)
     utils.check_arg_positive_number(args.nrecords)
     # src infos
-    in_suffixes = Path(args.input_mols).suffixes
-    in_format = in_suffixes[0]
-    if len(in_suffixes) > 1:
-        in_compression = utils.get_conversion(in_suffixes[1])
-    else:
-        in_compression = None
+    in_format, in_compression = utils.get_file_format(args.input_mols)
     # out infos
-    out_suffixes = Path(args.output_mols).suffixes
-    out_format = out_suffixes[0]
-    if len(out_suffixes) > 1:
-        out_compression = utils.get_conversion(out_suffixes[1])
-    else:
-        out_compression = None
+    out_format, out_compression = utils.get_file_format(args.output_mols)
 
     # display infos
 
@@ -129,27 +118,15 @@ def main():
     # load mols
     logging.info("LOADING MOLECULES")
     d1 = datetime.now()
-    if in_format == '.sdf':
-        df_mols = load.from_sdf(args.input_mols,
-                                src_id=args.in_id,
-                                col_id=args.out_id,
-                                col_mol=args.out_mol,
-                                keep_props=args.keep_props,
-                                )
-    elif in_format == '.csv':
-        df_mols = load.from_csv(args.input_mols,
-                                col_mol=args.in_mol,
-                                col_id=args.in_id,
-                                keep_props=args.keep_props,
-                                decode_mols=args.decode_mols,
-                                sep=args.col_sep,
-                                cols_list=args.in_lists,
-                                )
-    else:   # check on argument for input does not leave any other option than sdf, csv or hdf
-        df_mols = load.from_hdf(args.input_mols,
-                                decode_mols=args.decode_mols,
-                                col_mol=args.in_mol,
-                                )
+    df_mols = load.from_file(args.input_mols,
+                             in_id=args.in_id,
+                             out_id=args.out_id,
+                             in_mol=args.in_mol,
+                             out_mol=args.out_mol,
+                             keep_props=args.keep_props,
+                             decode=args.decode_mols,
+                             sep=args.in_sep
+                             )
 
     num_failed = df_mols['mol'].isna().sum()
     logging.info(f"LOADED {len(df_mols)} RECORDS WITH {num_failed} FAILURE(S)")
