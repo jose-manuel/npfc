@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Module save &mdash; npfc 0.0.9-6-g491d23f documentation</title>
+  <title>Module save &mdash; npfc 0.0.9-7-g44d2909 documentation</title>
   
 
   
@@ -58,7 +58,7 @@
             
             
               <div class="version">
-                0.0.9-6-g491d23f
+                0.0.9-7-g44d2909
               </div>
             
           
@@ -160,7 +160,7 @@
 on disk.</p>
 <dl class="class">
 <dt id="npfc.save.Saver">
-<em class="property">class </em><code class="descclassname">npfc.save.</code><code class="descname">Saver</code><span class="sig-paren">(</span><em>shuffle=False</em>, <em>random_seed=None</em>, <em>chunk_size=None</em>, <em>encode_mols=True</em>, <em>col_mol='mol'</em>, <em>col_id='idm'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/save.html#Saver"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.save.Saver" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">npfc.save.</code><code class="descname">Saver</code><span class="sig-paren">(</span><em>shuffle=False</em>, <em>random_seed=None</em>, <em>chunk_size=None</em>, <em>encode_mols=True</em>, <em>col_mol='mol'</em>, <em>col_id='idm'</em>, <em>sep='|'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/save.html#Saver"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.save.Saver" title="Permalink to this definition">¶</a></dt>
 <dd><p>A class for saving DataFrames with molecules to different file types.</p>
 <p>Create a Saver object with below parameters.</p>
 <div class="admonition note">
@@ -228,7 +228,7 @@ on disk.</p>
 
 <dl class="function">
 <dt id="npfc.save.save">
-<code class="descclassname">npfc.save.</code><code class="descname">save</code><span class="sig-paren">(</span><em>df</em>, <em>output_file</em>, <em>shuffle=False</em>, <em>random_seed=None</em>, <em>chunk_size=None</em>, <em>encode_mols=True</em>, <em>col_mol='mol'</em>, <em>col_id='idm'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/save.html#save"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.save.save" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">npfc.save.</code><code class="descname">save</code><span class="sig-paren">(</span><em>df</em>, <em>output_file</em>, <em>shuffle=False</em>, <em>random_seed=None</em>, <em>chunk_size=None</em>, <em>encode_mols=True</em>, <em>col_mol='mol'</em>, <em>col_id='idm'</em>, <em>sep='|'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/save.html#save"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.save.save" title="Permalink to this definition">¶</a></dt>
 <dd><p>A method for saving DataFrames with molecules to different file types.
 This is handy way of using the Saver class without having to keep a Saver object.</p>
 <div class="admonition note">

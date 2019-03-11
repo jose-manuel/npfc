@@ -142,7 +142,7 @@ def main():
                               shuffle=args.shuffle,
                               encode_mols=args.encode_mols,
                               random_seed=args.random_seed,
-                              out_sep=args.out_sep,
+                              sep=args.out_sep,
                               )
     # display results
     for output in outputs_files:
