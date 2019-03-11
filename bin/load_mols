@@ -61,7 +61,7 @@ def main():
     parser.add_argument('--in_sep', type=str, default='|', help="Separator to use in case the input file is a csv.")
     parser.add_argument('--out_id', type=str, default='idm', help="Identifier column in the output file.")
     parser.add_argument('--out_mol', type=str, default='mol', help="Molecule column in the output file.")
-    parser.add_argument('--col_sep', type=str, default='|', help="Separator to use in case the output file is a csv.")
+    parser.add_argument('--out_sep', type=str, default='|', help="Separator to use in case the output file is a csv.")
     parser.add_argument('--random_seed', type=int, default=None, help="Value to specify to make shuffling reproducible.")
     parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
     args = parser.parse_args()
