@@ -18,8 +18,8 @@ from rdkit import Chem
 import pytest
 from npfc import save
 
-# import logging
-# logging.basicConfig(level=logging.DEBUG)
+import logging
+logging.basicConfig(level=logging.DEBUG)
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FIXTURES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
@@ -78,7 +78,6 @@ def test_init(saver, output_file_prefix):
 def test_save_compressed(saver, df_mols, output_file_prefix):
     """Save outputs into gzip format. Has to be first as save method removes byproducts."""
     # test simple export but to an archive (for csv only)
-    saver.chunk_size = None
     outputs_csv_compressed = saver.save(df_mols, output_file_prefix + '.csv.gz')
     assert Path(outputs_csv_compressed[0][0]).is_file() is True and outputs_csv_compressed[0][1] == 5
     outputs_csv_compressed = saver.save(df_mols, output_file_prefix + '.sdf.gz')

@@ -160,33 +160,31 @@ class Saver:
         """
         # infer from pandas.to_csv does not work as expected (no compression!)
         # so I need to specify the compression type manually.
-        if suffixes[0] == '.csv':
-            if len(suffixes) > 1:
-                df.to_csv(output_file, sep=sep, compression=utils.get_conversion(suffixes[1]))
+        utils.check_arg_output_file(output_file)
+        format, compression = utils.get_file_format(output_file)
+        if format == 'CSV':
+            if compression == 'gzip':
+                df.to_csv(output_file, sep=sep, compression=compression)
             else:
                 df.to_csv(output_file, sep=sep)
-        elif suffixes[0] == '.hdf':
+        elif format == 'HDF':
             df.to_hdf(output_file, key=key)
-        elif suffixes[0] == '.sdf':
-            if len(suffixes) == 1:
-                PandasTools.WriteSDF(df, output_file, molColName=self.col_mol, idName=self.col_id, properties=list(df.columns))
-            elif len(suffixes) > 1:
+        elif format == 'SDF':
+            # write the uncompressed file
+            if compression == 'gzip':
                 # init
                 output_file_base = '.'.join(output_file.split('.')[:-1])
-                compression = utils.get_conversion(suffixes[1])
-                # write the uncompressed file
-                PandasTools.WriteSDF(df, output_file_base, molColName=self.col_mol, idName=self.col_id, properties=list(df.columns))
+                logging.debug(f"Output_file_base: {output_file_base}")
                 # compress the file
-                if compression == 'gzip':
-                    with open(output_file_base, 'rb') as OUTPUT:
-                        with gzip.open(output_file, 'wb') as ARCHIVE:
-                            shutil.copyfileobj(OUTPUT, ARCHIVE)
+                #
+                PandasTools.WriteSDF(df, output_file_base, molColName=self.col_mol, idName=self.col_id, properties=list(df.columns))
+                with open(output_file_base, 'rb') as OUTPUT:
+                    with gzip.open(output_file, 'wb') as ARCHIVE:
+                        shutil.copyfileobj(OUTPUT, ARCHIVE)
                     # delete the uncompressed file as it is only a byproduct
                     Path(output_file_base).unlink()
-                else:
-                    raise ValueError(f"Error! Unknown compression format: {compression}")
             else:
-                raise ValueError(f"Error! Multiple (> 2) file extensions are not allowed! ({suffixes}).")
+                PandasTools.WriteSDF(df, output_file, molColName=self.col_mol, idName=self.col_id, properties=list(df.columns))
         else:
             raise ValueError(f"Error! Cannot save DataFrame to unexpected format '{suffixes[0]}'.")
         logging.debug(f"Saved {len(df.index)} records at '{output_file}'.")

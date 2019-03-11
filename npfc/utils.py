@@ -30,7 +30,7 @@ Output_files = List[List[Union[str, int]]]
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 
-def get_file_format(suffixes: List[str]) -> tuple:
+def get_file_format(input_file: str) -> tuple:
     """Deduce how the file should be parsed based on its suffixes.
 
     Only compressions for one single file with initial extension still visibile
@@ -46,9 +46,12 @@ def get_file_format(suffixes: List[str]) -> tuple:
     :param suffixes: suffixes of a file
     :return: a tuple with syntax (format, compression)
     """
+    suffixes = Path(input_file).suffixes
+    logging.debug(f"Input file Suffixes are: {suffixes}")
     # is the file an archive?
     if len(suffixes) > 1:
         compression = suffixes[1]
+        logging.debug(f"File is an archive with compression={compression}")
         # special case for gzip so .gz files can be read directly with pandas
         if compression == '.gz':
             compression = 'gzip'
