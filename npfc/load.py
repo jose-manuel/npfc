@@ -97,8 +97,7 @@ def from_pgsql(dbname: str, user: str,
     return df
 
 
-def from_file(self,
-              input_file: str,
+def from_file(input_file: str,
               in_id: str = 'idm',
               in_mol: str = 'mol',
               in_sep: str = '|',
@@ -111,11 +110,13 @@ def from_file(self,
               ):
     # check arguments
     utils.check_arg_input_file(input_file)
-    format, compression = utils.get_file_format(Path(input_file).suffixes)
-
+    format, compression = utils.get_file_format(input_file)
+    logging.debug(f"Format: {format}, compression: {compression}")
     # read mols
     if format == 'SDF':
         df = _from_sdf(input_file, compression=compression)
+        logging.debug("Decode is set to False")
+        decode = False
     elif format == 'HDF':
         df = _from_hdf(input_file)
     else:  # has to be CSV
@@ -137,7 +138,10 @@ def from_file(self,
 
     # keep_props
     if not keep_props:
-        df.drop([[c for c in df.columns if c not in (out_id, out_mol)]], axis=1, inplace=True)
+        logging.debug(f"Found properties: {[c for c in df.columns]}")
+        logging.debug(f"Keeping properties: {[out_id, out_mol]}")
+        logging.debug(f"Dropping properties: {[c for c in df.columns if c not in (out_id, out_mol)]}")
+        df.drop([c for c in df.columns if c not in (out_id, out_mol)], axis=1, inplace=True)
 
     # mol_format
     df[out_mol] = df[out_mol].map(CONVERTERS[mol_format])
@@ -152,9 +156,11 @@ def from_file(self,
 
 def _from_sdf(input_sdf: str, col_mol: str = 'mol', compression: str = None):
     if compression is None:
+        logging.debug("Read sdf from uncompressed file")
         FH = open(input_sdf, 'rb')
         FH_raw = open(input_sdf, 'rb')
     elif compression == 'gzip':
+        logging.debug(f"Read sdf from compressed file ({compression})")
         FH = gzip.open(input_sdf)
         FH_raw = gzip.open(input_sdf)
     else:
@@ -180,11 +186,13 @@ def _from_sdf(input_sdf: str, col_mol: str = 'mol', compression: str = None):
             rows.append(row)
             row_idx.append(i)
         i += 1
+    print(rows)
+    print(row_idx)
     return pd.DataFrame(rows, index=row_idx)
 
 
 def _from_hdf(input_hdf: str):
-    return pd.DataFrame(input_hdf, key=Path(input_hdf).stem)
+    return pd.read_hdf(input_hdf, key=Path(input_hdf).stem)
 
 
 def _from_csv(input_csv: str, in_sep: str = '|', compression: str = None):

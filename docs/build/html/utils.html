@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Module utils &mdash; npfc 0.0.9 documentation</title>
+  <title>Module utils &mdash; npfc 0.0.9-2-g7f00d87 documentation</title>
   
 
   
@@ -57,7 +57,7 @@
             
             
               <div class="version">
-                0.0.9
+                0.0.9-2-g7f00d87
               </div>
             
           
@@ -283,8 +283,10 @@
 
 <dl class="function">
 <dt id="npfc.utils.get_file_format">
-<code class="descclassname">npfc.utils.</code><code class="descname">get_file_format</code><span class="sig-paren">(</span><em>suffixes</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/utils.html#get_file_format"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.utils.get_file_format" title="Permalink to this definition">¶</a></dt>
-<dd><p>Deduce how the file should be parsed based on its suffixes</p>
+<code class="descclassname">npfc.utils.</code><code class="descname">get_file_format</code><span class="sig-paren">(</span><em>input_file</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/utils.html#get_file_format"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.utils.get_file_format" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deduce how the file should be parsed based on its suffixes.</p>
+<p>Only compressions for one single file with initial extension still visibile
+work (see example below).</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pathlib</span> <span class="k">import</span> <span class="n">Path</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">npfc</span> <span class="k">import</span> <span class="n">utils</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">utils</span><span class="o">.</span><span class="n">get_file_format</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="s1">&#39;file.csv.gz&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">suffixes</span><span class="p">)</span>
@@ -297,7 +299,7 @@
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>suffixes</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]) – suffixes of a file</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>suffixes</strong> – suffixes of a file</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a></td>
 </tr>

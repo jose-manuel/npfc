@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.utils &mdash; npfc 0.0.9 documentation</title>
+  <title>npfc.utils &mdash; npfc 0.0.9-2-g7f00d87 documentation</title>
   
 
   
@@ -56,7 +56,7 @@
             
             
               <div class="version">
-                0.0.9
+                0.0.9-2-g7f00d87
               </div>
             
           
@@ -183,8 +183,11 @@
 <span class="c1"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #</span>
 
 
-<div class="viewcode-block" id="get_file_format"><a class="viewcode-back" href="../../utils.html#npfc.utils.get_file_format">[docs]</a><span class="k">def</span> <span class="nf">get_file_format</span><span class="p">(</span><span class="n">suffixes</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Deduce how the file should be parsed based on its suffixes</span>
+<div class="viewcode-block" id="get_file_format"><a class="viewcode-back" href="../../utils.html#npfc.utils.get_file_format">[docs]</a><span class="k">def</span> <span class="nf">get_file_format</span><span class="p">(</span><span class="n">input_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Deduce how the file should be parsed based on its suffixes.</span>
+
+<span class="sd">    Only compressions for one single file with initial extension still visibile</span>
+<span class="sd">    work (see example below).</span>
 
 <span class="sd">    &gt;&gt;&gt; from pathlib import Path</span>
 <span class="sd">    &gt;&gt;&gt; from npfc import utils</span>
@@ -196,9 +199,12 @@
 <span class="sd">    :param suffixes: suffixes of a file</span>
 <span class="sd">    :return: a tuple with syntax (format, compression)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">suffixes</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">input_file</span><span class="p">)</span><span class="o">.</span><span class="n">suffixes</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Input file Suffixes are: </span><span class="si">{suffixes}</span><span class="s2">&quot;</span><span class="p">)</span>
     <span class="c1"># is the file an archive?</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">suffixes</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
         <span class="n">compression</span> <span class="o">=</span> <span class="n">suffixes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;File is an archive with compression=</span><span class="si">{compression}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="c1"># special case for gzip so .gz files can be read directly with pandas</span>
         <span class="k">if</span> <span class="n">compression</span> <span class="o">==</span> <span class="s1">&#39;.gz&#39;</span><span class="p">:</span>
             <span class="n">compression</span> <span class="o">=</span> <span class="s1">&#39;gzip&#39;</span>
