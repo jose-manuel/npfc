@@ -4,5 +4,5 @@ dist/
 .pytest_cache/
 .eggs/
 *.egg-info/
-tests/tmp
+tests/tmp/*
 docs/build

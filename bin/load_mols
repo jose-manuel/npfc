@@ -125,7 +125,7 @@ def main():
                              out_mol=args.out_mol,
                              keep_props=args.keep_props,
                              decode=args.decode_mols,
-                             sep=args.in_sep
+                             in_sep=args.in_sep
                              )
 
     num_failed = df_mols['mol'].isna().sum()
@@ -142,6 +142,7 @@ def main():
                               shuffle=args.shuffle,
                               encode_mols=args.encode_mols,
                               random_seed=args.random_seed,
+                              out_sep=args.out_sep,
                               )
     # display results
     for output in outputs_files:
