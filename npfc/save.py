@@ -38,10 +38,15 @@ def encode_mol(mol: Mol) -> str:
         return None
 
 
-def save(df: pd.DataFrame, output_file: str,
-         shuffle: bool = False, random_seed: int = None,
-         chunk_size: int = None, encode_mols: bool = True,
-         col_mol: str = 'mol', col_id: str = 'idm')-> utils.Output_files:
+def save(df: pd.DataFrame,
+         output_file: str,
+         shuffle: bool = False,
+         random_seed: int = None,
+         chunk_size: int = None,
+         encode_mols: bool = True,
+         col_mol: str = 'mol',
+         col_id: str = 'idm',
+         sep: str = '|')-> utils.Output_files:
         """A method for saving DataFrames with molecules to different file types.
         This is handy way of using the Saver class without having to keep a Saver object.
 
@@ -63,6 +68,7 @@ def save(df: pd.DataFrame, output_file: str,
                   encode_mols=encode_mols,
                   col_mol=col_mol,
                   col_id=col_id,
+                  sep=sep,
                   )
         return s.save(df, output_file)
 
@@ -79,7 +85,8 @@ class Saver:
                  chunk_size: int = None,
                  encode_mols: bool = True,
                  col_mol: str = 'mol',
-                 col_id: str = 'idm'):
+                 col_id: str = 'idm',
+                 sep: str = '|'):
         """Create a Saver object with below parameters.
 
         .. note:: The reason I have a class for this is because I wanted to avoid at lot of redundant code. But a class is not that perfect if one Saver object has to instanciated everytime. As a work-around, I also added a save function using this class.
@@ -96,6 +103,7 @@ class Saver:
         self._encode_mols = encode_mols
         self._col_mol = col_mol
         self._col_id = col_id
+        self._sep = sep
 
     @property
     def shuffle(self):
@@ -148,6 +156,14 @@ class Saver:
     @col_id.setter
     def col_id(self, value: str):
         self._col_id = str(value)
+
+    @property
+    def sep(self):
+        return self._sep
+
+    @sep.setter
+    def sep(self, value: str):
+        self._sep = str(value)
 
     def _save(self, df: pd.DataFrame, output_file: str, suffixes: List[str], key: str, sep: str):
         """Helper function for the save method.
@@ -219,7 +235,7 @@ class Saver:
         # chunking
         if self.chunk_size is None:
             # single output
-            self._save(df=df, output_file=output_file, suffixes=ext_output_file, key=path_output_file.stem.split('.')[0], sep='|')
+            self._save(df=df, output_file=output_file, suffixes=ext_output_file, key=path_output_file.stem.split('.')[0], sep=self.sep)
             output_files.append([output_file, len(df.index)])
         else:
             # chunks
@@ -228,7 +244,7 @@ class Saver:
             for start in range(0, len(df.index), self.chunk_size):
                 end = start + self.chunk_size
                 output_chunk = str(output_dir) + "/" + path_output_file.stem.split('.')[0] + "_" + str(j).zfill(3) + ''.join(ext_output_file)  # stem returns file.csv for file.csv.gz
-                self._save(df=df.iloc[start:end], output_file=output_chunk, suffixes=ext_output_file, key=path_output_file.stem.split('.')[0], sep='|')
+                self._save(df=df.iloc[start:end], output_file=output_chunk, suffixes=ext_output_file, key=path_output_file.stem.split('.')[0], sep=self.sep)
                 output_files.append([output_chunk, len(df.iloc[start:end].index)])
                 j += 1
             logging.debug(f"{len(output_files)} chunks were created")
