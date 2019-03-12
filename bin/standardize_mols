@@ -87,20 +87,12 @@ def main():
     if args.protocol is None:
         logger.warning("PROTOCOL IS NOT DEFINED, USING DEFAULT")
     # in infos
-    in_suffixes = Path(args.input_mols).suffixes
-    in_format = in_suffixes[0]
-    if len(in_suffixes) > 1:
-        in_compression = utils.get_conversion(in_suffixes[1])
-    else:
-        in_compression = None
+    in_format, in_compression = utils.get_file_format(args.input_mols)
     # out infos
     path_output_template = Path(output_template)
+
     out_suffixes = path_output_template.suffixes
-    out_format = out_suffixes[0]
-    if len(out_suffixes) > 1:
-        out_compression = utils.get_conversion(out_suffixes[1])
-    else:
-        out_compression = None
+    out_format, out_compression = utils.get_file_format(output_template)
     # define outputs
     output_basename = str(output_dir) + "/" + path_output_template.stem.split(".")[0]
     output_passed = output_basename + "_passed" + ''.join(out_suffixes)
@@ -109,7 +101,6 @@ def main():
     if args.ref_file is None:
         output_ref = output_basename + "_ref" + '.hdf'
         logger.warning(f"REF_FILE NOT DEFINED, SETTING IT TO '{output_ref}'")
-
     else:
         output_ref = args.ref_file
     utils.check_arg_output_file(output_ref)   # TODO add an argument to utils. funcs for specifying one format only
@@ -154,24 +145,15 @@ def main():
     # load mols
     logging.info("LOADING MOLECULES")
     d1 = datetime.now()
-    if in_format == '.sdf':
-        df_mols = load.from_sdf(args.input_mols,
-                                col_id=args.in_id,
-                                keep_props=True,
-                                )
-    elif in_format == '.csv':
-        df_mols = load.from_csv(args.input_mols,
-                                col_mol=args.in_mol,
-                                keep_props=True,
-                                decode_mols=args.decode_mols,
-                                sep=args.in_sep,
-                                )
-    else:   # check on argument for input does not leave any other option than sdf, csv or hdf
-        df_mols = load.from_hdf(args.input_mols,
-                                decode_mols=args.decode_mols,
-                                col_mol=args.in_mol,
-                                )
-
+    df_mols = load.from_file(args.input_mols,
+                             in_id=args.in_id,
+                             out_id=args.out_id,
+                             in_mol=args.in_mol,
+                             out_mol=args.out_mol,
+                             keep_props=True,
+                             decode=args.decode_mols,
+                             in_sep=args.in_sep
+                             )
     num_failed = df_mols['mol'].isna().sum()
     logging.info(f"LOADED {len(df_mols)} RECORDS WITH {num_failed} FAILURE(S)")
 
@@ -198,8 +180,8 @@ def main():
     num_passed = len(df_passed.index)
     num_filtered = len(df_filtered.index)
     num_error = len(df_error.index)
-    logger.info(''.join([f"{header}".ljust(10) for header in ('PASSED', 'FILTERED', 'ERROR')]))
-    logger.info(''.join([f"{header}".ljust(10) for header in (num_passed, num_filtered, num_error)]))
+    logger.info(''.join([f"{header}".ljust(10) for header in ('HEADER', 'PASSED', 'FILTERED', 'ERROR')]))
+    logger.info(''.join([f"{header}".ljust(10) for header in ('COUNT', num_passed, num_filtered, num_error)]))
 
     # passed
     logger.info(f"NUMBER OF PASSED: {num_passed}")

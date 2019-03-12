@@ -20,17 +20,14 @@ from rdkit import Chem
 # pytest
 import pytest
 # dev library
-from npfc import load
 from npfc import save
-from npfc import standardize
-from npfc import fragment
 # logging
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FIXTURES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
-WD = '/tmp/'
+WD = '/tmp/npfc_test/'
 
 
 @pytest.fixture
@@ -42,7 +39,8 @@ def df_mols():
     df['mol'] = df['mol'].map(Chem.MolFromSmiles)
     # export the mols
     print()
-    save.save(df, WD + 'test_commands_mols_in.sdf')
+    print(df.columns)
+    save.save(df, WD + 'test_commands_mols_in.sdf', col_id='idm')
     return df
 
 
@@ -63,14 +61,33 @@ def df_fragsl():
 def test_init_files(df_mols, df_fragsl):
     pass
 
+
 def test_load_mols():
+    """Load molecules in SDF format and export them as base64 in a csv.gz file."""
     print()
-    command = f"""load_mols {WD + 'test_commands_mols_in.sdf'} {WD + 'test_commands_mols_out.sdf'} -n 2 --in_id idm"""
-    returncode = sp.call(command, shell=True)
-    print(returncode)
+    input_file = WD + 'test_commands_mols_in.sdf'
+    output_file = WD + 'test_commands_mols_out.csv.gz'
+    command = f"""load_mols {input_file} {output_file} --in_id _Name --out_id idm"""
+    return_code = sp.call(command, shell=True)
+    assert return_code == 0
+    assert Path(output_file).is_file() is True
 
 
-
+def test_standardize_mols():
+    """Standardize structures for postprocessing passed molecules."""
+    print()
+    input_file = WD + 'test_commands_mols_out.csv.gz'
+    ref_file = WD + 'test_commands_mols_ref.hdf'
+    output_passed = WD + 'test_commands_mols_out_passed.csv.gz'
+    output_filtered = WD + 'test_commands_mols_out_filtered.csv.gz'
+    output_error = WD + 'test_commands_mols_out_error.csv.gz'
+    command = f"""standardize_mols {input_file} -r {ref_file}"""
+    return_code = sp.call(command, shell=True)
+    assert return_code == 0
+    assert Path(ref_file).is_file() is True
+    assert Path(output_passed).is_file() is True
+    assert Path(output_filtered).is_file() is True
+    assert Path(output_error).is_file() is True
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ MAIN ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #

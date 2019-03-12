@@ -186,8 +186,7 @@ def _from_sdf(input_sdf: str, col_mol: str = 'mol', compression: str = None):
             rows.append(row)
             row_idx.append(i)
         i += 1
-    print(rows)
-    print(row_idx)
+
     return pd.DataFrame(rows, index=row_idx)
 
 
