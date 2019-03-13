@@ -32,6 +32,6 @@ setuptools.setup(
     ],
     scripts=['bin/load_mols',
              'bin/standardize_mols',
-             'bin/peel_hdf',
+             'bin/peek_hdf',
              ],
 )
