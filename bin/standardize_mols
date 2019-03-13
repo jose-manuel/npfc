@@ -18,7 +18,10 @@ import pandas as pd
 # chemoinformatics
 import rdkit
 from rdkit import RDLogger
-# custom libraries
+from rdkit.Chem.Scaffolds import MurckoScaffold
+# docsstrings
+# from typing import List
+# dev
 import npfc
 from npfc import load
 from npfc import save
@@ -26,6 +29,35 @@ from npfc import utils
 from npfc import standardize
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
+# def task_abbreviation(tasks: List[str]):
+#     """Helper function for a more accurate results description.
+#     Each task can result in filters or errors, so it would be nice to display
+#     counts of passed, filtered and errors in a tabular format.
+#     This however proved to be more tedious to code than anticipated because the
+#     user can provided his own protocol. For now I just leave a very general display
+#     but the best would be to deduce automatically abbreviations from tasks.
+#     Another option would be to display results as a list, which is less convenient but
+#     might be easier to do.
+
+#     :param tasks: the list of tasks contained in a protocol
+#     :return: the list of abbreviations in the same order
+#     """
+#     d_abbreviations = {'disconnect_metal': 'dm',
+#                        'keep_largest': 'kl',
+#                        'filter_hac': 'f_hac',
+#                        'filter_molweight': 'f_mw',
+#                        'filter_nrings': 'f_nr',
+#                        'filter_medchem': 'f_med',
+#                        'remove_isotopes': 'ri',
+#                        'normalize': 'norm',
+#                        'uncharge': 'unchg',
+#                        'canonicalize': 'canon',
+#                        'remove_stereo': 'rst',
+#                        }
+#
+#     return [d_abbreviations[t] for t in tasks]
 
 
 def main():
@@ -49,11 +81,14 @@ def main():
 
     parser = argparse.ArgumentParser(description=description, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('input_mols', type=str, default=None, help="Input file.")
-    parser.add_argument('-o', '--output_template', type=str, default=None, help="Output name to use as template for outputs (i.e. tests/output.csv.gz would be tests/output_passed.csv.gz). If none is specified then input_mols is used instead.")
+    parser.add_argument('-o', '--output-template', type=str, default=None, help="Output name to use as template for outputs (i.e. tests/output.csv.gz would be tests/output_passed.csv.gz). If none is specified then input_mols is used instead.")
     parser.add_argument('-p', '--protocol', type=str, default=None, help="Configuration file in JSON for specifying a standardization protocol. See the docs for the default protocol.")
-    parser.add_argument('-r', '--ref_file', type=str, default=None, help="Reference file for identifying duplicate molecules. If none is specified, then one is created in the output folder.")
-    parser.add_argument('-d', '--decode_mols', type=bool, default=True, help="Decode molecules into base64 strings for input.")
-    parser.add_argument('-e', '--encode_mols', type=bool, default=True, help="Encode molecules into base64 strings for output.")
+    parser.add_argument('-r', '--ref-file', type=str, default=None, help="Reference file for identifying duplicate molecules. If none is specified, then one ref file is created in the output folder. For Murcko scaffolds, a new ref file is created with suffix _murcko in case keep_intermediates is True.")
+    parser.add_argument('-d', '--decode-mols', type=bool, default=True, help="Decode molecules into base64 strings for input.")
+    parser.add_argument('-e', '--encode-mols', type=bool, default=True, help="Encode molecules into base64 strings for output.")
+    parser.add_argument('-m', '--murcko', type=bool, default=False, help="Extract Murcko scaffolds from passed molecules. Another round of standardization is performed afterwards.")
+    parser.add_argument('-k', '--keep-intermediates', type=bool, default=False, help="Keep results from first standardization.")
+    parser.add_argument('-c', '--clear', type=bool, default=False, help="Clear previous run outputs. Useful for debugging!")
     parser.add_argument('--in_id', type=str, default='idm', help="Identifier column in the source file.")
     parser.add_argument('--in_mol', type=str, default='mol', help="Molecule column in the source file.")
     parser.add_argument('--in_sep', type=str, default='|', help="Separator to use in case the input file is a csv.")
@@ -103,7 +138,24 @@ def main():
         logger.warning(f"REF_FILE NOT DEFINED, SETTING IT TO '{output_ref}'")
     else:
         output_ref = args.ref_file
-    utils.check_arg_output_file(output_ref)   # TODO add an argument to utils. funcs for specifying one format only
+    utils.check_arg_output_file(output_ref)
+
+    # outputs in case of murcko scaffold
+    output_passed_intermediate = output_basename + "_passed_mols" + ''.join(out_suffixes)
+    output_filtered_intermediate = output_basename + "_filtered_mols" + ''.join(out_suffixes)
+    output_error_intermediate = output_basename + "_error_mols" + ''.join(out_suffixes)
+    output_ref_path = Path(output_ref)
+    output_ref_key = output_ref_path.stem.split('.')[0]
+    ref_file_intermediate = str(output_ref_path.resolve().parent) + "/" + output_ref_key + '_mols' + ''.join(output_ref_path.suffixes)
+
+    # clear previous runs if any
+    if args.clear:
+        logger.warning(f"CLEARING PREVIOUS OUTPUT FILES")
+        files = (output_passed_intermediate, output_filtered_intermediate,
+                 output_error_intermediate, ref_file_intermediate,
+                 output_passed, output_filtered, output_error, output_ref,
+                 )
+        [Path(f).unlink() for f in files if Path(f).is_file()]
 
     # display infos
 
@@ -132,6 +184,7 @@ def main():
     logging.info("OUT_ID".ljust(pad) + f"{args.out_id}")
     logging.info("OUT_FORMAT".ljust(pad) + f"{out_format}")
     logging.info("OUT_COMPRESSION".ljust(pad) + f"{out_compression}")
+    logging.info("CLEAR".ljust(pad) + f"{args.clear}")
     logging.info("LOG".ljust(pad) + f"{args.log}")
     # display outputs
     logger.info("OUTPUT FILES:")
@@ -139,6 +192,12 @@ def main():
     logger.info("OUTPUT_FILTERED".ljust(pad) + f"{output_filtered}")
     logger.info("OUTPUT_ERROR".ljust(pad) + f"{output_error}")
     logger.info("OUTPUT_REF".ljust(pad) + f"{output_ref}")
+    if args.murcko:
+        logging.info("INTERDMEDIATE RESULTS:")
+        logging.info("OUTPUT_PASSED".ljust(pad) + f"{output_passed_intermediate}")
+        logging.info("OUTPUT_FILTERED".ljust(pad) + f"{output_filtered_intermediate}")
+        logging.info("OUTPUT_ERROR".ljust(pad) + f"{output_error_intermediate}")
+        logging.info("OUTPUT_REF".ljust(pad) + f"{ref_file_intermediate}")
     # begin
     logging.info("BEGIN")
 
@@ -165,6 +224,7 @@ def main():
     logger.info(f"STANDARDIZING MOLECULES")
     logger.info(f"PROTOCOL:")
     s = standardize.Standardizer(ref_file=output_ref)
+    # abbreviations = task_abbreviation(s.protcol['tasks'])
     [logger.info(f"TASK #{str(i+1).zfill(2)} {task}") for i, task in enumerate(s._protocol['tasks'])]
     [logger.info(f"OPTION {opt}".ljust(pad) + f"{value}") for opt, value in s._protocol.items() if opt != 'tasks']
     logger.info("TIMEOUT FOR ABOVE TASKS".ljust(pad) + f"{standardize.TIMEOUT} SEC")
@@ -173,30 +233,68 @@ def main():
     logger.info(f"RUN STANDARDIZATION")
     df_passed, df_filtered, df_error = s.run_df(df_mols)
 
-    # save results
-    d3 = datetime.now()
-
     logger.info(f"RESULTS:")
     num_passed = len(df_passed.index)
     num_filtered = len(df_filtered.index)
     num_error = len(df_error.index)
     logger.info(''.join([f"{header}".ljust(10) for header in ('HEADER', 'PASSED', 'FILTERED', 'ERROR')]))
     logger.info(''.join([f"{header}".ljust(10) for header in ('COUNT', num_passed, num_filtered, num_error)]))
+    d3 = datetime.now()
 
+    # Extract Murcko scaffolds
+    if args.murcko:
+
+        if args.keep_intermediates:
+            logger.info(f"SAVING INTERMEDIATE OUTPUTS:")
+            # passed
+            outputs = save.save(df_passed, output_passed_intermediate)
+            logger.info(f"SAVED {outputs[0][1]} RECORDS AT {outputs[0][0]}")
+            # filtered
+            outputs = save.save(df_filtered, output_filtered_intermediate)
+            logger.info(f"SAVED {outputs[0][1]} RECORDS AT {outputs[0][0]}")
+            # error
+            outputs = save.save(df_error, output_error_intermediate)
+            logger.info(f"SAVED {outputs[0][1]} RECORDS AT {outputs[0][0]}")
+            # ref
+            Path(output_ref).rename(ref_file_intermediate)
+            with pd.HDFStore(ref_file_intermediate) as store:
+                store.get_node(output_ref_key) ._f_rename(output_ref_key + '_mols')
+        else:
+            logger.info(f"REMOVING {output_ref}")
+            Path(output_ref).unlink()
+
+        logger.info(f"EXTRACTING MURCKO SCAFFOLDS")
+        d4 = datetime.now()
+        df_mols = df_passed.copy()
+        df_mols[args.out_mol] = df_mols[args.out_mol].map(MurckoScaffold.GetScaffoldForMol)
+
+        logger.info(f"STANDARDIZING MURCKO SCAFFOLDS")
+        d5 = datetime.now()
+        # prepare df for being processed by standardizer
+        df_mols['__tmp__'] = df_mols.index
+        df_mols.index = range(len(df_mols.index))
+        df_mols.rename({'__tmp__': args.out_id}, axis=1, inplace=True)
+        # run standardization
+        df_passed, df_filtered, df_error = s.run_df(df_mols)
+        logger.info(f"RESULTS FOR MURCKO SCAFFOLDS:")
+        num_passed = len(df_passed.index)
+        num_filtered = len(df_filtered.index)
+        num_error = len(df_error.index)
+        logger.info(''.join([f"{header}".ljust(10) for header in ('HEADER', 'PASSED', 'FILTERED', 'ERROR')]))
+        logger.info(''.join([f"{header}".ljust(10) for header in ('COUNT', num_passed, num_filtered, num_error)]))
+
+    d6 = datetime.now()
+    logger.info(f"SAVING OUTPUTS")
     # passed
-    logger.info(f"NUMBER OF PASSED: {num_passed}")
     outputs = save.save(df_passed, output_passed)
     logger.info(f"SAVED {outputs[0][1]} RECORDS AT {outputs[0][0]}")
     # filtered
-    logger.info(f"NUMBER OF FILTERED: {num_filtered}")
     outputs = save.save(df_filtered, output_filtered)
     logger.info(f"SAVED {outputs[0][1]} RECORDS AT {outputs[0][0]}")
     # error
-    logger.info(f"NUMBER OF ERRORS: {num_error}")
     outputs = save.save(df_error, output_error)
     logger.info(f"SAVED {outputs[0][1]} RECORDS AT {outputs[0][0]}")
-
-    d4 = datetime.now()
+    d7 = datetime.now()
 
     # end
 
@@ -204,8 +302,13 @@ def main():
     logger.info("COMPUTATIONAL TIME: CONFIGURING JOB".ljust(pad * 2) + f"{d1-d0}")
     logger.info("COMPUTATIONAL TIME: LOADING MOLECULES".ljust(pad * 2) + f"{d2-d1}")
     logger.info("COMPUTATIONAL TIME: STANDARDIZING MOLECULES".ljust(pad * 2) + f"{d3-d2}")
-    logger.info("COMPUTATIONAL TIME: SAVING MOLECULES".ljust(pad * 2) + f"{d4-d3}")
-    logger.info("COMPUTATIONAL TIME: TOTAL".ljust(pad * 2) + f"{d4-d0}")
+    if args.murcko:
+        if args.keep_intermediates:
+            logger.info("COMPUTATIONAL TIME: SAVING INTERMEDIATE OUTPUTS".ljust(pad * 2) + f"{d4-d3}")
+        logger.info("COMPUTATIONAL TIME: EXTRACTING MS".ljust(pad * 2) + f"{d5-d4}")
+        logger.info("COMPUTATIONAL TIME: STANDARDIZING MS".ljust(pad * 2) + f"{d6-d5}")
+    logger.info("COMPUTATIONAL TIME: SAVING OUTPUTS".ljust(pad * 2) + f"{d7-d6}")
+    logger.info("COMPUTATIONAL TIME: TOTAL".ljust(pad * 2) + f"{d7-d0}")
     logging.info("END")
     sys.exit(0)
 

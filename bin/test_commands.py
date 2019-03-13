@@ -27,7 +27,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FIXTURES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
-WD = '/tmp/npfc_test/'
+WD = '/tmp/npfc_test/'  # would be cool if WD could be specified so it could work on cluster too
 
 
 @pytest.fixture

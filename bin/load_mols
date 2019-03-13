@@ -127,7 +127,6 @@ def main():
                              decode=args.decode_mols,
                              in_sep=args.in_sep
                              )
-    logging.debug(f"Sample of 10 entries:\n{df_mols.head(10)}")
     num_failed = df_mols['mol'].isna().sum()
     logging.info(f"LOADED {len(df_mols)} RECORDS WITH {num_failed} FAILURE(S)")
 

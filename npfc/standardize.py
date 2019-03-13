@@ -223,8 +223,10 @@ class DuplicateFilter:
             df_ref.index = df_ref[self.on]
             df_ref.drop(self.on, axis=1, inplace=True)
             df_ref.to_hdf(self.ref_file, key=key)
+            logging.debug(f"Created new ref_file at '{self.ref_file}'")
             return True
         except ValueError:  # certainly not the only kind of error but PEP8 is against using just plain except.
+            logging.critical(f"Could not create a new ref_file at '{self.ref_file}'")
             return False
 
     def mark_dupl(self, df: DataFrame) -> DataFrame:

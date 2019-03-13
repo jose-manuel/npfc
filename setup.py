@@ -14,7 +14,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="npfc",
-    version='0.0.9-8-gc6e51b8',
+    version='0.0.10',
     author="Jose-Manuel Gally",
     author_email="josemanuel.gally@mpi-dortmund.mpg.de",
     description="A package for classifying fragment combinations in molecules",
@@ -32,5 +32,6 @@ setuptools.setup(
     ],
     scripts=['bin/load_mols',
              'bin/standardize_mols',
+             'bin/peel_hdf',
              ],
 )
