@@ -24,7 +24,7 @@ import npfc
 from npfc import load
 from npfc import save
 from npfc import utils
-from npfc import standardize
+from npfc import fragment
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
@@ -68,33 +68,15 @@ def main():
 
     # minput
     utils.check_arg_input_file(args.minput)
-    path_minput = Path(args.minput)
-    msuffixes = path_minput.suffixes
-    if len(msuffixes) > 1:
-        mcompression = utils.get_conversion(msuffixes[1])
-    else:
-        mcompression = None
-    mformat = msuffixes[0]
+    mformat, mcompression = utils.get_file_format(args.minput)
 
     # finput
     utils.check_arg_input_file(args.finput)
-    path_finput = Path(args.finput)
-    fsuffixes = path_finput.suffixes
-    if len(fsuffixes) > 1:
-        fcompression = utils.get_conversion(fsuffixes[1])
-    else:
-        fcompression = None
-    fformat = fsuffixes[0]
+    fformat, fcompression = utils.get_file_format(args.finput)
 
     # output
     utils.check_arg_output_file(args.output)
-    path_output = Path(args.input_frags)
-    output_suffixes = path_output.suffixes
-    if len(output_suffixes) > 1:
-        output_compression = utils.get_conversion(output_suffixes[1])
-    else:
-        output_compression = None
-    output_format = output_suffixes[0]
+    oformat, ocompression = utils.get_file_format(args.output)
 
     # display infos
 
@@ -106,8 +88,8 @@ def main():
     # arguments
     logger.info("ARGUMENTS:")
     logging.info("MINPUT".ljust(pad) + f"{args.minput}")
-    logging.info("MFORMAT".ljust(pad) + f"{args.minput}")
-    logging.info("MCOMPRESSION".ljust(pad) + f"{args.minput}")
+    logging.info("MFORMAT".ljust(pad) + f"{mformat}")
+    logging.info("MCOMPRESSION".ljust(pad) + f"{mcompression}")
     logging.info("MID".ljust(pad) + f"{args.mid}")
     logging.info("MMOL".ljust(pad) + f"{args.mmol}")
     if mformat == '.csv':
@@ -124,6 +106,8 @@ def main():
     if fformat != '.sdf':
         logging.info("FDECODE".ljust(pad) + f"{args.fdecode}")
     logging.info("OUTPUT".ljust(pad) + f"{args.output}")
+    logging.info("OFORMAT".ljust(pad) + f"{oformat}")
+    logging.info("OCOMPRESSION".ljust(pad) + f"{ocompression}")
     logging.info("LOG".ljust(pad) + f"{args.log}")
 
     # begin
@@ -133,54 +117,63 @@ def main():
     # load mols
     logging.info("LOADING MOLECULES")
     d1 = datetime.now()
-    if mformat == '.sdf':
-        df_mols = load.from_sdf(args.minput,
-                                col_mol=args.mmol,
-                                col_id=args.mid,
-                                keep_props=True,
-                                )
-    elif mformat == '.csv':
-        df_mols = load.from_csv(args.minput,
-                                col_id=args.mid,
-                                col_mol=args.mmol,
-                                keep_props=True,
-                                decode_mols=args.mdecode,
-                                sep=args.msep,
-                                )
-    else:   # check on argument for input does not leave any other option than sdf, csv or hdf
-        df_mols = load.from_hdf(args.minput,
-                                decode_mols=args.mdecode,
-                                col_mol=args.mmol,
-                                )
-
-    num_failed = df_mols[args.mmol].isna().sum()
+    df_mols = load.from_file(args.minput,
+                             in_id=args.mid,
+                             out_id=args.mid,
+                             in_mol=args.mmol,
+                             out_mol=args.mmol,
+                             keep_props=False,
+                             in_sep=args.msep,
+                             decode=args.mdecode,
+                             )
+    df_mols.index = df_mols[args.mid]
+    num_failed = df_mols['mol'].isna().sum()
     logging.info(f"LOADED {len(df_mols)} RECORDS WITH {num_failed} FAILURE(S)")
 
     # load frags
-    logging.info("LOADING MOLECULES")
-    d1 = datetime.now()
-    if mformat == '.sdf':
-        df_mols = load.from_sdf(args.minput,
-                                col_mol=args.mmol,
-                                col_id=args.mid,
-                                keep_props=True,
-                                )
-    elif mformat == '.csv':
-        df_mols = load.from_csv(args.minput,
-                                col_id=args.mid,
-                                col_mol=args.mmol,
-                                keep_props=True,
-                                decode_mols=args.mdecode,
-                                sep=args.msep,
-                                )
-    else:   # check on argument for input does not leave any other option than sdf, csv or hdf
-        df_mols = load.from_hdf(args.minput,
-                                decode_mols=args.mdecode,
-                                col_mol=args.mmol,
-                                )
+    logging.info("LOADING FRAGMENTS")
+    d2 = datetime.now()
+    df_frags = load.from_file(args.finput,
+                              in_id=args.fid,
+                              out_id=args.fid,
+                              in_mol=args.fmol,
+                              out_mol=args.fmol,
+                              keep_props=False,
+                              in_sep=args.fsep,
+                              decode=args.fdecode,
+                              )
+    df_frags.index = df_frags[args.fid]
+    num_failed = df_frags['mol'].isna().sum()
+    logging.info(f"LOADED {len(df_frags)} RECORDS WITH {num_failed} FAILURE(S)")
 
-    num_failed = df_mols[args.mmol].isna().sum()
-    logging.info(f"LOADED {len(df_mols)} RECORDS WITH {num_failed} FAILURE(S)")
+    # substructure search
+    logger.info(f"SUBSTRUCTURE SEARCH")
+    d3 = datetime.now()
+    m = fragment.Matcher()
+    df_aidxf = m.run(df_mols, df_frags)
+    logger.info(f"FOUND {len(df_aidxf.index)} HITS")
+
+    # save results
+    logger.info(f"SAVING RESULTS")
+    d4 = datetime.now()
+    outputs = save.save(df_aidxf, args.output, encode_mols=False)  # no molecules in this dataframe!
+    logger.info(f"SAVED {outputs[0][1]} RECORDS AT {outputs[0][0]}")
+
+    # end
+    d5 = datetime.now()
+    logging.info("SUMMARY")
+    logger.info("COMPUTATIONAL TIME: CONFIGURING JOB".ljust(pad * 2) + f"{d1-d0}")
+    logger.info("COMPUTATIONAL TIME: LOADING MOLECULES".ljust(pad * 2) + f"{d2-d1}")
+    logger.info("COMPUTATIONAL TIME: LOADING FRAGMNENTS".ljust(pad * 2) + f"{d3-d2}")
+    logger.info("COMPUTATIONAL TIME: SUBSTRUCTURE SEARCH".ljust(pad * 2) + f"{d4-d3}")
+    logger.info("COMPUTATIONAL TIME: SAVING OUTPUT".ljust(pad * 2) + f"{d5-d4}")
+    logger.info("COMPUTATIONAL TIME: TOTAL".ljust(pad * 2) + f"{d5-d0}")
+    logging.info("END")
+    sys.exit(0)
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ MAIN ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
 
 if __name__ == '__main__':
     main()

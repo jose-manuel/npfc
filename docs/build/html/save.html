@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>&lt;no title&gt; &mdash; npfc 0.0.10-1-gfb819e2 documentation</title>
+  <title>Module save &mdash; npfc 0.0.10-2-g33670e8 documentation</title>
   
 
   
@@ -28,8 +28,8 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="&lt;no title&gt;" href="filter.html" />
-    <link rel="prev" title="&lt;no title&gt;" href="load.html" /> 
+    <link rel="next" title="Module filter" href="filter.html" />
+    <link rel="prev" title="Module load" href="load.html" /> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -58,7 +58,7 @@
             
             
               <div class="version">
-                0.0.10-1-gfb819e2
+                0.0.10-2-g33670e8
               </div>
             
           
@@ -82,10 +82,16 @@
               
             
             
-              <!-- Local TOC -->
-              <div class="local-toc"><ul class="simple">
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="load.html">Module load</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Module save</a></li>
+<li class="toctree-l1"><a class="reference internal" href="filter.html">Module filter</a></li>
+<li class="toctree-l1"><a class="reference internal" href="standardize.html">Module standardize</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fragment.html">Module fragment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utils.html">Module utils</a></li>
 </ul>
-</div>
+
             
           
         </div>
@@ -129,7 +135,7 @@
     
       <li><a href="index.html">Docs</a> &raquo;</li>
         
-      <li>&lt;no title&gt;</li>
+      <li>Module save</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -148,7 +154,114 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  
+  <span class="target" id="module-npfc.save"></span><div class="section" id="module-save">
+<h1>Module save<a class="headerlink" href="#module-save" title="Permalink to this headline">¶</a></h1>
+<p>A module containing the Saver class, used for storing DataFrames with molecules
+on disk.</p>
+<dl class="class">
+<dt id="npfc.save.Saver">
+<em class="property">class </em><code class="descclassname">npfc.save.</code><code class="descname">Saver</code><span class="sig-paren">(</span><em>shuffle=False</em>, <em>random_seed=None</em>, <em>chunk_size=None</em>, <em>encode_mols=True</em>, <em>col_mol='mol'</em>, <em>col_id='idm'</em>, <em>sep='|'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/save.html#Saver"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.save.Saver" title="Permalink to this definition">¶</a></dt>
+<dd><p>A class for saving DataFrames with molecules to different file types.</p>
+<p>Create a Saver object with below parameters.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The reason I have a class for this is because I wanted to avoid at lot of redundant code. But a class is not that perfect if one Saver object has to instanciated everytime. As a work-around, I also added a save function using this class.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>shuffle</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>) – randomize records</li>
+<li><strong>random_seed</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.7)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>]) – a number for reproducing the shuffling</li>
+<li><strong>chunk_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.7)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>]) – the maximum number of records per chunk. If this value is unset, no chunking is performed, otherwise each chunk filename gets appended with a suffix: file_XXX.ext.</li>
+<li><strong>encode_mols</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>) – convert rdkit.Chem.Mol objects to base64 string representation. For HDF format, pandas stops complaining about PerformanceWarning, for csv molecules do not need to parsed again.</li>
+<li><strong>col_mol</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – if molecules need to be encoded, then the encoding is perfomed on this column.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="npfc.save.Saver.save">
+<code class="descname">save</code><span class="sig-paren">(</span><em>df</em>, <em>output_file</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/save.html#Saver.save"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.save.Saver.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save the input DataFrame on disk using Saver object parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>df</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code>) – the input DataFrame</li>
+<li><strong>output_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the output file</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Union" title="(in Python v3.7)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>]]]</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the list of output files with their number of records</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="npfc.save.encode_mol">
+<code class="descclassname">npfc.save.</code><code class="descname">encode_mol</code><span class="sig-paren">(</span><em>mol</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/save.html#encode_mol"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.save.encode_mol" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a molecule to binary and then represent this binary as base64 string.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>mol</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Mol</span></code>) – the input molecule</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the molecule in base64</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="npfc.save.save">
+<code class="descclassname">npfc.save.</code><code class="descname">save</code><span class="sig-paren">(</span><em>df</em>, <em>output_file</em>, <em>shuffle=False</em>, <em>random_seed=None</em>, <em>chunk_size=None</em>, <em>encode_mols=True</em>, <em>col_mol='mol'</em>, <em>col_id='idm'</em>, <em>sep='|'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/save.html#save"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.save.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>A method for saving DataFrames with molecules to different file types.
+This is handy way of using the Saver class without having to keep a Saver object.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">I did this because it was the most easiest way, I guess I’ll have to investigate class methods for a better implementation.</p>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>df</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code>) – the input DataFrame</li>
+<li><strong>output_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the output file</li>
+<li><strong>shuffle</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>) – randomize records</li>
+<li><strong>random_seed</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.7)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>]) – a number for reproducing the shuffling</li>
+<li><strong>chunk_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.7)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>]) – the maximum number of records per chunk. If this value is unset, no chunking is performed, otherwise each chunk filename gets appended with a suffix: file_XXX.ext.</li>
+<li><strong>encode_mols</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>) – convert rdkit.Chem.Mol objects to base64 string representation. For HDF format, pandas stops complaining about PerformanceWarning, for csv molecules do not need to parsed again.</li>
+<li><strong>col_mol</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – if molecules need to be encoded, then the encoding is perfomed on this column.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Union" title="(in Python v3.7)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>]]]</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the list of output files with their number of records</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+
 
            </div>
            
@@ -157,10 +270,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="filter.html" class="btn btn-neutral float-right" title="&lt;no title&gt;" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="filter.html" class="btn btn-neutral float-right" title="Module filter" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="load.html" class="btn btn-neutral" title="&lt;no title&gt;" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="load.html" class="btn btn-neutral" title="Module load" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
