@@ -203,7 +203,7 @@ def _from_csv(input_csv: str, in_sep: str = '|', compression: str = None):
     elif compression == 'gzip':
         try:
             return pd.read_csv(input_csv, sep=in_sep, index_col='Unnamed: 0', compression=compression)  # define rowidx with rowids, if any
-        except KeyError:
+        except (ValueError, KeyError):
             return pd.read_csv(input_csv, sep=in_sep, compression=compression)
 
 # def from_csv(input_csv: str,
