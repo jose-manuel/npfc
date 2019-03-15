@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.fragment &mdash; npfc 0.0.11 documentation</title>
+  <title>npfc.fragment &mdash; npfc 0.0.12 documentation</title>
   
 
   
@@ -56,7 +56,7 @@
             
             
               <div class="version">
-                0.0.11
+                0.0.12
               </div>
             
           
@@ -221,6 +221,7 @@
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Create an instance of FragmentCombinationClassifier.&quot;&quot;&quot;</span>
+        <span class="k">pass</span>
 
 <div class="viewcode-block" id="CombinationClassifier.get_rings_between_two_fragments"><a class="viewcode-back" href="../../fragment.html#npfc.fragment.CombinationClassifier.get_rings_between_two_fragments">[docs]</a>    <span class="k">def</span> <span class="nf">get_rings_between_two_fragments</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mol</span><span class="p">:</span> <span class="n">Mol</span><span class="p">,</span> <span class="n">aidxf1</span><span class="p">:</span> <span class="nb">set</span><span class="p">,</span> <span class="n">aidxf2</span><span class="p">:</span> <span class="nb">set</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Returns the atom indices of every ring that connects two fragments together, defined by atom indices.</span>
@@ -387,7 +388,8 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">ds_fcc</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">gid</span><span class="p">,</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">df_aidxf</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">&#39;idm&#39;</span><span class="p">):</span>
-            <span class="n">mol</span> <span class="o">=</span> <span class="n">df_mols</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">gid</span><span class="p">][</span><span class="s1">&#39;mol&#39;</span><span class="p">]</span>
+            <span class="c1">#mol = df_mols.loc[gid][&#39;mol&#39;]</span>
+            <span class="n">mol</span> <span class="o">=</span> <span class="n">df_mols</span><span class="p">[</span><span class="n">df_mols</span><span class="p">[</span><span class="s1">&#39;idm&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">gid</span><span class="p">][</span><span class="s1">&#39;mol&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
             <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">g</span><span class="p">)):</span>
                 <span class="n">aidxf1</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s1">&#39;aidxf&#39;</span><span class="p">]</span>
                 <span class="n">idf1</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s1">&#39;idf&#39;</span><span class="p">]</span>
