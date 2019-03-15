@@ -1,0 +1,164 @@
+#!/usr/bin/env python
+
+"""
+Script classify_frags_comb
+==========================
+This script is used for classifying fragment combinations (fc).
+"""
+
+# standard
+import warnings
+import sys
+from datetime import datetime
+import logging
+import pandas as pd
+import argparse
+import json
+# chemoinformatics
+import rdkit
+# dev
+import npfc
+from npfc import load
+from npfc import save
+from npfc import utils
+from npfc import fragment
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+def main():
+
+    # init
+    d0 = datetime.now()
+    description = """Script used for classifying fragment combinations.
+
+    It uses the installed npfc libary in your favorite env manager.
+
+    Example:
+
+        >>> classify_frags_comb file_mols.sdf file_sub.csv.gz file_fcc.csv.gz
+
+    N.B. For now the sub and output files have hard-coded formats (.csv.gz or .hdf).
+    """
+
+    # parameters CLI
+    parser = argparse.ArgumentParser(description=description, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument('input_mols', type=str, default=None, help="Input file for molecules.")
+    parser.add_argument('input_sub', type=str, default=None, help="Input file for substructures hits.")
+    parser.add_argument('output_fcc', type=str, default=None, help="Output file.")
+    parser.add_argument('-i', '--mols-id', type=str, default='idm', help="Identifier column in the source file.")
+    parser.add_argument('-m', '--mols-mol', type=str, default='mol', help="Molecule column in the source file.")
+    parser.add_argument('-s', '--mols-sep', type=str, default='|', help="Separator to use in case the input file is a csv.")
+    parser.add_argument('-d', '--mols-decode', type=bool, default=True, help="Decode molecules from base64 strings into RDKit Mol objects.")
+    parser.add_argument('--min', type=int, default=2, help="Minimum number of hits/molecule.")
+    parser.add_argument('--max', type=int, default=5, help="Maximum number of hits/molecule.")
+    parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
+    args = parser.parse_args()
+
+    # logging
+    logger = utils._configure_logger(args.log)
+    logger.info("RUNNING STANDARDIZE_MOLS")
+    warnings.filterwarnings('ignore', category=pd.io.pytables.PerformanceWarning)  # if None is returned instead of a molecule, do not complain about mixed types
+    pad = 40
+
+    # parse arguments
+    utils.check_arg_input_file(args.input_mols)
+    utils.check_arg_input_file(args.input_sub)
+    utils.check_arg_output_file(args.output_fcc)
+    utils.check_arg_positive_number(args.min)
+    utils.check_arg_positive_number(args.max)
+    mols_format, mols_compression = utils.get_file_format(args.input_mols)
+    sub_format, sub_compression = utils.get_file_format(args.input_sub)
+    out_format, out_compression = utils.get_file_format(args.output_fcc)
+
+    # display infos
+    logger.info("LIBRARY VERSIONS:")
+    logger.info("rdkit".ljust(pad) + f"{rdkit.__version__}")
+    logger.info("pandas".ljust(pad) + f"{pd.__version__}")
+    logger.info("npfc".ljust(pad) + f"{npfc.__version__}")
+    logger.info("ARGUMENTS:")
+    logging.info("INPUT_MOLS".ljust(pad) + f"{args.input_mols}")
+    logging.info("MOLS_ID".ljust(pad) + f"{args.mols_id}")
+    logging.info("MOLS_MOL".ljust(pad) + f"{args.mols_mol}")
+    logging.info("MOLS_SEP".ljust(pad) + f"{args.mols_sep}")
+    logging.info("MOLS_SEP".ljust(pad) + f"{args.mols_decode}")
+    logging.info("MOLS_FORMAT".ljust(pad) + f"{mols_format}")
+    logging.info("MOLS_COMPRESSION".ljust(pad) + f"{mols_compression}")
+    logging.info("INPUT_SUB".ljust(pad) + f"{args.input_sub}")
+    logging.info("SUB_FORMAT".ljust(pad) + f"{sub_format}")
+    logging.info("SUB_COMPRESSION".ljust(pad) + f"{sub_compression}")
+    logging.info("OUTPUT_FCC".ljust(pad) + f"{args.output_fcc}")
+    logging.info("OUT_FORMAT".ljust(pad) + f"{out_format}")
+    logging.info("OUT_COMPRESSION".ljust(pad) + f"{out_compression}")
+    logging.info("MIN".ljust(pad) + f"{args.min}")
+    logging.info("MAX".ljust(pad) + f"{args.max}")
+    logging.info("LOG".ljust(pad) + f"{args.log}")
+
+    # begin
+    logging.info("BEGIN")
+
+    # load sub
+    logging.info("LOADING SUBSTRUCTURE MATCHES")
+    d1 = datetime.now()
+    df_sub = pd.read_csv(args.input_sub, sep='|', compression='gzip')
+    logging.info(f"FOUND {len(df_sub.index)} SUBSTRUCTURE MATCHES")
+
+    # filter sub
+    logging.info("FILTERING SUBSTRUCTURE MATCHES")
+    d2 = datetime.now()
+    grouped = df_sub.groupby('idm')
+    df_sub = grouped.filter(lambda x: args.max >= len(x) >= args.min)
+    logging.info(f"SUBSTRUCTURE MATCHES REMAINING: {len(df_sub.index)}")
+    # abort execution if nothing left!
+    if len(df_sub.index) == 0:
+        logging.error(f"NO SUBSTRUCTURE MATCHES LEFT SO ABORTING EXECUTION")
+        sys.exit(2)
+
+    df_sub['aidxf'] = df_sub['aidxf'].map(lambda x: set(json.loads(x.replace('{', '[').replace('}', ']'))))
+
+    # load mols
+    logging.info("LOADING MOLECULES")
+    d3 = datetime.now()
+    df_mols = load.from_file(args.input_mols,
+                             in_id=args.mols_id,
+                             out_id=args.mols_id,
+                             in_mol=args.mols_mol,
+                             out_mol=args.mols_mol,
+                             decode=args.mols_decode,
+                             in_sep=args.mols_sep,
+                             keep_props=False,
+                             )
+    num_failed = df_mols[args.mols_mol].isna().sum()
+    logging.info(f"LOADED {len(df_mols)} RECORDS WITH {num_failed} FAILURE(S)")
+
+    # run fcc
+    logger.info(f"CLASSIFYING FRAGMENT COMBINATIONS")
+    d4 = datetime.now()
+    c = fragment.CombinationClassifier()
+    df_fcc = c.classify_fragment_combinations(df_mols, df_sub)
+    logger.info(f"FOUND {len(df_fcc.index)} COMBINATIONS")
+
+    # save results
+    logger.info(f"SAVING RESULTS AT '{args.output_fcc}'")
+    d5 = datetime.now()
+    save.save(df_fcc, args.output_fcc, encode_mols=False)
+
+    # end
+    d6 = datetime.now()
+    logging.info("SUMMARY")
+    logger.info("COMPUTATIONAL TIME: CONFIGURING JOB".ljust(pad * 2) + f"{d1-d0}")
+    logger.info("COMPUTATIONAL TIME: LOADING SUBSTRUCTURE MATCHES".ljust(pad * 2) + f"{d2-d1}")
+    logger.info("COMPUTATIONAL TIME: FILTERING SUBSTRUCTURE MATCHES".ljust(pad * 2) + f"{d3-d2}")
+    logger.info("COMPUTATIONAL TIME: LOADING MOLECULES".ljust(pad * 2) + f"{d4-d3}")
+    logger.info("COMPUTATIONAL TIME: RUNNING CLASSIFICATION".ljust(pad * 2) + f"{d5-d4}")
+    logger.info("COMPUTATIONAL TIME: SAVING OUTPUTS".ljust(pad * 2) + f"{d6-d5}")
+    logger.info("COMPUTATIONAL TIME: TOTAL".ljust(pad * 2) + f"{d6-d0}")
+    logging.info("END")
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ MAIN ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
+if __name__ == '__main__':
+    main()
+    sys.exit(0)

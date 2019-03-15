@@ -125,13 +125,13 @@ def from_file(input_file: str,
     # process data
 
     # out_id
-    if out_id is None:
+    if out_id is None and in_id is not None:
         out_id = in_id
     elif out_id != in_id:
         df.rename({in_id: out_id}, axis=1, inplace=True)
 
     # out_mol
-    if out_mol is None:
+    if out_mol is None and in_mol is not None:
         out_mol = in_mol
     elif out_mol != in_mol:
         df.rename({in_mol: out_mol}, axis=1, inplace=True)

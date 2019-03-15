@@ -68,6 +68,7 @@ class CombinationClassifier:
 
     def __init__(self):
         """Create an instance of FragmentCombinationClassifier."""
+        pass
 
     def get_rings_between_two_fragments(self, mol: Mol, aidxf1: set, aidxf2: set) -> list:
         """Returns the atom indices of every ring that connects two fragments together, defined by atom indices.
@@ -234,7 +235,8 @@ class CombinationClassifier:
         """
         ds_fcc = []
         for gid, g in df_aidxf.groupby('idm'):
-            mol = df_mols.loc[gid]['mol']
+            #mol = df_mols.loc[gid]['mol']
+            mol = df_mols[df_mols['idm'] == gid]['mol'].iloc[0]
             for i in range(len(g)):
                 aidxf1 = g.iloc[i]['aidxf']
                 idf1 = g.iloc[i]['idf']
