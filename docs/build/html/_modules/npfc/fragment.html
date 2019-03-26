@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.fragment &mdash; npfc 0.0.13-5-g47298b3 documentation</title>
+  <title>npfc.fragment &mdash; npfc 0.0.13-6-g1530e34 documentation</title>
   
 
   
@@ -56,7 +56,7 @@
             
             
               <div class="version">
-                0.0.13-5-g47298b3
+                0.0.13-6-g1530e34
               </div>
             
           
@@ -387,6 +387,9 @@
 <span class="sd">        :return: a DataFrame with all fragment combination classifications</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">ds_fcc</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="s1">&#39;idm&#39;</span> <span class="ow">in</span> <span class="n">df_mols</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Reindexing df with &#39;idm&#39;&quot;</span><span class="p">)</span>
+            <span class="n">df_mols</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">df_mols</span><span class="p">[</span><span class="s1">&#39;idm&#39;</span><span class="p">]</span>
         <span class="k">for</span> <span class="n">gid</span><span class="p">,</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">df_aidxf</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">&#39;idm&#39;</span><span class="p">):</span>
             <span class="n">mol</span> <span class="o">=</span> <span class="n">df_mols</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">gid</span><span class="p">][</span><span class="s1">&#39;mol&#39;</span><span class="p">]</span>
             <span class="c1"># mol = df_mols[df_mols[&#39;idm&#39;] == gid][&#39;mol&#39;].iloc[0]</span>

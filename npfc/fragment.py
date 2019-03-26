@@ -115,28 +115,29 @@ class CombinationClassifier:
         Possible classifications are:
 
         - fusion
-            - spiro
-            - edge
-            - bridged
-            - unkown
+            - spiro fsp)
+            - edge (fed)
+            - bridged (fbr)
+            - unkown (fun)
             - false_positive
-                - substructure
+                - substructure (ffs)
+                - overlap (ffo)
         - connection
-            - monopodal
+            - monopodal (cmo)
             - bipodal
-                - spiro
-                - edge
-                - bridged
+                - spiro (cbs)
+                - edge (cbe)
+                - bridged (cbb)
             - tripodal
-                - spiro
-                - edge
-                - bridged
+                - spiro (cts)
+                - edge (cte)
+                - bridged (ctb)
             - unknown
-                - spiro
-                - edge (##TODO: find an example molecule for this!)
-                - bridged
+                - spiro (cus)
+                - edge (cue)
+                - bridged (cub)
             - false_positive
-                - cutoff
+                - cutoff (cfc)
 
         :param mol: the input molecule
         :param aidxf1: the atom indices of the first fragment found in the molecule
@@ -149,24 +150,24 @@ class CombinationClassifier:
         logging.debug(f"aidx_fused: {aidx_fused}")
         # in case of overlapping fragments in the queries, we get overlapping matches
         if aidxf1.issubset(aidxf2) or aidxf2.issubset(aidxf1):
-            return {'category': 'fusion', 'type': 'false_positive', 'subtype': 'substructure'}
+            return {'category': 'fusion', 'type': 'false_positive', 'subtype': 'substructure', 'abbrev': 'ffs'}
         if len(aidx_fused) > 0:
             category = 'fusion'
             if len(aidx_fused) == 1:
-                return {'category': category, 'type': 'spiro', 'subtype': ''}
+                return {'category': category, 'type': 'spiro', 'subtype': '', 'abbrev': 'fsp'}
             elif len(aidx_fused) == 2:
-                return {'category': category, 'type': 'edge', 'subtype': ''}
+                return {'category': category, 'type': 'edge', 'subtype': '', 'abbrev': 'fed'}
             elif len(aidx_fused) == 3:
-                return {'category': category, 'type': 'bridged', 'subtype': ''}
+                return {'category': category, 'type': 'bridged', 'subtype': '', 'abbrev': 'fbr'}
             else:
                 sssr = mol.GetRingInfo().AtomRings()  # smallest sets of smallest rings
                 for aidxr in sssr:
                     # if at least one ring is completely present in the overlap between fragments,
                     # then it's a false positive due to the fragments overlap qnd not a combination.
                     if set(aidxr).issubset(aidx_fused):
-                        return {'category': category, 'type': 'false_positive', 'subtype': 'overlap'}
+                        return {'category': category, 'type': 'false_positive', 'subtype': 'overlap', 'abbrev': 'ffo'}
                 # something unknown with > 3 fused atoms!
-                return {'category': category, 'type': 'unknown', 'subtype': ''}
+                return {'category': category, 'type': 'unknown', 'subtype': '', 'abbrev': 'fun'}
         else:
             category = 'connection'
             logging.debug(f"category: {category}")
@@ -174,10 +175,10 @@ class CombinationClassifier:
             logging.debug(f"shortest_path_between_frags: {shortest_path_between_frags} ({len(shortest_path_between_frags)})")
             if len(shortest_path_between_frags) - 2 > cutoff:  # begin and end atoms are in the shortest path but should not be considered for cutoff
                 logging.debug(f"shortest_path_between_frags is greater than cutoff ({len(shortest_path_between_frags) - 2} > {cutoff})")
-                return {'category': category, 'type': 'false_positive', 'subtype': 'cutoff'}
+                return {'category': category, 'type': 'false_positive', 'subtype': 'cutoff', 'abbrev': 'cfc'}
             intermediary_rings = self.get_rings_between_two_fragments(mol, aidxf1, aidxf2)
             if len(intermediary_rings) == 0:
-                return {'category': category, 'type': 'monopodal', 'subtype': ''}
+                return {'category': category, 'type': 'monopodal', 'subtype': '', 'abbrev': 'cmo'}
             else:
                 intermediary_rings = self.get_rings_between_two_fragments(mol, aidxf1, aidxf2)
                 if len(intermediary_rings) == 1:
@@ -198,20 +199,20 @@ class CombinationClassifier:
         :param aidxf1: the atom indices of the first fragment found in the molecule
         :param aidxf2: the atom indices of the second fragment found in the molecule
         :param intermediary_rings: the list of intermediary rings between both fragments and defined by atom indices
-        :return: the dictionary specifying fragment combination category, type and subtype
+        :return: the dictionary specifying fragment combination category, type, subtype and abbrev
         """
         for ir in intermediary_rings:
             intersect_1 = ir.intersection(aidxf1)
             intersect_2 = ir.intersection(aidxf2)
             logging.debug(f"ir:{ir} => intersect_1: {intersect_1} ({len(intersect_1)}), intersect_2: {intersect_2} ({len(intersect_2)})")
             if len(intersect_1) == 1 or len(intersect_2) == 1:
-                return {'category': category, 'type': type, 'subtype': 'spiro'}
+                return {'category': category, 'type': type, 'subtype': 'spiro', 'abbrev': category[0] + type[0] + 's'}
             elif len(intersect_1) == 3 or len(intersect_2) == 3:
-                return {'category': category, 'type': type, 'subtype': 'bridged'}
+                return {'category': category, 'type': type, 'subtype': 'bridged', 'abbrev': category[0] + type[0] + 'b'}
             elif len(intersect_1) > 3 or len(intersect_2) > 3:
-                return {'category': category, 'type': type, 'subtype': 'unknown'}
+                return {'category': category, 'type': type, 'subtype': 'unknown', 'abbrev': category[0] + type[0] + 'u'}
         # edge otherwise
-        return {'category': category, 'type': type, 'subtype': 'edge'}
+        return {'category': category, 'type': type, 'subtype': 'edge', 'abbrev': category[0] + type[0] + 'e'}
 
     def classify_fragment_combinations(self, df_mols: DataFrame, df_aidxf: DataFrame) -> DataFrame:
         """Return a DataFrame with all fragment combination categories for a given set of
@@ -256,4 +257,4 @@ class CombinationClassifier:
                     d_fcc['aidxf2'] = aidxf2
                     ds_fcc.append(d_fcc)
         # dataframe with columns in given order
-        return DataFrame(ds_fcc, columns=['idm', 'idf1', 'idf2', 'category', 'type', 'subtype', 'aidxf1', 'aidxf2'])
+        return DataFrame(ds_fcc, columns=['idm', 'idf1', 'idf2', 'abbrev', 'category', 'type', 'subtype', 'aidxf1', 'aidxf2'])

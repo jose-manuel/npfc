@@ -162,7 +162,7 @@ def test_fcc_fusion_spiro(fcc, fm, df_mol_fusion_spiro, df_frags):
     df_aidxf = fm.run(df_mol_fusion_spiro, df_frags)
     df_fcc = fcc.classify_fragment_combinations(df_mol_fusion_spiro, df_aidxf)
     result = df_fcc.iloc[0]
-    assert result['category'] == 'fusion' and result['type'] == 'spiro' and result['subtype'] == ''
+    assert result['category'] == 'fusion' and result['type'] == 'spiro' and result['subtype'] == '' and result['abbrev'] == 'fsp'
 
 
 def test_fcc_fusion_edge(fcc, fm, df_mol_fusion_edge, df_frags):
@@ -170,7 +170,7 @@ def test_fcc_fusion_edge(fcc, fm, df_mol_fusion_edge, df_frags):
     df_aidxf = fm.run(df_mol_fusion_edge, df_frags)
     df_fcc = fcc.classify_fragment_combinations(df_mol_fusion_edge, df_aidxf)
     result = df_fcc.iloc[0]
-    assert result['category'] == 'fusion' and result['type'] == 'edge' and result['subtype'] == ''
+    assert result['category'] == 'fusion' and result['type'] == 'edge' and result['subtype'] == '' and result['abbrev'] == 'fed'
 
 
 def test_fcc_fusion_bridged(fcc, fm, df_mol_fusion_bridged, df_frags):
@@ -178,7 +178,7 @@ def test_fcc_fusion_bridged(fcc, fm, df_mol_fusion_bridged, df_frags):
     df_aidxf = fm.run(df_mol_fusion_bridged, df_frags)
     df_fcc = fcc.classify_fragment_combinations(df_mol_fusion_bridged, df_aidxf)
     result = df_fcc.iloc[0]
-    assert result['category'] == 'fusion' and result['type'] == 'bridged' and result['subtype'] == ''
+    assert result['category'] == 'fusion' and result['type'] == 'bridged' and result['subtype'] == '' and result['abbrev'] == 'fbr'
 
 
 def test_fcc_fusion_unknown(fcc, fm, df_mol_fusion_unknown, df_frags):
@@ -186,7 +186,7 @@ def test_fcc_fusion_unknown(fcc, fm, df_mol_fusion_unknown, df_frags):
     df_aidxf = fm.run(df_mol_fusion_unknown, df_frags)
     df_fcc = fcc.classify_fragment_combinations(df_mol_fusion_unknown, df_aidxf)
     result = df_fcc.iloc[0]
-    assert result['category'] == 'fusion' and result['type'] == 'unknown' and result['subtype'] == ''
+    assert result['category'] == 'fusion' and result['type'] == 'unknown' and result['subtype'] == '' and result['abbrev'] == 'fun'
 
 
 def test_fcc_connection_monopodal(fcc, fm, df_mol_connection_monopodal, df_frags):
@@ -194,7 +194,7 @@ def test_fcc_connection_monopodal(fcc, fm, df_mol_connection_monopodal, df_frags
     df_aidxf = fm.run(df_mol_connection_monopodal, df_frags)
     df_fcc = fcc.classify_fragment_combinations(df_mol_connection_monopodal, df_aidxf)
     result = df_fcc.iloc[0]
-    assert result['category'] == 'connection' and result['type'] == 'monopodal' and result['subtype'] == ''
+    assert result['category'] == 'connection' and result['type'] == 'monopodal' and result['subtype'] == '' and result['abbrev'] == 'cmo'
 
 
 def test_fcc_connection_bipodal_spiro(fcc, fm, df_mol_connection_bipodal_spiro, df_frags):
@@ -202,7 +202,7 @@ def test_fcc_connection_bipodal_spiro(fcc, fm, df_mol_connection_bipodal_spiro, 
     df_aidxf = fm.run(df_mol_connection_bipodal_spiro, df_frags)
     df_fcc = fcc.classify_fragment_combinations(df_mol_connection_bipodal_spiro, df_aidxf)
     result = df_fcc.iloc[0]
-    assert result['category'] == 'connection' and result['type'] == 'bipodal' and result['subtype'] == 'spiro'
+    assert result['category'] == 'connection' and result['type'] == 'bipodal' and result['subtype'] == 'spiro' and result['abbrev'] == 'cbs'
 
 
 def test_fcc_connection_bipodal_edge(fcc, fm, df_mol_connection_bipodal_edge, df_frags):
@@ -210,7 +210,7 @@ def test_fcc_connection_bipodal_edge(fcc, fm, df_mol_connection_bipodal_edge, df
     df_aidxf = fm.run(df_mol_connection_bipodal_edge, df_frags)
     df_fcc = fcc.classify_fragment_combinations(df_mol_connection_bipodal_edge, df_aidxf)
     result = df_fcc.iloc[0]
-    assert result['category'] == 'connection' and result['type'] == 'bipodal' and result['subtype'] == 'edge'
+    assert result['category'] == 'connection' and result['type'] == 'bipodal' and result['subtype'] == 'edge' and result['abbrev'] == 'cbe'
 
 
 def test_fcc_connection_bipodal_bridged(fcc, fm, df_mol_connection_bipodal_bridged, df_frags):
@@ -218,7 +218,7 @@ def test_fcc_connection_bipodal_bridged(fcc, fm, df_mol_connection_bipodal_bridg
     df_aidxf = fm.run(df_mol_connection_bipodal_bridged, df_frags)
     df_fcc = fcc.classify_fragment_combinations(df_mol_connection_bipodal_bridged, df_aidxf)
     result = df_fcc.iloc[0]
-    assert result['category'] == 'connection' and result['type'] == 'bipodal' and result['subtype'] == 'bridged'
+    assert result['category'] == 'connection' and result['type'] == 'bipodal' and result['subtype'] == 'bridged' and result['abbrev'] == 'cbb'
 
 
 def test_fcc_connection_tripodal_spiro(fcc, fm, df_mol_connection_tripodal_spiro, df_frags):
@@ -226,7 +226,7 @@ def test_fcc_connection_tripodal_spiro(fcc, fm, df_mol_connection_tripodal_spiro
     df_aidxf = fm.run(df_mol_connection_tripodal_spiro, df_frags)
     df_fcc = fcc.classify_fragment_combinations(df_mol_connection_tripodal_spiro, df_aidxf)
     result = df_fcc.iloc[0]
-    assert result['category'] == 'connection' and result['type'] == 'tripodal' and result['subtype'] == 'spiro'
+    assert result['category'] == 'connection' and result['type'] == 'tripodal' and result['subtype'] == 'spiro' and result['abbrev'] == 'cts'
 
 
 def test_fcc_connection_tripodal_edge(fcc, fm, df_mol_connection_tripodal_edge, df_frags):
@@ -234,7 +234,7 @@ def test_fcc_connection_tripodal_edge(fcc, fm, df_mol_connection_tripodal_edge, 
     df_aidxf = fm.run(df_mol_connection_tripodal_edge, df_frags)
     df_fcc = fcc.classify_fragment_combinations(df_mol_connection_tripodal_edge, df_aidxf)
     result = df_fcc.iloc[0]
-    assert result['category'] == 'connection' and result['type'] == 'tripodal' and result['subtype'] == 'edge'
+    assert result['category'] == 'connection' and result['type'] == 'tripodal' and result['subtype'] == 'edge' and result['abbrev'] == 'cte'
 
 
 def test_fcc_connection_tripodal_bridged(fcc, fm, df_mol_connection_tripodal_bridged, df_frags):
@@ -242,7 +242,7 @@ def test_fcc_connection_tripodal_bridged(fcc, fm, df_mol_connection_tripodal_bri
     df_aidxf = fm.run(df_mol_connection_tripodal_bridged, df_frags)
     df_fcc = fcc.classify_fragment_combinations(df_mol_connection_tripodal_bridged, df_aidxf)
     result = df_fcc.iloc[0]
-    assert result['category'] == 'connection' and result['type'] == 'tripodal' and result['subtype'] == 'bridged'
+    assert result['category'] == 'connection' and result['type'] == 'tripodal' and result['subtype'] == 'bridged' and result['abbrev'] == 'ctb'
 
 
 def test_fcc_connection_unknown_spiro(fcc, fm, df_mol_connection_unknown_spiro, df_frags):
@@ -250,7 +250,7 @@ def test_fcc_connection_unknown_spiro(fcc, fm, df_mol_connection_unknown_spiro, 
     df_aidxf = fm.run(df_mol_connection_unknown_spiro, df_frags)
     df_fcc = fcc.classify_fragment_combinations(df_mol_connection_unknown_spiro, df_aidxf)
     result = df_fcc.iloc[0]
-    assert result['category'] == 'connection' and result['type'] == 'unknown' and result['subtype'] == 'spiro'
+    assert result['category'] == 'connection' and result['type'] == 'unknown' and result['subtype'] == 'spiro' and result['abbrev'] == 'cus'
 
 
 @pytest.mark.skip   # could not come up with an example!
@@ -259,7 +259,7 @@ def test_fcc_connection_unknown_edge(fcc, fm, df_mol_connection_unknown_edge, df
     df_aidxf = fm.run(df_mol_connection_unknown_edge, df_frags)
     df_fcc = fcc.classify_fragment_combinations(df_mol_connection_unknown_edge, df_aidxf)
     result = df_fcc.iloc[0]
-    assert result['category'] == 'connection' and result['type'] == 'unknown' and result['subtype'] == 'edge'
+    assert result['category'] == 'connection' and result['type'] == 'unknown' and result['subtype'] == 'edge' and result['abbrev'] == 'cue'
 
 
 def test_fcc_connection_unknown_bridged(fcc, fm, df_mol_connection_unknown_bridged, df_frags):
@@ -267,7 +267,7 @@ def test_fcc_connection_unknown_bridged(fcc, fm, df_mol_connection_unknown_bridg
     df_aidxf = fm.run(df_mol_connection_unknown_bridged, df_frags)
     df_fcc = fcc.classify_fragment_combinations(df_mol_connection_unknown_bridged, df_aidxf)
     result = df_fcc.iloc[0]
-    assert result['category'] == 'connection' and result['type'] == 'unknown' and result['subtype'] == 'bridged'
+    assert result['category'] == 'connection' and result['type'] == 'unknown' and result['subtype'] == 'bridged' and result['abbrev'] == 'cub'
 
 
 def test_fcc_fusion_false_positive_substructure(fcc, fm, df_mol_fusion_false_positive_substructure, df_frags_fusion_false_positive_substructure):
@@ -275,11 +275,11 @@ def test_fcc_fusion_false_positive_substructure(fcc, fm, df_mol_fusion_false_pos
     df_aidxf = fm.run(df_mol_fusion_false_positive_substructure, df_frags_fusion_false_positive_substructure)
     df_fcc = fcc.classify_fragment_combinations(df_mol_fusion_false_positive_substructure, df_aidxf)
     result = df_fcc.iloc[0]
-    assert result['category'] == 'fusion' and result['type'] == 'false_positive' and result['subtype'] == 'substructure'
+    assert result['category'] == 'fusion' and result['type'] == 'false_positive' and result['subtype'] == 'substructure' and result['abbrev'] == 'ffs'
 
 
 def test_fcc_connection_false_positive_cutoff(fcc, fm, df_mol_connection_false_positive_cutoff, df_frags):
     df_aidxf = fm.run(df_mol_connection_false_positive_cutoff, df_frags)
     df_fcc = fcc.classify_fragment_combinations(df_mol_connection_false_positive_cutoff, df_aidxf)
     result = df_fcc.iloc[0]
-    assert result['category'] == 'connection' and result['type'] == 'false_positive' and result['subtype'] == 'cutoff'
+    assert result['category'] == 'connection' and result['type'] == 'false_positive' and result['subtype'] == 'cutoff' and result['abbrev'] == 'cfc'
