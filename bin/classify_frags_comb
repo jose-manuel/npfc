@@ -22,7 +22,8 @@ from npfc import load
 from npfc import save
 from npfc import utils
 from npfc import fragment
-
+# disable SettingWithCopyWarning warnings
+pd.options.mode.chained_assignment = None  # default='warn'
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
@@ -114,6 +115,7 @@ def main():
         logging.error(f"NO SUBSTRUCTURE MATCHES LEFT SO ABORTING EXECUTION")
         sys.exit(2)
 
+    # extract sets from strings
     df_sub['aidxf'] = df_sub['aidxf'].map(lambda x: set(json.loads(x.replace('{', '[').replace('}', ']'))))
 
     # load mols

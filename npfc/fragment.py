@@ -234,6 +234,9 @@ class CombinationClassifier:
         :return: a DataFrame with all fragment combination classifications
         """
         ds_fcc = []
+        if 'idm' in df_mols.columns:
+            logging.debug("Reindexing df with 'idm'")
+            df_mols.index = df_mols['idm']
         for gid, g in df_aidxf.groupby('idm'):
             mol = df_mols.loc[gid]['mol']
             # mol = df_mols[df_mols['idm'] == gid]['mol'].iloc[0]

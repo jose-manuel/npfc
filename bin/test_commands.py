@@ -33,7 +33,7 @@ WD = '/tmp/npfc_test/'  # would be cool if WD could be specified so it could wor
 @pytest.fixture
 def df_mols():
     """Example of a DataFrame with some molecules with a phenyl."""
-    df = pd.DataFrame({'mol': ['C1CCCCC1', 'C1CCCCC1', 'NC1CCCC1', 'FC1CCCCC1', '[Cl]C1CCCCC1'],
+    df = pd.DataFrame({'mol': ['C1CCCCC1', 'C1CCCCC1', 'NC1CCCC1', 'FC1CCC1', 'C1CCC(CC1)C1CCCCC1'],
                        })
     df['idm'] = [f"mol_{i}" for i in range(len(df.index))]
     df['mol'] = df['mol'].map(Chem.MolFromSmiles)
@@ -128,6 +128,18 @@ def test_substruct_mols():
     return_code = sp.call(command, shell=True)
     assert return_code == 0
     assert Path(output_sub).is_file() is True
+
+
+def test_classify_frags_comb():
+    """Classify identified fragment combinations"""
+    print()
+    input_mols = WD + 'test_commands_mols_out_passed.csv.gz'
+    input_sub = WD + 'test_commands_frags_out_sub.csv.gz'
+    output_fcc = WD + 'test_commands_frags_out_fcc.csv.gz'
+    command = f"""classify_frags_comb {input_mols} {input_sub} {output_fcc}"""
+    return_code = sp.call(command, shell=True)
+    assert return_code == 0
+    assert Path(output_fcc).is_file() is True
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ MAIN ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
