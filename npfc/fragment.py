@@ -235,8 +235,8 @@ class CombinationClassifier:
         """
         ds_fcc = []
         for gid, g in df_aidxf.groupby('idm'):
-            #mol = df_mols.loc[gid]['mol']
-            mol = df_mols[df_mols['idm'] == gid]['mol'].iloc[0]
+            mol = df_mols.loc[gid]['mol']
+            # mol = df_mols[df_mols['idm'] == gid]['mol'].iloc[0]
             for i in range(len(g)):
                 aidxf1 = g.iloc[i]['aidxf']
                 idf1 = g.iloc[i]['idf']
