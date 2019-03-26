@@ -5,4 +5,4 @@ dist/
 .eggs/
 *.egg-info/
 tests/tmp/*
-docs/build
+docs/build/*
