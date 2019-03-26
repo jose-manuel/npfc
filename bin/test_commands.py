@@ -45,7 +45,7 @@ def df_mols():
 
 
 @pytest.fixture
-def df_fragsl():
+def df_frags():
     """Example of a DataFrame with some fragments, including a phenyl."""
     df = pd.DataFrame({'mol': ['C1CCCCC1', 'C1CCCC1'],
                        })
@@ -58,7 +58,7 @@ def df_fragsl():
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ TESTS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 
-def test_init_files(df_mols, df_fragsl):
+def test_init_files(df_mols, df_frags):
     pass
 
 
@@ -67,6 +67,17 @@ def test_load_mols():
     print()
     input_file = WD + 'test_commands_mols_in.sdf'
     output_file = WD + 'test_commands_mols_out.csv.gz'
+    command = f"""load_mols {input_file} {output_file} --in_id _Name --out_id idm"""
+    return_code = sp.call(command, shell=True)
+    assert return_code == 0
+    assert Path(output_file).is_file() is True
+
+
+def test_load_frags():
+    """Load frags in SDF format and export them as base64 in a csv.gz file."""
+    print()
+    input_file = WD + 'test_commands_frags_in.sdf'
+    output_file = WD + 'test_commands_frags_out.csv.gz'
     command = f"""load_mols {input_file} {output_file} --in_id _Name --out_id idm"""
     return_code = sp.call(command, shell=True)
     assert return_code == 0
@@ -88,6 +99,35 @@ def test_standardize_mols():
     assert Path(output_passed).is_file() is True
     assert Path(output_filtered).is_file() is True
     assert Path(output_error).is_file() is True
+
+
+def test_standardize_frags():
+    """Standardize fragment structures."""
+    print()
+    input_file = WD + 'test_commands_frags_out.csv.gz'
+    ref_file = WD + 'test_commands_frags_ref.hdf'
+    output_passed = WD + 'test_commands_frags_out_passed.csv.gz'
+    output_filtered = WD + 'test_commands_frags_out_filtered.csv.gz'
+    output_error = WD + 'test_commands_frags_out_error.csv.gz'
+    command = f"""standardize_mols {input_file} -r {ref_file}"""
+    return_code = sp.call(command, shell=True)
+    assert return_code == 0
+    assert Path(ref_file).is_file() is True
+    assert Path(output_passed).is_file() is True
+    assert Path(output_filtered).is_file() is True
+    assert Path(output_error).is_file() is True
+
+
+def test_substruct_mols():
+    """Run a substructure search on standardized mols and frags"""
+    print()
+    input_mols = WD + 'test_commands_mols_out_passed.csv.gz'
+    input_frags = WD + 'test_commands_frags_out_passed.csv.gz'
+    output_sub = WD + 'test_commands_frags_out_sub.csv.gz'
+    command = f"""substruct_mols {input_mols} {input_frags} {output_sub}"""
+    return_code = sp.call(command, shell=True)
+    assert return_code == 0
+    assert Path(output_sub).is_file() is True
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ MAIN ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
