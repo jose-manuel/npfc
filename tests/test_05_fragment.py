@@ -40,6 +40,47 @@ def df_frags():
 
 
 @pytest.fixture
+def df_fcc():
+    """A simple fragment combination classification but complicated enough for testing fragment maps"""
+    # raw data extracted from chembl_031_passed_synth_crm_fcc.csv.gz:
+    # 3|CHEMBL1421|32|139|connection|false_positive|cutoff|{4, 5, 6, 22, 23, 24}|{8, 9, 10, 11, 27, 28}
+    # 4|CHEMBL1421|32|547|connection|monopodal||{4, 5, 6, 22, 23, 24}|{0, 1, 18, 19, 20}
+    # 5|CHEMBL1421|32|718|connection|false_positive|cutoff|{4, 5, 6, 22, 23, 24}|{3, 13, 14, 29, 30, 31}
+    # 6|CHEMBL1421|32|818|connection|false_positive|cutoff|{4, 5, 6, 22, 23, 24}|{8, 9, 10, 11, 17, 27, 28}
+    # 7|CHEMBL1421|139|547|connection|monopodal||{8, 9, 10, 11, 27, 28}|{0, 1, 18, 19, 20}
+    # 8|CHEMBL1421|139|718|connection|monopodal||{8, 9, 10, 11, 27, 28}|{3, 13, 14, 29, 30, 31}
+    # 9|CHEMBL1421|139|818|fusion|false_positive|substructure|{8, 9, 10, 11, 27, 28}|{8, 9, 10, 11, 17, 27, 28}
+    # 10|CHEMBL1421|547|718|connection|false_positive|cutoff|{0, 1, 18, 19, 20}|{3, 13, 14, 29, 30, 31}
+    # 11|CHEMBL1421|547|818|connection|monopodal||{0, 1, 18, 19, 20}|{8, 9, 10, 11, 17, 27, 28}
+    # 12|CHEMBL1421|718|818|connection|monopodal||{3, 13, 14, 29, 30, 31}|{8, 9, 10, 11, 17, 27, 28}
+
+    return pd.DataFrame({'idm': ['CHEMBL1421'] * 10,
+                         'idf1': [32, 32, 32, 32, 139, 139, 139, 547, 547, 718],
+                         'idf2': [139, 547, 718, 818, 547, 718, 818, 718, 818, 818],
+                         'abbrev': ['cfc', 'cmo', 'cfc', 'cfc', 'cmo', 'cmo', 'ffs', 'cfc', 'cmo', 'cmo'],
+                         'category': ['connection'] * 6 + ['fusion'] + ['connection'] * 3,
+                         'type': ['false_positive', 'monopodal', 'false_positive', 'false_positive',
+                                  'monopodal', 'monopodal', 'false_positive', 'false_positive',
+                                  'monopodal', 'monopodal',
+                                  ],
+                         'subtype': ['cutoff', '', 'cutoff', 'cutoff', '', '', 'substructure',
+                                     'cutoff', '', ''],
+                         'aidxf1': [{4, 5, 6, 22, 23, 24}, {4, 5, 6, 22, 23, 24},
+                                    {4, 5, 6, 22, 23, 24}, {4, 5, 6, 22, 23, 24},
+                                    {8, 9, 10, 11, 27, 28}, {8, 9, 10, 11, 27, 28},
+                                    {8, 9, 10, 11, 27, 28}, {0, 1, 18, 19, 20},
+                                    {0, 1, 18, 19, 20}, {3, 13, 14, 29, 30, 31},
+                                    ],
+                         'aidxf2': [{8, 9, 10, 11, 27, 28}, {0, 1, 18, 19, 20},
+                                    {3, 13, 14, 29, 30, 31}, {8, 9, 10, 11, 17, 27, 28},
+                                    {0, 1, 18, 19, 20}, {3, 13, 14, 29, 30, 31},
+                                    {8, 9, 10, 11, 17, 27, 28}, {3, 13, 14, 29, 30, 31},
+                                    {8, 9, 10, 11, 17, 27, 28}, {8, 9, 10, 11, 17, 27, 28},
+                                    ],
+                         })
+
+
+@pytest.fixture
 def df_mol_fusion_spiro():
     """Example molecule with the fusion spiro fragment combination."""
     return pd.DataFrame({'mol': [Chem.MolFromSmiles('C1CC2(CN1)CCCOC2')]}, index=['m_fs'])
@@ -279,7 +320,13 @@ def test_fcc_fusion_false_positive_substructure(fcc, fm, df_mol_fusion_false_pos
 
 
 def test_fcc_connection_false_positive_cutoff(fcc, fm, df_mol_connection_false_positive_cutoff, df_frags):
+    """Check if fusion false_positive cutoff fragment combinations are identified."""
     df_aidxf = fm.run(df_mol_connection_false_positive_cutoff, df_frags)
     df_fcc = fcc.classify_fragment_combinations(df_mol_connection_false_positive_cutoff, df_aidxf)
     result = df_fcc.iloc[0]
     assert result['category'] == 'connection' and result['type'] == 'false_positive' and result['subtype'] == 'cutoff' and result['abbrev'] == 'cfc'
+
+
+def test_fcc_fragmap(fcc, df_fcc):
+    """Check the fragment map functionality"""
+    print(fcc.map_frags(df_fcc))

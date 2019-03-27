@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.fragment &mdash; npfc 0.0.13-6-g1530e34 documentation</title>
+  <title>npfc.fragment &mdash; npfc 0.0.13-7-g097fd80 documentation</title>
   
 
   
@@ -56,7 +56,7 @@
             
             
               <div class="version">
-                0.0.13-6-g1530e34
+                0.0.13-7-g097fd80
               </div>
             
           
@@ -268,28 +268,29 @@
 <span class="sd">        Possible classifications are:</span>
 
 <span class="sd">        - fusion</span>
-<span class="sd">            - spiro</span>
-<span class="sd">            - edge</span>
-<span class="sd">            - bridged</span>
-<span class="sd">            - unkown</span>
+<span class="sd">            - spiro fsp)</span>
+<span class="sd">            - edge (fed)</span>
+<span class="sd">            - bridged (fbr)</span>
+<span class="sd">            - unkown (fun)</span>
 <span class="sd">            - false_positive</span>
-<span class="sd">                - substructure</span>
+<span class="sd">                - substructure (ffs)</span>
+<span class="sd">                - overlap (ffo)</span>
 <span class="sd">        - connection</span>
-<span class="sd">            - monopodal</span>
+<span class="sd">            - monopodal (cmo)</span>
 <span class="sd">            - bipodal</span>
-<span class="sd">                - spiro</span>
-<span class="sd">                - edge</span>
-<span class="sd">                - bridged</span>
+<span class="sd">                - spiro (cbs)</span>
+<span class="sd">                - edge (cbe)</span>
+<span class="sd">                - bridged (cbb)</span>
 <span class="sd">            - tripodal</span>
-<span class="sd">                - spiro</span>
-<span class="sd">                - edge</span>
-<span class="sd">                - bridged</span>
+<span class="sd">                - spiro (cts)</span>
+<span class="sd">                - edge (cte)</span>
+<span class="sd">                - bridged (ctb)</span>
 <span class="sd">            - unknown</span>
-<span class="sd">                - spiro</span>
-<span class="sd">                - edge (##TODO: find an example molecule for this!)</span>
-<span class="sd">                - bridged</span>
+<span class="sd">                - spiro (cus)</span>
+<span class="sd">                - edge (cue)</span>
+<span class="sd">                - bridged (cub)</span>
 <span class="sd">            - false_positive</span>
-<span class="sd">                - cutoff</span>
+<span class="sd">                - cutoff (cfc)</span>
 
 <span class="sd">        :param mol: the input molecule</span>
 <span class="sd">        :param aidxf1: the atom indices of the first fragment found in the molecule</span>
@@ -302,24 +303,24 @@
         <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;aidx_fused: </span><span class="si">{aidx_fused}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="c1"># in case of overlapping fragments in the queries, we get overlapping matches</span>
         <span class="k">if</span> <span class="n">aidxf1</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="n">aidxf2</span><span class="p">)</span> <span class="ow">or</span> <span class="n">aidxf2</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="n">aidxf1</span><span class="p">):</span>
-            <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;category&#39;</span><span class="p">:</span> <span class="s1">&#39;fusion&#39;</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;false_positive&#39;</span><span class="p">,</span> <span class="s1">&#39;subtype&#39;</span><span class="p">:</span> <span class="s1">&#39;substructure&#39;</span><span class="p">}</span>
+            <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;category&#39;</span><span class="p">:</span> <span class="s1">&#39;fusion&#39;</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;false_positive&#39;</span><span class="p">,</span> <span class="s1">&#39;subtype&#39;</span><span class="p">:</span> <span class="s1">&#39;substructure&#39;</span><span class="p">,</span> <span class="s1">&#39;abbrev&#39;</span><span class="p">:</span> <span class="s1">&#39;ffs&#39;</span><span class="p">}</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">aidx_fused</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">category</span> <span class="o">=</span> <span class="s1">&#39;fusion&#39;</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">aidx_fused</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;category&#39;</span><span class="p">:</span> <span class="n">category</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;spiro&#39;</span><span class="p">,</span> <span class="s1">&#39;subtype&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">}</span>
+                <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;category&#39;</span><span class="p">:</span> <span class="n">category</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;spiro&#39;</span><span class="p">,</span> <span class="s1">&#39;subtype&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;abbrev&#39;</span><span class="p">:</span> <span class="s1">&#39;fsp&#39;</span><span class="p">}</span>
             <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">aidx_fused</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
-                <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;category&#39;</span><span class="p">:</span> <span class="n">category</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;edge&#39;</span><span class="p">,</span> <span class="s1">&#39;subtype&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">}</span>
+                <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;category&#39;</span><span class="p">:</span> <span class="n">category</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;edge&#39;</span><span class="p">,</span> <span class="s1">&#39;subtype&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;abbrev&#39;</span><span class="p">:</span> <span class="s1">&#39;fed&#39;</span><span class="p">}</span>
             <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">aidx_fused</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
-                <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;category&#39;</span><span class="p">:</span> <span class="n">category</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;bridged&#39;</span><span class="p">,</span> <span class="s1">&#39;subtype&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">}</span>
+                <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;category&#39;</span><span class="p">:</span> <span class="n">category</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;bridged&#39;</span><span class="p">,</span> <span class="s1">&#39;subtype&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;abbrev&#39;</span><span class="p">:</span> <span class="s1">&#39;fbr&#39;</span><span class="p">}</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">sssr</span> <span class="o">=</span> <span class="n">mol</span><span class="o">.</span><span class="n">GetRingInfo</span><span class="p">()</span><span class="o">.</span><span class="n">AtomRings</span><span class="p">()</span>  <span class="c1"># smallest sets of smallest rings</span>
                 <span class="k">for</span> <span class="n">aidxr</span> <span class="ow">in</span> <span class="n">sssr</span><span class="p">:</span>
                     <span class="c1"># if at least one ring is completely present in the overlap between fragments,</span>
                     <span class="c1"># then it&#39;s a false positive due to the fragments overlap qnd not a combination.</span>
                     <span class="k">if</span> <span class="nb">set</span><span class="p">(</span><span class="n">aidxr</span><span class="p">)</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="n">aidx_fused</span><span class="p">):</span>
-                        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;category&#39;</span><span class="p">:</span> <span class="n">category</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;false_positive&#39;</span><span class="p">,</span> <span class="s1">&#39;subtype&#39;</span><span class="p">:</span> <span class="s1">&#39;overlap&#39;</span><span class="p">}</span>
+                        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;category&#39;</span><span class="p">:</span> <span class="n">category</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;false_positive&#39;</span><span class="p">,</span> <span class="s1">&#39;subtype&#39;</span><span class="p">:</span> <span class="s1">&#39;overlap&#39;</span><span class="p">,</span> <span class="s1">&#39;abbrev&#39;</span><span class="p">:</span> <span class="s1">&#39;ffo&#39;</span><span class="p">}</span>
                 <span class="c1"># something unknown with &gt; 3 fused atoms!</span>
-                <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;category&#39;</span><span class="p">:</span> <span class="n">category</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;unknown&#39;</span><span class="p">,</span> <span class="s1">&#39;subtype&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">}</span>
+                <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;category&#39;</span><span class="p">:</span> <span class="n">category</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;unknown&#39;</span><span class="p">,</span> <span class="s1">&#39;subtype&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;abbrev&#39;</span><span class="p">:</span> <span class="s1">&#39;fun&#39;</span><span class="p">}</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">category</span> <span class="o">=</span> <span class="s1">&#39;connection&#39;</span>
             <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;category: </span><span class="si">{category}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -327,10 +328,10 @@
             <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;shortest_path_between_frags: </span><span class="si">{shortest_path_between_frags}</span><span class="s2"> ({len(shortest_path_between_frags)})&quot;</span><span class="p">)</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">shortest_path_between_frags</span><span class="p">)</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">&gt;</span> <span class="n">cutoff</span><span class="p">:</span>  <span class="c1"># begin and end atoms are in the shortest path but should not be considered for cutoff</span>
                 <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;shortest_path_between_frags is greater than cutoff ({len(shortest_path_between_frags) - 2} &gt; </span><span class="si">{cutoff}</span><span class="s2">)&quot;</span><span class="p">)</span>
-                <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;category&#39;</span><span class="p">:</span> <span class="n">category</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;false_positive&#39;</span><span class="p">,</span> <span class="s1">&#39;subtype&#39;</span><span class="p">:</span> <span class="s1">&#39;cutoff&#39;</span><span class="p">}</span>
+                <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;category&#39;</span><span class="p">:</span> <span class="n">category</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;false_positive&#39;</span><span class="p">,</span> <span class="s1">&#39;subtype&#39;</span><span class="p">:</span> <span class="s1">&#39;cutoff&#39;</span><span class="p">,</span> <span class="s1">&#39;abbrev&#39;</span><span class="p">:</span> <span class="s1">&#39;cfc&#39;</span><span class="p">}</span>
             <span class="n">intermediary_rings</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_rings_between_two_fragments</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">aidxf1</span><span class="p">,</span> <span class="n">aidxf2</span><span class="p">)</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">intermediary_rings</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;category&#39;</span><span class="p">:</span> <span class="n">category</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;monopodal&#39;</span><span class="p">,</span> <span class="s1">&#39;subtype&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">}</span>
+                <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;category&#39;</span><span class="p">:</span> <span class="n">category</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;monopodal&#39;</span><span class="p">,</span> <span class="s1">&#39;subtype&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;abbrev&#39;</span><span class="p">:</span> <span class="s1">&#39;cmo&#39;</span><span class="p">}</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">intermediary_rings</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_rings_between_two_fragments</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">aidxf1</span><span class="p">,</span> <span class="n">aidxf2</span><span class="p">)</span>
                 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">intermediary_rings</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
@@ -351,20 +352,20 @@
 <span class="sd">        :param aidxf1: the atom indices of the first fragment found in the molecule</span>
 <span class="sd">        :param aidxf2: the atom indices of the second fragment found in the molecule</span>
 <span class="sd">        :param intermediary_rings: the list of intermediary rings between both fragments and defined by atom indices</span>
-<span class="sd">        :return: the dictionary specifying fragment combination category, type and subtype</span>
+<span class="sd">        :return: the dictionary specifying fragment combination category, type, subtype and abbrev</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">for</span> <span class="n">ir</span> <span class="ow">in</span> <span class="n">intermediary_rings</span><span class="p">:</span>
             <span class="n">intersect_1</span> <span class="o">=</span> <span class="n">ir</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">aidxf1</span><span class="p">)</span>
             <span class="n">intersect_2</span> <span class="o">=</span> <span class="n">ir</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">aidxf2</span><span class="p">)</span>
             <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;ir:</span><span class="si">{ir}</span><span class="s2"> =&gt; intersect_1: </span><span class="si">{intersect_1}</span><span class="s2"> ({len(intersect_1)}), intersect_2: </span><span class="si">{intersect_2}</span><span class="s2"> ({len(intersect_2)})&quot;</span><span class="p">)</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">intersect_1</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">intersect_2</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;category&#39;</span><span class="p">:</span> <span class="n">category</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="nb">type</span><span class="p">,</span> <span class="s1">&#39;subtype&#39;</span><span class="p">:</span> <span class="s1">&#39;spiro&#39;</span><span class="p">}</span>
+                <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;category&#39;</span><span class="p">:</span> <span class="n">category</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="nb">type</span><span class="p">,</span> <span class="s1">&#39;subtype&#39;</span><span class="p">:</span> <span class="s1">&#39;spiro&#39;</span><span class="p">,</span> <span class="s1">&#39;abbrev&#39;</span><span class="p">:</span> <span class="n">category</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="nb">type</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;s&#39;</span><span class="p">}</span>
             <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">intersect_1</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">intersect_2</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
-                <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;category&#39;</span><span class="p">:</span> <span class="n">category</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="nb">type</span><span class="p">,</span> <span class="s1">&#39;subtype&#39;</span><span class="p">:</span> <span class="s1">&#39;bridged&#39;</span><span class="p">}</span>
+                <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;category&#39;</span><span class="p">:</span> <span class="n">category</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="nb">type</span><span class="p">,</span> <span class="s1">&#39;subtype&#39;</span><span class="p">:</span> <span class="s1">&#39;bridged&#39;</span><span class="p">,</span> <span class="s1">&#39;abbrev&#39;</span><span class="p">:</span> <span class="n">category</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="nb">type</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;b&#39;</span><span class="p">}</span>
             <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">intersect_1</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">3</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">intersect_2</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">3</span><span class="p">:</span>
-                <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;category&#39;</span><span class="p">:</span> <span class="n">category</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="nb">type</span><span class="p">,</span> <span class="s1">&#39;subtype&#39;</span><span class="p">:</span> <span class="s1">&#39;unknown&#39;</span><span class="p">}</span>
+                <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;category&#39;</span><span class="p">:</span> <span class="n">category</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="nb">type</span><span class="p">,</span> <span class="s1">&#39;subtype&#39;</span><span class="p">:</span> <span class="s1">&#39;unknown&#39;</span><span class="p">,</span> <span class="s1">&#39;abbrev&#39;</span><span class="p">:</span> <span class="n">category</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="nb">type</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;u&#39;</span><span class="p">}</span>
         <span class="c1"># edge otherwise</span>
-        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;category&#39;</span><span class="p">:</span> <span class="n">category</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="nb">type</span><span class="p">,</span> <span class="s1">&#39;subtype&#39;</span><span class="p">:</span> <span class="s1">&#39;edge&#39;</span><span class="p">}</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;category&#39;</span><span class="p">:</span> <span class="n">category</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="nb">type</span><span class="p">,</span> <span class="s1">&#39;subtype&#39;</span><span class="p">:</span> <span class="s1">&#39;edge&#39;</span><span class="p">,</span> <span class="s1">&#39;abbrev&#39;</span><span class="p">:</span> <span class="n">category</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="nb">type</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;e&#39;</span><span class="p">}</span>
 
 <div class="viewcode-block" id="CombinationClassifier.classify_fragment_combinations"><a class="viewcode-back" href="../../fragment.html#npfc.fragment.CombinationClassifier.classify_fragment_combinations">[docs]</a>    <span class="k">def</span> <span class="nf">classify_fragment_combinations</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df_mols</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">,</span> <span class="n">df_aidxf</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Return a DataFrame with all fragment combination categories for a given set of</span>
@@ -409,7 +410,7 @@
                     <span class="n">d_fcc</span><span class="p">[</span><span class="s1">&#39;aidxf2&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">aidxf2</span>
                     <span class="n">ds_fcc</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d_fcc</span><span class="p">)</span>
         <span class="c1"># dataframe with columns in given order</span>
-        <span class="k">return</span> <span class="n">DataFrame</span><span class="p">(</span><span class="n">ds_fcc</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;idm&#39;</span><span class="p">,</span> <span class="s1">&#39;idf1&#39;</span><span class="p">,</span> <span class="s1">&#39;idf2&#39;</span><span class="p">,</span> <span class="s1">&#39;category&#39;</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">,</span> <span class="s1">&#39;subtype&#39;</span><span class="p">,</span> <span class="s1">&#39;aidxf1&#39;</span><span class="p">,</span> <span class="s1">&#39;aidxf2&#39;</span><span class="p">])</span></div></div>
+        <span class="k">return</span> <span class="n">DataFrame</span><span class="p">(</span><span class="n">ds_fcc</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;idm&#39;</span><span class="p">,</span> <span class="s1">&#39;idf1&#39;</span><span class="p">,</span> <span class="s1">&#39;idf2&#39;</span><span class="p">,</span> <span class="s1">&#39;abbrev&#39;</span><span class="p">,</span> <span class="s1">&#39;category&#39;</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">,</span> <span class="s1">&#39;subtype&#39;</span><span class="p">,</span> <span class="s1">&#39;aidxf1&#39;</span><span class="p">,</span> <span class="s1">&#39;aidxf2&#39;</span><span class="p">])</span></div></div>
 </pre></div>
 
            </div>

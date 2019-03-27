@@ -149,7 +149,9 @@ class CombinationClassifier:
         aidx_fused = aidxf1.intersection(aidxf2)
         logging.debug(f"aidx_fused: {aidx_fused}")
         # in case of overlapping fragments in the queries, we get overlapping matches
-        if aidxf1.issubset(aidxf2) or aidxf2.issubset(aidxf1):
+        if aidxf1.issubset(aidxf2):
+            return {'category': 'fusion', 'type': 'false_positive', 'subtype': 'substructure', 'abbrev': 'ffs'}
+        elif aidxf2.issubset(aidxf1):
             return {'category': 'fusion', 'type': 'false_positive', 'subtype': 'substructure', 'abbrev': 'ffs'}
         if len(aidx_fused) > 0:
             category = 'fusion'
@@ -224,11 +226,12 @@ class CombinationClassifier:
         1) idm: the id of the molecule
         2) idf1: the id of fragment 1
         3) idf2: the id of fragment 2
-        4) category
-        5) type
-        6) subtype
-        7) aidxf1: the atom indices of fragment 1 found in the molecule
-        8) aidxf2: the atom indices of fragment 2 found in the molecule
+        4) abbrev: a 3-letter code indicating category, type and subtype
+        5) category
+        6) type
+        7) subtype
+        8) aidxf1: the atom indices of fragment 1 found in the molecule
+        9) aidxf2: the atom indices of fragment 2 found in the molecule
 
         :param df_mols: the input DataFrame with molecules
         :param df_aidxf: the input DataFrame with substructure matches
@@ -258,3 +261,49 @@ class CombinationClassifier:
                     ds_fcc.append(d_fcc)
         # dataframe with columns in given order
         return DataFrame(ds_fcc, columns=['idm', 'idf1', 'idf2', 'abbrev', 'category', 'type', 'subtype', 'aidxf1', 'aidxf2'])
+
+    def map_frags(self, df_fcc: DataFrame) -> DataFrame:
+        """
+        This method process a fragment combinations computed with classify_fragment_combinations
+        and return a new DataFrame with a fragment map for each molecule.
+
+        This fragment map is a single line string representation of the fragment connectivity
+        within a molecule and follows following syntax:
+
+            >>> f1[abbrev1]f2-f1[abbrev2]f3-f2[abbrev3]f3
+
+
+
+        """
+        print()
+
+        # clean the data
+
+        logging.debug("Now mapping fragments")
+        # drop cutoff combinations
+        logging.debug(f"Removing cutoff connections from fragment combinations")
+        df_fcc = df_fcc[df_fcc['abbrev'] != 'cfc']
+        # drop fragments combinations paired with a substructure
+        df_substructures = df_fcc[df_fcc['abbrev'] == 'ffs']  # all the substructures in the whole dataframe
+        logging.debug(f"Number of substructures found in df_fcc: {len(df_substructures.index)}/{len(df_fcc.index)}")
+        if len(df_substructures) > 0:
+            logging.debug(f"Removing substructures from fragment combinations")
+            for gid, g in df_fcc[df_fcc['idm'].isin(df_substructures['idm'])].groupby('idm'):  # iterate only on the groups with at least one substructure
+                idf_to_remove = []
+                for row in g[g['abbrev'] == 'ffs'].itertuples():
+                    if len(row[8]) > len(row[9]):
+                        idf_to_remove.append(row[3])
+                    else:
+                        idf_to_remove.append(row[2])
+            df_fcc = df_fcc[(~df_fcc['idf1'].isin(idf_to_remove)) & (~df_fcc['idf2'].isin(idf_to_remove))]
+        if len(df_fcc.index) == 0:
+            logging.debug("No fragment remaining for mapping!")
+            return None
+        logging.debug(f"Remaining number of fragment combinations: {len(df_fcc.index)}")
+
+        # map fragments
+
+        logging.debug(f"Mapping fragments")
+        frag_map = list(df_fcc['idf1'].map(str) + "[" + df_fcc['abbrev'] + "]" + df_fcc['idf2'].map(str))
+
+        return '-'.join(frag_map)
