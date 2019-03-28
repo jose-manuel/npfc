@@ -41,7 +41,7 @@ def df_frags():
 
 @pytest.fixture
 def df_fcc():
-    """A simple fragment combination classification but complicated enough for testing fragment maps"""
+    """A simple fragment combination classification but complicated enough (cutoff) for testing fragment maps"""
     # raw data extracted from chembl_031_passed_synth_crm_fcc.csv.gz:
     # 3|CHEMBL1421|32|139|connection|false_positive|cutoff|{4, 5, 6, 22, 23, 24}|{8, 9, 10, 11, 27, 28}
     # 4|CHEMBL1421|32|547|connection|monopodal||{4, 5, 6, 22, 23, 24}|{0, 1, 18, 19, 20}
@@ -56,7 +56,9 @@ def df_fcc():
 
     return pd.DataFrame({'idm': ['CHEMBL1421'] * 10,
                          'idf1': [32, 32, 32, 32, 139, 139, 139, 547, 547, 718],
+                         'idxf1': [0, 0, 0, 0, 1, 1, 1, 2, 2, 3],
                          'idf2': [139, 547, 718, 818, 547, 718, 818, 718, 818, 818],
+                         'idxf2': [1, 2, 3, 4, 2, 3, 4, 3, 4, 4],
                          'abbrev': ['cfc', 'cmo', 'cfc', 'cfc', 'cmo', 'cmo', 'ffs', 'cfc', 'cmo', 'cmo'],
                          'category': ['connection'] * 6 + ['fusion'] + ['connection'] * 3,
                          'type': ['false_positive', 'monopodal', 'false_positive', 'false_positive',
@@ -76,6 +78,39 @@ def df_fcc():
                                     {0, 1, 18, 19, 20}, {3, 13, 14, 29, 30, 31},
                                     {8, 9, 10, 11, 17, 27, 28}, {3, 13, 14, 29, 30, 31},
                                     {8, 9, 10, 11, 17, 27, 28}, {8, 9, 10, 11, 17, 27, 28},
+                                    ],
+                         })
+
+
+@pytest.fixture
+def df_fcc_2():
+    """Another simple fragment combination classification but complicated enough (overlap) for testing fragment maps"""
+
+    return pd.DataFrame({'idm': ['CHEMBL209576'] * 9,
+                         'idf1': [2, 2, 2, 2, 32, 32, 32, 32, 32],
+                         'idxf1': [0, 0, 0, 0, 1, 1, 1, 2, 2],
+                         'idf2': [32, 32, 320, 328, 32, 320, 328, 320, 328],
+                         'idxf2': [1, 2, 3, 4, 2, 3, 4, 3, 4],
+                         'abbrev': ['ffs', 'cmo', 'ffo', 'ffs', 'cmo', 'fed', 'fed', 'cmo', 'cmo'],
+                         'category': ['fusion', 'connection', 'fusion', 'fusion', 'connection',
+                                      'fusion', 'fusion', 'connection', 'connection',
+                                      ],
+                         'type': ['false_positive', 'monopodal', 'false_positive', 'false_positive',
+                                  'monopodal', 'edge', 'edge', 'monopodal', 'monopodal',
+                                  ],
+                         'subtype': ['substructure', '', 'overlap', 'substructure', '', '', '',
+                                     '', ''],
+                         'aidxf1': [{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9},
+                                    {0, 1, 2, 3, 4, 5, 6, 7, 8, 9}, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9},
+                                    {0, 1, 2, 3, 4, 5}, {0, 1, 2, 3, 4, 5},
+                                    {0, 1, 2, 3, 4, 5}, {12, 13, 14, 15, 16, 17},
+                                    {12, 13, 14, 15, 16, 17},
+                                    ],
+                         'aidxf2': [{0, 1, 2, 3, 4, 5}, {12, 13, 14, 15, 16, 17},
+                                    {4, 5, 6, 7, 8, 9, 10}, {4, 5, 6, 7, 8, 9},
+                                    {12, 13, 14, 15, 16, 17}, {4, 5, 6, 7, 8, 9, 10},
+                                    {4, 5, 6, 7, 8, 9}, {4, 5, 6, 7, 8, 9, 10},
+                                    {4, 5, 6, 7, 8, 9},
                                     ],
                          })
 
@@ -327,6 +362,8 @@ def test_fcc_connection_false_positive_cutoff(fcc, fm, df_mol_connection_false_p
     assert result['category'] == 'connection' and result['type'] == 'false_positive' and result['subtype'] == 'cutoff' and result['abbrev'] == 'cfc'
 
 
-def test_fcc_fragmap(fcc, df_fcc):
+def test_fcc_fragmap(fcc, df_fcc, df_fcc_2):
     """Check the fragment map functionality"""
+
     print(fcc.map_frags(df_fcc))
+    print(fcc.map_frags(df_fcc_2))

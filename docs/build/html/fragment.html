@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Module fragment &mdash; npfc 0.0.13-7-g097fd80 documentation</title>
+  <title>Module fragment &mdash; npfc 0.0.13-8-g0acd129 documentation</title>
   
 
   
@@ -58,7 +58,7 @@
             
             
               <div class="version">
-                0.0.13-7-g097fd80
+                0.0.13-8-g0acd129
               </div>
             
           
@@ -274,6 +274,7 @@ For more details about category, type and subtype, see doc in method classify_fr
 <li>idm: the id of the molecule</li>
 <li>idf1: the id of fragment 1</li>
 <li>idf2: the id of fragment 2</li>
+<li>abbrev: a 3-letter code indicating category, type and subtype</li>
 <li>category</li>
 <li>type</li>
 <li>subtype</li>
@@ -348,6 +349,26 @@ be considered when estimating the distance between fragments.</p>
 </tr>
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the atom indices of the shortest path between both fragments. The first index is the attachment point from fragment 1 whereas the last index is the attachment point from fragment 2</p>
 </td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="npfc.fragment.CombinationClassifier.map_frags">
+<code class="descname">map_frags</code><span class="sig-paren">(</span><em>df_fcc</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/fragment.html#CombinationClassifier.map_frags"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.fragment.CombinationClassifier.map_frags" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method process a fragment combinations computed with classify_fragment_combinations
+and return a new DataFrame with a fragment map for each molecule.</p>
+<p>This fragment map is a single line string representation of the fragment connectivity
+within a molecule and follows following syntax:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">f1</span><span class="p">[</span><span class="n">abbrev1</span><span class="p">]</span><span class="n">f2</span><span class="o">-</span><span class="n">f1</span><span class="p">[</span><span class="n">abbrev2</span><span class="p">]</span><span class="n">f3</span><span class="o">-</span><span class="n">f2</span><span class="p">[</span><span class="n">abbrev3</span><span class="p">]</span><span class="n">f3</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></td>
 </tr>
 </tbody>
 </table>

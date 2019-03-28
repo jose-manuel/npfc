@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.fragment &mdash; npfc 0.0.13-7-g097fd80 documentation</title>
+  <title>npfc.fragment &mdash; npfc 0.0.13-8-g0acd129 documentation</title>
   
 
   
@@ -56,7 +56,7 @@
             
             
               <div class="version">
-                0.0.13-7-g097fd80
+                0.0.13-8-g0acd129
               </div>
             
           
@@ -302,7 +302,9 @@
         <span class="n">aidx_fused</span> <span class="o">=</span> <span class="n">aidxf1</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">aidxf2</span><span class="p">)</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;aidx_fused: </span><span class="si">{aidx_fused}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="c1"># in case of overlapping fragments in the queries, we get overlapping matches</span>
-        <span class="k">if</span> <span class="n">aidxf1</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="n">aidxf2</span><span class="p">)</span> <span class="ow">or</span> <span class="n">aidxf2</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="n">aidxf1</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">aidxf1</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="n">aidxf2</span><span class="p">):</span>
+            <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;category&#39;</span><span class="p">:</span> <span class="s1">&#39;fusion&#39;</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;false_positive&#39;</span><span class="p">,</span> <span class="s1">&#39;subtype&#39;</span><span class="p">:</span> <span class="s1">&#39;substructure&#39;</span><span class="p">,</span> <span class="s1">&#39;abbrev&#39;</span><span class="p">:</span> <span class="s1">&#39;ffs&#39;</span><span class="p">}</span>
+        <span class="k">elif</span> <span class="n">aidxf2</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="n">aidxf1</span><span class="p">):</span>
             <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;category&#39;</span><span class="p">:</span> <span class="s1">&#39;fusion&#39;</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;false_positive&#39;</span><span class="p">,</span> <span class="s1">&#39;subtype&#39;</span><span class="p">:</span> <span class="s1">&#39;substructure&#39;</span><span class="p">,</span> <span class="s1">&#39;abbrev&#39;</span><span class="p">:</span> <span class="s1">&#39;ffs&#39;</span><span class="p">}</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">aidx_fused</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">category</span> <span class="o">=</span> <span class="s1">&#39;fusion&#39;</span>
@@ -377,11 +379,12 @@
 <span class="sd">        1) idm: the id of the molecule</span>
 <span class="sd">        2) idf1: the id of fragment 1</span>
 <span class="sd">        3) idf2: the id of fragment 2</span>
-<span class="sd">        4) category</span>
-<span class="sd">        5) type</span>
-<span class="sd">        6) subtype</span>
-<span class="sd">        7) aidxf1: the atom indices of fragment 1 found in the molecule</span>
-<span class="sd">        8) aidxf2: the atom indices of fragment 2 found in the molecule</span>
+<span class="sd">        4) abbrev: a 3-letter code indicating category, type and subtype</span>
+<span class="sd">        5) category</span>
+<span class="sd">        6) type</span>
+<span class="sd">        7) subtype</span>
+<span class="sd">        8) aidxf1: the atom indices of fragment 1 found in the molecule</span>
+<span class="sd">        9) aidxf2: the atom indices of fragment 2 found in the molecule</span>
 
 <span class="sd">        :param df_mols: the input DataFrame with molecules</span>
 <span class="sd">        :param df_aidxf: the input DataFrame with substructure matches</span>
@@ -410,7 +413,53 @@
                     <span class="n">d_fcc</span><span class="p">[</span><span class="s1">&#39;aidxf2&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">aidxf2</span>
                     <span class="n">ds_fcc</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d_fcc</span><span class="p">)</span>
         <span class="c1"># dataframe with columns in given order</span>
-        <span class="k">return</span> <span class="n">DataFrame</span><span class="p">(</span><span class="n">ds_fcc</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;idm&#39;</span><span class="p">,</span> <span class="s1">&#39;idf1&#39;</span><span class="p">,</span> <span class="s1">&#39;idf2&#39;</span><span class="p">,</span> <span class="s1">&#39;abbrev&#39;</span><span class="p">,</span> <span class="s1">&#39;category&#39;</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">,</span> <span class="s1">&#39;subtype&#39;</span><span class="p">,</span> <span class="s1">&#39;aidxf1&#39;</span><span class="p">,</span> <span class="s1">&#39;aidxf2&#39;</span><span class="p">])</span></div></div>
+        <span class="k">return</span> <span class="n">DataFrame</span><span class="p">(</span><span class="n">ds_fcc</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;idm&#39;</span><span class="p">,</span> <span class="s1">&#39;idf1&#39;</span><span class="p">,</span> <span class="s1">&#39;idf2&#39;</span><span class="p">,</span> <span class="s1">&#39;abbrev&#39;</span><span class="p">,</span> <span class="s1">&#39;category&#39;</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">,</span> <span class="s1">&#39;subtype&#39;</span><span class="p">,</span> <span class="s1">&#39;aidxf1&#39;</span><span class="p">,</span> <span class="s1">&#39;aidxf2&#39;</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="CombinationClassifier.map_frags"><a class="viewcode-back" href="../../fragment.html#npfc.fragment.CombinationClassifier.map_frags">[docs]</a>    <span class="k">def</span> <span class="nf">map_frags</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df_fcc</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This method process a fragment combinations computed with classify_fragment_combinations</span>
+<span class="sd">        and return a new DataFrame with a fragment map for each molecule.</span>
+
+<span class="sd">        This fragment map is a single line string representation of the fragment connectivity</span>
+<span class="sd">        within a molecule and follows following syntax:</span>
+
+<span class="sd">            &gt;&gt;&gt; f1[abbrev1]f2-f1[abbrev2]f3-f2[abbrev3]f3</span>
+
+
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">()</span>
+
+        <span class="c1"># clean the data</span>
+
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Now mapping fragments&quot;</span><span class="p">)</span>
+        <span class="c1"># drop cutoff combinations</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Removing cutoff connections from fragment combinations&quot;</span><span class="p">)</span>
+        <span class="n">df_fcc</span> <span class="o">=</span> <span class="n">df_fcc</span><span class="p">[</span><span class="n">df_fcc</span><span class="p">[</span><span class="s1">&#39;abbrev&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;cfc&#39;</span><span class="p">]</span>
+        <span class="c1"># drop fragments combinations paired with a substructure</span>
+        <span class="n">df_substructures</span> <span class="o">=</span> <span class="n">df_fcc</span><span class="p">[</span><span class="n">df_fcc</span><span class="p">[</span><span class="s1">&#39;abbrev&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;ffs&#39;</span><span class="p">]</span>  <span class="c1"># all the substructures in the whole dataframe</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Number of substructures found in df_fcc: {len(df_substructures.index)}/{len(df_fcc.index)}&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">df_substructures</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Removing substructures from fragment combinations&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">gid</span><span class="p">,</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">df_fcc</span><span class="p">[</span><span class="n">df_fcc</span><span class="p">[</span><span class="s1">&#39;idm&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">df_substructures</span><span class="p">[</span><span class="s1">&#39;idm&#39;</span><span class="p">])]</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">&#39;idm&#39;</span><span class="p">):</span>  <span class="c1"># iterate only on the groups with at least one substructure</span>
+                <span class="n">idf_to_remove</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">g</span><span class="p">[</span><span class="n">g</span><span class="p">[</span><span class="s1">&#39;abbrev&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;ffs&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">itertuples</span><span class="p">():</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="mi">8</span><span class="p">])</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="mi">9</span><span class="p">]):</span>
+                        <span class="n">idf_to_remove</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">idf_to_remove</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+            <span class="n">df_fcc</span> <span class="o">=</span> <span class="n">df_fcc</span><span class="p">[(</span><span class="o">~</span><span class="n">df_fcc</span><span class="p">[</span><span class="s1">&#39;idf1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">idf_to_remove</span><span class="p">))</span> <span class="o">&amp;</span> <span class="p">(</span><span class="o">~</span><span class="n">df_fcc</span><span class="p">[</span><span class="s1">&#39;idf2&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">idf_to_remove</span><span class="p">))]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">df_fcc</span><span class="o">.</span><span class="n">index</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;No fragment remaining for mapping!&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Remaining number of fragment combinations: {len(df_fcc.index)}&quot;</span><span class="p">)</span>
+
+        <span class="c1"># map fragments</span>
+
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Mapping fragments&quot;</span><span class="p">)</span>
+        <span class="n">frag_map</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">df_fcc</span><span class="p">[</span><span class="s1">&#39;idf1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;[&quot;</span> <span class="o">+</span> <span class="n">df_fcc</span><span class="p">[</span><span class="s1">&#39;abbrev&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;]&quot;</span> <span class="o">+</span> <span class="n">df_fcc</span><span class="p">[</span><span class="s1">&#39;idf2&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="nb">str</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="s1">&#39;-&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">frag_map</span><span class="p">)</span></div></div>
 </pre></div>
 
            </div>

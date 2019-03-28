@@ -7,6 +7,7 @@ This script is used for classifying fragment combinations (fc).
 """
 
 # standard
+from pathlib import Path
 import warnings
 import sys
 from datetime import datetime
@@ -26,6 +27,7 @@ from npfc import fragment
 pd.options.mode.chained_assignment = None  # default='warn'
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
 
 def main():
 
@@ -51,8 +53,8 @@ def main():
     parser.add_argument('-m', '--mols-mol', type=str, default='mol', help="Molecule column in the source file.")
     parser.add_argument('-s', '--mols-sep', type=str, default='|', help="Separator to use in case the input file is a csv.")
     parser.add_argument('-d', '--mols-decode', type=bool, default=True, help="Decode molecules from base64 strings into RDKit Mol objects.")
-    parser.add_argument('--min', type=int, default=2, help="Minimum number of hits/molecule.")
-    parser.add_argument('--max', type=int, default=5, help="Maximum number of hits/molecule.")
+    # parser.add_argument('--min', type=int, default=2, help="Minimum number of hits/molecule.")
+    # parser.add_argument('--max', type=int, default=5, help="Maximum number of hits/molecule.")
     parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
     args = parser.parse_args()
 
@@ -71,6 +73,8 @@ def main():
     mols_format, mols_compression = utils.get_file_format(args.input_mols)
     sub_format, sub_compression = utils.get_file_format(args.input_sub)
     out_format, out_compression = utils.get_file_format(args.output_fcc)
+    output_fcc_path = Path(args.output_fcc)
+    output_map = str(output_fcc_path.parent) + "/" + output_fcc_path.stem.split(".")[0] + "_map" + "".join(output_fcc_path.suffixes)
 
     # display infos
     logger.info("LIBRARY VERSIONS:")
@@ -89,10 +93,11 @@ def main():
     logging.info("SUB_FORMAT".ljust(pad) + f"{sub_format}")
     logging.info("SUB_COMPRESSION".ljust(pad) + f"{sub_compression}")
     logging.info("OUTPUT_FCC".ljust(pad) + f"{args.output_fcc}")
+    logging.info("OUTPUT_MAP".ljust(pad) + f"{output_map}")
     logging.info("OUT_FORMAT".ljust(pad) + f"{out_format}")
     logging.info("OUT_COMPRESSION".ljust(pad) + f"{out_compression}")
-    logging.info("MIN".ljust(pad) + f"{args.min}")
-    logging.info("MAX".ljust(pad) + f"{args.max}")
+    # logging.info("MIN".ljust(pad) + f"{args.min}")
+    # logging.info("MAX".ljust(pad) + f"{args.max}")
     logging.info("LOG".ljust(pad) + f"{args.log}")
 
     # begin
@@ -104,23 +109,23 @@ def main():
     df_sub = pd.read_csv(args.input_sub, sep='|', compression='gzip')
     logging.info(f"FOUND {len(df_sub.index)} SUBSTRUCTURE MATCHES")
 
-    # filter sub
-    logging.info("FILTERING SUBSTRUCTURE MATCHES")
-    d2 = datetime.now()
-    grouped = df_sub.groupby('idm')
-    df_sub = grouped.filter(lambda x: args.max >= len(x) >= args.min)
-    logging.info(f"SUBSTRUCTURE MATCHES REMAINING: {len(df_sub.index)}")
-    # abort execution if nothing left!
-    if len(df_sub.index) == 0:
-        logging.error(f"NO SUBSTRUCTURE MATCHES LEFT SO ABORTING EXECUTION")
-        sys.exit(2)
+    # # filter sub
+    # logging.info("FILTERING SUBSTRUCTURE MATCHES")
+    # d2 = datetime.now()
+    # grouped = df_sub.groupby('idm')
+    # df_sub = grouped.filter(lambda x: args.max >= len(x) >= args.min)
+    # logging.info(f"SUBSTRUCTURE MATCHES REMAINING: {len(df_sub.index)}")
+    # # abort execution if nothing left!
+    # if len(df_sub.index) == 0:
+    #     logging.error(f"NO SUBSTRUCTURE MATCHES LEFT SO ABORTING EXECUTION")
+    #     sys.exit(2)
 
     # extract sets from strings
     df_sub['aidxf'] = df_sub['aidxf'].map(lambda x: set(json.loads(x.replace('{', '[').replace('}', ']'))))
 
     # load mols
     logging.info("LOADING MOLECULES")
-    d3 = datetime.now()
+    d2 = datetime.now()
     df_mols = load.from_file(args.input_mols,
                              in_id=args.mols_id,
                              out_id=args.mols_id,
@@ -135,26 +140,39 @@ def main():
 
     # run fcc
     logger.info(f"CLASSIFYING FRAGMENT COMBINATIONS")
-    d4 = datetime.now()
+    d3 = datetime.now()
     c = fragment.CombinationClassifier()
     df_fcc = c.classify_fragment_combinations(df_mols, df_sub)
     logger.info(f"FOUND {len(df_fcc.index)} COMBINATIONS")
 
     # save results
     logger.info(f"SAVING RESULTS AT '{args.output_fcc}'")
-    d5 = datetime.now()
+    d4 = datetime.now()
     save.save(df_fcc, args.output_fcc, encode_mols=False)
 
-    # end
+    # run frag map
+    logger.info(f"PROCESSING FCC DATA")
+    d5 = datetime.now()
+    df_map = c.map_frags(df_fcc)
+    logger.info(f"FOUND {len(df_map.index)} COMBINATION GRAPHS")
+
+    # save results
+    logger.info(f"SAVING RESULTS AT '{output_map}'")
     d6 = datetime.now()
+    save.save(df_fcc, output_map, encode_mols=False)
+
+    # end
+    d7 = datetime.now()
     logging.info("SUMMARY")
     logger.info("COMPUTATIONAL TIME: CONFIGURING JOB".ljust(pad * 2) + f"{d1-d0}")
     logger.info("COMPUTATIONAL TIME: LOADING SUBSTRUCTURE MATCHES".ljust(pad * 2) + f"{d2-d1}")
-    logger.info("COMPUTATIONAL TIME: FILTERING SUBSTRUCTURE MATCHES".ljust(pad * 2) + f"{d3-d2}")
-    logger.info("COMPUTATIONAL TIME: LOADING MOLECULES".ljust(pad * 2) + f"{d4-d3}")
-    logger.info("COMPUTATIONAL TIME: RUNNING CLASSIFICATION".ljust(pad * 2) + f"{d5-d4}")
-    logger.info("COMPUTATIONAL TIME: SAVING OUTPUTS".ljust(pad * 2) + f"{d6-d5}")
-    logger.info("COMPUTATIONAL TIME: TOTAL".ljust(pad * 2) + f"{d6-d0}")
+    # logger.info("COMPUTATIONAL TIME: FILTERING SUBSTRUCTURE MATCHES".ljust(pad * 2) + f"{d3-d2}")
+    logger.info("COMPUTATIONAL TIME: LOADING MOLECULES".ljust(pad * 2) + f"{d3-d2}")
+    logger.info("COMPUTATIONAL TIME: RUNNING CLASSIFICATION".ljust(pad * 2) + f"{d4-d3}")
+    logger.info("COMPUTATIONAL TIME: SAVING FCC".ljust(pad * 2) + f"{d5-d4}")
+    logger.info("COMPUTATIONAL TIME: RUNNING MAPPING".ljust(pad * 2) + f"{d6-d5}")
+    logger.info("COMPUTATIONAL TIME: SAVING MAP".ljust(pad * 2) + f"{d7-d6}")
+    logger.info("COMPUTATIONAL TIME: TOTAL".ljust(pad * 2) + f"{d7-d0}")
     logging.info("END")
 
 

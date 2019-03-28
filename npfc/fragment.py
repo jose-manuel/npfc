@@ -10,8 +10,10 @@ This modules contains two classes:
 # standard
 import logging
 from itertools import product
+from itertools import combinations
 # data science
 from pandas import DataFrame
+import pandas as pd
 # chemoinformatics
 from rdkit.Chem import Mol
 from rdkit.Chem import AllChem
@@ -108,7 +110,11 @@ class CombinationClassifier:
         # 3/ return one of the shortest pathes
         return min(all_paths, key=lambda x: len(x))
 
-    def classify_fragment_combination(self, mol: Mol, aidxf1: set, aidxf2: set, cutoff: int = 3) -> dict:
+    def classify_fragment_combination(self,
+                                      mol: Mol,
+                                      aidxf1: set,
+                                      aidxf2: set,
+                                      cutoff: int = 3) -> dict:
         """Classify a fragment combination found in a molecule as a dictionary
         with category, type and subtype values.
 
@@ -216,7 +222,10 @@ class CombinationClassifier:
         # edge otherwise
         return {'category': category, 'type': type, 'subtype': 'edge', 'abbrev': category[0] + type[0] + 'e'}
 
-    def classify_fragment_combinations(self, df_mols: DataFrame, df_aidxf: DataFrame) -> DataFrame:
+    def classify_fragment_combinations(self,
+                                       df_mols: DataFrame,
+                                       df_aidxf: DataFrame,
+                                       cutoff: int = 3) -> DataFrame:
         """Return a DataFrame with all fragment combination categories for a given set of
         molecules and fragment atom indices obtained by substructure search.
         For more details about category, type and subtype, see doc in method classify_fragment_combination.
@@ -233,34 +242,52 @@ class CombinationClassifier:
         8) aidxf1: the atom indices of fragment 1 found in the molecule
         9) aidxf2: the atom indices of fragment 2 found in the molecule
 
+        Fragments with a number of intermediary atoms higher than defined cutoff
+        are labelled as false positives.
+
         :param df_mols: the input DataFrame with molecules
         :param df_aidxf: the input DataFrame with substructure matches
+        :param cutoff: the maximum number of intermediary atoms between 2 fragments
         :return: a DataFrame with all fragment combination classifications
         """
         ds_fcc = []
         if 'idm' in df_mols.columns:
             logging.debug("Reindexing df with 'idm'")
             df_mols.index = df_mols['idm']
+        # labelling idxf
+        df_aidxf['aidxf_str'] = df_aidxf['aidxf'].map(str)  # sets are an unhashable type...
+        df_aidxf['idxf'] = df_aidxf.groupby(['idm', 'idf', 'aidxf_str']).grouper.group_info[0]
+
+        # classify fragment combinations
         for gid, g in df_aidxf.groupby('idm'):
             mol = df_mols.loc[gid]['mol']
             # mol = df_mols[df_mols['idm'] == gid]['mol'].iloc[0]
             for i in range(len(g)):
-                aidxf1 = g.iloc[i]['aidxf']
-                idf1 = g.iloc[i]['idf']
+                row_f1 = g.iloc[i]
+                aidxf1 = row_f1['aidxf']
+                idf1 = row_f1['idf']
+                idxf1 = row_f1['idxf']
                 for j in range(i+1, len(g)):
-                    aidxf2 = g.iloc[j]['aidxf']
-                    logging.debug(f"Classifying m={gid}, f1={idf1}, f2={g.iloc[j]['idf']}")
-                    d_fcc = self.classify_fragment_combination(mol, aidxf1, aidxf2)
+                    row_f2 = g.iloc[j]
+                    aidxf2 = row_f2['aidxf']
+                    idf2 = row_f2['idf']
+                    idxf2 = row_f2['idxf']
+                    logging.debug(f"Classifying m={gid}, f1={idf1}, f2={idf2}")
+                    d_fcc = self.classify_fragment_combination(mol, aidxf1, aidxf2, cutoff=cutoff)
 
                     # record fragment combination
                     d_fcc['idm'] = gid
                     d_fcc['idf1'] = idf1
-                    d_fcc['idf2'] = g.iloc[j]['idf']
+                    d_fcc['idxf1'] = idxf1
+                    d_fcc['fid1'] = str(idf1) + ":" + str(idxf1)
+                    d_fcc['idf2'] = idf2
+                    d_fcc['idxf2'] = idxf2
+                    d_fcc['fid2'] = str(idf2) + ":" + str(idxf2)
                     d_fcc['aidxf1'] = aidxf1
                     d_fcc['aidxf2'] = aidxf2
                     ds_fcc.append(d_fcc)
         # dataframe with columns in given order
-        return DataFrame(ds_fcc, columns=['idm', 'idf1', 'idf2', 'abbrev', 'category', 'type', 'subtype', 'aidxf1', 'aidxf2'])
+        return DataFrame(ds_fcc, columns=['idm', 'idf1', 'idxf1', 'idf2', 'idxf2', 'abbrev', 'category', 'type', 'subtype', 'aidxf1', 'aidxf2', 'fid1', 'fid2'])
 
     def map_frags(self, df_fcc: DataFrame) -> DataFrame:
         """
@@ -275,14 +302,16 @@ class CombinationClassifier:
 
 
         """
-        print()
-
         # clean the data
 
         logging.debug("Now mapping fragments")
+        df_fcc['fid1'] = df_fcc['idf1'].map(str) + ':' + df_fcc['idxf1'].map(str)
+        df_fcc['fid2'] = df_fcc['idf2'].map(str) + ':' + df_fcc['idxf2'].map(str)
+
         # drop cutoff combinations
         logging.debug(f"Removing cutoff connections from fragment combinations")
         df_fcc = df_fcc[df_fcc['abbrev'] != 'cfc']
+
         # drop fragments combinations paired with a substructure
         df_substructures = df_fcc[df_fcc['abbrev'] == 'ffs']  # all the substructures in the whole dataframe
         logging.debug(f"Number of substructures found in df_fcc: {len(df_substructures.index)}/{len(df_fcc.index)}")
@@ -291,19 +320,60 @@ class CombinationClassifier:
             for gid, g in df_fcc[df_fcc['idm'].isin(df_substructures['idm'])].groupby('idm'):  # iterate only on the groups with at least one substructure
                 idf_to_remove = []
                 for row in g[g['abbrev'] == 'ffs'].itertuples():
-                    if len(row[8]) > len(row[9]):
-                        idf_to_remove.append(row[3])
+                    if len(row[10]) > len(row[11]):
+                        idf_to_remove.append(row[5])
                     else:
-                        idf_to_remove.append(row[2])
-            df_fcc = df_fcc[(~df_fcc['idf1'].isin(idf_to_remove)) & (~df_fcc['idf2'].isin(idf_to_remove))]
+                        idf_to_remove.append(row[3])
+            df_fcc = df_fcc[(~df_fcc['idxf1'].isin(idf_to_remove)) & (~df_fcc['idxf2'].isin(idf_to_remove))]
         if len(df_fcc.index) == 0:
             logging.debug("No fragment remaining for mapping!")
             return None
         logging.debug(f"Remaining number of fragment combinations: {len(df_fcc.index)}")
 
-        # map fragments
+        # split by overlaps
 
         logging.debug(f"Mapping fragments")
-        frag_map = list(df_fcc['idf1'].map(str) + "[" + df_fcc['abbrev'] + "]" + df_fcc['idf2'].map(str))
 
-        return '-'.join(frag_map)
+        ds_map = []
+        for gid, g in df_fcc.groupby('idm'):
+            # entries with an overlap
+            overlaps = g[g['abbrev'] == 'ffo']
+            if len(overlaps.index) > 0:  # the code below could certainly be improved, but this case should not happen too often
+                # remove these from the current group
+                g = g[g['abbrev'] != 'ffo']
+                # get fragment ids of the invariant parts of alternative paths
+                common = g[(~g['fid1'].isin(overlaps['fid1'])) & (~g['fid2'].isin(overlaps['fid2']))]
+                common_combinations = set()
+                for rowid, row in common.iterrows():
+                    common_combinations.add(row['fid1'])
+                    common_combinations.add(row['fid2'])
+                common_combinations = list(common_combinations)
+                # get the fragment ids of the variant parts of alternative paths
+                alt_combinations = []
+                for rowid, row in overlaps.iterrows():
+                    alt_combinations.append([row['fid1'], row['fid2']])
+                # get all possible paths
+                alt_combinations = [list(x) + common_combinations for x in list(product(*alt_combinations))]
+
+                dfs_fcc_clean = []
+                for alt in alt_combinations:
+                    df_alt = g[(g['fid1'].isin(alt)) | (g['fid2'].isin(alt))]
+                    dfs_fcc_clean.append(df_alt)
+            else:
+                dfs_fcc_clean = [g]
+
+            # fragment map string representation
+            for df_fcc_clean in dfs_fcc_clean:
+                frag_map_str = '-'.join(list(df_fcc_clean['fid1'].map(str) + "[" + df_fcc_clean['abbrev'] + "]" + df_fcc_clean['fid2'].map(str)))
+                frags = list(df_fcc_clean['fid1'].map(str).values) + list(df_fcc_clean['fid2'].map(str).values)
+                nfrags = len(frags)
+                frags_u = list(set(frags))
+                nfrags_u = len(frags_u)
+                # frags = list(set(list(frags.values)))
+                comb = list(df_fcc_clean['abbrev'].values)
+                ncomb = len(comb)
+                comb_u = list(set(comb))
+                ncomb_u = len(comb_u)
+                ds_map.append({'idm': gid, 'map_str': frag_map_str, 'nfrags': nfrags, 'nfrags_u': nfrags_u, 'ncomb': ncomb, 'ncomb_u': ncomb_u, 'frags': frags, 'frags_u': frags_u, 'comb': comb, 'comb_u': comb_u})
+
+        return DataFrame(ds_map, columns=['idm', 'map_str', 'nfrags', 'nfrags_u', 'ncomb', 'ncomb_u', 'frags', 'frags_u', 'comb', 'comb_u'])
