@@ -159,7 +159,7 @@ def main():
     # save results
     logger.info(f"SAVING RESULTS AT '{output_map}'")
     d6 = datetime.now()
-    save.save(df_fcc, output_map, encode_mols=False)
+    save.save(df_map, output_map, encode_mols=False)
 
     # end
     d7 = datetime.now()
