@@ -71,7 +71,7 @@ def main():
     logger.info("pandas".ljust(pad) + f"{pd.__version__}")
     logger.info("npfc".ljust(pad) + f"{npfc.__version__}")
     logger.info("ARGUMENTS:")
-    logging.info("INPUT_FCC".ljust(pad) + f"{args.input_sub}")
+    logging.info("INPUT_FCC".ljust(pad) + f"{args.input_fcc}")
     logging.info("FCC_FORMAT".ljust(pad) + f"{fcc_format}")
     logging.info("FCC_COMPRESSION".ljust(pad) + f"{fcc_compression}")
     logging.info("OUTPUT_FMAP".ljust(pad) + f"{args.output_fmap}")

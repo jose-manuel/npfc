@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Module fragment &mdash; npfc 0.0.14-2-gba2f9bf documentation</title>
+  <title>Module fragment &mdash; npfc 0.0.15 documentation</title>
   
 
   
@@ -58,7 +58,7 @@
             
             
               <div class="version">
-                0.0.14-2-gba2f9bf
+                0.0.15
               </div>
             
           
@@ -305,6 +305,16 @@ are labelled as false positives.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="npfc.fragment.CombinationClassifier.clean">
+<code class="descname">clean</code><span class="sig-paren">(</span><em>df_fcc</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/fragment.html#CombinationClassifier.clean"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.fragment.CombinationClassifier.clean" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clean a df_fcc by removing false positives such as substructures and
+cutoff combinations.
+Currently, the cluster terminated the vast majority of my jobs because of
+memory usage, so I’m trying to split up the different tasks in different
+scripts.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="npfc.fragment.CombinationClassifier.get_rings_between_two_fragments">
 <code class="descname">get_rings_between_two_fragments</code><span class="sig-paren">(</span><em>mol</em>, <em>aidxf1</em>, <em>aidxf2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/fragment.html#CombinationClassifier.get_rings_between_two_fragments"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.fragment.CombinationClassifier.get_rings_between_two_fragments" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the atom indices of every ring that connects two fragments together, defined by atom indices.</p>
@@ -359,7 +369,7 @@ be considered when estimating the distance between fragments.</p>
 
 <dl class="method">
 <dt id="npfc.fragment.CombinationClassifier.map_frags">
-<code class="descname">map_frags</code><span class="sig-paren">(</span><em>df_fcc</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/fragment.html#CombinationClassifier.map_frags"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.fragment.CombinationClassifier.map_frags" title="Permalink to this definition">¶</a></dt>
+<code class="descname">map_frags</code><span class="sig-paren">(</span><em>df_fcc</em>, <em>min_frags=2</em>, <em>max_frags=5</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/fragment.html#CombinationClassifier.map_frags"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.fragment.CombinationClassifier.map_frags" title="Permalink to this definition">¶</a></dt>
 <dd><p>This method process a fragment combinations computed with classify_fragment_combinations
 and return a new DataFrame with a fragment map for each molecule.</p>
 <p>This fragment map is a single line string representation of the fragment connectivity
@@ -367,6 +377,8 @@ within a molecule and follows following syntax:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">f1</span><span class="p">[</span><span class="n">abbrev1</span><span class="p">]</span><span class="n">f2</span><span class="o">-</span><span class="n">f1</span><span class="p">[</span><span class="n">abbrev2</span><span class="p">]</span><span class="n">f3</span><span class="o">-</span><span class="n">f2</span><span class="p">[</span><span class="n">abbrev3</span><span class="p">]</span><span class="n">f3</span>
 </pre></div>
 </div>
+<p>No applying any limit of the max number of frags might have been what caused
+crashed due to memory usage on the cluster.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
