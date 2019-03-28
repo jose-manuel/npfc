@@ -1,0 +1,122 @@
+#!/usr/bin/env python
+
+"""
+Script clean_frags_comb
+==========================
+This script is used for cleaning classifying fragment combinations (fc) by removing
+false positives entries.
+"""
+
+# standard
+import warnings
+import sys
+from datetime import datetime
+import logging
+import pandas as pd
+import argparse
+# chemoinformatics
+import rdkit
+# dev
+import npfc
+from npfc import save
+from npfc import utils
+from npfc import fragment
+# disable SettingWithCopyWarning warnings
+pd.options.mode.chained_assignment = None  # default='warn'
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
+def main():
+
+    # init
+    d0 = datetime.now()
+    description = """Script used for cleaning fragment combination classifications.
+
+    It uses the installed npfc libary in your favorite env manager.
+
+    Example:
+
+        >>> classify_frags_comb file_mols.sdf file_sub.csv.gz file_fcc.csv.gz
+
+    N.B. For now the sub and output files have hard-coded formats (.csv.gz or .hdf).
+    """
+
+    # parameters CLI
+    parser = argparse.ArgumentParser(description=description, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument('input_fcc', type=str, default=None, help="Input file.")
+    parser.add_argument('output_fcc', type=str, default=None, help="Output file.")
+    # parser.add_argument('--min', type=int, default=2, help="Minimum number of hits/molecule.")
+    # parser.add_argument('--max', type=int, default=5, help="Maximum number of hits/molecule.")
+    parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
+    args = parser.parse_args()
+
+    # logging
+    logger = utils._configure_logger(args.log)
+    logger.info("RUNNING CLEAN_FRAGS_COMB")
+    pad = 40
+
+    # parse arguments
+    utils.check_arg_input_file(args.input_fcc)
+    utils.check_arg_output_file(args.output_fcc)
+    # utils.check_arg_positive_number(args.min)
+    # utils.check_arg_positive_number(args.max)
+    fcc_format, fcc_compression = utils.get_file_format(args.input_fcc)
+    out_format, out_compression = utils.get_file_format(args.output_fcc)
+
+    # display infos
+    logger.info("LIBRARY VERSIONS:")
+    logger.info("rdkit".ljust(pad) + f"{rdkit.__version__}")
+    logger.info("pandas".ljust(pad) + f"{pd.__version__}")
+    logger.info("npfc".ljust(pad) + f"{npfc.__version__}")
+    logger.info("ARGUMENTS:")
+    logging.info("INPUT_FCC".ljust(pad) + f"{args.input_fcc}")
+    logging.info("FCC_FORMAT".ljust(pad) + f"{fcc_format}")
+    logging.info("FCC_COMPRESSION".ljust(pad) + f"{fcc_compression}")
+    logging.info("OUTPUT_FMAP".ljust(pad) + f"{args.output_fcc}")
+    logging.info("OUT_FORMAT".ljust(pad) + f"{out_format}")
+    logging.info("OUT_COMPRESSION".ljust(pad) + f"{out_compression}")
+    # logging.info("MIN".ljust(pad) + f"{args.min}")
+    # logging.info("MAX".ljust(pad) + f"{args.max}")
+    logging.info("LOG".ljust(pad) + f"{args.log}")
+
+    # begin
+    logging.info("BEGIN")
+
+    # load fcc
+    logging.info("LOADING RAW FCC")
+    d1 = datetime.now()
+    df_fcc = pd.read_csv(args.input_fcc, sep='|', compression='gzip')
+    logging.info(f"FOUND {len(df_fcc.index)} RAW FRAGMENT COMBINATIONS")
+
+    # clean fcc
+    logging.info("CLEANING RAW FCC")
+    d2 = datetime.now()
+    c = fragment.CombinationClassifier()
+    df_fcc = c.clean(df_fcc)
+    logging.info(f"FOUND {len(df_fcc.index)} CLEANED FRAGMENT COMBINATIONS")
+    logging.warning(f"OVERLAPPING FRAGMENTS ARE STILL CONSIDERED A FRAGMENT COMBINATION HERE,")
+    logging.warning("THIS IS NEEDED FOR NEXT STEP FOR SPLITTING UP GRAPHS.")
+
+    # save results
+    logger.info(f"SAVING RESULTS AT '{args.output_fcc}'")
+    d3 = datetime.now()
+    save.save(df_fcc, args.output_fcc, encode_mols=False)
+
+    # end
+    d4 = datetime.now()
+    logging.info("SUMMARY")
+    logger.info("COMPUTATIONAL TIME: CONFIGURING JOB".ljust(pad * 2) + f"{d1-d0}")
+    logger.info("COMPUTATIONAL TIME: LOADING RAW FCC".ljust(pad * 2) + f"{d2-d1}")
+    logger.info("COMPUTATIONAL TIME: CLEANING RAW FCC".ljust(pad * 2) + f"{d3-d2}")
+    logger.info("COMPUTATIONAL TIME: SAVING CLEAN FCC".ljust(pad * 2) + f"{d4-d3}")
+    logger.info("COMPUTATIONAL TIME: TOTAL".ljust(pad * 2) + f"{d4-d0}")
+    logging.info("END")
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ MAIN ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
+if __name__ == '__main__':
+    main()
+    sys.exit(0)

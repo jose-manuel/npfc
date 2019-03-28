@@ -150,19 +150,8 @@ def main():
     d4 = datetime.now()
     save.save(df_fcc, args.output_fcc, encode_mols=False)
 
-    # run frag map
-    logger.info(f"PROCESSING FCC DATA")
-    d5 = datetime.now()
-    df_map = c.map_frags(df_fcc)
-    logger.info(f"FOUND {len(df_map.index)} COMBINATION GRAPHS")
-
-    # save results
-    logger.info(f"SAVING RESULTS AT '{output_map}'")
-    d6 = datetime.now()
-    save.save(df_map, output_map, encode_mols=False)
-
     # end
-    d7 = datetime.now()
+    d5 = datetime.now()
     logging.info("SUMMARY")
     logger.info("COMPUTATIONAL TIME: CONFIGURING JOB".ljust(pad * 2) + f"{d1-d0}")
     logger.info("COMPUTATIONAL TIME: LOADING SUBSTRUCTURE MATCHES".ljust(pad * 2) + f"{d2-d1}")
@@ -170,9 +159,7 @@ def main():
     logger.info("COMPUTATIONAL TIME: LOADING MOLECULES".ljust(pad * 2) + f"{d3-d2}")
     logger.info("COMPUTATIONAL TIME: RUNNING CLASSIFICATION".ljust(pad * 2) + f"{d4-d3}")
     logger.info("COMPUTATIONAL TIME: SAVING FCC".ljust(pad * 2) + f"{d5-d4}")
-    logger.info("COMPUTATIONAL TIME: RUNNING MAPPING".ljust(pad * 2) + f"{d6-d5}")
-    logger.info("COMPUTATIONAL TIME: SAVING MAP".ljust(pad * 2) + f"{d7-d6}")
-    logger.info("COMPUTATIONAL TIME: TOTAL".ljust(pad * 2) + f"{d7-d0}")
+    logger.info("COMPUTATIONAL TIME: TOTAL".ljust(pad * 2) + f"{d5-d0}")
     logging.info("END")
 
 

@@ -287,26 +287,19 @@ class CombinationClassifier:
                     d_fcc['aidxf2'] = aidxf2
                     ds_fcc.append(d_fcc)
         # dataframe with columns in given order
-        return DataFrame(ds_fcc, columns=['idm', 'idf1', 'idxf1', 'idf2', 'idxf2', 'abbrev', 'category', 'type', 'subtype', 'aidxf1', 'aidxf2', 'fid1', 'fid2'])
+        return DataFrame(ds_fcc, columns=['idm', 'idf1', 'idxf1', 'fid1', 'idf2', 'idxf2', 'fid2', 'abbrev', 'category', 'type', 'subtype', 'aidxf1', 'aidxf2', 'fid1', 'fid2'])
 
-    def map_frags(self, df_fcc: DataFrame) -> DataFrame:
+    def clean(self, df_fcc):
+        """Clean a df_fcc by removing false positives such as substructures and
+        cutoff combinations.
+        Currently, the cluster terminated the vast majority of my jobs because of
+        memory usage, so I'm trying to split up the different tasks in different
+        scripts.
         """
-        This method process a fragment combinations computed with classify_fragment_combinations
-        and return a new DataFrame with a fragment map for each molecule.
 
-        This fragment map is a single line string representation of the fragment connectivity
-        within a molecule and follows following syntax:
-
-            >>> f1[abbrev1]f2-f1[abbrev2]f3-f2[abbrev3]f3
-
-
-
-        """
         # clean the data
 
-        logging.debug("Now mapping fragments")
-        df_fcc['fid1'] = df_fcc['idf1'].map(str) + ':' + df_fcc['idxf1'].map(str)
-        df_fcc['fid2'] = df_fcc['idf2'].map(str) + ':' + df_fcc['idxf2'].map(str)
+        logging.debug("Now cleaning fragment combinations")
 
         # drop cutoff combinations
         logging.debug(f"Removing cutoff connections from fragment combinations")
@@ -330,6 +323,21 @@ class CombinationClassifier:
             return None
         logging.debug(f"Remaining number of fragment combinations: {len(df_fcc.index)}")
 
+        return df_fcc
+
+    def map_frags(self, df_fcc: DataFrame, min_frags=2, max_frags=5) -> DataFrame:
+        """
+        This method process a fragment combinations computed with classify_fragment_combinations
+        and return a new DataFrame with a fragment map for each molecule.
+
+        This fragment map is a single line string representation of the fragment connectivity
+        within a molecule and follows following syntax:
+
+            >>> f1[abbrev1]f2-f1[abbrev2]f3-f2[abbrev3]f3
+
+        No applying any limit of the max number of frags might have been what caused
+        crashed due to memory usage on the cluster.
+        """
         # split by overlaps
 
         logging.debug(f"Mapping fragments")
@@ -369,7 +377,12 @@ class CombinationClassifier:
                 nfrags = len(frags)
                 frags_u = list(set(frags))
                 nfrags_u = len(frags_u)
-                # frags = list(set(list(frags.values)))
+                if nfrags_u < min_frags:
+                    logging.debug(f"Too few unique fragment occurrences, discarding graph of n={nfrags_u} for molecule: '{gid}'")
+                    continue
+                elif nfrags_u > max_frags:
+                    logging.debug(f"Too many unique fragment occurrences, discarding graph of n={nfrags_u} for molecule: '{gid}'")
+                    continue
                 comb = list(df_fcc_clean['abbrev'].values)
                 ncomb = len(comb)
                 comb_u = list(set(comb))
