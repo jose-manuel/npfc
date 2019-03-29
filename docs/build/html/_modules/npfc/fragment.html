@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.fragment &mdash; npfc 0.0.16 documentation</title>
+  <title>npfc.fragment &mdash; npfc 0.0.16-1-gf28a18f documentation</title>
   
 
   
@@ -56,7 +56,7 @@
             
             
               <div class="version">
-                0.0.16
+                0.0.16-1-gf28a18f
               </div>
             
           
@@ -476,7 +476,7 @@
 
         <span class="k">return</span> <span class="n">df_fcc</span></div>
 
-<div class="viewcode-block" id="CombinationClassifier.map_frags"><a class="viewcode-back" href="../../fragment.html#npfc.fragment.CombinationClassifier.map_frags">[docs]</a>    <span class="k">def</span> <span class="nf">map_frags</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df_fcc</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">,</span> <span class="n">min_frags</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">max_frags</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">max_overlaps</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span><span class="p">:</span>
+<div class="viewcode-block" id="CombinationClassifier.map_frags"><a class="viewcode-back" href="../../fragment.html#npfc.fragment.CombinationClassifier.map_frags">[docs]</a>    <span class="k">def</span> <span class="nf">map_frags</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df_fcc</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">,</span> <span class="n">min_frags</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="n">max_frags</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="n">max_overlaps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        This method process a fragment combinations computed with classify_fragment_combinations</span>
 <span class="sd">        and return a new DataFrame with a fragment map for each molecule.</span>
