@@ -12,7 +12,6 @@ import sys
 from datetime import datetime
 import logging
 import pandas as pd
-from pandas import DataFrame
 import argparse
 # chemoinformatics
 import rdkit
@@ -21,8 +20,6 @@ import npfc
 from npfc import save
 from npfc import utils
 from npfc import fragment
-# debug
-from memory_profiler import profile
 # disable SettingWithCopyWarning warnings
 pd.options.mode.chained_assignment = None  # default='warn'
 warnings.filterwarnings('ignore', category=pd.io.pytables.PerformanceWarning)  # if None is returned instead of a molecule, do not complain about mixed types
