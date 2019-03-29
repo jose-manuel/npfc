@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.fragment &mdash; npfc 0.0.15-1-g9c2ed48 documentation</title>
+  <title>npfc.fragment &mdash; npfc 0.0.16 documentation</title>
   
 
   
@@ -56,7 +56,7 @@
             
             
               <div class="version">
-                0.0.15-1-g9c2ed48
+                0.0.16
               </div>
             
           
@@ -163,10 +163,8 @@
 <span class="c1"># standard</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">from</span> <span class="nn">itertools</span> <span class="k">import</span> <span class="n">product</span>
-<span class="kn">from</span> <span class="nn">itertools</span> <span class="k">import</span> <span class="n">combinations</span>
 <span class="c1"># data science</span>
 <span class="kn">from</span> <span class="nn">pandas</span> <span class="k">import</span> <span class="n">DataFrame</span>
-<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 <span class="c1"># chemoinformatics</span>
 <span class="kn">from</span> <span class="nn">rdkit.Chem</span> <span class="k">import</span> <span class="n">Mol</span>
 <span class="kn">from</span> <span class="nn">rdkit.Chem</span> <span class="k">import</span> <span class="n">AllChem</span>
@@ -478,7 +476,7 @@
 
         <span class="k">return</span> <span class="n">df_fcc</span></div>
 
-<div class="viewcode-block" id="CombinationClassifier.map_frags"><a class="viewcode-back" href="../../fragment.html#npfc.fragment.CombinationClassifier.map_frags">[docs]</a>    <span class="k">def</span> <span class="nf">map_frags</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df_fcc</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">,</span> <span class="n">min_frags</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">max_frags</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span><span class="p">:</span>
+<div class="viewcode-block" id="CombinationClassifier.map_frags"><a class="viewcode-back" href="../../fragment.html#npfc.fragment.CombinationClassifier.map_frags">[docs]</a>    <span class="k">def</span> <span class="nf">map_frags</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df_fcc</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">,</span> <span class="n">min_frags</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">max_frags</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">max_overlaps</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        This method process a fragment combinations computed with classify_fragment_combinations</span>
 <span class="sd">        and return a new DataFrame with a fragment map for each molecule.</span>
@@ -490,6 +488,9 @@
 
 <span class="sd">        No applying any limit of the max number of frags might have been what caused</span>
 <span class="sd">        crashed due to memory usage on the cluster.</span>
+<span class="sd">        Nope, this still happens now.</span>
+<span class="sd">        The real reason was because of very high numbers of overlapping combinations</span>
+<span class="sd">        in some molecules (366 so 2^366 graphs!)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># split by overlaps</span>
 
@@ -499,6 +500,11 @@
         <span class="k">for</span> <span class="n">gid</span><span class="p">,</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">df_fcc</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">&#39;idm&#39;</span><span class="p">):</span>
             <span class="c1"># entries with an overlap</span>
             <span class="n">overlaps</span> <span class="o">=</span> <span class="n">g</span><span class="p">[</span><span class="n">g</span><span class="p">[</span><span class="s1">&#39;abbrev&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;ffo&#39;</span><span class="p">]</span>
+            <span class="n">noverlaps</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">overlaps</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">debut</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Number of overlaps found for molecule </span><span class="si">{gid}</span><span class="s2">: </span><span class="si">{noverlaps}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">noverlaps</span> <span class="o">&gt;</span> <span class="n">max_overlaps</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Too many overlap combinations (</span><span class="si">{noverlaps}</span><span class="s2">), discarding molecule &#39;</span><span class="si">{gid}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+                <span class="k">continue</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">overlaps</span><span class="o">.</span><span class="n">index</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>  <span class="c1"># the code below could certainly be improved, but this case should not happen too often</span>
                 <span class="c1"># remove these from the current group</span>
                 <span class="n">g</span> <span class="o">=</span> <span class="n">g</span><span class="p">[</span><span class="n">g</span><span class="p">[</span><span class="s1">&#39;abbrev&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;ffo&#39;</span><span class="p">]</span>

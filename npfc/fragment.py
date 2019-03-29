@@ -323,7 +323,7 @@ class CombinationClassifier:
 
         return df_fcc
 
-    def map_frags(self, df_fcc: DataFrame, min_frags=2, max_frags=5, max_overlaps=5) -> DataFrame:
+    def map_frags(self, df_fcc: DataFrame, min_frags: int = 2, max_frags: int = 5, max_overlaps: int = 5) -> DataFrame:
         """
         This method process a fragment combinations computed with classify_fragment_combinations
         and return a new DataFrame with a fragment map for each molecule.

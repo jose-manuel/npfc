@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Module fragment &mdash; npfc 0.0.15-1-g9c2ed48 documentation</title>
+  <title>Module fragment &mdash; npfc 0.0.16 documentation</title>
   
 
   
@@ -58,7 +58,7 @@
             
             
               <div class="version">
-                0.0.15-1-g9c2ed48
+                0.0.16
               </div>
             
           
@@ -369,7 +369,7 @@ be considered when estimating the distance between fragments.</p>
 
 <dl class="method">
 <dt id="npfc.fragment.CombinationClassifier.map_frags">
-<code class="descname">map_frags</code><span class="sig-paren">(</span><em>df_fcc</em>, <em>min_frags=2</em>, <em>max_frags=5</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/fragment.html#CombinationClassifier.map_frags"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.fragment.CombinationClassifier.map_frags" title="Permalink to this definition">¶</a></dt>
+<code class="descname">map_frags</code><span class="sig-paren">(</span><em>df_fcc</em>, <em>min_frags=2</em>, <em>max_frags=5</em>, <em>max_overlaps=5</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/fragment.html#CombinationClassifier.map_frags"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.fragment.CombinationClassifier.map_frags" title="Permalink to this definition">¶</a></dt>
 <dd><p>This method process a fragment combinations computed with classify_fragment_combinations
 and return a new DataFrame with a fragment map for each molecule.</p>
 <p>This fragment map is a single line string representation of the fragment connectivity
@@ -378,7 +378,10 @@ within a molecule and follows following syntax:</p>
 </pre></div>
 </div>
 <p>No applying any limit of the max number of frags might have been what caused
-crashed due to memory usage on the cluster.</p>
+crashed due to memory usage on the cluster.
+Nope, this still happens now.
+The real reason was because of very high numbers of overlapping combinations
+in some molecules (366 so 2^366 graphs!)</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
