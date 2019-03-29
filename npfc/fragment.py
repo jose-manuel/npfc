@@ -10,10 +10,8 @@ This modules contains two classes:
 # standard
 import logging
 from itertools import product
-from itertools import combinations
 # data science
 from pandas import DataFrame
-import pandas as pd
 # chemoinformatics
 from rdkit.Chem import Mol
 from rdkit.Chem import AllChem
@@ -325,7 +323,7 @@ class CombinationClassifier:
 
         return df_fcc
 
-    def map_frags(self, df_fcc: DataFrame, min_frags=2, max_frags=5) -> DataFrame:
+    def map_frags(self, df_fcc: DataFrame, min_frags=2, max_frags=5, max_overlaps=5) -> DataFrame:
         """
         This method process a fragment combinations computed with classify_fragment_combinations
         and return a new DataFrame with a fragment map for each molecule.
@@ -337,6 +335,9 @@ class CombinationClassifier:
 
         No applying any limit of the max number of frags might have been what caused
         crashed due to memory usage on the cluster.
+        Nope, this still happens now.
+        The real reason was because of very high numbers of overlapping combinations
+        in some molecules (366 so 2^366 graphs!)
         """
         # split by overlaps
 
@@ -346,6 +347,11 @@ class CombinationClassifier:
         for gid, g in df_fcc.groupby('idm'):
             # entries with an overlap
             overlaps = g[g['abbrev'] == 'ffo']
+            noverlaps = len(overlaps.index)
+            logging.debut(f"Number of overlaps found for molecule {gid}: {noverlaps}")
+            if noverlaps > max_overlaps:
+                logging.debug(f"Too many overlap combinations ({noverlaps}), discarding molecule '{gid}'")
+                continue
             if len(overlaps.index) > 0:  # the code below could certainly be improved, but this case should not happen too often
                 # remove these from the current group
                 g = g[g['abbrev'] != 'ffo']

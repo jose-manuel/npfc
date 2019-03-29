@@ -12,6 +12,7 @@ import sys
 from datetime import datetime
 import logging
 import pandas as pd
+from pandas import DataFrame
 import argparse
 # chemoinformatics
 import rdkit
@@ -20,12 +21,80 @@ import npfc
 from npfc import save
 from npfc import utils
 from npfc import fragment
+# debug
+from memory_profiler import profile
 # disable SettingWithCopyWarning warnings
 pd.options.mode.chained_assignment = None  # default='warn'
 warnings.filterwarnings('ignore', category=pd.io.pytables.PerformanceWarning)  # if None is returned instead of a molecule, do not complain about mixed types
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+@profile(precision=4)
+def map_frags(df_fcc: DataFrame, min_frags=2, max_frags=5) -> DataFrame:
+    """
+    This method process a fragment combinations computed with classify_fragment_combinations
+    and return a new DataFrame with a fragment map for each molecule.
+
+    This fragment map is a single line string representation of the fragment connectivity
+    within a molecule and follows following syntax:
+
+        >>> f1[abbrev1]f2-f1[abbrev2]f3-f2[abbrev3]f3
+
+    No applying any limit of the max number of frags might have been what caused
+    crashed due to memory usage on the cluster.
+    Nope, this still happens now.
+    """
+    # split by overlaps
+
+    logging.debug(f"Mapping fragments")
+
+    ds_map = []
+    for gid, g in df_fcc.groupby('idm'):
+        # entries with an overlap
+        overlaps = g[g['abbrev'] == 'ffo']
+        if len(overlaps.index) > 0:  # the code below could certainly be improved, but this case should not happen too often
+            # remove these from the current group
+            g = g[g['abbrev'] != 'ffo']
+            # get fragment ids of the invariant parts of alternative paths
+            common = g[(~g['fid1'].isin(overlaps['fid1'])) & (~g['fid2'].isin(overlaps['fid2']))]
+            common_combinations = set()
+            for rowid, row in common.iterrows():
+                common_combinations.add(row['fid1'])
+                common_combinations.add(row['fid2'])
+            common_combinations = list(common_combinations)
+            # get the fragment ids of the variant parts of alternative paths
+            alt_combinations = []
+            for rowid, row in overlaps.iterrows():
+                alt_combinations.append([row['fid1'], row['fid2']])
+            # get all possible paths
+            alt_combinations = [list(x) + common_combinations for x in list(product(*alt_combinations))]
+
+            dfs_fcc_clean = []
+            for alt in alt_combinations:
+                df_alt = g[(g['fid1'].isin(alt)) | (g['fid2'].isin(alt))]
+                dfs_fcc_clean.append(df_alt)
+        else:
+            dfs_fcc_clean = [g]
+
+        # fragment map string representation
+        for df_fcc_clean in dfs_fcc_clean:
+            frag_map_str = '-'.join(list(df_fcc_clean['fid1'].map(str) + "[" + df_fcc_clean['abbrev'] + "]" + df_fcc_clean['fid2'].map(str)))
+            frags = list(df_fcc_clean['fid1'].map(str).values) + list(df_fcc_clean['fid2'].map(str).values)
+            nfrags = len(frags)
+            frags_u = list(set(frags))
+            nfrags_u = len(frags_u)
+            if nfrags_u < min_frags:
+                logging.debug(f"Too few unique fragment occurrences, discarding graph of n={nfrags_u} for molecule: '{gid}'")
+                continue
+            elif nfrags_u > max_frags:
+                logging.debug(f"Too many unique fragment occurrences, discarding graph of n={nfrags_u} for molecule: '{gid}'")
+                continue
+            comb = list(df_fcc_clean['abbrev'].values)
+            ncomb = len(comb)
+            comb_u = list(set(comb))
+            ncomb_u = len(comb_u)
+            ds_map.append({'idm': gid, 'map_str': frag_map_str, 'nfrags': nfrags, 'nfrags_u': nfrags_u, 'ncomb': ncomb, 'ncomb_u': ncomb_u, 'frags': frags, 'frags_u': frags_u, 'comb': comb, 'comb_u': comb_u})
 
 
 def main():
@@ -47,8 +116,9 @@ def main():
     parser = argparse.ArgumentParser(description=description, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('input_fcc', type=str, default=None, help="Input file.")
     parser.add_argument('output_fmap', type=str, default=None, help="Output file.")
-    # parser.add_argument('--min', type=int, default=2, help="Minimum number of hits/molecule.")
-    # parser.add_argument('--max', type=int, default=5, help="Maximum number of hits/molecule.")
+    parser.add_argument('--min-frags', type=int, default=2, help="Minimum number of unique fragment occurrence (type and position) for computing a graph.")
+    parser.add_argument('--max-frags', type=int, default=5, help="Maximum number of unique fragment occurrence (type and position) for computing a graph.")
+    parser.add_argument('--max-overlaps', type=int, default=5, help="Minimum number of overlapping fragment combinations for processing a molecule.")
     parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
     args = parser.parse_args()
 
@@ -60,8 +130,13 @@ def main():
     # parse arguments
     utils.check_arg_input_file(args.input_fcc)
     utils.check_arg_output_file(args.output_fmap)
-    # utils.check_arg_positive_number(args.min)
-    # utils.check_arg_positive_number(args.max)
+    utils.check_arg_positive_number(args.min_frags)
+    utils.check_arg_positive_number(args.max_frags)
+    utils.check_arg_positive_number(args.max_overlaps)
+
+    if args.min_frags > args.max_frags:
+        logging.critical(f"ERROR! MIN_FRAGS ({min_frags}) CANNOT BE SUPERIOR TO MAX_FRAGS ({max_frags})")
+
     fcc_format, fcc_compression = utils.get_file_format(args.input_fcc)
     out_format, out_compression = utils.get_file_format(args.output_fmap)
 
@@ -77,8 +152,9 @@ def main():
     logging.info("OUTPUT_FMAP".ljust(pad) + f"{args.output_fmap}")
     logging.info("OUT_FORMAT".ljust(pad) + f"{out_format}")
     logging.info("OUT_COMPRESSION".ljust(pad) + f"{out_compression}")
-    # logging.info("MIN".ljust(pad) + f"{args.min}")
-    # logging.info("MAX".ljust(pad) + f"{args.max}")
+    logging.info("MIN_FRAGS".ljust(pad) + f"{args.min_frags}")
+    logging.info("MAX_FRAGS".ljust(pad) + f"{args.max_frags}")
+    logging.info("MAX_OVERLAP".ljust(pad) + f"{args.max_overlaps}")
     logging.info("LOG".ljust(pad) + f"{args.log}")
 
     # begin
@@ -93,8 +169,8 @@ def main():
     # run frag map
     logger.info(f"PROCESSING FCC DATA")
     d2 = datetime.now()
-    c = fragment.CombinationClassifier()
-    df_map = c.map_frags(df_fcc)
+    # c = fragment.CombinationClassifier()
+    df_map = map_frags(df_fcc, min_frags=args.min_frags, max_frags=args.max_frags, max_overlaps=args.max_overlaps)
     logger.info(f"FOUND {len(df_map.index)} COMBINATION GRAPHS")
 
     # save results
