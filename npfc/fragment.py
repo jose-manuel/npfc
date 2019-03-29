@@ -348,7 +348,7 @@ class CombinationClassifier:
             # entries with an overlap
             overlaps = g[g['abbrev'] == 'ffo']
             noverlaps = len(overlaps.index)
-            logging.debut(f"Number of overlaps found for molecule {gid}: {noverlaps}")
+            logging.debug(f"Number of overlaps found for molecule {gid}: {noverlaps}")
             if noverlaps > max_overlaps:
                 logging.debug(f"Too many overlap combinations ({noverlaps}), discarding molecule '{gid}'")
                 continue
