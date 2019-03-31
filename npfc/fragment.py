@@ -306,16 +306,25 @@ class CombinationClassifier:
         # drop fragments combinations paired with a substructure
         df_substructures = df_fcc[df_fcc['abbrev'] == 'ffs']  # all the substructures in the whole dataframe
         logging.debug(f"Number of substructures found in df_fcc: {len(df_substructures.index)}/{len(df_fcc.index)}")
+        logging.debug(f"Substructure combinations:\n{df_substructures}\n")
         if len(df_substructures) > 0:
             logging.debug(f"Removing substructures from fragment combinations")
             for gid, g in df_fcc[df_fcc['idm'].isin(df_substructures['idm'])].groupby('idm'):  # iterate only on the groups with at least one substructure
-                idf_to_remove = []
-                for row in g[g['abbrev'] == 'ffs'].itertuples():
-                    if len(row[10]) > len(row[11]):
-                        idf_to_remove.append(row[5])
+                fid_to_remove = []
+                for rowid, row in g[g['abbrev'] == 'ffs'].iterrows():
+                    if len(row['aidxf1']) > len(row['aidxf2']):
+                        fid_to_remove.append(row['fid2'])
                     else:
-                        idf_to_remove.append(row[3])
-            df_fcc = df_fcc[(~df_fcc['idxf1'].isin(idf_to_remove)) & (~df_fcc['idxf2'].isin(idf_to_remove))]
+                        fid_to_remove.append(row['fid1'])
+            logging.debug(f"Number of fragment combinations to remove: {len(fid_to_remove)}")
+            # logging.debug(f"Fragment combinations to remove: {fid_to_remove}")
+            # logging.debug(f"\ndf_fcc BEFORE\n:{df_fcc}\n")
+            df_fcc = df_fcc[~df_fcc['fid1'].isin(fid_to_remove)]
+            df_fcc = df_fcc[~df_fcc['fid2'].isin(fid_to_remove)]
+            # two lines above are suboptimal, below line failed and since this is still fast and I am in a hurry I just leave it is for now
+            # df_fcc = df_fcc[(~df_fcc['fid1'].isin(fid_to_remove)) | (~df_fcc['fid2'].isin(fid_to_remove))]
+            # logging.debug(f"\ndf_fcc AFTER\n:{df_fcc}\n")
+
         if len(df_fcc.index) == 0:
             logging.debug("No fragment remaining for mapping!")
             return None
