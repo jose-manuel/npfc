@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.fragment &mdash; npfc 0.0.18 documentation</title>
+  <title>npfc.fragment &mdash; npfc 0.0.19 documentation</title>
   
 
   
@@ -56,7 +56,7 @@
             
             
               <div class="version">
-                0.0.18
+                0.0.19
               </div>
             
           
@@ -459,16 +459,25 @@
         <span class="c1"># drop fragments combinations paired with a substructure</span>
         <span class="n">df_substructures</span> <span class="o">=</span> <span class="n">df_fcc</span><span class="p">[</span><span class="n">df_fcc</span><span class="p">[</span><span class="s1">&#39;abbrev&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;ffs&#39;</span><span class="p">]</span>  <span class="c1"># all the substructures in the whole dataframe</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Number of substructures found in df_fcc: {len(df_substructures.index)}/{len(df_fcc.index)}&quot;</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Substructure combinations:</span><span class="se">\n</span><span class="si">{df_substructures}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">df_substructures</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Removing substructures from fragment combinations&quot;</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">gid</span><span class="p">,</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">df_fcc</span><span class="p">[</span><span class="n">df_fcc</span><span class="p">[</span><span class="s1">&#39;idm&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">df_substructures</span><span class="p">[</span><span class="s1">&#39;idm&#39;</span><span class="p">])]</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">&#39;idm&#39;</span><span class="p">):</span>  <span class="c1"># iterate only on the groups with at least one substructure</span>
-                <span class="n">idf_to_remove</span> <span class="o">=</span> <span class="p">[]</span>
-                <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">g</span><span class="p">[</span><span class="n">g</span><span class="p">[</span><span class="s1">&#39;abbrev&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;ffs&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">itertuples</span><span class="p">():</span>
-                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="mi">10</span><span class="p">])</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="mi">11</span><span class="p">]):</span>
-                        <span class="n">idf_to_remove</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="mi">5</span><span class="p">])</span>
+                <span class="n">fid_to_remove</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">rowid</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">g</span><span class="p">[</span><span class="n">g</span><span class="p">[</span><span class="s1">&#39;abbrev&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;ffs&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;aidxf1&#39;</span><span class="p">])</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;aidxf2&#39;</span><span class="p">]):</span>
+                        <span class="n">fid_to_remove</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;fid2&#39;</span><span class="p">])</span>
                     <span class="k">else</span><span class="p">:</span>
-                        <span class="n">idf_to_remove</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
-            <span class="n">df_fcc</span> <span class="o">=</span> <span class="n">df_fcc</span><span class="p">[(</span><span class="o">~</span><span class="n">df_fcc</span><span class="p">[</span><span class="s1">&#39;idxf1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">idf_to_remove</span><span class="p">))</span> <span class="o">&amp;</span> <span class="p">(</span><span class="o">~</span><span class="n">df_fcc</span><span class="p">[</span><span class="s1">&#39;idxf2&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">idf_to_remove</span><span class="p">))]</span>
+                        <span class="n">fid_to_remove</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;fid1&#39;</span><span class="p">])</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Number of fragment combinations to remove: {len(fid_to_remove)}&quot;</span><span class="p">)</span>
+            <span class="c1"># logging.debug(f&quot;Fragment combinations to remove: {fid_to_remove}&quot;)</span>
+            <span class="c1"># logging.debug(f&quot;\ndf_fcc BEFORE\n:{df_fcc}\n&quot;)</span>
+            <span class="n">df_fcc</span> <span class="o">=</span> <span class="n">df_fcc</span><span class="p">[</span><span class="o">~</span><span class="n">df_fcc</span><span class="p">[</span><span class="s1">&#39;fid1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">fid_to_remove</span><span class="p">)]</span>
+            <span class="n">df_fcc</span> <span class="o">=</span> <span class="n">df_fcc</span><span class="p">[</span><span class="o">~</span><span class="n">df_fcc</span><span class="p">[</span><span class="s1">&#39;fid2&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">fid_to_remove</span><span class="p">)]</span>
+            <span class="c1"># two lines above are suboptimal, below line failed and since this is still fast and I am in a hurry I just leave it is for now</span>
+            <span class="c1"># df_fcc = df_fcc[(~df_fcc[&#39;fid1&#39;].isin(fid_to_remove)) | (~df_fcc[&#39;fid2&#39;].isin(fid_to_remove))]</span>
+            <span class="c1"># logging.debug(f&quot;\ndf_fcc AFTER\n:{df_fcc}\n&quot;)</span>
+
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">df_fcc</span><span class="o">.</span><span class="n">index</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;No fragment remaining for mapping!&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">None</span>

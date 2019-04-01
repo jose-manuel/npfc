@@ -316,14 +316,24 @@ class CombinationClassifier:
                         fid_to_remove.append(row['fid2'])
                     else:
                         fid_to_remove.append(row['fid1'])
-            logging.debug(f"Number of fragment combinations to remove: {len(fid_to_remove)}")
-            # logging.debug(f"Fragment combinations to remove: {fid_to_remove}")
-            # logging.debug(f"\ndf_fcc BEFORE\n:{df_fcc}\n")
-            df_fcc = df_fcc[~df_fcc['fid1'].isin(fid_to_remove)]
-            df_fcc = df_fcc[~df_fcc['fid2'].isin(fid_to_remove)]
-            # two lines above are suboptimal, below line failed and since this is still fast and I am in a hurry I just leave it is for now
-            # df_fcc = df_fcc[(~df_fcc['fid1'].isin(fid_to_remove)) | (~df_fcc['fid2'].isin(fid_to_remove))]
-            # logging.debug(f"\ndf_fcc AFTER\n:{df_fcc}\n")
+                    logging.debug(f"{gid}: {rowid} => {row['fid1']} - {row['fid2']} ==> to_remove={fid_to_remove}")
+
+                logging.debug(f"Number of fragment combinations to remove: {len(fid_to_remove)}")
+                logging.debug(f"Fragment combinations to remove: {fid_to_remove}")
+                logging.debug(f"\ndf_fcc BEFORE\n:{df_fcc}\n")
+
+                logging.debug(f"\ndNumber of entries - 0\n:{len(df_fcc)}\n")
+                logging.debug(f"\n{df_fcc}\n")
+                df_fcc = df_fcc[~df_fcc['fid1'].isin(fid_to_remove)]
+                logging.debug(f"\ndNumber of entries - 1\n:{len(df_fcc)}\n")
+                logging.debug(f"\n{df_fcc}\n")
+                df_fcc = df_fcc[~df_fcc['fid2'].isin(fid_to_remove)]
+                logging.debug(f"\ndNumber of entries - 2\n:{len(df_fcc)}\n")
+                logging.debug(f"\n{df_fcc}\n")
+
+                # two lines above are suboptimal, below line failed and since this is still fast and I am in a hurry I just leave it is for now
+                # df_fcc = df_fcc[(~df_fcc['fid1'].isin(fid_to_remove)) | (~df_fcc['fid2'].isin(fid_to_remove))]
+                logging.debug(f"\ndf_fcc AFTER\n:{df_fcc}\n")
 
         if len(df_fcc.index) == 0:
             logging.debug("No fragment remaining for mapping!")
