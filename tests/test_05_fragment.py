@@ -349,5 +349,12 @@ def test_fcc_fragmap(fcc, df_fcc_clean_5):
     df_map = fcc.map_frags(df_fcc_clean_5)
     # print(df_map)
     print()
-    for i, e in enumerate(df_map.iloc[0]['aidxfs']):
+    import base64
+    import pickle
+
+    df_map.to_csv('test.csv.gz', sep='|', compression='gzip')
+    print("reading")
+    df_map = pd.read_csv("test.csv.gz", sep="|", compression='gzip')
+    df_map['aidxfs'] = df_map['aidxfs'].map(lambda x: pickle.loads(base64.b64decode(x)))
+    for i, e in enumerate(df_map['aidxfs']):
         print(i, e)

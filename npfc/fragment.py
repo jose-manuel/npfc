@@ -10,7 +10,8 @@ This modules contains two classes:
 # standard
 import logging
 from itertools import product
-import json
+import pickle
+import base64
 # data science
 from pandas import DataFrame
 # chemoinformatics
@@ -412,8 +413,8 @@ class CombinationClassifier:
                 aidxfs = list(df_fcc_clean['aidxf1'].values) + list(df_fcc_clean['aidxf2'].values)
                 aidxfs = [list(x) for x in aidxfs]
                 aidxfs = dict(zip(frags, aidxfs))  # aidxfs is now a dict with frag: aidfx
-                aidxfs = json.dumps(aidxfs)
-
+                aidxfs = base64.b64encode(pickle.dumps(aidxfs)).decode()  # json dumps works locally but cannot be read when run on the cluster
+                # aidxfs = json.dumps(aidxfs)
                 # aidxfs = list(df_fcc_clean['aidxf1'].values) + list(df_fcc_clean['aidxf2'].values)
                 comb = list(df_fcc_clean['abbrev'].values)
                 ncomb = len(comb)
