@@ -55,10 +55,10 @@ def df_fcc_clean_5():
                          'fid2': ['178:15', '718:17', '718:18', '718:17', '718:18'],
                          'abbrev': ['fed'] + ['cmo'] * 4,
 
-                         'aidxf1': [{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}] * 3 + [{0, 1, 10, 11, 12, 13, 14, 15, 16}] * 2,
-                         'aidxf2': [{0, 1, 10, 11, 12, 13, 14, 15, 16}, {19, 20, 21, 22, 23, 24},
-                                    {32, 27, 28, 29, 30, 31}, {19, 20, 21, 22, 23, 24},
-                                    {32, 27, 28, 29, 30, 31},
+                         'aidxf1': ['{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}'] * 3 + ['{0, 1, 10, 11, 12, 13, 14, 15, 16}'] * 2,
+                         'aidxf2': ['{0, 1, 10, 11, 12, 13, 14, 15, 16}', '{19, 20, 21, 22, 23, 24}',
+                                    '{32, 27, 28, 29, 30, 31}', '{19, 20, 21, 22, 23, 24}',
+                                    '{32, 27, 28, 29, 30, 31}',
                                     ],
                          })
 
@@ -81,17 +81,17 @@ def df_fcc_2():
                                   ],
                          'subtype': ['substructure', '', 'overlap', 'substructure', '', '', '',
                                      '', ''],
-                         'aidxf1': [{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9},
-                                    {0, 1, 2, 3, 4, 5, 6, 7, 8, 9}, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9},
-                                    {0, 1, 2, 3, 4, 5}, {0, 1, 2, 3, 4, 5},
-                                    {0, 1, 2, 3, 4, 5}, {12, 13, 14, 15, 16, 17},
-                                    {12, 13, 14, 15, 16, 17},
+                         'aidxf1': ['{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}', '{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}',
+                                    '{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}', '{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}',
+                                    '{0, 1, 2, 3, 4, 5}', '{0, 1, 2, 3, 4, 5}',
+                                    '{0, 1, 2, 3, 4, 5}', '{12, 13, 14, 15, 16, 17}',
+                                    '{12, 13, 14, 15, 16, 17}',
                                     ],
-                         'aidxf2': [{0, 1, 2, 3, 4, 5}, {12, 13, 14, 15, 16, 17},
-                                    {4, 5, 6, 7, 8, 9, 10}, {4, 5, 6, 7, 8, 9},
-                                    {12, 13, 14, 15, 16, 17}, {4, 5, 6, 7, 8, 9, 10},
-                                    {4, 5, 6, 7, 8, 9}, {4, 5, 6, 7, 8, 9, 10},
-                                    {4, 5, 6, 7, 8, 9},
+                         'aidxf2': ['{0, 1, 2, 3, 4, 5}', '{12, 13, 14, 15, 16, 17}',
+                                    '{4, 5, 6, 7, 8, 9, 10}', '{4, 5, 6, 7, 8, 9}',
+                                    '{12, 13, 14, 15, 16, 17}', '{4, 5, 6, 7, 8, 9, 10}',
+                                    '{4, 5, 6, 7, 8, 9}', '{4, 5, 6, 7, 8, 9, 10}',
+                                    '{4, 5, 6, 7, 8, 9}',
                                     ],
                          })
 
@@ -351,10 +351,21 @@ def test_fcc_fragmap(fcc, df_fcc_clean_5):
     print()
     import base64
     import pickle
+    import json
 
     df_map.to_csv('test.csv.gz', sep='|', compression='gzip')
-    print("reading")
+    print("reading json")
     df_map = pd.read_csv("test.csv.gz", sep="|", compression='gzip')
-    df_map['aidxfs'] = df_map['aidxfs'].map(lambda x: pickle.loads(base64.b64decode(x)))
+    df_map['aidxfs'] = df_map['aidxfs'].map(json.loads)
     for i, e in enumerate(df_map['aidxfs']):
         print(i, e)
+
+    print("reading json from other file")
+    df_map = pd.read_csv("/home/gally/Projects/NPFC/data/chembl/data/7_map/data/chembl_182_passed_synth_crm_fcc_clean_map.csv.gz", sep="|", compression='gzip')
+    df_map['aidxfs'] = df_map['aidxfs'].map(json.loads)
+    # for i, e in enumerate(df_map['aidxfs']):
+    #     print(i, e)
+    #
+    # # df_map['aidxfs'] = df_map['aidxfs'].map(lambda x: pickle.loads(base64.b64decode(x)))
+    # for i, e in enumerate(df_map['aidxfs']):
+    #     print(i, e)

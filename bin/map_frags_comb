@@ -107,7 +107,8 @@ def main():
     # save results
     logger.info(f"SAVING RESULTS AT '{args.output_fmap}'")
     d3 = datetime.now()
-    save.save(df_map, args.output_fmap, encode_mols=False)
+    df_map.to_csv(args.output_fmap, compression='gzip', sep='|')
+    # save.save(df_map, args.output_fmap, encode_mols=False)
 
     # end
     d4 = datetime.now()
