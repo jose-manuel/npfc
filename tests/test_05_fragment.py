@@ -40,44 +40,25 @@ def df_frags():
 
 
 @pytest.fixture
-def df_fcc():
-    """A simple fragment combination classification but complicated enough (cutoff) for testing fragment maps"""
-    # raw data extracted from chembl_031_passed_synth_crm_fcc.csv.gz:
-    # 3|CHEMBL1421|32|139|connection|false_positive|cutoff|{4, 5, 6, 22, 23, 24}|{8, 9, 10, 11, 27, 28}
-    # 4|CHEMBL1421|32|547|connection|monopodal||{4, 5, 6, 22, 23, 24}|{0, 1, 18, 19, 20}
-    # 5|CHEMBL1421|32|718|connection|false_positive|cutoff|{4, 5, 6, 22, 23, 24}|{3, 13, 14, 29, 30, 31}
-    # 6|CHEMBL1421|32|818|connection|false_positive|cutoff|{4, 5, 6, 22, 23, 24}|{8, 9, 10, 11, 17, 27, 28}
-    # 7|CHEMBL1421|139|547|connection|monopodal||{8, 9, 10, 11, 27, 28}|{0, 1, 18, 19, 20}
-    # 8|CHEMBL1421|139|718|connection|monopodal||{8, 9, 10, 11, 27, 28}|{3, 13, 14, 29, 30, 31}
-    # 9|CHEMBL1421|139|818|fusion|false_positive|substructure|{8, 9, 10, 11, 27, 28}|{8, 9, 10, 11, 17, 27, 28}
-    # 10|CHEMBL1421|547|718|connection|false_positive|cutoff|{0, 1, 18, 19, 20}|{3, 13, 14, 29, 30, 31}
-    # 11|CHEMBL1421|547|818|connection|monopodal||{0, 1, 18, 19, 20}|{8, 9, 10, 11, 17, 27, 28}
-    # 12|CHEMBL1421|718|818|connection|monopodal||{3, 13, 14, 29, 30, 31}|{8, 9, 10, 11, 17, 27, 28}
+def df_fcc_clean_5():
+    """An example of fcc_clean with 5 combinations"""
+    # raw data extracted from chembl_182_passed_synth_crm_fcc.csv.gz:
+    # idm|idf1|idxf1|fid1|idf2|idxf2|fid2|abbrev|category|type|subtype|aidxf1|aidxf2
+    # CHEMBL3991441|2|11|2:11|178|15|178:15|fed|fusion|edge||{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}|{0, 1, 10, 11, 12, 13, 14, 15, 16}
+    # CHEMBL3991441|2|11|2:11|718|17|718:17|cmo|connection|monopodal||{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}|{19, 20, 21, 22, 23, 24}
+    # CHEMBL3991441|2|11|2:11|718|18|718:18|cmo|connection|monopodal||{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}|{32, 27, 28, 29, 30, 31}
+    # CHEMBL3991441|178|15|178:15|718|17|718:17|cmo|connection|monopodal||{0, 1, 10, 11, 12, 13, 14, 15, 16}|{19, 20, 21, 22, 23, 24}
+    # CHEMBL3991441|178|15|178:15|718|18|718:18|cmo|connection|monopodal||{0, 1, 10, 11, 12, 13, 14, 15, 16}|{32, 27, 28, 29, 30, 31}
 
-    return pd.DataFrame({'idm': ['CHEMBL1421'] * 10,
-                         'idf1': [32, 32, 32, 32, 139, 139, 139, 547, 547, 718],
-                         'idxf1': [0, 0, 0, 0, 1, 1, 1, 2, 2, 3],
-                         'idf2': [139, 547, 718, 818, 547, 718, 818, 718, 818, 818],
-                         'idxf2': [1, 2, 3, 4, 2, 3, 4, 3, 4, 4],
-                         'abbrev': ['cfc', 'cmo', 'cfc', 'cfc', 'cmo', 'cmo', 'ffs', 'cfc', 'cmo', 'cmo'],
-                         'category': ['connection'] * 6 + ['fusion'] + ['connection'] * 3,
-                         'type': ['false_positive', 'monopodal', 'false_positive', 'false_positive',
-                                  'monopodal', 'monopodal', 'false_positive', 'false_positive',
-                                  'monopodal', 'monopodal',
-                                  ],
-                         'subtype': ['cutoff', '', 'cutoff', 'cutoff', '', '', 'substructure',
-                                     'cutoff', '', ''],
-                         'aidxf1': [{4, 5, 6, 22, 23, 24}, {4, 5, 6, 22, 23, 24},
-                                    {4, 5, 6, 22, 23, 24}, {4, 5, 6, 22, 23, 24},
-                                    {8, 9, 10, 11, 27, 28}, {8, 9, 10, 11, 27, 28},
-                                    {8, 9, 10, 11, 27, 28}, {0, 1, 18, 19, 20},
-                                    {0, 1, 18, 19, 20}, {3, 13, 14, 29, 30, 31},
-                                    ],
-                         'aidxf2': [{8, 9, 10, 11, 27, 28}, {0, 1, 18, 19, 20},
-                                    {3, 13, 14, 29, 30, 31}, {8, 9, 10, 11, 17, 27, 28},
-                                    {0, 1, 18, 19, 20}, {3, 13, 14, 29, 30, 31},
-                                    {8, 9, 10, 11, 17, 27, 28}, {3, 13, 14, 29, 30, 31},
-                                    {8, 9, 10, 11, 17, 27, 28}, {8, 9, 10, 11, 17, 27, 28},
+    return pd.DataFrame({'idm': ['CHEMBL3991441'] * 5,
+                         'fid1': ['2:11'] * 3 + ['178:15'] * 2,
+                         'fid2': ['178:15', '718:17', '718:18', '718:17', '718:18'],
+                         'abbrev': ['fed'] + ['cmo'] * 4,
+
+                         'aidxf1': [{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}] * 3 + [{0, 1, 10, 11, 12, 13, 14, 15, 16}] * 2,
+                         'aidxf2': [{0, 1, 10, 11, 12, 13, 14, 15, 16}, {19, 20, 21, 22, 23, 24},
+                                    {32, 27, 28, 29, 30, 31}, {19, 20, 21, 22, 23, 24},
+                                    {32, 27, 28, 29, 30, 31},
                                     ],
                          })
 
@@ -362,8 +343,11 @@ def test_fcc_connection_false_positive_cutoff(fcc, fm, df_mol_connection_false_p
     assert result['category'] == 'connection' and result['type'] == 'false_positive' and result['subtype'] == 'cutoff' and result['abbrev'] == 'cfc'
 
 
-def test_fcc_fragmap(fcc, df_fcc, df_fcc_2):
+def test_fcc_fragmap(fcc, df_fcc_clean_5):
     """Check the fragment map functionality"""
 
-    print(fcc.map_frags(df_fcc))
-    print(fcc.map_frags(df_fcc_2))
+    df_map = fcc.map_frags(df_fcc_clean_5)
+    # print(df_map)
+    print()
+    for i, e in enumerate(df_map.iloc[0]['aidxfs']):
+        print(i, e)

@@ -10,6 +10,7 @@ This modules contains two classes:
 # standard
 import logging
 from itertools import product
+import json
 # data science
 from pandas import DataFrame
 # chemoinformatics
@@ -408,10 +409,16 @@ class CombinationClassifier:
                 elif nfrags_u > max_frags:
                     logging.debug(f"Too many unique fragment occurrences, discarding graph of n={nfrags_u} for molecule: '{gid}'")
                     continue
+                aidxfs = list(df_fcc_clean['aidxf1'].values) + list(df_fcc_clean['aidxf2'].values)
+                aidxfs = [list(x) for x in aidxfs]
+                aidxfs = dict(zip(frags, aidxfs))  # aidxfs is now a dict with frag: aidfx
+                aidxfs = json.dumps(aidxfs)
+
+                # aidxfs = list(df_fcc_clean['aidxf1'].values) + list(df_fcc_clean['aidxf2'].values)
                 comb = list(df_fcc_clean['abbrev'].values)
                 ncomb = len(comb)
                 comb_u = list(set(comb))
                 ncomb_u = len(comb_u)
-                ds_map.append({'idm': gid, 'map_str': frag_map_str, 'nfrags': nfrags, 'nfrags_u': nfrags_u, 'ncomb': ncomb, 'ncomb_u': ncomb_u, 'frags': frags, 'frags_u': frags_u, 'comb': comb, 'comb_u': comb_u})
+                ds_map.append({'idm': gid, 'map_str': frag_map_str, 'nfrags': nfrags, 'nfrags_u': nfrags_u, 'ncomb': ncomb, 'ncomb_u': ncomb_u, 'frags': frags, 'frags_u': frags_u, 'comb': comb, 'comb_u': comb_u, 'aidxfs': aidxfs})
 
-        return DataFrame(ds_map, columns=['idm', 'map_str', 'nfrags', 'nfrags_u', 'ncomb', 'ncomb_u', 'frags', 'frags_u', 'comb', 'comb_u'])
+        return DataFrame(ds_map, columns=['idm', 'map_str', 'nfrags', 'nfrags_u', 'ncomb', 'ncomb_u', 'frags', 'frags_u', 'comb', 'comb_u', 'aidxfs'])
