@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.fragment &mdash; npfc 0.0.23 documentation</title>
+  <title>npfc.fragment &mdash; npfc 0.0.24 documentation</title>
   
 
   
@@ -56,7 +56,7 @@
             
             
               <div class="version">
-                0.0.23
+                0.0.24
               </div>
             
           
@@ -163,6 +163,7 @@
 <span class="c1"># standard</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">from</span> <span class="nn">itertools</span> <span class="k">import</span> <span class="n">product</span>
+<span class="kn">import</span> <span class="nn">json</span>
 <span class="kn">import</span> <span class="nn">pickle</span>
 <span class="kn">import</span> <span class="nn">base64</span>
 <span class="c1"># data science</span>
@@ -564,10 +565,12 @@
                     <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Too many unique fragment occurrences, discarding graph of n=</span><span class="si">{nfrags_u}</span><span class="s2"> for molecule: &#39;</span><span class="si">{gid}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
                     <span class="k">continue</span>
                 <span class="n">aidxfs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">df_fcc_clean</span><span class="p">[</span><span class="s1">&#39;aidxf1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">df_fcc_clean</span><span class="p">[</span><span class="s1">&#39;aidxf2&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
-                <span class="n">aidxfs</span> <span class="o">=</span> <span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">aidxfs</span><span class="p">]</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Input aidxfs: </span><span class="si">{aidxfs}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">aidxfs</span> <span class="o">=</span> <span class="p">[</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;{&quot;</span><span class="p">,</span> <span class="s2">&quot;[&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;}&quot;</span><span class="p">,</span> <span class="s2">&quot;]&quot;</span><span class="p">))</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">aidxfs</span><span class="p">]</span>
                 <span class="n">aidxfs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">frags</span><span class="p">,</span> <span class="n">aidxfs</span><span class="p">))</span>  <span class="c1"># aidxfs is now a dict with frag: aidfx</span>
-                <span class="n">aidxfs</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64encode</span><span class="p">(</span><span class="n">pickle</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">aidxfs</span><span class="p">))</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span>  <span class="c1"># json dumps works locally but cannot be read when run on the cluster</span>
-                <span class="c1"># aidxfs = json.dumps(aidxfs)</span>
+                <span class="c1"># aidxfs = base64.b64encode(pickle.dumps(aidxfs)).decode()  # json dumps works locally but cannot be read when run on the cluster</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Final aidxfs before dumping to JSON: </span><span class="si">{aidxfs}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">aidxfs</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">aidxfs</span><span class="p">)</span>
                 <span class="c1"># aidxfs = list(df_fcc_clean[&#39;aidxf1&#39;].values) + list(df_fcc_clean[&#39;aidxf2&#39;].values)</span>
                 <span class="n">comb</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">df_fcc_clean</span><span class="p">[</span><span class="s1">&#39;abbrev&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
                 <span class="n">ncomb</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">comb</span><span class="p">)</span>

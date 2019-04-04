@@ -165,7 +165,7 @@ def df_mol_connection_tripodal_bridged():
 @pytest.fixture
 def df_mol_connection_unknown_spiro():
     """Example molecule with the connection unknown spiro fragment combination."""
-    return pd.DataFrame({'mol': [Chem.MolFromSmiles('C1C2C3C4CCC5OCC(CC135)CC2N4')]}, index=['m_cus'])
+    return pd.DataFrame({'mol': [Chem.MolFromSmiles('C1CC23CC4COC2CCC2NC(C4)C1C32')]}, index=['m_cus'])
 
 
 @pytest.fixture
@@ -347,25 +347,3 @@ def test_fcc_fragmap(fcc, df_fcc_clean_5):
     """Check the fragment map functionality"""
 
     df_map = fcc.map_frags(df_fcc_clean_5)
-    # print(df_map)
-    print()
-    import base64
-    import pickle
-    import json
-
-    df_map.to_csv('test.csv.gz', sep='|', compression='gzip')
-    print("reading json")
-    df_map = pd.read_csv("test.csv.gz", sep="|", compression='gzip')
-    df_map['aidxfs'] = df_map['aidxfs'].map(json.loads)
-    for i, e in enumerate(df_map['aidxfs']):
-        print(i, e)
-
-    print("reading json from other file")
-    df_map = pd.read_csv("/home/gally/Projects/NPFC/data/chembl/data/7_map/data/chembl_182_passed_synth_crm_fcc_clean_map.csv.gz", sep="|", compression='gzip')
-    df_map['aidxfs'] = df_map['aidxfs'].map(json.loads)
-    # for i, e in enumerate(df_map['aidxfs']):
-    #     print(i, e)
-    #
-    # # df_map['aidxfs'] = df_map['aidxfs'].map(lambda x: pickle.loads(base64.b64decode(x)))
-    # for i, e in enumerate(df_map['aidxfs']):
-    #     print(i, e)

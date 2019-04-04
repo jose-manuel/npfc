@@ -104,10 +104,9 @@ class CombinationClassifier:
         """
         # 1/ compute every pairwise atom combination between both fragments
         pairwise_combinations = product(tuple(aidxf1), tuple(aidxf2))
-        logging.debug(f"pairwise_combinations: {pairwise_combinations}")
         # 2/ for each of those, compute the shortest path possible
         all_paths = [AllChem.GetShortestPath(mol, pc[0], pc[1]) for pc in pairwise_combinations]
-        logging.debug(f"all_paths: {all_paths}")
+        logging.debug(f"Looking for the shortest path shortest path among these: {all_paths}")
         # 3/ return one of the shortest pathes
         return min(all_paths, key=lambda x: len(x))
 
@@ -189,7 +188,9 @@ class CombinationClassifier:
             if len(intermediary_rings) == 0:
                 return {'category': category, 'type': 'monopodal', 'subtype': '', 'abbrev': 'cmo'}
             else:
-                intermediary_rings = self.get_rings_between_two_fragments(mol, aidxf1, aidxf2)
+                sssr = [set(x) for x in mol.GetRingInfo().AtomRings()]  # smallest sets of smallest rings
+                logging.debug(f"sssr={sssr}")
+                intermediary_rings = self._filter_intermediary_rings(intermediary_rings, sssr)
                 if len(intermediary_rings) == 1:
                     type = 'bipodal'  # 1 intermediary ring, which are defined by intersection of aidx, so at least always 1 for each fragment!
                     return self._get_fcc_subtype(category, type, aidxf1, aidxf2, intermediary_rings)
@@ -199,6 +200,48 @@ class CombinationClassifier:
                 else:
                     type = 'unknown'
                     return self._get_fcc_subtype(category, type, aidxf1, aidxf2, intermediary_rings)
+
+    def _filter_intermediary_rings(self, intermediary_rings: list, sssr: list):
+        """Filter the intermediary rings found within a molecule using the Smallest
+        Set of Smallest Rings (SSSR). The idea is that if two fragments have 2 intermediary
+        rings that are almost identical but for a few atoms, and these atoms actually are
+        contained within the same ring, then only one intermediary ring should be counted.
+        This will lower the amount of bipodal that are being identified as tripodal and
+        tripodal that are identified as unknown connections.
+
+        :param intermediary_rings: the intermediary rings of a molecule
+        :param sssr: the smallest set of smallest rings of a molecule
+        :return: the filtered intermediary rings of a molecule
+        """
+
+        # get a dict of all intermediary rings (ir) with their length as keys
+        d = {}
+        for x in intermediary_rings:
+            if len(x) in d.keys():
+                d[len(x)].append(x)
+            else:
+                d[len(x)] = [x]
+        # filter the dict so we consider only values with more than one ir of the same size
+        ir_to_check = {}
+        for key, val in d.items():
+            if len(val) > 1:
+                ir_to_check[key] = d[key]
+        logging.debug(f"ir_to_check={ir_to_check}")
+        # check if these ir are not redundant for our analysis (which would change the classfication: cb -> ct, etc.)
+        to_remove = []
+        # I have a high complexity here for this lvl4 nested iteration.
+        # However, I don't see how I could much improve this algorithm, so for now
+        # I just hope the cases with a high number of ir to remove are low enough,
+        # which is realistic considering we filtered molecules with MW > 1000.0 Da.
+        for k in d.keys():
+            for i in range(len(intermediary_rings)):
+                for j in range(i+1, len(intermediary_rings)):
+                    diff = intermediary_rings[i] - intermediary_rings[j]
+                    [diff.add(x) for x in intermediary_rings[j] - intermediary_rings[i]]
+                    [to_remove.append(intermediary_rings[j]) for r in sssr if diff.issubset(r)]
+        logging.debug(f"ir_to_remove: {to_remove}")
+        # filter the ir list with the mask
+        return [ir for ir in intermediary_rings if ir not in to_remove]
 
     def _get_fcc_subtype(self, category: str, type: str, aidxf1: set, aidxf2: set, intermediary_rings: list) -> tuple:
         """Return the subtype (spiro, edge, bridged) for bipodal, tripodal and unknown connections.
@@ -210,6 +253,7 @@ class CombinationClassifier:
         :param intermediary_rings: the list of intermediary rings between both fragments and defined by atom indices
         :return: the dictionary specifying fragment combination category, type, subtype and abbrev
         """
+        logging.debug(f"type={type}: ir={intermediary_rings}")
         for ir in intermediary_rings:
             intersect_1 = ir.intersection(aidxf1)
             intersect_2 = ir.intersection(aidxf2)
