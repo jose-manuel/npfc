@@ -310,7 +310,6 @@ def test_fcc_connection_unknown_spiro(fcc, fm, df_mol_connection_unknown_spiro, 
     assert result['category'] == 'connection' and result['type'] == 'unknown' and result['subtype'] == 'spiro' and result['abbrev'] == 'cus'
 
 
-@pytest.mark.skip   # could not come up with an example!
 def test_fcc_connection_unknown_edge(fcc, fm, df_mol_connection_unknown_edge, df_frags):
     """Check if connection unknown edge fragment combinations are identified."""
     df_aidxf = fm.run(df_mol_connection_unknown_edge, df_frags)
