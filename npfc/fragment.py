@@ -9,10 +9,9 @@ This modules contains two classes:
 
 # standard
 import logging
-from itertools import product
+import itertools
+
 import json
-import pickle
-import base64
 # data science
 from pandas import DataFrame
 # chemoinformatics
@@ -103,10 +102,11 @@ class CombinationClassifier:
         :return: the atom indices of the shortest path between both fragments. The first index is the attachment point from fragment 1 whereas the last index is the attachment point from fragment 2
         """
         # 1/ compute every pairwise atom combination between both fragments
-        pairwise_combinations = product(tuple(aidxf1), tuple(aidxf2))
+        pairwise_combinations = itertools.product(tuple(aidxf1), tuple(aidxf2))
         # 2/ for each of those, compute the shortest path possible
         all_paths = [AllChem.GetShortestPath(mol, pc[0], pc[1]) for pc in pairwise_combinations]
-        logging.debug(f"Looking for the shortest path shortest path among these: {all_paths}")
+        # logging.debug(f"Looking for the shortest path shortest path among these:")
+        # [logging.debug(f"Path ({str(i).zfill(3)}): {p}") for i, p in enumerate(all_paths)]
         # 3/ return one of the shortest pathes
         return min(all_paths, key=lambda x: len(x))
 
@@ -156,16 +156,26 @@ class CombinationClassifier:
         logging.debug(f"aidx_fused: {aidx_fused}")
         # in case of overlapping fragments in the queries, we get overlapping matches
         if aidxf1.issubset(aidxf2):
-            return {'category': 'fusion', 'type': 'false_positive', 'subtype': 'substructure', 'abbrev': 'ffs'}
+            abbrev = 'ffs'
+            logging.debug(f"Classification: {abbrev}")
+            return {'category': 'fusion', 'type': 'false_positive', 'subtype': 'substructure', 'abbrev': abbrev}
         elif aidxf2.issubset(aidxf1):
-            return {'category': 'fusion', 'type': 'false_positive', 'subtype': 'substructure', 'abbrev': 'ffs'}
+            abbrev = 'ffs'
+            logging.debug(f"Classification: {abbrev}")
+            return {'category': 'fusion', 'type': 'false_positive', 'subtype': 'substructure', 'abbrev': abbrev}
         if len(aidx_fused) > 0:
             category = 'fusion'
             if len(aidx_fused) == 1:
-                return {'category': category, 'type': 'spiro', 'subtype': '', 'abbrev': 'fsp'}
+                abbrev = 'fsp'
+                logging.debug(f"Classification: {abbrev}")
+                return {'category': category, 'type': 'spiro', 'subtype': '', 'abbrev': abbrev}
             elif len(aidx_fused) == 2:
-                return {'category': category, 'type': 'edge', 'subtype': '', 'abbrev': 'fed'}
+                abbrev = 'fed'
+                logging.debug(f"Classification: {abbrev}")
+                return {'category': category, 'type': 'edge', 'subtype': '', 'abbrev': abbrev}
             elif len(aidx_fused) == 3:
+                abbrev = 'fbr'
+                logging.debug(f"Classification: {abbrev}")
                 return {'category': category, 'type': 'bridged', 'subtype': '', 'abbrev': 'fbr'}
             else:
                 sssr = mol.GetRingInfo().AtomRings()  # smallest sets of smallest rings
@@ -173,24 +183,29 @@ class CombinationClassifier:
                     # if at least one ring is completely present in the overlap between fragments,
                     # then it's a false positive due to the fragments overlap qnd not a combination.
                     if set(aidxr).issubset(aidx_fused):
-                        return {'category': category, 'type': 'false_positive', 'subtype': 'overlap', 'abbrev': 'ffo'}
+                        abbrev = 'ffo'
+                        logging.debug(f"Classification: {abbrev}")
+                        return {'category': category, 'type': 'false_positive', 'subtype': 'overlap', 'abbrev': abbrev}
                 # something unknown with > 3 fused atoms!
                 return {'category': category, 'type': 'unknown', 'subtype': '', 'abbrev': 'fun'}
         else:
             category = 'connection'
             logging.debug(f"category: {category}")
             shortest_path_between_frags = self.get_shortest_path_between_frags(mol, aidxf1, aidxf2)
-            logging.debug(f"shortest_path_between_frags: {shortest_path_between_frags} ({len(shortest_path_between_frags)})")
+            logging.debug(f"shortest_path_between_frags: n={len(shortest_path_between_frags)-2} {shortest_path_between_frags}")
             if len(shortest_path_between_frags) - 2 > cutoff:  # begin and end atoms are in the shortest path but should not be considered for cutoff
-                logging.debug(f"shortest_path_between_frags is greater than cutoff ({len(shortest_path_between_frags) - 2} > {cutoff})")
-                return {'category': category, 'type': 'false_positive', 'subtype': 'cutoff', 'abbrev': 'cfc'}
+                abbrev = 'cfc'
+                logging.debug(f"Classification: {abbrev} (shortest_path_between_frags: {len(shortest_path_between_frags) - 2} > {cutoff})")
+                return {'category': category, 'type': 'false_positive', 'subtype': 'cutoff', 'abbrev': abbrev}
             intermediary_rings = self.get_rings_between_two_fragments(mol, aidxf1, aidxf2)
             if len(intermediary_rings) == 0:
-                return {'category': category, 'type': 'monopodal', 'subtype': '', 'abbrev': 'cmo'}
+                abbrev = 'cmo'
+                logging.debug(f"Classification: {abbrev}")
+                return {'category': category, 'type': 'monopodal', 'subtype': '', 'abbrev': abbrev}
             else:
                 sssr = [set(x) for x in mol.GetRingInfo().AtomRings()]  # smallest sets of smallest rings
-                logging.debug(f"sssr={sssr}")
-                intermediary_rings = self._filter_intermediary_rings(intermediary_rings, sssr)
+                intermediary_rings = self._filter_intermediary_rings(mol, intermediary_rings, sssr)
+                logging.debug(f"len(intermediary_rings)= {len(intermediary_rings)}")
                 if len(intermediary_rings) == 1:
                     type = 'bipodal'  # 1 intermediary ring, which are defined by intersection of aidx, so at least always 1 for each fragment!
                     return self._get_fcc_subtype(category, type, aidxf1, aidxf2, intermediary_rings)
@@ -201,7 +216,7 @@ class CombinationClassifier:
                     type = 'unknown'
                     return self._get_fcc_subtype(category, type, aidxf1, aidxf2, intermediary_rings)
 
-    def _filter_intermediary_rings(self, intermediary_rings: list, sssr: list):
+    def _filter_intermediary_rings(self, mol: Mol, intermediary_rings: list, sssr: list):
         """Filter the intermediary rings found within a molecule using the Smallest
         Set of Smallest Rings (SSSR). The idea is that if two fragments have 2 intermediary
         rings that are almost identical but for a few atoms, and these atoms actually are
@@ -209,39 +224,92 @@ class CombinationClassifier:
         This will lower the amount of bipodal that are being identified as tripodal and
         tripodal that are identified as unknown connections.
 
+        :param mol: a molecule
         :param intermediary_rings: the intermediary rings of a molecule
         :param sssr: the smallest set of smallest rings of a molecule
         :return: the filtered intermediary rings of a molecule
         """
-
         # get a dict of all intermediary rings (ir) with their length as keys
         d = {}
-        for x in intermediary_rings:
+        for i, x in enumerate(intermediary_rings):
+            ir_id = f"IR_{str(i).zfill(3)}"
             if len(x) in d.keys():
-                d[len(x)].append(x)
+                # attribute an id to each ir for tracking down
+                d[len(x)].append((x, ir_id))
+                logging.debug(f"{ir_id}: {x}")
             else:
-                d[len(x)] = [x]
+                d[len(x)] = [(x, ir_id)]
+                logging.debug(f"{ir_id}: {x}")
+
         # filter the dict so we consider only values with more than one ir of the same size
-        ir_to_check = {}
+        ir_to_check = {}  # ir with common lengths
         for key, val in d.items():
             if len(val) > 1:
                 ir_to_check[key] = d[key]
-        logging.debug(f"ir_to_check={ir_to_check}")
-        # check if these ir are not redundant for our analysis (which would change the classfication: cb -> ct, etc.)
+
+        # exit this functions if no ir to check
+        if not ir_to_check:
+            return intermediary_rings
+
+        # continue to investigate IR
+
+        # display IR to checks
+        for k in ir_to_check.keys():
+            # display info
+            logging.debug(f"IR to check with size={k}: {', '.join([x[1] for x in ir_to_check[k]])}")
+        # attribute id to each SSSR
+        for i in range(len(sssr)):
+            sssr[i] = (sssr[i], f"SSSR_{str(i).zfill(3)}")
+            logging.debug(f"{sssr[i][1]}: {sssr[i][0]}")
+
+        # check each IR of a ggiven n by checking if the atoms that vary
         to_remove = []
-        # I have a high complexity here for this lvl4 nested iteration.
-        # However, I don't see how I could much improve this algorithm, so for now
-        # I just hope the cases with a high number of ir to remove are low enough,
-        # which is realistic considering we filtered molecules with MW > 1000.0 Da.
-        for k in d.keys():
-            for i in range(len(intermediary_rings)):
-                for j in range(i+1, len(intermediary_rings)):
-                    diff = intermediary_rings[i] - intermediary_rings[j]
-                    [diff.add(x) for x in intermediary_rings[j] - intermediary_rings[i]]
-                    [to_remove.append(intermediary_rings[j]) for r in sssr if diff.issubset(r)]
-        logging.debug(f"ir_to_remove: {to_remove}")
-        # filter the ir list with the mask
-        return [ir for ir in intermediary_rings if ir not in to_remove]
+        for k in ir_to_check.keys():
+            to_remove_curr = []
+            for i in range(len(ir_to_check[k])):
+                for j in range(i+1, len(ir_to_check[k])):
+                    logging.debug(f"Comparing {ir_to_check[k][i][1]} and {ir_to_check[k][j][1]}")
+                    diff = ir_to_check[k][i][0] - ir_to_check[k][j][0]
+                    [diff.add(x) for x in ir_to_check[k][j][0] - ir_to_check[k][i][0]]
+                    logging.debug(f"Variant atom indices: {diff}")
+                    # get a dict with idx: atom so we can look up variant atoms neighbors and find out which are connected to each others
+                    atoms = {x: mol.GetAtomWithIdx(x) for x in diff}
+                    # get the indices of neighbors for every variant atom
+                    neighbors = {idx: [x.GetIdx() for x in a.GetNeighbors()] for idx, a in atoms.items()}
+                    # get pairwise combinations of variant atoms according to their neighbors
+                    combinations = itertools.combinations([(idx1, idx2) for idx1, idx2 in itertools.combinations(neighbors, 2) if idx2 in neighbors[idx1]], 2)
+                    # flatten the subtuple so we can consider combinations for every rings
+                    combinations = [tuple(itertools.chain.from_iterable(c)) for c in combinations]
+                    [logging.debug(f"Possible combination: {c}") for c in combinations]
+                    # check what combinations are found within a ring of the molecule
+                    combinations_identified = []
+                    for c in combinations:
+                        combinations_identified += [c for r in sssr if set(c).issubset(r[0])]
+                    if combinations_identified == combinations:
+                        logging.debug(f"All combinations were identified, {ir_to_check[k][i][1]} and {ir_to_check[k][j][1]} are equivalent")
+                        to_remove_curr.append(ir_to_check[k][i])
+                        to_remove_curr.append(ir_to_check[k][j])
+
+            to_remove_curr = [(frozenset(tr[0]), tr[1]) for tr in to_remove_curr]
+            to_remove_curr = list(set(to_remove_curr))
+            to_remove_ids = list(set([tr[1] for tr in to_remove_curr]))
+            logging.debug(f"IR to remove for n={k}: {', '.join([tri for tri in to_remove_ids])}")
+            # to_remove_curr = [tr[0] for tr in to_remove_curr]  # get rid of the ids
+            # in case all ir of this size are equivalent, just retrieve the first one
+            if len(to_remove_curr) == len(ir_to_check[k]):
+                logging.debug(f"All IR were detected equivalent, so keeping {to_remove_curr[0][1]}")
+                to_remove_curr.pop(0)
+                # add current k to the whole mask
+                to_remove += to_remove_curr
+        to_remove_ids = list(set([tr[1] for tr in to_remove]))
+        logging.debug(f"Total IR to remove: {', '.join([tri for tri in to_remove_ids])}")
+        # clear to_remove from ids for easier comparison  (maybe lambda funct would perform better here?)
+        to_remove = [set(tr[0]) for tr in to_remove]
+        # filter the IR by to_remove
+        remaining_ir = [ir for ir in intermediary_rings if frozenset(ir) not in to_remove]
+        logging.debug(f"Number of remaining_ir: {len(remaining_ir)}")  # we don't have the ids here
+        # return the filtered IR
+        return remaining_ir
 
     def _get_fcc_subtype(self, category: str, type: str, aidxf1: set, aidxf2: set, intermediary_rings: list) -> tuple:
         """Return the subtype (spiro, edge, bridged) for bipodal, tripodal and unknown connections.
@@ -253,19 +321,30 @@ class CombinationClassifier:
         :param intermediary_rings: the list of intermediary rings between both fragments and defined by atom indices
         :return: the dictionary specifying fragment combination category, type, subtype and abbrev
         """
-        logging.debug(f"type={type}: ir={intermediary_rings}")
-        for ir in intermediary_rings:
+        logging.debug("Iterating over remaining IR (new ids and will continue iteration only if subtype=edge):")
+        ir_ids = [f"IR_{str(i).zfill(3)}" for i in range(len(intermediary_rings))]
+        for i, ir in enumerate(intermediary_rings):
+            logging.debug(f"{ir_ids[i]}: {intermediary_rings[i]}")
             intersect_1 = ir.intersection(aidxf1)
             intersect_2 = ir.intersection(aidxf2)
-            logging.debug(f"ir:{ir} => intersect_1: {intersect_1} ({len(intersect_1)}), intersect_2: {intersect_2} ({len(intersect_2)})")
+            abbrev = category[0] + type[0]
+            logging.debug(f"intersect_1: {intersect_1} ({len(intersect_1)}), intersect_2: {intersect_2} ({len(intersect_2)})")
             if len(intersect_1) == 1 or len(intersect_2) == 1:
-                return {'category': category, 'type': type, 'subtype': 'spiro', 'abbrev': category[0] + type[0] + 's'}
+                abbrev += 's'
+                logging.debug(f"Classification: {abbrev}")
+                return {'category': category, 'type': type, 'subtype': 'spiro', 'abbrev': abbrev}
             elif len(intersect_1) == 3 or len(intersect_2) == 3:
-                return {'category': category, 'type': type, 'subtype': 'bridged', 'abbrev': category[0] + type[0] + 'b'}
+                abbrev += 'b'
+                logging.debug(f"Classification: {abbrev}")
+                return {'category': category, 'type': type, 'subtype': 'bridged', 'abbrev': abbrev}
             elif len(intersect_1) > 3 or len(intersect_2) > 3:
-                return {'category': category, 'type': type, 'subtype': 'unknown', 'abbrev': category[0] + type[0] + 'u'}
+                abbrev += 'u'
+                logging.debug(f"Classification: {abbrev}")
+                return {'category': category, 'type': type, 'subtype': 'unknown', 'abbrev': abbrev}
         # edge otherwise
-        return {'category': category, 'type': type, 'subtype': 'edge', 'abbrev': category[0] + type[0] + 'e'}
+        abbrev += 'e'
+        logging.debug(f"Classification: {abbrev}")
+        return {'category': category, 'type': type, 'subtype': 'edge', 'abbrev': abbrev}
 
     def classify_fragment_combinations(self,
                                        df_mols: DataFrame,
@@ -317,7 +396,8 @@ class CombinationClassifier:
                     aidxf2 = row_f2['aidxf']
                     idf2 = row_f2['idf']
                     idxf2 = row_f2['idxf']
-                    logging.debug(f"Classifying m={gid}, f1={idf1}, f2={idf2}")
+                    logging.debug("="*80)
+                    logging.debug(f"Classifying m={gid}, f1={idf1}:{idxf1}, f2={idf2}:{idxf2}")
                     d_fcc = self.classify_fragment_combination(mol, aidxf1, aidxf2, cutoff=cutoff)
 
                     # record fragment combination
@@ -364,23 +444,13 @@ class CombinationClassifier:
                     else:
                         fid_to_remove.append(row['fid1'])
                     logging.debug(f"{gid}: {rowid} => {row['fid1']} - {row['fid2']} ==> to_remove={fid_to_remove}")
-
+            # filter the unwanted fragment combinations
             logging.debug(f"Number of fragment combinations to remove: {len(fid_to_remove)}")
-            logging.debug(f"Fragment combinations to remove: {fid_to_remove}")
-            logging.debug(f"\ndf_fcc BEFORE\n:{df_fcc}\n")
-
-            logging.debug(f"\ndNumber of entries - 0\n:{len(df_fcc)}\n")
-            logging.debug(f"\n{df_fcc}\n")
+            nb_fcc_ini = len(df_fcc.index)
             df_fcc = df_fcc[~df_fcc['fid1'].isin(fid_to_remove)]
-            logging.debug(f"\ndNumber of entries - 1\n:{len(df_fcc)}\n")
-            logging.debug(f"\n{df_fcc}\n")
             df_fcc = df_fcc[~df_fcc['fid2'].isin(fid_to_remove)]
-            logging.debug(f"\ndNumber of entries - 2\n:{len(df_fcc)}\n")
-            logging.debug(f"\n{df_fcc}\n")
-
-            # two lines above are suboptimal, below line failed and since this is still fast and I am in a hurry I just leave it is for now
-            # df_fcc = df_fcc[(~df_fcc['fid1'].isin(fid_to_remove)) | (~df_fcc['fid2'].isin(fid_to_remove))]
-            logging.debug(f"\ndf_fcc AFTER\n:{df_fcc}\n")
+            logging.debug(f"Number of fragment combinations to remove: {fid_to_remove}")
+            logging.debug(f"Number of fragment combinations remaining: {len(df_fcc)}/{nb_fcc_ini}")
 
         if len(df_fcc.index) == 0:
             logging.debug("No fragment remaining for mapping!")
@@ -433,7 +503,7 @@ class CombinationClassifier:
                 for rowid, row in overlaps.iterrows():
                     alt_combinations.append([row['fid1'], row['fid2']])
                 # get all possible paths
-                alt_combinations = [list(x) + common_combinations for x in list(product(*alt_combinations))]
+                alt_combinations = [list(x) + common_combinations for x in list(itertools.product(*alt_combinations))]
 
                 dfs_fcc_clean = []
                 for alt in alt_combinations:
@@ -459,14 +529,13 @@ class CombinationClassifier:
                 logging.debug(f"Input aidxfs: {aidxfs}")
                 aidxfs = [json.loads(x.replace("{", "[").replace("}", "]")) for x in aidxfs]
                 aidxfs = dict(zip(frags, aidxfs))  # aidxfs is now a dict with frag: aidfx
-                # aidxfs = base64.b64encode(pickle.dumps(aidxfs)).decode()  # json dumps works locally but cannot be read when run on the cluster
                 logging.debug(f"Final aidxfs before dumping to JSON: {aidxfs}")
                 aidxfs = json.dumps(aidxfs)
-                # aidxfs = list(df_fcc_clean['aidxf1'].values) + list(df_fcc_clean['aidxf2'].values)
                 comb = list(df_fcc_clean['abbrev'].values)
                 ncomb = len(comb)
                 comb_u = list(set(comb))
                 ncomb_u = len(comb_u)
                 ds_map.append({'idm': gid, 'map_str': frag_map_str, 'nfrags': nfrags, 'nfrags_u': nfrags_u, 'ncomb': ncomb, 'ncomb_u': ncomb_u, 'frags': frags, 'frags_u': frags_u, 'comb': comb, 'comb_u': comb_u, 'aidxfs': aidxfs})
 
+        # df_map
         return DataFrame(ds_map, columns=['idm', 'map_str', 'nfrags', 'nfrags_u', 'ncomb', 'ncomb_u', 'frags', 'frags_u', 'comb', 'comb_u', 'aidxfs'])

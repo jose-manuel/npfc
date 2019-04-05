@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.fragment &mdash; npfc 0.0.24 documentation</title>
+  <title>npfc.fragment &mdash; npfc 0.0.25 documentation</title>
   
 
   
@@ -56,7 +56,7 @@
             
             
               <div class="version">
-                0.0.24
+                0.0.25
               </div>
             
           
@@ -257,10 +257,9 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># 1/ compute every pairwise atom combination between both fragments</span>
         <span class="n">pairwise_combinations</span> <span class="o">=</span> <span class="n">product</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">aidxf1</span><span class="p">),</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">aidxf2</span><span class="p">))</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;pairwise_combinations: </span><span class="si">{pairwise_combinations}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="c1"># 2/ for each of those, compute the shortest path possible</span>
         <span class="n">all_paths</span> <span class="o">=</span> <span class="p">[</span><span class="n">AllChem</span><span class="o">.</span><span class="n">GetShortestPath</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">pc</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">pc</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="k">for</span> <span class="n">pc</span> <span class="ow">in</span> <span class="n">pairwise_combinations</span><span class="p">]</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;all_paths: </span><span class="si">{all_paths}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Looking for the shortest path shortest path among these: </span><span class="si">{all_paths}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="c1"># 3/ return one of the shortest pathes</span>
         <span class="k">return</span> <span class="nb">min</span><span class="p">(</span><span class="n">all_paths</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">))</span></div>
 
@@ -342,7 +341,9 @@
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">intermediary_rings</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;category&#39;</span><span class="p">:</span> <span class="n">category</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;monopodal&#39;</span><span class="p">,</span> <span class="s1">&#39;subtype&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;abbrev&#39;</span><span class="p">:</span> <span class="s1">&#39;cmo&#39;</span><span class="p">}</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">intermediary_rings</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_rings_between_two_fragments</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">aidxf1</span><span class="p">,</span> <span class="n">aidxf2</span><span class="p">)</span>
+                <span class="n">sssr</span> <span class="o">=</span> <span class="p">[</span><span class="nb">set</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">mol</span><span class="o">.</span><span class="n">GetRingInfo</span><span class="p">()</span><span class="o">.</span><span class="n">AtomRings</span><span class="p">()]</span>  <span class="c1"># smallest sets of smallest rings</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;sssr=</span><span class="si">{sssr}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">intermediary_rings</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filter_intermediary_rings</span><span class="p">(</span><span class="n">intermediary_rings</span><span class="p">,</span> <span class="n">sssr</span><span class="p">)</span>
                 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">intermediary_rings</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
                     <span class="nb">type</span> <span class="o">=</span> <span class="s1">&#39;bipodal&#39;</span>  <span class="c1"># 1 intermediary ring, which are defined by intersection of aidx, so at least always 1 for each fragment!</span>
                     <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_fcc_subtype</span><span class="p">(</span><span class="n">category</span><span class="p">,</span> <span class="nb">type</span><span class="p">,</span> <span class="n">aidxf1</span><span class="p">,</span> <span class="n">aidxf2</span><span class="p">,</span> <span class="n">intermediary_rings</span><span class="p">)</span>
@@ -352,6 +353,48 @@
                 <span class="k">else</span><span class="p">:</span>
                     <span class="nb">type</span> <span class="o">=</span> <span class="s1">&#39;unknown&#39;</span>
                     <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_fcc_subtype</span><span class="p">(</span><span class="n">category</span><span class="p">,</span> <span class="nb">type</span><span class="p">,</span> <span class="n">aidxf1</span><span class="p">,</span> <span class="n">aidxf2</span><span class="p">,</span> <span class="n">intermediary_rings</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_filter_intermediary_rings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">intermediary_rings</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">sssr</span><span class="p">:</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Filter the intermediary rings found within a molecule using the Smallest</span>
+<span class="sd">        Set of Smallest Rings (SSSR). The idea is that if two fragments have 2 intermediary</span>
+<span class="sd">        rings that are almost identical but for a few atoms, and these atoms actually are</span>
+<span class="sd">        contained within the same ring, then only one intermediary ring should be counted.</span>
+<span class="sd">        This will lower the amount of bipodal that are being identified as tripodal and</span>
+<span class="sd">        tripodal that are identified as unknown connections.</span>
+
+<span class="sd">        :param intermediary_rings: the intermediary rings of a molecule</span>
+<span class="sd">        :param sssr: the smallest set of smallest rings of a molecule</span>
+<span class="sd">        :return: the filtered intermediary rings of a molecule</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># get a dict of all intermediary rings (ir) with their length as keys</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">intermediary_rings</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="n">d</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">d</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)]</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="p">]</span>
+        <span class="c1"># filter the dict so we consider only values with more than one ir of the same size</span>
+        <span class="n">ir_to_check</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">ir_to_check</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;ir_to_check=</span><span class="si">{ir_to_check}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="c1"># check if these ir are not redundant for our analysis (which would change the classfication: cb -&gt; ct, etc.)</span>
+        <span class="n">to_remove</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c1"># I have a high complexity here for this lvl4 nested iteration.</span>
+        <span class="c1"># However, I don&#39;t see how I could much improve this algorithm, so for now</span>
+        <span class="c1"># I just hope the cases with a high number of ir to remove are low enough,</span>
+        <span class="c1"># which is realistic considering we filtered molecules with MW &gt; 1000.0 Da.</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">intermediary_rings</span><span class="p">)):</span>
+                <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">intermediary_rings</span><span class="p">)):</span>
+                    <span class="n">diff</span> <span class="o">=</span> <span class="n">intermediary_rings</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">intermediary_rings</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+                    <span class="p">[</span><span class="n">diff</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">intermediary_rings</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">-</span> <span class="n">intermediary_rings</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span>
+                    <span class="p">[</span><span class="n">to_remove</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">intermediary_rings</span><span class="p">[</span><span class="n">j</span><span class="p">])</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">sssr</span> <span class="k">if</span> <span class="n">diff</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="n">r</span><span class="p">)]</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;ir_to_remove: </span><span class="si">{to_remove}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="c1"># filter the ir list with the mask</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">ir</span> <span class="k">for</span> <span class="n">ir</span> <span class="ow">in</span> <span class="n">intermediary_rings</span> <span class="k">if</span> <span class="n">ir</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">to_remove</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="nf">_get_fcc_subtype</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">category</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">aidxf1</span><span class="p">:</span> <span class="nb">set</span><span class="p">,</span> <span class="n">aidxf2</span><span class="p">:</span> <span class="nb">set</span><span class="p">,</span> <span class="n">intermediary_rings</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Return the subtype (spiro, edge, bridged) for bipodal, tripodal and unknown connections.</span>
@@ -363,6 +406,7 @@
 <span class="sd">        :param intermediary_rings: the list of intermediary rings between both fragments and defined by atom indices</span>
 <span class="sd">        :return: the dictionary specifying fragment combination category, type, subtype and abbrev</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;type=</span><span class="si">{type}</span><span class="s2">: ir=</span><span class="si">{intermediary_rings}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">ir</span> <span class="ow">in</span> <span class="n">intermediary_rings</span><span class="p">:</span>
             <span class="n">intersect_1</span> <span class="o">=</span> <span class="n">ir</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">aidxf1</span><span class="p">)</span>
             <span class="n">intersect_2</span> <span class="o">=</span> <span class="n">ir</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">aidxf2</span><span class="p">)</span>
