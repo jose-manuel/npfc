@@ -54,7 +54,7 @@ def main():
     parser.add_argument('-s', '--mols-sep', type=str, default='|', help="Separator to use in case the input file is a csv.")
     parser.add_argument('-d', '--mols-decode', type=bool, default=True, help="Decode molecules from base64 strings into RDKit Mol objects.")
     parser.add_argument('--min-frags', type=int, default=2, help="Minimum number of unique fragment occurrence (type and position) for computing a graph.")
-    parser.add_argument('--max-frags', type=int, default=5, help="Maximum number of unique fragment occurrence (type and position) for computing a graph.")
+    parser.add_argument('--max-frags', type=int, default=9999, help="Maximum number of unique fragment occurrence (type and position) for computing a graph.")
     parser.add_argument('--max-overlaps', type=int, default=5, help="Minimum number of overlapping fragment combinations for processing a molecule.")
     parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
     args = parser.parse_args()

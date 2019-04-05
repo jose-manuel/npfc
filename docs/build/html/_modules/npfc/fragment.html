@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.fragment &mdash; npfc 0.0.26-1-gbcd8518 documentation</title>
+  <title>npfc.fragment &mdash; npfc 0.0.27 documentation</title>
   
 
   
@@ -56,7 +56,7 @@
             
             
               <div class="version">
-                0.0.26-1-gbcd8518
+                0.0.27
               </div>
             
           
@@ -565,7 +565,7 @@
                     <span class="n">d_fcc</span><span class="p">[</span><span class="s1">&#39;aidxf2&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">aidxf2</span>
                     <span class="n">ds_fcc</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d_fcc</span><span class="p">)</span>
         <span class="c1"># dataframe with columns in given order</span>
-        <span class="k">return</span> <span class="n">DataFrame</span><span class="p">(</span><span class="n">ds_fcc</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;idm&#39;</span><span class="p">,</span> <span class="s1">&#39;idf1&#39;</span><span class="p">,</span> <span class="s1">&#39;idxf1&#39;</span><span class="p">,</span> <span class="s1">&#39;fid1&#39;</span><span class="p">,</span> <span class="s1">&#39;idf2&#39;</span><span class="p">,</span> <span class="s1">&#39;idxf2&#39;</span><span class="p">,</span> <span class="s1">&#39;fid2&#39;</span><span class="p">,</span> <span class="s1">&#39;abbrev&#39;</span><span class="p">,</span> <span class="s1">&#39;category&#39;</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">,</span> <span class="s1">&#39;subtype&#39;</span><span class="p">,</span> <span class="s1">&#39;aidxf1&#39;</span><span class="p">,</span> <span class="s1">&#39;aidxf2&#39;</span><span class="p">,</span> <span class="s1">&#39;fid1&#39;</span><span class="p">,</span> <span class="s1">&#39;fid2&#39;</span><span class="p">])</span></div>
+        <span class="k">return</span> <span class="n">DataFrame</span><span class="p">(</span><span class="n">ds_fcc</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;idm&#39;</span><span class="p">,</span> <span class="s1">&#39;idf1&#39;</span><span class="p">,</span> <span class="s1">&#39;idxf1&#39;</span><span class="p">,</span> <span class="s1">&#39;fid1&#39;</span><span class="p">,</span> <span class="s1">&#39;idf2&#39;</span><span class="p">,</span> <span class="s1">&#39;idxf2&#39;</span><span class="p">,</span> <span class="s1">&#39;fid2&#39;</span><span class="p">,</span> <span class="s1">&#39;abbrev&#39;</span><span class="p">,</span> <span class="s1">&#39;category&#39;</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">,</span> <span class="s1">&#39;subtype&#39;</span><span class="p">,</span> <span class="s1">&#39;aidxf1&#39;</span><span class="p">,</span> <span class="s1">&#39;aidxf2&#39;</span><span class="p">])</span></div>
 
 <div class="viewcode-block" id="CombinationClassifier.clean"><a class="viewcode-back" href="../../fragment.html#npfc.fragment.CombinationClassifier.clean">[docs]</a>    <span class="k">def</span> <span class="nf">clean</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df_fcc</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Clean a df_fcc by removing false positives such as substructures and</span>
@@ -679,10 +679,11 @@
                     <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Too many unique fragment occurrences, discarding graph of n=</span><span class="si">{nfrags_u}</span><span class="s2"> for molecule: &#39;</span><span class="si">{gid}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
                     <span class="k">continue</span>
                 <span class="n">aidxfs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">df_fcc_clean</span><span class="p">[</span><span class="s1">&#39;aidxf1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">df_fcc_clean</span><span class="p">[</span><span class="s1">&#39;aidxf2&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
-                <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Input aidxfs: </span><span class="si">{aidxfs}</span><span class="s2">&quot;</span><span class="p">)</span>
-                <span class="n">aidxfs</span> <span class="o">=</span> <span class="p">[</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;{&quot;</span><span class="p">,</span> <span class="s2">&quot;[&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;}&quot;</span><span class="p">,</span> <span class="s2">&quot;]&quot;</span><span class="p">))</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">aidxfs</span><span class="p">]</span>
+                <span class="c1"># logging.debug(f&quot;Input aidxfs: {aidxfs}&quot;)</span>
                 <span class="n">aidxfs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">frags</span><span class="p">,</span> <span class="n">aidxfs</span><span class="p">))</span>  <span class="c1"># aidxfs is now a dict with frag: aidfx</span>
-                <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Final aidxfs before dumping to JSON: </span><span class="si">{aidxfs}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">aidxfs</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                    <span class="n">aidxfs</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">aidxfs</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
+                <span class="c1"># logging.debug(f&quot;Final aidxfs before dumping to JSON: {aidxfs}&quot;)</span>
                 <span class="n">aidxfs</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">aidxfs</span><span class="p">)</span>
                 <span class="n">comb</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">df_fcc_clean</span><span class="p">[</span><span class="s1">&#39;abbrev&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
                 <span class="n">ncomb</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">comb</span><span class="p">)</span>
