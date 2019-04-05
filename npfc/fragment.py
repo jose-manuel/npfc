@@ -412,7 +412,7 @@ class CombinationClassifier:
                     d_fcc['aidxf2'] = aidxf2
                     ds_fcc.append(d_fcc)
         # dataframe with columns in given order
-        return DataFrame(ds_fcc, columns=['idm', 'idf1', 'idxf1', 'fid1', 'idf2', 'idxf2', 'fid2', 'abbrev', 'category', 'type', 'subtype', 'aidxf1', 'aidxf2', 'fid1', 'fid2'])
+        return DataFrame(ds_fcc, columns=['idm', 'idf1', 'idxf1', 'fid1', 'idf2', 'idxf2', 'fid2', 'abbrev', 'category', 'type', 'subtype', 'aidxf1', 'aidxf2'])
 
     def clean(self, df_fcc):
         """Clean a df_fcc by removing false positives such as substructures and
@@ -526,10 +526,11 @@ class CombinationClassifier:
                     logging.debug(f"Too many unique fragment occurrences, discarding graph of n={nfrags_u} for molecule: '{gid}'")
                     continue
                 aidxfs = list(df_fcc_clean['aidxf1'].values) + list(df_fcc_clean['aidxf2'].values)
-                logging.debug(f"Input aidxfs: {aidxfs}")
-                aidxfs = [json.loads(x.replace("{", "[").replace("}", "]")) for x in aidxfs]
+                # logging.debug(f"Input aidxfs: {aidxfs}")
                 aidxfs = dict(zip(frags, aidxfs))  # aidxfs is now a dict with frag: aidfx
-                logging.debug(f"Final aidxfs before dumping to JSON: {aidxfs}")
+                for k in aidxfs.keys():
+                    aidxfs[k] = list(aidxfs[k])
+                # logging.debug(f"Final aidxfs before dumping to JSON: {aidxfs}")
                 aidxfs = json.dumps(aidxfs)
                 comb = list(df_fcc_clean['abbrev'].values)
                 ncomb = len(comb)

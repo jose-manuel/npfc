@@ -48,13 +48,14 @@ def main():
     parser = argparse.ArgumentParser(description=description, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('input_mols', type=str, default=None, help="Input file for molecules.")
     parser.add_argument('input_sub', type=str, default=None, help="Input file for substructures hits.")
-    parser.add_argument('output_fcc', type=str, default=None, help="Output file.")
+    parser.add_argument('output_fcc', type=str, default=None, help="Output file basename. It gets appended with the type of output being produced: raw, clean and map.")
     parser.add_argument('-i', '--mols-id', type=str, default='idm', help="Identifier column in the source file.")
     parser.add_argument('-m', '--mols-mol', type=str, default='mol', help="Molecule column in the source file.")
     parser.add_argument('-s', '--mols-sep', type=str, default='|', help="Separator to use in case the input file is a csv.")
     parser.add_argument('-d', '--mols-decode', type=bool, default=True, help="Decode molecules from base64 strings into RDKit Mol objects.")
-    # parser.add_argument('--min', type=int, default=2, help="Minimum number of hits/molecule.")
-    # parser.add_argument('--max', type=int, default=5, help="Maximum number of hits/molecule.")
+    parser.add_argument('--min-frags', type=int, default=2, help="Minimum number of unique fragment occurrence (type and position) for computing a graph.")
+    parser.add_argument('--max-frags', type=int, default=5, help="Maximum number of unique fragment occurrence (type and position) for computing a graph.")
+    parser.add_argument('--max-overlaps', type=int, default=5, help="Minimum number of overlapping fragment combinations for processing a molecule.")
     parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
     args = parser.parse_args()
 
@@ -68,12 +69,15 @@ def main():
     utils.check_arg_input_file(args.input_mols)
     utils.check_arg_input_file(args.input_sub)
     utils.check_arg_output_file(args.output_fcc)
-    # utils.check_arg_positive_number(args.min)
-    # utils.check_arg_positive_number(args.max)
+    utils.check_arg_positive_number(args.min_frags)
+    utils.check_arg_positive_number(args.max_frags)
+    utils.check_arg_positive_number(args.max_overlaps)
     mols_format, mols_compression = utils.get_file_format(args.input_mols)
     sub_format, sub_compression = utils.get_file_format(args.input_sub)
     out_format, out_compression = utils.get_file_format(args.output_fcc)
     output_fcc_path = Path(args.output_fcc)
+    output_raw = str(output_fcc_path.parent) + "/" + output_fcc_path.stem.split(".")[0] + "_raw" + "".join(output_fcc_path.suffixes)
+    output_clean = str(output_fcc_path.parent) + "/" + output_fcc_path.stem.split(".")[0] + "_clean" + "".join(output_fcc_path.suffixes)
     output_map = str(output_fcc_path.parent) + "/" + output_fcc_path.stem.split(".")[0] + "_map" + "".join(output_fcc_path.suffixes)
 
     # display infos
@@ -93,11 +97,14 @@ def main():
     logging.info("SUB_FORMAT".ljust(pad) + f"{sub_format}")
     logging.info("SUB_COMPRESSION".ljust(pad) + f"{sub_compression}")
     logging.info("OUTPUT_FCC".ljust(pad) + f"{args.output_fcc}")
+    logging.info("OUTPUT_RAW".ljust(pad) + f"{output_raw}")
+    logging.info("OUTPUT_CLEAN".ljust(pad) + f"{output_clean}")
     logging.info("OUTPUT_MAP".ljust(pad) + f"{output_map}")
     logging.info("OUT_FORMAT".ljust(pad) + f"{out_format}")
     logging.info("OUT_COMPRESSION".ljust(pad) + f"{out_compression}")
-    # logging.info("MIN".ljust(pad) + f"{args.min}")
-    # logging.info("MAX".ljust(pad) + f"{args.max}")
+    logging.info("MIN_FRAGS".ljust(pad) + f"{args.min_frags}")
+    logging.info("MAX_FRAGS".ljust(pad) + f"{args.max_frags}")
+    logging.info("MAX_OVERLAPS".ljust(pad) + f"{args.max_overlaps}")
     logging.info("LOG".ljust(pad) + f"{args.log}")
 
     # begin
@@ -108,17 +115,6 @@ def main():
     d1 = datetime.now()
     df_sub = pd.read_csv(args.input_sub, sep='|', compression='gzip')
     logging.info(f"FOUND {len(df_sub.index)} SUBSTRUCTURE MATCHES")
-
-    # # filter sub
-    # logging.info("FILTERING SUBSTRUCTURE MATCHES")
-    # d2 = datetime.now()
-    # grouped = df_sub.groupby('idm')
-    # df_sub = grouped.filter(lambda x: args.max >= len(x) >= args.min)
-    # logging.info(f"SUBSTRUCTURE MATCHES REMAINING: {len(df_sub.index)}")
-    # # abort execution if nothing left!
-    # if len(df_sub.index) == 0:
-    #     logging.error(f"NO SUBSTRUCTURE MATCHES LEFT SO ABORTING EXECUTION")
-    #     sys.exit(2)
 
     # extract sets from strings
     df_sub['aidxf'] = df_sub['aidxf'].map(lambda x: set(json.loads(x.replace('{', '[').replace('}', ']'))))
@@ -145,21 +141,48 @@ def main():
     df_fcc = c.classify_fragment_combinations(df_mols, df_sub)
     logger.info(f"FOUND {len(df_fcc.index)} COMBINATIONS")
 
-    # save results
-    logger.info(f"SAVING RESULTS AT '{args.output_fcc}'")
+    # save raw results
+    logger.info(f"SAVING RAW RESULTS AT '{output_raw}'")
     d4 = datetime.now()
-    save.save(df_fcc, args.output_fcc, encode_mols=False)
+    save.save(df_fcc, output_raw, encode_mols=False)
+
+    # run cleaning
+    logger.info(f"CLEANING COMBINATIONS")
+    d5 = datetime.now()
+    df_fcc = c.clean(df_fcc)
+    logging.info(f"NUMBER OF FRAGMENT COMBINATIONS REMAINING: {len(df_fcc.index)}")
+    logging.warning(f"OVERLAPPING FRAGMENTS ARE STILL CONSIDERED A FRAGMENT COMBINATION HERE,")
+    logging.warning("THIS IS NEEDED FOR ALTERNATIVE MAPPING FRAGMENT COMBINATIONS.")
+
+    # save raw results
+    logger.info(f"SAVING CLEAN RESULTS AT '{output_clean}'")
+    d6 = datetime.now()
+    save.save(df_fcc, output_clean, encode_mols=False)
+
+    # mapping fragment combinations
+    logger.info(f"MAPPING REMAINING FRAGMENT COMBINATIONS")
+    d7 = datetime.now()
+    df_map = c.map_frags(df_fcc, min_frags=args.min_frags, max_frags=args.max_frags, max_overlaps=args.max_overlaps)
+    logger.info(f"FOUND {len(df_map.index)} COMBINATION GRAPHS")
+
+    # save results
+    logger.info(f"SAVING MAP RESULTS AT '{output_map}'")
+    d8 = datetime.now()
+    df_map.to_csv(output_map, compression='gzip', sep='|')
 
     # end
-    d5 = datetime.now()
+    d9 = datetime.now()
     logging.info("SUMMARY")
     logger.info("COMPUTATIONAL TIME: CONFIGURING JOB".ljust(pad * 2) + f"{d1-d0}")
     logger.info("COMPUTATIONAL TIME: LOADING SUBSTRUCTURE MATCHES".ljust(pad * 2) + f"{d2-d1}")
-    # logger.info("COMPUTATIONAL TIME: FILTERING SUBSTRUCTURE MATCHES".ljust(pad * 2) + f"{d3-d2}")
     logger.info("COMPUTATIONAL TIME: LOADING MOLECULES".ljust(pad * 2) + f"{d3-d2}")
     logger.info("COMPUTATIONAL TIME: RUNNING CLASSIFICATION".ljust(pad * 2) + f"{d4-d3}")
-    logger.info("COMPUTATIONAL TIME: SAVING FCC".ljust(pad * 2) + f"{d5-d4}")
-    logger.info("COMPUTATIONAL TIME: TOTAL".ljust(pad * 2) + f"{d5-d0}")
+    logger.info("COMPUTATIONAL TIME: SAVING RAW COMBINATIONS".ljust(pad * 2) + f"{d5-d4}")
+    logger.info("COMPUTATIONAL TIME: CLEANING COMBINATIONS".ljust(pad * 2) + f"{d6-d5}")
+    logger.info("COMPUTATIONAL TIME: SAVING CLEAN COMBINATIONS".ljust(pad * 2) + f"{d7-d6}")
+    logger.info("COMPUTATIONAL TIME: MAPPING COMBINATIONS".ljust(pad * 2) + f"{d8-d7}")
+    logger.info("COMPUTATIONAL TIME: SAVING FRAGMENT MAPS".ljust(pad * 2) + f"{d9-d8}")
+    logger.info("COMPUTATIONAL TIME: TOTAL".ljust(pad * 2) + f"{d9-d0}")
     logging.info("END")
 
 
