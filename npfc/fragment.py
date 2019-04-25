@@ -55,11 +55,11 @@ class Matcher:
         # begin
         for idm, rowm in df_mols.iterrows():
             hac = rowm[col_mol_mols].GetNumAtoms()
-            for idq, rowq in df_frags.iterrows():
+            for idf, rowq in df_frags.iterrows():
                 matches = rowm[col_mol_mols].GetSubstructMatches(rowq[col_mol_frags])
                 for m in matches:
                     d['idm'].append(idm)
-                    d['idf'].append(idq)
+                    d['idf'].append(idf)
                     d['aidxf'].append(set(m))  # set for intersections later
                     d['mol_perc'].append(round(len(m)/hac, 2) * 100)
         return DataFrame(d)
@@ -382,7 +382,8 @@ class CombinationClassifier:
             df_mols.index = df_mols['idm']
         # labelling idxf
         df_aidxf['aidxf_str'] = df_aidxf['aidxf'].map(str)  # sets are an unhashable type...
-        df_aidxf['idxf'] = df_aidxf.groupby(['idm', 'idf', 'aidxf_str']).grouper.group_info[0]
+        df_aidxf['idxf'] = df_aidxf.groupby(['idm', 'idf', 'aidxf_str']).grouper.group_info[0]  # add a seq number that get increased for every group
+        # logging.info(f"\n\ndf_aidxf['idxf']:\n {df_aidxf['idxf']}")  # !!! think about what I really want here. For now I just know I don't want this behavior
 
         # classify fragment combinations
         for gid, g in df_aidxf.groupby('idm'):
@@ -469,7 +470,7 @@ class CombinationClassifier:
         This fragment map is a single line string representation of the fragment connectivity
         within a molecule and follows following syntax:
 
-            >>> f1[abbrev1]f2-f1[abbrev2]f3-f2[abbrev3]f3
+            >>> f1:0[abbrev1]f2:0-f1:0[abbrev2]f3:0-f2:0[abbrev3]f3:0
 
         No applying any limit of the max number of frags might have been what caused
         crashed due to memory usage on the cluster.

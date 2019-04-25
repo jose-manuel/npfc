@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>&lt;no title&gt; &mdash; npfc 0.1.0 documentation</title>
+  <title>Module utils &mdash; npfc 0.1.0-1-g124a096 documentation</title>
   
 
   
@@ -28,7 +28,7 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="prev" title="&lt;no title&gt;" href="fragment.html" /> 
+    <link rel="prev" title="Module fragment" href="fragment.html" /> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -57,7 +57,7 @@
             
             
               <div class="version">
-                0.1.0
+                0.1.0-1-g124a096
               </div>
             
           
@@ -81,10 +81,16 @@
               
             
             
-              <!-- Local TOC -->
-              <div class="local-toc"><ul class="simple">
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="load.html">Module load</a></li>
+<li class="toctree-l1"><a class="reference internal" href="save.html">Module save</a></li>
+<li class="toctree-l1"><a class="reference internal" href="filter.html">Module filter</a></li>
+<li class="toctree-l1"><a class="reference internal" href="standardize.html">Module standardize</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fragment.html">Module fragment</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Module utils</a></li>
 </ul>
-</div>
+
             
           
         </div>
@@ -128,7 +134,7 @@
     
       <li><a href="index.html">Docs</a> &raquo;</li>
         
-      <li>&lt;no title&gt;</li>
+      <li>Module utils</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -147,7 +153,164 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  
+  <span class="target" id="module-npfc.utils"></span><div class="section" id="module-utils">
+<h1>Module utils<a class="headerlink" href="#module-utils" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="npfc.utils.SafeHDF5Store">
+<em class="property">class </em><code class="descclassname">npfc.utils.</code><code class="descname">SafeHDF5Store</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/utils.html#SafeHDF5Store"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.utils.SafeHDF5Store" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implement safe HDFStore by obtaining file lock. Multiple writes will queue if lock is not obtained.</p>
+<p>Copied from <a class="reference external" href="https://stackoverflow.com/questions/41231678/obtaining-a-exclusive-lock-when-writing-to-an-hdf5-file">https://stackoverflow.com/questions/41231678/obtaining-a-exclusive-lock-when-writing-to-an-hdf5-file</a>.</p>
+<p>Initialize and obtain file lock.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="npfc.utils.check_arg_bool">
+<code class="descclassname">npfc.utils.</code><code class="descname">check_arg_bool</code><span class="sig-paren">(</span><em>value</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/utils.html#check_arg_bool"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.utils.check_arg_bool" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return True of the value is indeed a boolean, raise a TypeError otherwise.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>value</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>) – the argument to test</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="npfc.utils.check_arg_config_file">
+<code class="descclassname">npfc.utils.</code><code class="descname">check_arg_config_file</code><span class="sig-paren">(</span><em>config_file</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/utils.html#check_arg_config_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.utils.check_arg_config_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return True of the config_file exists, raise an error otherwise.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>input_file</strong> – the input file</li>
+<li><strong>input_format</strong> – the expected format of the input file</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="npfc.utils.check_arg_input_file">
+<code class="descclassname">npfc.utils.</code><code class="descname">check_arg_input_file</code><span class="sig-paren">(</span><em>input_file</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/utils.html#check_arg_input_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.utils.check_arg_input_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return True of the input_file exists, raise an error otherwise.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>input_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the input file</li>
+<li><strong>input_format</strong> – the expected format of the input file</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="npfc.utils.check_arg_output_dir">
+<code class="descclassname">npfc.utils.</code><code class="descname">check_arg_output_dir</code><span class="sig-paren">(</span><em>output_dir</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/utils.html#check_arg_output_dir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.utils.check_arg_output_dir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return True of the output_dir can exist.</p>
+<p>If the parent directory of the output dir does not exist, it has to either be created or fail the check.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>output_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the output directory</li>
+<li><strong>create_parent_dir</strong> – create the output file’s parent folder in case it does not exist</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="npfc.utils.check_arg_output_file">
+<code class="descclassname">npfc.utils.</code><code class="descname">check_arg_output_file</code><span class="sig-paren">(</span><em>output_file</em>, <em>create_parent_dir=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/utils.html#check_arg_output_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.utils.check_arg_output_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return True of the output_file has the expected format (deduced from the file extension).</p>
+<p>If the parent directory of the output file does not exist, it has to either be created or fail the check.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>output_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the output file</li>
+<li><strong>create_parent_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>) – create the output file’s parent folder in case it does not exist</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="npfc.utils.check_arg_positive_number">
+<code class="descclassname">npfc.utils.</code><code class="descname">check_arg_positive_number</code><span class="sig-paren">(</span><em>value</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/utils.html#check_arg_positive_number"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.utils.check_arg_positive_number" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return True of the value is indeed a positive number (&gt;0), raise a TypeError otherwise.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>value</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Union" title="(in Python v3.7)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]) – the argument to test</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="npfc.utils.get_file_format">
+<code class="descclassname">npfc.utils.</code><code class="descname">get_file_format</code><span class="sig-paren">(</span><em>input_file</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/utils.html#get_file_format"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.utils.get_file_format" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deduce how the file should be parsed based on its suffixes.</p>
+<p>Only compressions for one single file with initial extension still visibile
+work (see example below).</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pathlib</span> <span class="k">import</span> <span class="n">Path</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">npfc</span> <span class="k">import</span> <span class="n">utils</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">utils</span><span class="o">.</span><span class="n">get_file_format</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="s1">&#39;file.csv.gz&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">suffixes</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># returns (&#39;CSV&#39;, &#39;gzip&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">utils</span><span class="o">.</span><span class="n">get_file_format</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="s1">&#39;file.sdf&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">suffixes</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># returns (&#39;SDF&#39;, None)</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>suffixes</strong> – suffixes of a file</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a></td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">a tuple with syntax (format, compression)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+
 
            </div>
            
@@ -157,7 +320,7 @@
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
       
-        <a href="fragment.html" class="btn btn-neutral" title="&lt;no title&gt;" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="fragment.html" class="btn btn-neutral" title="Module fragment" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

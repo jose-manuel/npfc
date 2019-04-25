@@ -348,3 +348,5 @@ def test_fcc_fragmap(fcc, df_fcc_clean_5):
     """Check the fragment map functionality"""
 
     df_map = fcc.map_frags(df_fcc_clean_5)
+    logging.debug("")
+    logging.debug(df_map)

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>&lt;no title&gt; &mdash; npfc 0.1.0 documentation</title>
+  <title>Module standardize &mdash; npfc 0.1.0-1-g124a096 documentation</title>
   
 
   
@@ -28,8 +28,8 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="&lt;no title&gt;" href="fragment.html" />
-    <link rel="prev" title="&lt;no title&gt;" href="filter.html" /> 
+    <link rel="next" title="Module fragment" href="fragment.html" />
+    <link rel="prev" title="Module filter" href="filter.html" /> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -58,7 +58,7 @@
             
             
               <div class="version">
-                0.1.0
+                0.1.0-1-g124a096
               </div>
             
           
@@ -82,10 +82,16 @@
               
             
             
-              <!-- Local TOC -->
-              <div class="local-toc"><ul class="simple">
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="load.html">Module load</a></li>
+<li class="toctree-l1"><a class="reference internal" href="save.html">Module save</a></li>
+<li class="toctree-l1"><a class="reference internal" href="filter.html">Module filter</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Module standardize</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fragment.html">Module fragment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utils.html">Module utils</a></li>
 </ul>
-</div>
+
             
           
         </div>
@@ -129,7 +135,7 @@
     
       <li><a href="index.html">Docs</a> &raquo;</li>
         
-      <li>&lt;no title&gt;</li>
+      <li>Module standardize</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -148,7 +154,278 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  
+  <span class="target" id="module-npfc.standardize"></span><div class="section" id="module-standardize">
+<h1>Module standardize<a class="headerlink" href="#module-standardize" title="Permalink to this headline">¶</a></h1>
+<p>This modules is used to standardize molecules and molecular DataFrames.</p>
+<dl class="class">
+<dt id="npfc.standardize.DuplicateFilter">
+<em class="property">class </em><code class="descclassname">npfc.standardize.</code><code class="descname">DuplicateFilter</code><span class="sig-paren">(</span><em>on='inchikey'</em>, <em>ref_file=None</em>, <em>col_mol='mol'</em>, <em>col_id='idm'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#DuplicateFilter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.DuplicateFilter" title="Permalink to this definition">¶</a></dt>
+<dd><p>A class used for filtering duplicate molecules in on or several DataFrame(s).</p>
+<p>Create an instance of DuplicateFilter with following parameters:</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>on</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – The property to use for identifying duplicate molecules.</li>
+<li><strong>ref_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.7)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]) – The path to the reference file used to store synonyms.</li>
+<li><strong>col_mol</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – The DataFrame column name where molecules are stored.</li>
+<li><strong>col_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – The DataFrame column name where molecule identifiers are stored.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">For now, only the ‘inchikey’ property works for the ‘on’ parameter. Moreover InchIKey are computed wether provided or not.</p>
+</div>
+<dl class="method">
+<dt id="npfc.standardize.DuplicateFilter.find_synonyms">
+<code class="descname">find_synonyms</code><span class="sig-paren">(</span><em>df</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#DuplicateFilter.find_synonyms"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.DuplicateFilter.find_synonyms" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find synonyms within a DataFrame.</p>
+<p>The Synonyms DataFrame follows the follow syntax:
+- rowid: The InChIKey of the molecule (‘inchikey’).
+- idm_synonyms: The list of all molecule ids sharing the same InChIKey.
+- idm: The id of the molecule that was kept (first element of idm_synonyms).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>df</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code>) – The input DataFrame.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">The output DataFrame containg synonyms for identifying duplicate molecules.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">make sure there is no duplicate idm before using this function, as the final filtering of duplicates is performed with a whitelist based on idm.</p>
+</div>
+<div class="admonition-todo admonition" id="index-0">
+<p class="first admonition-title">Todo</p>
+<p class="last">optimize code (table format for reference file, numpy for setting up lists when grouping?)</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="npfc.standardize.DuplicateFilter.init_ref_file">
+<code class="descname">init_ref_file</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#DuplicateFilter.init_ref_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.DuplicateFilter.init_ref_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initiate an empty reference hdf for identifying duplicates.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">True if the reference file could be initialized, False otherwise.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="npfc.standardize.DuplicateFilter.mark_dupl">
+<code class="descname">mark_dupl</code><span class="sig-paren">(</span><em>df</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#DuplicateFilter.mark_dupl"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.DuplicateFilter.mark_dupl" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mark duplicate entries found in df or in ref. Designed to work from
+within Standardizer.run only as it updates columns ‘status’ and ‘task’ to
+respectively ‘filtered’ and ‘filter_duplicates’. Might still be useful if exposed.</p>
+<p>Moreover, update the reference file (if specified) by using a lock (from utils module) so that
+no other processes can modify it at the same time. This enables a safe duplicate
+molecules filtering accross chunks without having to gather everything in a single file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>df</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code>) – the input DataFrame</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the output DataFrame</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="npfc.standardize.FullUncharger">
+<em class="property">class </em><code class="descclassname">npfc.standardize.</code><code class="descname">FullUncharger</code><a class="reference internal" href="_modules/npfc/standardize.html#FullUncharger"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.FullUncharger" title="Permalink to this definition">¶</a></dt>
+<dd><p>A class derived from rdkit.Chem.MolStandardize.charge.Uncharger, so
+instead of attempting to create zwitterions all possible charges are removed
+from the molecule.</p>
+<p>For instance:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Uncharger:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">O</span><span class="o">-</span><span class="p">][</span><span class="n">N</span><span class="o">+</span><span class="p">](</span><span class="n">C</span><span class="p">)(</span><span class="n">C</span><span class="p">)</span><span class="n">C</span><span class="p">[</span><span class="n">O</span><span class="o">-</span><span class="p">]</span> <span class="o">-&gt;</span> <span class="p">[</span><span class="n">O</span><span class="o">-</span><span class="p">][</span><span class="n">N</span><span class="o">+</span><span class="p">](</span><span class="n">C</span><span class="p">)(</span><span class="n">C</span><span class="p">)</span><span class="n">CO</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># FullUncharger:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">O</span><span class="o">-</span><span class="p">][</span><span class="n">N</span><span class="o">+</span><span class="p">](</span><span class="n">C</span><span class="p">)(</span><span class="n">C</span><span class="p">)</span><span class="n">C</span><span class="p">[</span><span class="n">O</span><span class="o">-</span><span class="p">]</span> <span class="o">-&gt;</span> <span class="n">O</span><span class="p">[</span><span class="n">N</span><span class="o">+</span><span class="p">](</span><span class="n">C</span><span class="p">)(</span><span class="n">C</span><span class="p">)</span><span class="n">CO</span>
+</pre></div>
+</div>
+<p>Create an instance of FullUncharger.</p>
+<div class="admonition-todo admonition" id="index-1">
+<p class="first admonition-title">Todo</p>
+<p class="last">This will remove charges from -2 to +2 only. This could be improved using more general smarts?</p>
+</div>
+<dl class="method">
+<dt id="npfc.standardize.FullUncharger.full_uncharge">
+<code class="descname">full_uncharge</code><span class="sig-paren">(</span><em>mol</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#FullUncharger.full_uncharge"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.FullUncharger.full_uncharge" title="Permalink to this definition">¶</a></dt>
+<dd><p>Neutralize molecule by adding/removing hydrogens.
+Does not attempt to preserve zwitterions.
+For now takes into account only charges of -2 and +2.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>mol</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Mol</span></code>) – the input molecule</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><code class="xref py py-class docutils literal notranslate"><span class="pre">Mol</span></code></td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the uncharged molecule</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="npfc.standardize.Standardizer">
+<em class="property">class </em><code class="descclassname">npfc.standardize.</code><code class="descname">Standardizer</code><span class="sig-paren">(</span><em>protocol=None</em>, <em>col_mol='mol'</em>, <em>col_id='idm'</em>, <em>filter_duplicates=True</em>, <em>ref_file=None</em>, <em>on='inchikey'</em>, <em>suffix=None</em>, <em>elements_medchem={'B'</em>, <em>'Br'</em>, <em>'C'</em>, <em>'Cl'</em>, <em>'F'</em>, <em>'H'</em>, <em>'I'</em>, <em>'N'</em>, <em>'O'</em>, <em>'P'</em>, <em>'S'}</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#Standardizer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.Standardizer" title="Permalink to this definition">¶</a></dt>
+<dd><p>A class for standardizing molecular structures. The standardization itself is based
+on a protocol that the user can modify.</p>
+<p>By default this protocol consists in 12 tasks applied to each molecule invidually:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><strong>initiate_mol</strong>: check if the molecule passed the RDKit conversion</li>
+<li><strong>disconnect_metal</strong>: break bonds involving metallic atoms, resulting in potentially several molecules per structure.</li>
+<li><strong>keep_largest</strong>: retrieve only the largest molecule (molecular weight in Da) from a structure. Medchem elements are preferred over others, independant from size.</li>
+<li><strong>filter_hac</strong>: filter molecules with a heavy atom count not in the accepted range. By default: hac &gt; 3.</li>
+<li><strong>filter_molweight</strong>: filter molecules with a molecular weight not in the accepted range. By default: molweight &lt;= 1000.0.</li>
+<li><strong>filter_nrings</strong>: filter molecules with a number of rings (Smallest Sets of Smallest Rings or SSSR) not in the accepted range. By default: nrings &gt; 0.</li>
+<li><strong>filter_medchem</strong>: filter molecules with elements not considered as medchem. By default: elements in H, B, C, N, O, F, P, S, Cl, Br, I.</li>
+<li><strong>remove_isotopes</strong>: set all atoms to their most common isotope (i.e. 14C becomes 12C which is C).</li>
+<li><strong>normalize</strong>: always write the same functional groups in the same manner.</li>
+<li><strong>uncharge</strong>: remove all charges on a molecule when it is possible. This is different from rdkit.Chem.MolStandardize.charge module as there is no attempt for reaching the zwitterion.</li>
+<li><strong>canonicalize</strong>: enumerate the canonical tautomer.</li>
+<li><strong>remove_stereo</strong>: remove all remaining stereochemistry flags on the molecule.</li>
+</ol>
+</div></blockquote>
+<p>Finally, duplicate entries can be filtered using InChiKeys when postprocessing the DataFrame with molecules (argument in the run_df method).</p>
+<p>This results in new columns in the input DataFrame:</p>
+<blockquote>
+<div><ul class="simple">
+<li>the ‘mol’ column: updated structure (only for the protocol)</li>
+<li>the ‘status’ column: either passed, filtered or error.</li>
+<li>the ‘task’ column: the latest task that was applied to the molecule.</li>
+</ul>
+</div></blockquote>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">For now, the user can only change the task order and the values of filters, but it would be relatively easy to add more functionality.</p>
+</div>
+<div class="admonition-todo admonition" id="index-2">
+<p class="first admonition-title">Todo</p>
+<p class="last">Check latest publication sent by Prof. H. Waldmann, there might be an open-source tool for deglycosylating structures, which could become a new task.</p>
+</div>
+<p>Create a Standardizer object.</p>
+<dl class="method">
+<dt id="npfc.standardize.Standardizer.keep_largest">
+<code class="descname">keep_largest</code><span class="sig-paren">(</span><em>mol</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#Standardizer.keep_largest"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.Standardizer.keep_largest" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the largest molecule found in a molecular structure. Molecules with
+only elements usually used in medicinal chemistry are preferred over others,
+no matter their molecular weight.
+The list of medchem elements is contained in the protocol paramater of the Standardizer object:
+(protocol[‘filter_medchem’]).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>mol</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Mol</span></code>) – the input molecule(s)</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><code class="xref py py-class docutils literal notranslate"><span class="pre">Mol</span></code></td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the largest molecule</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="npfc.standardize.Standardizer.remove_isotopes">
+<code class="descname">remove_isotopes</code><span class="sig-paren">(</span><em>mol</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#Standardizer.remove_isotopes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.Standardizer.remove_isotopes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a molecule without any isotopes.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>mol</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Mol</span></code>) – the input molecule</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><code class="xref py py-class docutils literal notranslate"><span class="pre">Mol</span></code></td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the molecule without isotope</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="npfc.standardize.Standardizer.run">
+<code class="descname">run</code><span class="sig-paren">(</span><em>mol</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#Standardizer.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.Standardizer.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute the standardization protocol on a molecule.
+Molecule that exceed the timeout value are filtered with a task=’timeout’.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>mol</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Mol</span></code>) – the input molecule</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a></td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">a tuple containing the molecule, its status and the further task name it reached</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="npfc.standardize.Standardizer.run_df">
+<code class="descname">run_df</code><span class="sig-paren">(</span><em>df</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#Standardizer.run_df"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.Standardizer.run_df" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply the standardization protocol on a DataFrame, with the possibility of directly filtering duplicate entries as well.
+This can be very useful as the standardization process can expose duplicate entries due to salts removal, neutralization,
+canonical tautomer enumeration, and stereochemistry centers unlabelling</p>
+<p>If a reference file is specified, duplicate removals becomes possible accross chunks.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>df</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code>) – the input DataFrame</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a></td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">three DataFrames separated by status:<ul class="simple">
+<li>passed</li>
+<li>filtered</li>
+<li>error</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">As a side effect, the output DataFrames get indexed by idm. The ‘inchikey’ col is not returned, but the values can be accessed using the reference file.</p>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
 
            </div>
            
@@ -157,10 +434,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="fragment.html" class="btn btn-neutral float-right" title="&lt;no title&gt;" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="fragment.html" class="btn btn-neutral float-right" title="Module fragment" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="filter.html" class="btn btn-neutral" title="&lt;no title&gt;" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="filter.html" class="btn btn-neutral" title="Module filter" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
