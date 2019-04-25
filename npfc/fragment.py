@@ -124,7 +124,7 @@ class CombinationClassifier:
             - spiro fsp)
             - edge (fed)
             - bridged (fbr)
-            - unkown (fun)
+            - other (fot)
             - false_positive
                 - substructure (ffs)
                 - overlap (ffo)
@@ -134,14 +134,16 @@ class CombinationClassifier:
                 - spiro (cbs)
                 - edge (cbe)
                 - bridged (cbb)
+                - other (cbo)
             - tripodal
                 - spiro (cts)
                 - edge (cte)
                 - bridged (ctb)
-            - unknown
-                - spiro (cus)
-                - edge (cue)
-                - bridged (cub)
+                - other (cto)
+            - other
+                - spiro (cos)
+                - edge (coe)
+                - bridged (cob)
             - false_positive
                 - cutoff (cfc)
 
@@ -173,7 +175,7 @@ class CombinationClassifier:
                 abbrev = 'fed'
                 logging.debug(f"Classification: {abbrev}")
                 return {'category': category, 'type': 'edge', 'subtype': '', 'abbrev': abbrev}
-            elif len(aidx_fused) == 3:
+            elif 3 <= len(aidx_fused) <= 5:
                 abbrev = 'fbr'
                 logging.debug(f"Classification: {abbrev}")
                 return {'category': category, 'type': 'bridged', 'subtype': '', 'abbrev': 'fbr'}
@@ -186,8 +188,8 @@ class CombinationClassifier:
                         abbrev = 'ffo'
                         logging.debug(f"Classification: {abbrev}")
                         return {'category': category, 'type': 'false_positive', 'subtype': 'overlap', 'abbrev': abbrev}
-                # something unknown with > 3 fused atoms!
-                return {'category': category, 'type': 'unknown', 'subtype': '', 'abbrev': 'fun'}
+                # something unknown with > 5 fused atoms!
+                return {'category': category, 'type': 'unknown', 'subtype': '', 'abbrev': 'fot'}
         else:
             category = 'connection'
             logging.debug(f"category: {category}")
@@ -213,7 +215,7 @@ class CombinationClassifier:
                     type = 'tripodal'
                     return self._get_fcc_subtype(category, type, aidxf1, aidxf2, intermediary_rings)
                 else:
-                    type = 'unknown'
+                    type = 'other'
                     return self._get_fcc_subtype(category, type, aidxf1, aidxf2, intermediary_rings)
 
     def _filter_intermediary_rings(self, mol: Mol, intermediary_rings: list, sssr: list):
@@ -333,14 +335,14 @@ class CombinationClassifier:
                 abbrev += 's'
                 logging.debug(f"Classification: {abbrev}")
                 return {'category': category, 'type': type, 'subtype': 'spiro', 'abbrev': abbrev}
-            elif len(intersect_1) == 3 or len(intersect_2) == 3:
+            elif 3 <= len(intersect_1) <= 5 or 3 <= len(intersect_2) <= 5:
                 abbrev += 'b'
                 logging.debug(f"Classification: {abbrev}")
                 return {'category': category, 'type': type, 'subtype': 'bridged', 'abbrev': abbrev}
-            elif len(intersect_1) > 3 or len(intersect_2) > 3:
-                abbrev += 'u'
+            elif len(intersect_1) > 5 or len(intersect_2) > 5:
+                abbrev += 'o'  # other
                 logging.debug(f"Classification: {abbrev}")
-                return {'category': category, 'type': type, 'subtype': 'unknown', 'abbrev': abbrev}
+                return {'category': category, 'type': type, 'subtype': 'other', 'abbrev': abbrev}
         # edge otherwise
         abbrev += 'e'
         logging.debug(f"Classification: {abbrev}")
