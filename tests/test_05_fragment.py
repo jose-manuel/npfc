@@ -11,9 +11,9 @@ from rdkit import Chem
 # tests
 import pytest
 from npfc import fragment
-
-# import logging
-# logging.basicConfig(level=logging.DEBUG)
+import logging
+# debug
+logging.basicConfig(level=logging.DEBUG)  # uncomment to debug
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FIXTURES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
@@ -40,60 +40,17 @@ def df_frags():
 
 
 @pytest.fixture
-def df_fcc_clean_5():
-    """An example of fcc_clean with 5 combinations"""
-    # raw data extracted from chembl_182_passed_synth_crm_fcc.csv.gz:
-    # idm|idf1|idxf1|fid1|idf2|idxf2|fid2|abbrev|category|type|subtype|aidxf1|aidxf2
-    # CHEMBL3991441|2|11|2:11|178|15|178:15|fed|fusion|edge||{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}|{0, 1, 10, 11, 12, 13, 14, 15, 16}
-    # CHEMBL3991441|2|11|2:11|718|17|718:17|cmo|connection|monopodal||{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}|{19, 20, 21, 22, 23, 24}
-    # CHEMBL3991441|2|11|2:11|718|18|718:18|cmo|connection|monopodal||{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}|{32, 27, 28, 29, 30, 31}
-    # CHEMBL3991441|178|15|178:15|718|17|718:17|cmo|connection|monopodal||{0, 1, 10, 11, 12, 13, 14, 15, 16}|{19, 20, 21, 22, 23, 24}
-    # CHEMBL3991441|178|15|178:15|718|18|718:18|cmo|connection|monopodal||{0, 1, 10, 11, 12, 13, 14, 15, 16}|{32, 27, 28, 29, 30, 31}
-
-    return pd.DataFrame({'idm': ['CHEMBL3991441'] * 5,
-                         'fid1': ['2:11'] * 3 + ['178:15'] * 2,
-                         'fid2': ['178:15', '718:17', '718:18', '718:17', '718:18'],
-                         'abbrev': ['fed'] + ['cmo'] * 4,
-
-                         'aidxf1': ['{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}'] * 3 + ['{0, 1, 10, 11, 12, 13, 14, 15, 16}'] * 2,
-                         'aidxf2': ['{0, 1, 10, 11, 12, 13, 14, 15, 16}', '{19, 20, 21, 22, 23, 24}',
-                                    '{32, 27, 28, 29, 30, 31}', '{19, 20, 21, 22, 23, 24}',
-                                    '{32, 27, 28, 29, 30, 31}',
-                                    ],
-                         })
+def df_mol_chembl_1():
+    """A molecule from real-life study with false positive combinations such as ffo and ffs for testing clean and map functions."""
+    return pd.DataFrame({'mol': [Chem.MolFromSmiles('CS(=O)(=O)c1ccc2nc(O)c(c(O)c2c1)c3ccccc3')]}, index=['CHEMBL209576'])
 
 
 @pytest.fixture
-def df_fcc_2():
-    """Another simple fragment combination classification but complicated enough (overlap) for testing fragment maps"""
-
-    return pd.DataFrame({'idm': ['CHEMBL209576'] * 9,
-                         'idf1': [2, 2, 2, 2, 32, 32, 32, 32, 32],
-                         'idxf1': [0, 0, 0, 0, 1, 1, 1, 2, 2],
-                         'idf2': [32, 32, 320, 328, 32, 320, 328, 320, 328],
-                         'idxf2': [1, 2, 3, 4, 2, 3, 4, 3, 4],
-                         'abbrev': ['ffs', 'cmo', 'ffo', 'ffs', 'cmo', 'fed', 'fed', 'cmo', 'cmo'],
-                         'category': ['fusion', 'connection', 'fusion', 'fusion', 'connection',
-                                      'fusion', 'fusion', 'connection', 'connection',
-                                      ],
-                         'type': ['false_positive', 'monopodal', 'false_positive', 'false_positive',
-                                  'monopodal', 'edge', 'edge', 'monopodal', 'monopodal',
-                                  ],
-                         'subtype': ['substructure', '', 'overlap', 'substructure', '', '', '',
-                                     '', ''],
-                         'aidxf1': ['{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}', '{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}',
-                                    '{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}', '{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}',
-                                    '{0, 1, 2, 3, 4, 5}', '{0, 1, 2, 3, 4, 5}',
-                                    '{0, 1, 2, 3, 4, 5}', '{12, 13, 14, 15, 16, 17}',
-                                    '{12, 13, 14, 15, 16, 17}',
-                                    ],
-                         'aidxf2': ['{0, 1, 2, 3, 4, 5}', '{12, 13, 14, 15, 16, 17}',
-                                    '{4, 5, 6, 7, 8, 9, 10}', '{4, 5, 6, 7, 8, 9}',
-                                    '{12, 13, 14, 15, 16, 17}', '{4, 5, 6, 7, 8, 9, 10}',
-                                    '{4, 5, 6, 7, 8, 9}', '{4, 5, 6, 7, 8, 9, 10}',
-                                    '{4, 5, 6, 7, 8, 9}',
-                                    ],
-                         })
+def df_frags_chembl_1():
+    """Four fragments found in df_chembl_1."""
+    df_frags = pd.DataFrame({'smiles': ['c1ccc2ncccc2c1', 'c1ccccc1', 'Oc1ccccn1', 'c1ccncc1']}, index=['2', '32', '320', '328'])
+    df_frags['mol'] = df_frags['smiles'].map(Chem.MolFromSmiles)
+    return df_frags
 
 
 @pytest.fixture
@@ -209,7 +166,8 @@ def test_fcc_run_substructure_match(fcc, fm, df_mol_fusion_spiro, df_frags):
     df_aidxf_ref = pd.DataFrame({'idm': ['fsp'] * 2,
                                  'idf': ['QA', 'QB'],
                                  'aidxf': [{0, 1, 2, 3, 4}, {2, 5, 6, 7, 8, 9}],
-                                 'mol_perc': [50.0, 60.0]},
+                                 'mol_perc': [50.0, 60.0],
+                                 },
                                 index=[0, 1])
     assert df_aidxf.equals(df_aidxf_ref)
 
@@ -344,9 +302,16 @@ def test_fcc_connection_false_positive_cutoff(fcc, fm, df_mol_connection_false_p
     assert result['category'] == 'connection' and result['type'] == 'false_positive' and result['subtype'] == 'cutoff' and result['abbrev'] == 'cfc'
 
 
-def test_fcc_fragmap(fcc, df_fcc_clean_5):
-    """Check the fragment map functionality"""
-
-    df_map = fcc.map_frags(df_fcc_clean_5)
-    logging.debug("")
-    logging.debug(df_map)
+def test_chembl_1(fcc, fm, df_mol_chembl_1, df_frags_chembl_1):
+    """Test to see how ffo and ffs combinations are deal with."""
+    df_aidxf = fm.run(df_mol_chembl_1, df_frags_chembl_1)
+    df_fcc = fcc.classify_fragment_combinations(df_mol_chembl_1, df_aidxf)
+    logging.debug(f"\nRaw results for chembl_1:\n{df_fcc}\n")
+    assert list(df_fcc['abbrev'].values) == ['ffs', 'cmo', 'ffo', 'ffs', 'cmo',
+                                             'fed', 'fed', 'cmo', 'cmo', 'ffs']
+    df_fcc = fcc.clean(df_fcc)
+    logging.debug(f"\nClean results for chembl_1:\n{df_fcc}\n")
+    assert list(df_fcc['abbrev'].values) == ['cmo', 'ffo', 'cmo']
+    df_map = fcc.map_frags(df_fcc)
+    logging.debug(f"\nFragment map for chembl_1:\n{df_map}\n")
+    assert list(df_map['map_str'] == ["2:0[cmo]32:1", "32:1[cmo]320:3"])

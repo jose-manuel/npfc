@@ -262,4 +262,5 @@ def test_standardizer_timeout(mols_timeout, standardizer_fast):
 def save_mols(mols):
     """Export the molecules to a SDF for testing the npfc pipeline."""
     from rdkit.Chem import PandasTools
-    PandasTools.WriteSDF(mols, "tests/tmp/example_mols.sdf")
+    mols['idm'] = f"MOL{str()}"
+    PandasTools.WriteSDF(mols, "tests/tmp/example_mols.sdf", )

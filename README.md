@@ -137,7 +137,9 @@ To create the task tree:
 - automatic release changelog (standard-version?)
 - ref_file for duplicate entries removal should be defined in the protocol
 - check if ref_file would be better in table mode for appending data instead of rewriting the whole file for each chunk
-- add nrings criteria to retrieve the "best" minor compound instead of just medchem
+- add nrings criteria to retrieve the "best" minor compound instead of just medchem during keep_largest in standardization
+- add option for recomputing 2D coordinates in standardization (best of 4: input, coordgen, allchem and avalon)
+-
 
 ## Some weird errors encountered during development
     - cannot set user-defined timeout for standardization because the timeout value is set during the loading of the library

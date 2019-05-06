@@ -10,7 +10,6 @@ This modules contains two classes:
 # standard
 import logging
 import itertools
-
 import json
 # data science
 from pandas import DataFrame
@@ -388,6 +387,7 @@ class CombinationClassifier:
         # classify fragment combinations
         for gid, g in df_aidxf.groupby('idm'):
             mol = df_mols.loc[gid]['mol']
+            hac = mol.GetNumAtoms()  # so we can estimate how well-covered is the molecule by its fragment combinations
             # mol = df_mols[df_mols['idm'] == gid]['mol'].iloc[0]
             for i in range(len(g)):
                 row_f1 = g.iloc[i]
@@ -413,9 +413,10 @@ class CombinationClassifier:
                     d_fcc['fid2'] = str(idf2) + ":" + str(idxf2)
                     d_fcc['aidxf1'] = aidxf1
                     d_fcc['aidxf2'] = aidxf2
+                    d_fcc['hac'] = hac
                     ds_fcc.append(d_fcc)
         # dataframe with columns in given order
-        return DataFrame(ds_fcc, columns=['idm', 'idf1', 'idxf1', 'fid1', 'idf2', 'idxf2', 'fid2', 'abbrev', 'category', 'type', 'subtype', 'aidxf1', 'aidxf2'])
+        return DataFrame(ds_fcc, columns=['idm', 'idf1', 'idxf1', 'fid1', 'idf2', 'idxf2', 'fid2', 'abbrev', 'category', 'type', 'subtype', 'aidxf1', 'aidxf2', 'hac'])
 
     def clean(self, df_fcc):
         """Clean a df_fcc by removing false positives such as substructures and
@@ -516,30 +517,40 @@ class CombinationClassifier:
                 dfs_fcc_clean = [g]
 
             # fragment map string representation
-            for df_fcc_clean in dfs_fcc_clean:
+            for i, df_fcc_clean in enumerate(dfs_fcc_clean):
+                # string representation of the fragment combinations of this map
                 frag_map_str = '-'.join(list(df_fcc_clean['fid1'].map(str) + "[" + df_fcc_clean['abbrev'] + "]" + df_fcc_clean['fid2'].map(str)))
-                frags = list(df_fcc_clean['fid1'].map(str).values) + list(df_fcc_clean['fid2'].map(str).values)
+                # frags: all occurrences of all fragments (f1:0, f1:1, f2:0, etc.)
+                frags = list(set(list(df_fcc_clean['fid1'].map(str).values) + list(df_fcc_clean['fid2'].map(str).values)))
                 nfrags = len(frags)
-                frags_u = list(set(frags))
+                # frags_u: count only different fragments (f1, f2, etc.)
+                frags_u = list(set([x.split(":")[0] for x in frags]))
                 nfrags_u = len(frags_u)
+                # filter results by min/max number of fragments
                 if nfrags_u < min_frags:
-                    logging.debug(f"Too few unique fragment occurrences, discarding graph of n={nfrags_u} for molecule: '{gid}'")
+                    logging.debug(f"Too few unique fragment occurrences, discarding graph of n={nfrags} for molecule: '{gid}'")
                     continue
                 elif nfrags_u > max_frags:
-                    logging.debug(f"Too many unique fragment occurrences, discarding graph of n={nfrags_u} for molecule: '{gid}'")
+                    logging.debug(f"Too many unique fragment occurrences, discarding graph of n={nfrags} for molecule: '{gid}'")
                     continue
+                # combine aidxfs from all fragments
                 aidxfs = list(df_fcc_clean['aidxf1'].values) + list(df_fcc_clean['aidxf2'].values)
-                # logging.debug(f"Input aidxfs: {aidxfs}")
+                # organize aidxfs
                 aidxfs = dict(zip(frags, aidxfs))  # aidxfs is now a dict with frag: aidfx
                 for k in aidxfs.keys():
                     aidxfs[k] = list(aidxfs[k])
-                # logging.debug(f"Final aidxfs before dumping to JSON: {aidxfs}")
+                # compute fragment coverage of the molecule
+                hac_mol = g.iloc[0]['hac']  # same hac for all entries of the same molecule
+                hac_frags = len(list(set([item for sublist in aidxfs.values() for item in sublist])))
+                perc_mol_cov_frags = round((hac_frags / hac_mol), 2) * 100
+
+                # avoid issues with pandas and complex data structures by dumping it as string
                 aidxfs = json.dumps(aidxfs)
                 comb = list(df_fcc_clean['abbrev'].values)
                 ncomb = len(comb)
                 comb_u = list(set(comb))
                 ncomb_u = len(comb_u)
-                ds_map.append({'idm': gid, 'map_str': frag_map_str, 'nfrags': nfrags, 'nfrags_u': nfrags_u, 'ncomb': ncomb, 'ncomb_u': ncomb_u, 'frags': frags, 'frags_u': frags_u, 'comb': comb, 'comb_u': comb_u, 'aidxfs': aidxfs})
+                ds_map.append({'idm': gid, 'fmid': str(i+1).zfill(3), 'nfrags': nfrags, 'nfrags_u': nfrags_u, 'ncomb': ncomb, 'ncomb_u': ncomb_u, 'hac_mol': hac_mol, 'hac_frags': hac_frags, 'perc_mol_cov_frags': perc_mol_cov_frags,  'frags': frags, 'frags_u': frags_u, 'comb': comb, 'comb_u': comb_u, 'aidxfs': aidxfs, 'map_str': frag_map_str})
 
         # df_map
-        return DataFrame(ds_map, columns=['idm', 'map_str', 'nfrags', 'nfrags_u', 'ncomb', 'ncomb_u', 'frags', 'frags_u', 'comb', 'comb_u', 'aidxfs'])
+        return DataFrame(ds_map, columns=['idm', 'fmid', 'nfrags', 'nfrags_u', 'ncomb', 'ncomb_u', 'hac_mol', 'hac_frags', 'perc_mol_cov_frags', 'frags', 'frags_u', 'comb', 'comb_u', 'aidxfs', 'map_str'])
