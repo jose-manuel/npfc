@@ -124,15 +124,25 @@ Also, the atom plugin git-log can be summoned with ctrl+shift+p to visualize the
 
 ## Snakemake
 
-create task tree:
+To create the task tree:
 >>> snakemake --dag | dot -Tsvg > dag.svg
 
 
 ## Stuff to think about
 
 - add extlinks to RDKit documentation (~ MolVS)
-- tweak Sanitizeflags to mimic KNIME Mol2RDKit node behavior (partial sanitization).
-- implement a git hook so that only changes that pass all tests are committed.
-- build up a workflow using snakemake
+- tweak Sanitizeflags to mimic KNIME Mol2RDKit node behavior (partial sanitization) or split molblocks/smiles before conversion to RDKit
+- implement a git hook so that only changes that pass all tests are committed
+- build up a workflow using snakemake: local for testing, on cluster for production
 - automatic release changelog (standard-version?)
 - ref_file for duplicate entries removal should be defined in the protocol
+- check if ref_file would be better in table mode for appending data instead of rewriting the whole file for each chunk
+- add nrings criteria to retrieve the "best" minor compound instead of just medchem
+
+## Some weird errors encountered during development
+    - cannot set user-defined timeout for standardization because the timeout value is set during the loading of the library
+    - deglycosylation: KNIME CDK node Sugar Remover is very good at surprising me:
+        - loses stereochemistry information
+        - if output is smiles, remove all hydrogens so heavy atoms are radicals
+        - high failure rate (10%) which returns empty molecules
+        - if the sugar is inside of the molecule, then fragments are returned. Yet to define if the larger fragment is the better one

@@ -257,3 +257,9 @@ def test_standardizer_timeout(mols_timeout, standardizer_fast):
     assert isinstance(mol, Chem.Mol) is True
     assert status == 'filtered'
     assert task == 'timeout'
+
+
+def save_mols(mols):
+    """Export the molecules to a SDF for testing the npfc pipeline."""
+    from rdkit.Chem import PandasTools
+    PandasTools.WriteSDF(mols, "tests/tmp/example_mols.sdf")
