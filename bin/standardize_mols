@@ -95,6 +95,7 @@ def main():
     parser.add_argument('--out_id', type=str, default='idm', help="Identifier column in the output file.")
     parser.add_argument('--out_mol', type=str, default='mol', help="Molecule column in the output file.")
     parser.add_argument('--out_sep', type=str, default='|', help="Separator to use in case the output file is a csv.")
+    parser.add_argument('--compute_2D', type=bool, default=False, help="Compute 2D coordinates.")
     parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
     args = parser.parse_args()
 
@@ -283,7 +284,13 @@ def main():
         logger.info(''.join([f"{header}".ljust(10) for header in ('HEADER', 'PASSED', 'FILTERED', 'ERROR')]))
         logger.info(''.join([f"{header}".ljust(10) for header in ('COUNT', num_passed, num_filtered, num_error)]))
 
+    # Compute 2D coordinates
     d6 = datetime.now()
+    if args.compute_2D:
+        logger.info(f"COMPUTING 2D COORDINATES")
+        df_passed[args.out_mol] = df_passed[args.out_mol].map(s.compute_2D)
+
+    d7 = datetime.now()
     logger.info(f"SAVING OUTPUTS")
     # passed
     outputs = save.save(df_passed, output_passed)
@@ -294,7 +301,7 @@ def main():
     # error
     outputs = save.save(df_error, output_error)
     logger.info(f"SAVED {outputs[0][1]} RECORDS AT {outputs[0][0]}")
-    d7 = datetime.now()
+    d8 = datetime.now()
 
     # end
 
@@ -307,8 +314,10 @@ def main():
             logger.info("COMPUTATIONAL TIME: SAVING INTERMEDIATE OUTPUTS".ljust(pad * 2) + f"{d4-d3}")
         logger.info("COMPUTATIONAL TIME: EXTRACTING MS".ljust(pad * 2) + f"{d5-d4}")
         logger.info("COMPUTATIONAL TIME: STANDARDIZING MS".ljust(pad * 2) + f"{d6-d5}")
-    logger.info("COMPUTATIONAL TIME: SAVING OUTPUTS".ljust(pad * 2) + f"{d7-d6}")
-    logger.info("COMPUTATIONAL TIME: TOTAL".ljust(pad * 2) + f"{d7-d0}")
+    if args.compute_2D:
+        logger.info("COMPUTATIONAL TIME: COMPUTING 2D".ljust(pad * 2) + f"{d7-d6}")
+    logger.info("COMPUTATIONAL TIME: SAVING OUTPUTS".ljust(pad * 2) + f"{d8-d7}")
+    logger.info("COMPUTATIONAL TIME: TOTAL".ljust(pad * 2) + f"{d8-d0}")
     logging.info("END")
     sys.exit(0)
 

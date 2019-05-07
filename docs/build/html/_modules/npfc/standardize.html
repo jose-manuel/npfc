@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.standardize &mdash; npfc 0.1.1-1-g2e46296 documentation</title>
+  <title>npfc.standardize &mdash; npfc 0.1.1-2-gc1760ec documentation</title>
   
 
   
@@ -56,7 +56,7 @@
             
             
               <div class="version">
-                0.1.1-1-g2e46296
+                0.1.1-2-gc1760ec
               </div>
             
           
@@ -162,13 +162,14 @@
 <span class="kn">import</span> <span class="nn">timeout_decorator</span>
 <span class="kn">import</span> <span class="nn">copy</span>
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="k">import</span> <span class="n">Path</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
 <span class="c1"># data handling</span>
 <span class="kn">import</span> <span class="nn">json</span>
 <span class="kn">from</span> <span class="nn">itertools</span> <span class="k">import</span> <span class="n">chain</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 <span class="kn">from</span> <span class="nn">pandas</span> <span class="k">import</span> <span class="n">DataFrame</span>
 <span class="c1"># chemoinformatics</span>
-<span class="kn">from</span> <span class="nn">rdkit</span> <span class="k">import</span> <span class="n">Chem</span>
+<span class="kn">from</span> <span class="nn">rdkit.Chem</span> <span class="k">import</span> <span class="n">AllChem</span> <span class="k">as</span> <span class="n">Chem</span>
 <span class="kn">from</span> <span class="nn">rdkit.Chem</span> <span class="k">import</span> <span class="n">Mol</span>
 <span class="kn">from</span> <span class="nn">rdkit.Chem</span> <span class="k">import</span> <span class="n">rdinchi</span>
 <span class="kn">from</span> <span class="nn">rdkit.Chem</span> <span class="k">import</span> <span class="n">Descriptors</span>
@@ -177,6 +178,11 @@
 <span class="kn">from</span> <span class="nn">rdkit.Chem.MolStandardize.charge</span> <span class="k">import</span> <span class="n">Uncharger</span>
 <span class="kn">from</span> <span class="nn">rdkit.Chem.MolStandardize.normalize</span> <span class="k">import</span> <span class="n">Normalizer</span>
 <span class="kn">from</span> <span class="nn">rdkit.Chem.MolStandardize.tautomer</span> <span class="k">import</span> <span class="n">TautomerCanonicalizer</span>
+<span class="c1"># 2D depiction of molecules</span>
+<span class="kn">from</span> <span class="nn">rdkit.Chem</span> <span class="k">import</span> <span class="n">rdDepictor</span>
+<span class="kn">from</span> <span class="nn">rdkit.Chem</span> <span class="k">import</span> <span class="n">rdCoordGen</span>
+<span class="kn">from</span> <span class="nn">rdkit.Avalon</span> <span class="k">import</span> <span class="n">pyAvalonTools</span> <span class="k">as</span> <span class="n">pyAv</span>
+<span class="kn">from</span> <span class="nn">pdbeccdutils.core.depictions</span> <span class="k">import</span> <span class="n">DepictionValidator</span>
 <span class="c1"># dev library</span>
 <span class="kn">from</span> <span class="nn">npfc</span> <span class="k">import</span> <span class="n">utils</span>
 <span class="kn">from</span> <span class="nn">npfc.filter</span> <span class="k">import</span> <span class="n">Filter</span>
@@ -429,6 +435,16 @@
 <span class="sd">        - the &#39;status&#39; column: either passed, filtered or error.</span>
 <span class="sd">        - the &#39;task&#39; column: the latest task that was applied to the molecule.</span>
 
+<span class="sd">    Optionally, it is possible to compute new 2D coordinates for depicting molecules as final step of the standardization.</span>
+<span class="sd">    To achieve this, a scoring function is assigned to each depiction to retrieve the &quot;best&quot; one (least amount of overlapping atoms/bonds):</span>
+
+<span class="sd">        - Input (if any)</span>
+<span class="sd">        - rdDepictor</span>
+<span class="sd">        - Avalon</span>
+<span class="sd">        - rdCoordgen</span>
+
+<span class="sd">    A column &quot;depiction_method&quot; is appended to the output DataFrame so the user knows which method was considered the best.</span>
+
 <span class="sd">    .. note:: For now, the user can only change the task order and the values of filters, but it would be relatively easy to add more functionality.</span>
 
 <span class="sd">    .. todo:: Check latest publication sent by Prof. H. Waldmann, there might be an open-source tool for deglycosylating structures, which could become a new task.</span>
@@ -439,6 +455,7 @@
                  <span class="n">col_mol</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;mol&#39;</span><span class="p">,</span>
                  <span class="n">col_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;idm&#39;</span><span class="p">,</span>
                  <span class="n">filter_duplicates</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+                 <span class="n">compute_2D</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
                  <span class="n">ref_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                  <span class="n">on</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;inchikey&#39;</span><span class="p">,</span>
                  <span class="c1"># ref_dataset=None,</span>
@@ -453,6 +470,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_col_id</span> <span class="o">=</span> <span class="n">col_id</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_col_mol</span> <span class="o">=</span> <span class="n">col_mol</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_filter_duplicates</span> <span class="o">=</span> <span class="n">filter_duplicates</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_compute_2D</span> <span class="o">=</span> <span class="n">compute_2D</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_on</span> <span class="o">=</span> <span class="n">on</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_suffix</span> <span class="o">=</span> <span class="n">suffix</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_ref_file</span> <span class="o">=</span> <span class="n">ref_file</span>
@@ -480,6 +498,11 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">normalizer</span> <span class="o">=</span> <span class="n">Normalizer</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">full_uncharger</span> <span class="o">=</span> <span class="n">FullUncharger</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">canonicalizer</span> <span class="o">=</span> <span class="n">TautomerCanonicalizer</span><span class="p">()</span>
+        <span class="c1"># methods</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">METHODS_2D</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>  <span class="c1"># the order of insertions define the priority order</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">METHODS_2D</span><span class="p">[</span><span class="s1">&#39;CoordGen&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">rdCoordGen</span><span class="o">.</span><span class="n">AddCoords</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">METHODS_2D</span><span class="p">[</span><span class="s1">&#39;rdDepictor&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">rdDepictor</span><span class="o">.</span><span class="n">Compute2DCoords</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">METHODS_2D</span><span class="p">[</span><span class="s1">&#39;Avalon&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">pyAv</span><span class="o">.</span><span class="n">Generate2DCoords</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">protocol</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -538,9 +561,18 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filter_duplicates</span>
 
     <span class="nd">@filter_duplicates</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">filter_duplicates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">filter_duplicates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">utils</span><span class="o">.</span><span class="n">check_arg_bool</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_filter_duplicates</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">compute_2D</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_2D</span>
+
+    <span class="nd">@compute_2D</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">compute_2D</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">utils</span><span class="o">.</span><span class="n">check_arg_bool</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_compute_2D</span> <span class="o">=</span> <span class="n">value</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">on</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
@@ -766,9 +798,70 @@
             <span class="c1"># separate dupl from the rest</span>
             <span class="n">df_filtered</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">df_filtered</span><span class="p">,</span> <span class="n">df</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;filtered&#39;</span><span class="p">]],</span> <span class="n">join</span><span class="o">=</span><span class="s1">&#39;inner&#39;</span><span class="p">)</span>  <span class="c1"># drop inchikey col as the info is stored in ref_file anyway</span>
             <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;passed&#39;</span><span class="p">]</span>
+        <span class="c1"># compute 2D depictions</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_2D</span><span class="p">:</span>
+            <span class="n">df</span><span class="p">[</span><span class="s1">&#39;mol&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;mol&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">compute_2D</span><span class="p">)</span>
+            <span class="c1"># df[&#39;_2D&#39;] = df[&#39;mol&#39;].map(lambda x: x.GetProp(&quot;_2D&quot;))  # uninteresting?</span>
 
         <span class="c1"># tuple of dataframes</span>
-        <span class="k">return</span> <span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">df_filtered</span><span class="p">,</span> <span class="n">df_error</span><span class="p">)</span></div></div>
+        <span class="k">return</span> <span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">df_filtered</span><span class="p">,</span> <span class="n">df_error</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Standardizer.compute_2D"><a class="viewcode-back" href="../../standardize.html#npfc.standardize.Standardizer.compute_2D">[docs]</a>    <span class="k">def</span> <span class="nf">compute_2D</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mol</span><span class="p">:</span> <span class="n">Mol</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Mol</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the &quot;best&quot; 2D depiction of a molecule according the methods in METHODS_2D.</span>
+<span class="sd">        Currently four methods are available:</span>
+
+<span class="sd">            - CoordGen</span>
+<span class="sd">            - rdDepictor</span>
+<span class="sd">            - Avalon</span>
+<span class="sd">            - Input</span>
+
+<span class="sd">        A perfect score of 0 means the depiction is good enough (no overalapping atom/bonds)</span>
+<span class="sd">        and it is not worth computing other depictions. When no perfect score is reached,</span>
+<span class="sd">        the depiction with lowest score is retrieved. In case of tie, the first method applied</span>
+<span class="sd">        is preferred.</span>
+
+<span class="sd">        The method used for depicting the molecule is stored as molecule property: &quot;_2D&quot;.</span>
+
+<span class="sd">        This process could run much faster if input coordinates are reliable but just needed some tweakings</span>
+<span class="sd">        (i.e. macrocycles). For now I prefer to use CoordGen, instead. We&#39;ll see how it computational-time-wise.</span>
+
+<span class="sd">        :param mol: the input molecule</span>
+<span class="sd">        :return: the molecule with 2D coordinates</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">depictions</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">method</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">METHODS_2D</span><span class="p">:</span>
+            <span class="c1"># copy the input mol so input coordinates are not modified</span>
+            <span class="n">depiction_mol</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">Mol</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
+            <span class="c1"># compute the depiction in place</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">METHODS_2D</span><span class="p">[</span><span class="n">method</span><span class="p">](</span><span class="n">depiction_mol</span><span class="p">)</span>
+            <span class="c1"># score the depiction</span>
+            <span class="n">dv</span> <span class="o">=</span> <span class="n">DepictionValidator</span><span class="p">(</span><span class="n">depiction_mol</span><span class="p">)</span>
+            <span class="n">depiction_score</span> <span class="o">=</span> <span class="n">dv</span><span class="o">.</span><span class="n">depiction_score</span><span class="p">()</span>
+            <span class="c1"># exit if perfect score, record depiction for selection otherwise</span>
+            <span class="k">if</span> <span class="n">depiction_score</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">depiction_mol</span><span class="o">.</span><span class="n">SetProp</span><span class="p">(</span><span class="s2">&quot;_2D&quot;</span><span class="p">,</span> <span class="n">method</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">depiction_mol</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">depictions</span><span class="p">[</span><span class="n">method</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">depiction_score</span><span class="p">,</span> <span class="n">depiction_mol</span><span class="p">)</span>
+
+        <span class="c1"># no perfect score was reached until now, so test input coordinates if any</span>
+        <span class="k">if</span> <span class="n">mol</span><span class="o">.</span><span class="n">GetNumConformers</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">method</span> <span class="o">=</span> <span class="s2">&quot;Input&quot;</span>
+            <span class="n">dv</span> <span class="o">=</span> <span class="n">DepictionValidator</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
+            <span class="n">depiction_score</span> <span class="o">=</span> <span class="n">dv</span><span class="o">.</span><span class="n">depiction_score</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">depiction_score</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">mol</span><span class="o">.</span><span class="n">SetProp</span><span class="p">(</span><span class="s2">&quot;_2D&quot;</span><span class="p">,</span> <span class="n">method</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">mol</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">depictions</span><span class="p">[</span><span class="n">method</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">depiction_score</span><span class="p">,</span> <span class="n">mol</span><span class="p">)</span>
+
+        <span class="c1"># retrieve best depiction possible</span>
+        <span class="n">best_method</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">depictions</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">k</span><span class="p">:</span> <span class="n">depictions</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">best_depiction_mol</span> <span class="o">=</span> <span class="n">depictions</span><span class="p">[</span><span class="n">best_method</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">best_depiction_mol</span><span class="o">.</span><span class="n">SetProp</span><span class="p">(</span><span class="s2">&quot;_2D&quot;</span><span class="p">,</span> <span class="n">best_method</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">best_depiction_mol</span></div></div>
 </pre></div>
 
            </div>
