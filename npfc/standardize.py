@@ -9,13 +9,14 @@ import logging
 import timeout_decorator
 import copy
 from pathlib import Path
+from collections import OrderedDict
 # data handling
 import json
 from itertools import chain
 import pandas as pd
 from pandas import DataFrame
 # chemoinformatics
-from rdkit import Chem
+from rdkit.Chem import AllChem as Chem
 from rdkit.Chem import Mol
 from rdkit.Chem import rdinchi
 from rdkit.Chem import Descriptors
@@ -24,6 +25,11 @@ from rdkit.Chem.MolStandardize.metal import MetalDisconnector
 from rdkit.Chem.MolStandardize.charge import Uncharger
 from rdkit.Chem.MolStandardize.normalize import Normalizer
 from rdkit.Chem.MolStandardize.tautomer import TautomerCanonicalizer
+# 2D depiction of molecules
+from rdkit.Chem import rdDepictor
+from rdkit.Chem import rdCoordGen
+from rdkit.Avalon import pyAvalonTools as pyAv
+from pdbeccdutils.core.depictions import DepictionValidator
 # dev library
 from npfc import utils
 from npfc.filter import Filter
@@ -276,6 +282,16 @@ class Standardizer(Filter):
         - the 'status' column: either passed, filtered or error.
         - the 'task' column: the latest task that was applied to the molecule.
 
+    Optionally, it is possible to compute new 2D coordinates for depicting molecules as final step of the standardization.
+    To achieve this, a scoring function is assigned to each depiction to retrieve the "best" one (least amount of overlapping atoms/bonds):
+
+        - Input (if any)
+        - rdDepictor
+        - Avalon
+        - rdCoordgen
+
+    A column "depiction_method" is appended to the output DataFrame so the user knows which method was considered the best.
+
     .. note:: For now, the user can only change the task order and the values of filters, but it would be relatively easy to add more functionality.
 
     .. todo:: Check latest publication sent by Prof. H. Waldmann, there might be an open-source tool for deglycosylating structures, which could become a new task.
@@ -286,6 +302,7 @@ class Standardizer(Filter):
                  col_mol: str = 'mol',
                  col_id: str = 'idm',
                  filter_duplicates: bool = True,
+                 compute_2D: bool = False,
                  ref_file: str = None,
                  on: str = 'inchikey',
                  # ref_dataset=None,
@@ -300,6 +317,7 @@ class Standardizer(Filter):
         self._col_id = col_id
         self._col_mol = col_mol
         self._filter_duplicates = filter_duplicates
+        self._compute_2D = compute_2D
         self._on = on
         self._suffix = suffix
         self._ref_file = ref_file
@@ -327,6 +345,11 @@ class Standardizer(Filter):
         self.normalizer = Normalizer()
         self.full_uncharger = FullUncharger()
         self.canonicalizer = TautomerCanonicalizer()
+        # methods
+        self.METHODS_2D = OrderedDict()  # the order of insertions define the priority order
+        self.METHODS_2D['CoordGen'] = lambda x: rdCoordGen.AddCoords(x)
+        self.METHODS_2D['rdDepictor'] = lambda x: rdDepictor.Compute2DCoords(x)
+        self.METHODS_2D['Avalon'] = lambda x: pyAv.Generate2DCoords(x)
 
     @property
     def protocol(self):
@@ -385,9 +408,18 @@ class Standardizer(Filter):
         return self._filter_duplicates
 
     @filter_duplicates.setter
-    def filter_duplicates(self, value: str) -> None:
+    def filter_duplicates(self, value: bool) -> None:
         utils.check_arg_bool(value)
         self._filter_duplicates = value
+
+    @property
+    def compute_2D(self) -> bool:
+        return self._compute_2D
+
+    @compute_2D.setter
+    def compute_2D(self, value: bool) -> None:
+        utils.check_arg_bool(value)
+        self._compute_2D = value
 
     @property
     def on(self) -> str:
@@ -613,6 +645,67 @@ class Standardizer(Filter):
             # separate dupl from the rest
             df_filtered = pd.concat([df_filtered, df[df['status'] == 'filtered']], join='inner')  # drop inchikey col as the info is stored in ref_file anyway
             df = df[df['status'] == 'passed']
+        # compute 2D depictions
+        if self.compute_2D:
+            df['mol'] = df['mol'].map(self.compute_2D)
+            # df['_2D'] = df['mol'].map(lambda x: x.GetProp("_2D"))  # uninteresting?
 
         # tuple of dataframes
         return (df, df_filtered, df_error)
+
+    def compute_2D(self, mol: Mol) -> Mol:
+        """
+        Returns the "best" 2D depiction of a molecule according the methods in METHODS_2D.
+        Currently four methods are available:
+
+            - CoordGen
+            - rdDepictor
+            - Avalon
+            - Input
+
+        A perfect score of 0 means the depiction is good enough (no overalapping atom/bonds)
+        and it is not worth computing other depictions. When no perfect score is reached,
+        the depiction with lowest score is retrieved. In case of tie, the first method applied
+        is preferred.
+
+        The method used for depicting the molecule is stored as molecule property: "_2D".
+
+        This process could run much faster if input coordinates are reliable but just needed some tweakings
+        (i.e. macrocycles). For now I prefer to use CoordGen, instead. We'll see how it computational-time-wise.
+
+        :param mol: the input molecule
+        :return: the molecule with 2D coordinates
+        """
+        depictions = OrderedDict()
+
+        for method in self.METHODS_2D:
+            # copy the input mol so input coordinates are not modified
+            depiction_mol = Chem.Mol(mol)
+            # compute the depiction in place
+            self.METHODS_2D[method](depiction_mol)
+            # score the depiction
+            dv = DepictionValidator(depiction_mol)
+            depiction_score = dv.depiction_score()
+            # exit if perfect score, record depiction for selection otherwise
+            if depiction_score == 0:
+                depiction_mol.SetProp("_2D", method)
+                return depiction_mol
+            else:
+                depictions[method] = (depiction_score, depiction_mol)
+
+        # no perfect score was reached until now, so test input coordinates if any
+        if mol.GetNumConformers() > 0:
+            method = "Input"
+            dv = DepictionValidator(mol)
+            depiction_score = dv.depiction_score()
+            if depiction_score == 0:
+                mol.SetProp("_2D", method)
+                return mol
+            else:
+                depictions[method] = (depiction_score, mol)
+
+        # retrieve best depiction possible
+        best_method = min(depictions, key=lambda k: depictions[k][0])
+        best_depiction_mol = depictions[best_method][1]
+        best_depiction_mol.SetProp("_2D", best_method)
+        return best_depiction_mol
