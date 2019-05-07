@@ -527,11 +527,11 @@ class CombinationClassifier:
                 frags_u = list(set([x.split(":")[0] for x in frags]))
                 nfrags_u = len(frags_u)
                 # filter results by min/max number of fragments
-                if nfrags_u < min_frags:
-                    logging.debug(f"Too few unique fragment occurrences, discarding graph of n={nfrags} for molecule: '{gid}'")
+                if nfrags < min_frags:
+                    logging.debug(f"Too few fragment occurrences, discarding graph of n={nfrags} for molecule: '{gid}'")
                     continue
-                elif nfrags_u > max_frags:
-                    logging.debug(f"Too many unique fragment occurrences, discarding graph of n={nfrags} for molecule: '{gid}'")
+                elif nfrags > max_frags:
+                    logging.debug(f"Too many fragment occurrences, discarding graph of n={nfrags} for molecule: '{gid}'")
                     continue
                 # combine aidxfs from all fragments
                 aidxfs = list(df_fcc_clean['aidxf1'].values) + list(df_fcc_clean['aidxf2'].values)
