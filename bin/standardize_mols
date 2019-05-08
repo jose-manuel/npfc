@@ -225,6 +225,8 @@ def main():
     logger.info(f"STANDARDIZING MOLECULES")
     logger.info(f"PROTOCOL:")
     s = standardize.Standardizer(ref_file=output_ref)
+    if args.protocol is not None:
+        s.protocol = args.protocol
     # abbreviations = task_abbreviation(s.protcol['tasks'])
     [logger.info(f"TASK #{str(i+1).zfill(2)} {task}") for i, task in enumerate(s._protocol['tasks'])]
     [logger.info(f"OPTION {opt}".ljust(pad) + f"{value}") for opt, value in s._protocol.items() if opt != 'tasks']

@@ -13,7 +13,7 @@ import pytest
 from npfc import fragment
 import logging
 # debug
-# logging.basicConfig(level=logging.DEBUG)  # uncomment to debug
+logging.basicConfig(level=logging.DEBUG)  # uncomment to debug
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FIXTURES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
@@ -40,17 +40,21 @@ def df_frags():
 
 
 @pytest.fixture
-def df_mol_chembl_1():
+def df_case_chembl_1():
     """A molecule from real-life study with false positive combinations such as ffo and ffs for testing clean and map functions."""
-    return pd.DataFrame({'mol': [Chem.MolFromSmiles('CS(=O)(=O)c1ccc2nc(O)c(c(O)c2c1)c3ccccc3')]}, index=['CHEMBL209576'])
+    df_mols = pd.DataFrame({'mol': [Chem.MolFromSmiles('CS(=O)(=O)c1ccc2nc(O)c(c(O)c2c1)c3ccccc3')]}, index=['CHEMBL209576'])
+    df_frags = pd.DataFrame({'smiles': ['c1ccc2ncccc2c1', 'c1ccccc1', 'Oc1ccccn1', 'c1ccncc1']}, index=['2', '32', '320', '328'])
+    df_frags['mol'] = df_frags['smiles'].map(Chem.MolFromSmiles)
+    return (df_mols, df_frags)
 
 
 @pytest.fixture
-def df_frags_chembl_1():
-    """Four fragments found in df_chembl_1."""
-    df_frags = pd.DataFrame({'smiles': ['c1ccc2ncccc2c1', 'c1ccccc1', 'Oc1ccccn1', 'c1ccncc1']}, index=['2', '32', '320', '328'])
+def df_case_chembl_2():
+    """A molecule with wrong aidxfs in the final output."""
+    df_mols = pd.DataFrame({'mol': [Chem.MolFromSmiles('COC1=CC=C2CC3C4C[C@]5(CCCCC6=CC=CC=C6)CO[C@@H]5C5OC1=C2C45CCN3C')]}, index=['CHEMBL10006'])
+    df_frags = pd.DataFrame({'smiles': ['C1OC2CCCCC12', 'C1OC2=C3C(CC4CC13CCN4)=CC=C2']}, index=['678', '1141'])
     df_frags['mol'] = df_frags['smiles'].map(Chem.MolFromSmiles)
-    return df_frags
+    return (df_mols, df_frags)
 
 
 @pytest.fixture
@@ -302,10 +306,10 @@ def test_fcc_connection_false_positive_cutoff(fcc, fm, df_mol_connection_false_p
     assert result['category'] == 'connection' and result['type'] == 'false_positive' and result['subtype'] == 'cutoff' and result['abbrev'] == 'cfc'
 
 
-def test_chembl_1(fcc, fm, df_mol_chembl_1, df_frags_chembl_1):
+def test_case_chembl_1(fcc, fm, df_case_chembl_1):
     """Test to see how ffo and ffs combinations are deal with."""
-    df_aidxf = fm.run(df_mol_chembl_1, df_frags_chembl_1)
-    df_fcc = fcc.classify_fragment_combinations(df_mol_chembl_1, df_aidxf)
+    df_aidxf = fm.run(df_case_chembl_1[0], df_case_chembl_1[1])
+    df_fcc = fcc.classify_fragment_combinations(df_case_chembl_1[0], df_aidxf)
     logging.debug(f"\nRaw results for chembl_1:\n{df_fcc}\n")
     assert list(df_fcc['abbrev'].values) == ['ffs', 'cmo', 'ffo', 'ffs', 'cmo',
                                              'fed', 'fed', 'cmo', 'cmo', 'ffs']
@@ -315,3 +319,18 @@ def test_chembl_1(fcc, fm, df_mol_chembl_1, df_frags_chembl_1):
     df_map = fcc.map_frags(df_fcc)
     logging.debug(f"\nFragment map for chembl_1:\n{df_map}\n")
     assert list(df_map['map_str'] == ["2:0[cmo]32:1", "32:1[cmo]320:3"])
+
+
+def test_case_chembl_2(fcc, fm, df_case_chembl_2):
+    """Test to see if aidxfs are processed correctly."""
+    df_aidxf = fm.run(df_case_chembl_2[0], df_case_chembl_2[1])
+    logging.debug(f"\nSubstructure hits for chembl_2:\n{df_aidxf}\n")
+    df_fcc = fcc.classify_fragment_combinations(df_case_chembl_2[0], df_aidxf)
+    logging.debug(f"\nRaw results for chembl_2:\n{df_fcc}\n")
+    df_fcc = fcc.clean(df_fcc)
+    logging.debug(f"\nClean results for chembl_1:\n{df_fcc}\n")
+    assert list(df_fcc['abbrev'].values) == ['fbr']
+    df_map = fcc.map_frags(df_fcc)
+    logging.debug(f"\nFragment map for chembl_1:\n{df_map}\n")
+    assert list(df_map['map_str'] == ["678:1[fbr]1141:0"])
+    logging.debug(df_map.iloc[0]['aidxfs'])
