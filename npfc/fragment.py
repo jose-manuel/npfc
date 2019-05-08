@@ -536,6 +536,7 @@ class CombinationClassifier:
                 # filter results by min/max number of fragments
                 if nfrags < min_frags or nfrags > max_frags:
                     logging.debug(f"{gid}: discarding one fragment map because of unsuitable number of fragments ({nfrags})")
+                    continue
                 # combine aidxfs from all fragments
                 aidxfs = list(df_fcc_clean['aidxf1'].values) + list(df_fcc_clean['aidxf2'].values)
                 # organize aidxfs
