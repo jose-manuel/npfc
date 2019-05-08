@@ -432,34 +432,36 @@ class CombinationClassifier:
 
         # drop cutoff combinations
         logging.debug(f"Removing cutoff connections from fragment combinations")
+        num_fcc_ini = len(df_fcc.index)
         df_fcc = df_fcc[df_fcc['abbrev'] != 'cfc']
+        logging.debug(f"Removed {len(df_fcc.index)}/{num_fcc_ini} fragment combinations")
 
         # drop fragments combinations paired with a substructure
+        logging.debug(f"Removing substructures from fragment combinations")
         df_substructures = df_fcc[df_fcc['abbrev'] == 'ffs']  # all the substructures in the whole dataframe
         logging.debug(f"Number of substructures found in df_fcc: {len(df_substructures.index)}/{len(df_fcc.index)}")
-        logging.debug(f"Substructure combinations:\n{df_substructures}\n")
+        logging.debug(f"Substructure combinations:\n\n{df_substructures[['idm', 'fid1', 'fid2', 'abbrev']]}\n")
+        logging.debug(f"Determining what fragments should be removed:")
         if len(df_substructures) > 0:
-            logging.debug(f"Removing substructures from fragment combinations")
-            fid_to_remove = []
+            fid_to_remove = set()
             for gid, g in df_fcc[df_fcc['idm'].isin(df_substructures['idm'])].groupby('idm'):  # iterate only on the groups with at least one substructure
                 for rowid, row in g[g['abbrev'] == 'ffs'].iterrows():
                     if len(row['aidxf1']) > len(row['aidxf2']):
-                        fid_to_remove.append(row['fid2'])
+                        fid_to_remove.add(row['fid2'])
                     else:
-                        fid_to_remove.append(row['fid1'])
-                    logging.debug(f"{gid}: {rowid} => {row['fid1']} - {row['fid2']} ==> to_remove={fid_to_remove}")
+                        fid_to_remove.add(row['fid1'])
+                    logging.debug(f"{gid}: {row['fid1']} - {row['fid2']} ==> to_remove={fid_to_remove}")
             # filter the unwanted fragment combinations
-            logging.debug(f"Number of fragment combinations to remove: {len(fid_to_remove)}")
+            fid_to_remove = list(fid_to_remove)
+            logging.debug(f"Number of fragments to remove: {len(fid_to_remove)}")
             nb_fcc_ini = len(df_fcc.index)
             df_fcc = df_fcc[~df_fcc['fid1'].isin(fid_to_remove)]
             df_fcc = df_fcc[~df_fcc['fid2'].isin(fid_to_remove)]
-            logging.debug(f"Number of fragment combinations to remove: {fid_to_remove}")
             logging.debug(f"Number of fragment combinations remaining: {len(df_fcc)}/{nb_fcc_ini}")
 
         if len(df_fcc.index) == 0:
-            logging.debug("No fragment remaining for mapping!")
+            logging.warning("No fragment remaining for mapping!")
             return None
-        logging.debug(f"Remaining number of fragment combinations: {len(df_fcc.index)}")
 
         return df_fcc
 
@@ -512,10 +514,15 @@ class CombinationClassifier:
                 dfs_fcc_clean = []
                 for alt in alt_combinations:
                     df_alt = g[(g['fid1'].isin(alt)) | (g['fid2'].isin(alt))]
-                    dfs_fcc_clean.append(df_alt)
+                    to_add = True
+                    # check if this fcc is already recorded, if so do not record it again
+                    for df_fcc_clean in dfs_fcc_clean:
+                        if df_alt.equals(df_fcc_clean):
+                            to_add = False
+                    if to_add:
+                        dfs_fcc_clean.append(df_alt)
             else:
                 dfs_fcc_clean = [g]
-
             # fragment map string representation
             for i, df_fcc_clean in enumerate(dfs_fcc_clean):
                 # string representation of the fragment combinations of this map
@@ -527,12 +534,8 @@ class CombinationClassifier:
                 frags_u = list(set([x.split(":")[0] for x in frags]))
                 nfrags_u = len(frags_u)
                 # filter results by min/max number of fragments
-                if nfrags < min_frags:
-                    logging.debug(f"Too few fragment occurrences, discarding graph of n={nfrags} for molecule: '{gid}'")
-                    continue
-                elif nfrags > max_frags:
-                    logging.debug(f"Too many fragment occurrences, discarding graph of n={nfrags} for molecule: '{gid}'")
-                    continue
+                if nfrags < min_frags or nfrags > max_frags:
+                    logging.debug(f"{gid}: discarding one fragment map because of unsuitable number of fragments ({nfrags})")
                 # combine aidxfs from all fragments
                 aidxfs = list(df_fcc_clean['aidxf1'].values) + list(df_fcc_clean['aidxf2'].values)
                 # organize aidxfs
