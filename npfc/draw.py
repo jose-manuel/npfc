@@ -20,7 +20,7 @@ from rdkit.Chem import Atom
 from rdkit.Chem import Bond
 from rdkit.Chem import Draw
 # docs
-from PIL import Image
+from PIL.Image import Image
 from typing import Union
 from typing import Set
 from typing import List
@@ -54,6 +54,11 @@ def blend_color(color1: Tuple[int], color2: Tuple[int], alpha: float = 0.5) -> T
     val_mixed = sqrt( (1 - alpha) * val1**2 + alpha * color2**2 )
 
     with val1: color channel in color1; val2: corresponding color channel in color2; alpha: transparency factor
+
+    :param color1: the first color to blend
+    :param color2: the second color to blend
+    :param alpha: the blending factor, 0.5 means as much as color1 than color2
+
     """
     return tuple((_blend_color_value(x1, x2, alpha) for x1, x2 in zip(color1, color2)))
 
@@ -63,7 +68,7 @@ def get_bidxs(mol: Mol, aidxs: Set[int]) -> Set[int]:
     found between atoms in aidxs.
 
     :param mol: the molecule to highlight
-    :aidxs: a set with the atom indices of the fragment to highlight
+    :param aidxs: a set with the atom indices of the fragment to highlight
     :return: a set with the corresponding bond indices
     """
     bidxs = []
@@ -84,7 +89,7 @@ def get_bidx_all(mol: Mol, aidxs: Tuple[int]) -> Set[int]:
     connected to a least one specified atom.
 
     :param mol: the molecule to highlight
-    :aidxs: a set with the atom indices of the fragment to highlight
+    :param aidxs: a set with the atom indices of the fragment to highlight
     :return: a set with the corresponding bond indices
     """
     bidx = []
@@ -103,7 +108,7 @@ def set_atom_or_bond_color(atom_or_bond: Union[Atom, Bond], color: Tuple[float])
 
     .. note:: Due to the color palette I am using, I could only get a "olive green" when blending red and green. To get a proper golden yellow, I hard-coded the color for this particular blending.
 
-    :param atombond: either an atom or a bond
+    :param atom_or_bond: either an atom or a bond
     :param color: a tuple of RGB values
     """
     if atom_or_bond.HasProp("_num_colors"):
