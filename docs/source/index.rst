@@ -23,6 +23,7 @@ available. Please have a look and enjoy, any feedback is welcome!
    standardize
    fragment
    utils
+   draw
 
 Indices and tables
 ==================

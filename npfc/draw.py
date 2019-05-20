@@ -20,6 +20,7 @@ from rdkit.Chem import Atom
 from rdkit.Chem import Bond
 from rdkit.Chem import Draw
 # docs
+from PIL import Image
 from typing import Union
 from typing import Set
 from typing import List
@@ -196,21 +197,25 @@ def draw_mol_frags(mol: Mol,
                    colors: List[Tuple[float]],
                    debug: bool = False,
                    size: Tuple[int] = (300, 300),
-                   ):
+                   ) -> Image:
     """Draw a PNG image of a molecule with highlighted fragments using the RDKit Drawing functionalities.
-    One color is attributed to each fragment.
-    In case there are more fragments than colors, a same color can be used for several fragments.
+    Fragments are specified by molecule atom indices. These are indicated in the l_aidxs parameter, which is
+    a list of sets, each set representing a fragment.
+    A debug mode can be activated for displaying atom indices on the image, in addition to the highlighting.
+    If no fragment indices are specified, no highlighting is done.
 
-    When 2 fragments overlap, respective colors are blended.
-    If they are the same, then a 10% darker shade is used instead.
+    The following rules are applied for consistant highilighting:
 
-    A debug mode can be activated for displaying atom indices on the image.
+        - only one color is attributed per fragment
+        - in case there are more fragments than colors, a same color can be used for several fragments
+        - when 2 fragments of different colors overlap, their colors are blended on overlapping atoms/bonds
+        - when 2 fragments of same colors overlap, a 10% darker shade is used on overlapping atoms/bonds, so these can be distinguished
 
     :param mol: the molecule to draw
     :param l_aidxs: a list of sets of atom indices. Each set corresponds to a fragment to highlight.
     :param debug: print atom indices on the image too
     :param size: the image size
-
+    :return: a PNG image of the molecule with highlighted fragments
     """
     padding = 30
     if debug:

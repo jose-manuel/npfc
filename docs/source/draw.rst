@@ -1,0 +1,2 @@
+.. automodule:: npfc.draw
+    :members:
