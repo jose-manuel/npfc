@@ -13,7 +13,7 @@ import pytest
 from npfc import fragment
 import logging
 # debug
-logging.basicConfig(level=logging.DEBUG)  # uncomment to debug
+# logging.basicConfig(level=logging.DEBUG)  # uncomment to debug
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FIXTURES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #

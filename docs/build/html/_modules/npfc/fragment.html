@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.fragment &mdash; npfc 0.1.2 documentation</title>
+  <title>npfc.fragment &mdash; npfc 0.1.2-1-gc45437c documentation</title>
   
 
   
@@ -56,7 +56,7 @@
             
             
               <div class="version">
-                0.1.2
+                0.1.2-1-gc45437c
               </div>
             
           
@@ -689,6 +689,7 @@
                 <span class="c1"># filter results by min/max number of fragments</span>
                 <span class="k">if</span> <span class="n">nfrags</span> <span class="o">&lt;</span> <span class="n">min_frags</span> <span class="ow">or</span> <span class="n">nfrags</span> <span class="o">&gt;</span> <span class="n">max_frags</span><span class="p">:</span>
                     <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;</span><span class="si">{gid}</span><span class="s2">: discarding one fragment map because of unsuitable number of fragments (</span><span class="si">{nfrags}</span><span class="s2">)&quot;</span><span class="p">)</span>
+                    <span class="k">continue</span>
                 <span class="c1"># combine aidxfs from all fragments</span>
                 <span class="n">aidxfs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">df_fcc_clean</span><span class="p">[</span><span class="s1">&#39;aidxf1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">df_fcc_clean</span><span class="p">[</span><span class="s1">&#39;aidxf2&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
                 <span class="c1"># organize aidxfs</span>
