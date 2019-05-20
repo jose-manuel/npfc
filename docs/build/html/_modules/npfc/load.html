@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.load &mdash; npfc 0.1.3-1-gf883c84 documentation</title>
+  <title>npfc.load &mdash; npfc 0.1.3-2-g294d588 documentation</title>
   
 
   
@@ -56,7 +56,7 @@
             
             
               <div class="version">
-                0.1.3-1-gf883c84
+                0.1.3-2-g294d588
               </div>
             
           
@@ -202,10 +202,14 @@
         <span class="k">return</span> <span class="kc">None</span></div>
 
 
-<div class="viewcode-block" id="from_pgsql"><a class="viewcode-back" href="../../load.html#npfc.load.from_pgsql">[docs]</a><span class="k">def</span> <span class="nf">from_pgsql</span><span class="p">(</span><span class="n">dbname</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">user</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-               <span class="n">psql</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">src_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-               <span class="n">src_mol</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">mol_format</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-               <span class="n">col_mol</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;mol&#39;</span><span class="p">,</span> <span class="n">col_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;idm&#39;</span><span class="p">,</span>
+<div class="viewcode-block" id="from_pgsql"><a class="viewcode-back" href="../../load.html#npfc.load.from_pgsql">[docs]</a><span class="k">def</span> <span class="nf">from_pgsql</span><span class="p">(</span><span class="n">dbname</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+               <span class="n">user</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+               <span class="n">psql</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+               <span class="n">src_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+               <span class="n">src_mol</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+               <span class="n">mol_format</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+               <span class="n">col_mol</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;mol&#39;</span><span class="p">,</span>
+               <span class="n">col_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;idm&#39;</span><span class="p">,</span>
                <span class="n">keep_db_cols</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Load molecules from a PGSQL query.</span>
 <span class="sd">    The col_mol will is parsed by RDKit depending on the mol_format argument.</span>

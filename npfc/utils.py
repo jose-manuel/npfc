@@ -156,9 +156,7 @@ def check_arg_output_dir(output_dir: str) -> bool:
 def check_arg_config_file(config_file: str) -> bool:
     """Return True of the config_file exists, raise an error otherwise.
 
-
     :param input_file: the input file
-    :param input_format: the expected format of the input file
     """
     if config_file is not None:
         path_config_file = Path(config_file)

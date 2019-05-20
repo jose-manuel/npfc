@@ -48,10 +48,14 @@ def decode_mol_base64(string: str) -> Mol:
         return None
 
 
-def from_pgsql(dbname: str, user: str,
-               psql: str, src_id: str,
-               src_mol: str, mol_format: str = None,
-               col_mol: str = 'mol', col_id: str = 'idm',
+def from_pgsql(dbname: str,
+               user: str,
+               psql: str,
+               src_id: str,
+               src_mol: str,
+               mol_format: str = None,
+               col_mol: str = 'mol',
+               col_id: str = 'idm',
                keep_db_cols: bool = False) -> pd.DataFrame:
     """Load molecules from a PGSQL query.
     The col_mol will is parsed by RDKit depending on the mol_format argument.

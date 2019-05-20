@@ -48,17 +48,19 @@ def _blend_color_value(val1: int, val2: int, alpha: float) -> Tuple[int]:
 
 def blend_color(color1: Tuple[int], color2: Tuple[int], alpha: float = 0.5) -> Tuple[int]:
     """Blend two colors after Downgoat'reply at:
+
     https://stackoverflow.com/questions/726549/algorithm-for-additive-color-mixing-for-rgb-values
 
-    Formula for a given color channel (i.e. R in RGB, val1 for color1, val2 for color2) is:
-    val_mixed = sqrt( (1 - alpha) * val1**2 + alpha * color2**2 )
+    The formala below is applied to each color channel (R, G, and B):
+
+    .. math::
+        blended = \\sqrt{(1 - alpha) * val1^2 + alpha * val2^2}
 
     with val1: color channel in color1; val2: corresponding color channel in color2; alpha: transparency factor
 
     :param color1: the first color to blend
     :param color2: the second color to blend
     :param alpha: the blending factor, 0.5 means as much as color1 than color2
-
     """
     return tuple((_blend_color_value(x1, x2, alpha) for x1, x2 in zip(color1, color2)))
 
@@ -199,7 +201,7 @@ def scale_rgb_colormap(colormap: Dict) -> Dict:
 
 def draw_mol_frags(mol: Mol,
                    l_aidxs: List[Set[int]],
-                   colors: List[Tuple[float]],
+                   colors: List[Tuple[float]] = colors,
                    debug: bool = False,
                    size: Tuple[int] = (300, 300),
                    ) -> Image:
