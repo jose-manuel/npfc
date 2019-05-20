@@ -49,6 +49,7 @@ class Matcher:
         d = {}
         d['idm'] = []
         d['idf'] = []
+        d['idxf'] = []
         d['aidxf'] = []
         d['mol_perc'] = []  # proportion of the molecule the substructure represents
         # begin
@@ -56,11 +57,13 @@ class Matcher:
             hac = rowm[col_mol_mols].GetNumAtoms()
             for idf, rowq in df_frags.iterrows():
                 matches = rowm[col_mol_mols].GetSubstructMatches(rowq[col_mol_frags])
-                for m in matches:
+                for i, m in enumerate(matches):
                     d['idm'].append(idm)
                     d['idf'].append(idf)
                     d['aidxf'].append(set(m))  # set for intersections later
+                    d['idxf'].append(str(i))
                     d['mol_perc'].append(round(len(m)/hac, 2) * 100)
+
         return DataFrame(d)
 
 
@@ -381,7 +384,7 @@ class CombinationClassifier:
             df_mols.index = df_mols['idm']
         # labelling idxf
         df_aidxf['aidxf_str'] = df_aidxf['aidxf'].map(str)  # sets are an unhashable type...
-        df_aidxf['idxf'] = df_aidxf.groupby(['idm', 'idf', 'aidxf_str']).grouper.group_info[0]  # add a seq number that get increased for every group
+
         # logging.info(f"\n\ndf_aidxf['idxf']:\n {df_aidxf['idxf']}")  # !!! think about what I really want here. For now I just know I don't want this behavior
 
         # classify fragment combinations
