@@ -199,40 +199,10 @@ def scale_rgb_colormap(colormap: Dict) -> Dict:
     return {k: scale_rgb(colormap[k]) for k in colormap.keys()}
 
 
-def draw_mol_frags(mol: Mol,
-                   l_aidxs: List[Set[int]],
-                   colors: List[Tuple[float]] = colors,
-                   debug: bool = False,
-                   size: Tuple[int] = (300, 300),
-                   ) -> Image:
-    """Draw a PNG image of a molecule with highlighted fragments using the RDKit Drawing functionalities.
-    Fragments are specified by molecule atom indices. These are indicated in the l_aidxs parameter, which is
-    a list of sets, each set representing a fragment.
-    A debug mode can be activated for displaying atom indices on the image, in addition to the highlighting.
-    If no fragment indices are specified, no highlighting is done.
-
-    The following rules are applied for consistant highilighting:
-
-        - only one color is attributed per fragment
-        - in case there are more fragments than colors, a same color can be used for several fragments
-        - when 2 fragments of different colors overlap, their colors are blended on overlapping atoms/bonds
-        - when 2 fragments of same colors overlap, a 10% darker shade is used on overlapping atoms/bonds, so these can be distinguished
-
-    :param mol: the molecule to draw
-    :param l_aidxs: a list of sets of atom indices. Each set corresponds to a fragment to highlight.
-    :param debug: print atom indices on the image too
-    :param size: the image size
-    :return: a PNG image of the molecule with highlighted fragments
-    """
-    padding = 30
-    if debug:
-        mol = Mol(mol)
-        [mol.GetAtomWithIdx(idx).SetProp('molAtomMapNumber', str(mol.GetAtomWithIdx(idx).GetIdx())) for idx in range(mol.GetNumAtoms())]
-
+def _compute_colormap_a_and_b(mol, l_aidxs, colors):
     colors_k = list(colors.keys())
     colormap_a = {}
     colormap_b = {}
-
     for i, aidxs in enumerate(l_aidxs):
         # pick a color
         color = colors[colors_k[i % len(colors_k)]]
@@ -248,7 +218,8 @@ def draw_mol_frags(mol: Mol,
         colormap_b.update(colormap_b_curr)
         # display detailed results in case of debugging
         if logging.getLogger().level == logging.DEBUG:
-            logging.debug("Highlighting the molecule:")
+            padding = 30
+            logging.debug(f"Highlighting the molecule #{i}:")
             print("=" * padding + "\n" + "highlightAtomLists".center(padding) + "\n" + "=" * padding)
             print([a for a in list(colormap_a.keys())])
             print("=" * padding + "\n" + "highlightAtomColors".center(padding) + "\n" + "=" * padding)
@@ -256,10 +227,63 @@ def draw_mol_frags(mol: Mol,
             print("=" * padding + "\n" + "highlightBondColors".center(padding) + "\n" + "=" * padding)
             [print(f"{k}: {v}") for k, v in colormap_b.items()]
 
-    return Draw.MolsToGridImage([mol],
-                                molsPerRow=1,
+    return (colormap_a, colormap_b)
+
+
+def draw_mols_frags(mols: List[Mol],
+                    ll_aidxs: List[List[Set[int]]],
+                    colors: List[Tuple[float]] = colors,
+                    debug: bool = False,
+                    size: Tuple[int] = (300, 300),
+                    max_mols_per_row: int = 5,
+                    ) -> Image:
+    """Draw a PNG grid image of molecules with highlighted fragments using the RDKit Drawing functionalities.
+    For each molecule, several fragments can be highlighted. In case a same atom or bond is highlighted several times,
+    an attempt is made to blend colors.
+    A debug mode can be activated for displaying atom indices on the image, in addition to the highlighting.
+    If no fragment indices are specified, no highlighting is done.
+
+    The following rules are applied for consistant highilighting:
+
+        - only one color is attributed per fragment
+        - in case there are more fragments than colors, a same color can be used for several fragments
+        - when 2 fragments of different colors overlap, their colors are blended on overlapping atoms/bonds
+        - when 2 fragments of same colors overlap, a 10% darker shade is used on overlapping atoms/bonds, so these can be distinguished
+
+    .. note:: The parameter name ll_aidxs might seem confusing. Let's say we start with a fragment of 3 atoms, one atom index (aidx) might be for instance 0, 1 or 2. The whole fragment is thus represented with aidxs={0, 1, 2}. The list of all fragments for a molecule is then l_aidxs=[{0, 1, 2}]. And if there are several molecules, then we need several lists of l_aidxs as well, hence ll_aidxs.
+
+    :param mols: the molecules to draw
+    :param ll_aidxs: a list of list of sets of atom indices. Each set corresponds to a fragment to highlight.
+    :param debug: display atom indices on the image too
+    :param size: the image size
+    :return: a PNG image of the grid of molecules with highlighted fragments
+    """
+    # abort if not logical
+    if len(mols) != len(ll_aidxs):
+        raise ValueError(f"Error! The number of mols is different than the number of fragment lists ({len(mols)} != {len(ll_aidxs)})")
+    # initialize
+    atom_lists = []
+    colormaps_a = []
+    colormaps_b = []
+    # iterate over each molecule and use corresponding data
+    for i, mol in enumerate(mols):
+        l_aidxs = ll_aidxs[i]
+        # debug
+        if debug:
+            mol = Mol(mol)
+            [mol.GetAtomWithIdx(idx).SetProp('molAtomMapNumber', str(mol.GetAtomWithIdx(idx).GetIdx())) for idx in range(mol.GetNumAtoms())]
+        # compute colormap a and b for current molecule
+        colormap_a, colormap_b = _compute_colormap_a_and_b(mol, l_aidxs, colors)
+        # record data for grid
+        atom_lists.append(list(colormap_a.keys()))
+        colormaps_a.append(colormap_a)
+        colormaps_b.append(colormap_b)
+
+    # compute grid
+    return Draw.MolsToGridImage(mols,
+                                molsPerRow=max_mols_per_row,
                                 subImgSize=size,
-                                highlightAtomLists=[list(colormap_a.keys())],
-                                highlightAtomColors=[colormap_a],
-                                highlightBondColors=[colormap_b],
+                                highlightAtomLists=atom_lists,
+                                highlightAtomColors=colormaps_a,
+                                highlightBondColors=colormaps_b,
                                 )
