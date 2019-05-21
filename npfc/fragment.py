@@ -16,6 +16,8 @@ from pandas import DataFrame
 # chemoinformatics
 from rdkit.Chem import Mol
 from rdkit.Chem import AllChem
+# graph
+import networkx as nx
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ CLASSES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
@@ -442,10 +444,11 @@ class CombinationClassifier:
         # drop fragments combinations paired with a substructure
         logging.debug(f"Removing substructures from fragment combinations")
         df_substructures = df_fcc[df_fcc['abbrev'] == 'ffs']  # all the substructures in the whole dataframe
-        logging.debug(f"Number of substructures found in df_fcc: {len(df_substructures.index)}/{len(df_fcc.index)}")
-        logging.debug(f"Substructure combinations:\n\n{df_substructures[['idm', 'fid1', 'fid2', 'abbrev']]}\n")
-        logging.debug(f"Determining what fragments should be removed:")
-        if len(df_substructures) > 0:
+        num_substructures = len(df_substructures.index)
+        logging.debug(f"Number of substructures found in df_fcc: {num_substructures}/{len(df_fcc.index)}")
+        if num_substructures > 0:
+            logging.debug(f"Substructure combinations:\n\n{df_substructures[['idm', 'fid1', 'fid2', 'abbrev']]}\n")
+            logging.debug(f"Determining what fragments should be removed:")
             fid_to_remove = set()
             for gid, g in df_fcc[df_fcc['idm'].isin(df_substructures['idm'])].groupby('idm'):  # iterate only on the groups with at least one substructure
                 for rowid, row in g[g['abbrev'] == 'ffs'].iterrows():
@@ -462,15 +465,14 @@ class CombinationClassifier:
             df_fcc = df_fcc[~df_fcc['fid2'].isin(fid_to_remove)]
             logging.debug(f"Number of fragment combinations remaining: {len(df_fcc)}/{nb_fcc_ini}")
 
+        # this means the whole molecule was filled with substructures, should not happen very often!
         if len(df_fcc.index) == 0:
             logging.warning("No fragment remaining for mapping!")
-            return None
 
         return df_fcc
 
     def map_frags(self, df_fcc: DataFrame, min_frags: int = 2, max_frags: int = 5, max_overlaps: int = 5) -> DataFrame:
-        """
-        This method process a fragment combinations computed with classify_fragment_combinations
+        """This method process a fragment combinations computed with classify_fragment_combinations
         and return a new DataFrame with a fragment map for each molecule.
 
         This fragment map is a single line string representation of the fragment connectivity
@@ -526,8 +528,23 @@ class CombinationClassifier:
                         dfs_fcc_clean.append(df_alt)
             else:
                 dfs_fcc_clean = [g]
-            # fragment map string representation
+
+            # compute fragment connectivity graph objects so we can split up disconnected subgraphs
+            dfs_fcc_ready = []
             for i, df_fcc_clean in enumerate(dfs_fcc_clean):
+                fc_graph = nx.from_pandas_edgelist(df_fcc_clean, "fid1", "fid2", "abbrev")
+                fc_subgraphs = list(nx.connected_component_subgraphs(fc_graph))
+                num_fc_subgraphs = len(fc_subgraphs)
+                if num_fc_subgraphs > 1:
+                    logging.debug(f"Fragment Connectivity" + f"{i}".rjust(5) + f": found {num_fc_subgraphs} fc_subgraphs, so splitting up")
+                    for fc_subgraph in fc_subgraphs:
+                        nodes = list(fc_subgraph.nodes())
+                        dfs_fcc_ready.append(df_fcc_clean[((df_fcc_clean['fid1'].isin(nodes)) | (df_fcc_clean['fid2'].isin(nodes)))])
+                else:
+                    dfs_fcc_ready.append(df_fcc_clean)
+
+            # compute the entries of the df_map
+            for i, df_fcc_clean in enumerate(dfs_fcc_ready):
                 # string representation of the fragment combinations of this map
                 frag_map_str = '-'.join(list(df_fcc_clean['fid1'].map(str) + "[" + df_fcc_clean['abbrev'] + "]" + df_fcc_clean['fid2'].map(str)))
                 # frags: all occurrences of all fragments (f1:0, f1:1, f2:0, etc.)
