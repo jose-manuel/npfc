@@ -11,7 +11,10 @@ This modules contains two classes:
 import logging
 import itertools
 import json
-# data science
+# data handling
+from collections import OrderedDict
+import base64
+import pickle
 from pandas import DataFrame
 # chemoinformatics
 from rdkit.Chem import Mol
@@ -28,8 +31,12 @@ class Matcher:
     def __init__(self):
         pass
 
-    def run(self, df_mols: DataFrame, df_frags: DataFrame,
-            col_mol_mols: str = 'mol', col_mol_frags: str = 'mol') -> DataFrame:
+    def run(self,
+            df_mols: DataFrame,
+            df_frags: DataFrame,
+            col_mol_mols: str = 'mol',
+            col_mol_frags: str = 'mol',
+            ) -> DataFrame:
         """Create a DataFrame recording every substructure (fragment) match in the
         input molecule DataFrame.
 
@@ -54,6 +61,7 @@ class Matcher:
         d['idxf'] = []
         d['aidxf'] = []
         d['mol_perc'] = []  # proportion of the molecule the substructure represents
+
         # begin
         for idm, rowm in df_mols.iterrows():
             hac = rowm[col_mol_mols].GetNumAtoms()
@@ -439,35 +447,40 @@ class CombinationClassifier:
         logging.debug(f"Removing cutoff connections from fragment combinations")
         num_fcc_ini = len(df_fcc.index)
         df_fcc = df_fcc[df_fcc['abbrev'] != 'cfc']
-        logging.debug(f"Removed {len(df_fcc.index)}/{num_fcc_ini} fragment combinations")
+        logging.debug(f"Number of remaining fragment combinations: {len(df_fcc.index)}/{num_fcc_ini}")
 
         # drop fragments combinations paired with a substructure
         logging.debug(f"Removing substructures from fragment combinations")
         df_substructures = df_fcc[df_fcc['abbrev'] == 'ffs']  # all the substructures in the whole dataframe
         num_substructures = len(df_substructures.index)
         logging.debug(f"Number of substructures found in df_fcc: {num_substructures}/{len(df_fcc.index)}")
+        # in case of substructures to remove, iterate over all identified subtructures for each molecule,
+        # determine what fragments are part of others and discard all entries with them
         if num_substructures > 0:
             logging.debug(f"Substructure combinations:\n\n{df_substructures[['idm', 'fid1', 'fid2', 'abbrev']]}\n")
             logging.debug(f"Determining what fragments should be removed:")
-            fid_to_remove = set()
+            # intialize the iteration
+            rowids_to_remove = []  # the rowids of the df_fcc dataframe to remove
             for gid, g in df_fcc[df_fcc['idm'].isin(df_substructures['idm'])].groupby('idm'):  # iterate only on the groups with at least one substructure
+                fid_to_remove = set()   # fid of substructures identified for the current molecule
+                # for each molecule, look at what fids we should remove
                 for rowid, row in g[g['abbrev'] == 'ffs'].iterrows():
+                    # combination ifs ffs, so remove either fid1 or fid2 depending on hac
                     if len(row['aidxf1']) > len(row['aidxf2']):
                         fid_to_remove.add(row['fid2'])
                     else:
                         fid_to_remove.add(row['fid1'])
-                    logging.debug(f"{gid}: {row['fid1']} - {row['fid2']} ==> to_remove={fid_to_remove}")
+                    # display some debugging
+                    logging.debug(f"{gid}: {row['fid1']} - {row['fid2']} ==> fid_to_remove={fid_to_remove}")
+                    # register df_fcc rowids that will be removed for this substructure
+                    rowids_to_remove += list(g[g["fid1"].isin(list(fid_to_remove))].index) + list(g[g["fid2"].isin(list(fid_to_remove))].index)
+            # remove dupl in rowids_to_remove
+            rowids_to_remove = list(set(rowids_to_remove))
             # filter the unwanted fragment combinations
-            fid_to_remove = list(fid_to_remove)
-            logging.debug(f"Number of fragments to remove: {len(fid_to_remove)}")
+            logging.debug(f"Number of fragments combinations to remove: {len(rowids_to_remove)}")
             nb_fcc_ini = len(df_fcc.index)
-            df_fcc = df_fcc[~df_fcc['fid1'].isin(fid_to_remove)]
-            df_fcc = df_fcc[~df_fcc['fid2'].isin(fid_to_remove)]
+            df_fcc = df_fcc.loc[~df_fcc.index.isin(rowids_to_remove)]
             logging.debug(f"Number of fragment combinations remaining: {len(df_fcc)}/{nb_fcc_ini}")
-
-        # this means the whole molecule was filled with substructures, should not happen very often!
-        if len(df_fcc.index) == 0:
-            logging.warning("No fragment remaining for mapping!")
 
         return df_fcc
 
@@ -495,12 +508,13 @@ class CombinationClassifier:
             # entries with an overlap
             overlaps = g[g['abbrev'] == 'ffo']
             noverlaps = len(overlaps.index)
-            logging.debug(f"Number of overlaps found for molecule {gid}: {noverlaps}")
-            if noverlaps > max_overlaps:
-                logging.debug(f"Too many overlap combinations ({noverlaps}), discarding molecule '{gid}'")
-                continue
-            if len(overlaps.index) > 0:  # the code below could certainly be improved, but this case should not happen too often
-                # remove these from the current group
+            if noverlaps > 0:  # the code below could certainly be improved, but this case should not happen too often
+                logging.debug(f"Number of overlaps found for molecule {gid}: {noverlaps}")
+                # filter out molecules with too many overlaps
+                if noverlaps > max_overlaps:
+                    logging.debug(f"Too many overlap combinations ({noverlaps}), discarding molecule '{gid}'")
+                    continue
+                # remove overlaps from the current group
                 g = g[g['abbrev'] != 'ffo']
                 # get fragment ids of the invariant parts of alternative paths
                 common = g[(~g['fid1'].isin(overlaps['fid1'])) & (~g['fid2'].isin(overlaps['fid2']))]
@@ -539,8 +553,11 @@ class CombinationClassifier:
                     logging.debug(f"Fragment Connectivity" + f"{i}".rjust(5) + f": found {num_fc_subgraphs} fc_subgraphs, so splitting up")
                     for fc_subgraph in fc_subgraphs:
                         nodes = list(fc_subgraph.nodes())
-                        dfs_fcc_ready.append(df_fcc_clean[((df_fcc_clean['fid1'].isin(nodes)) | (df_fcc_clean['fid2'].isin(nodes)))])
+                        df_fcc_subgraph = df_fcc_clean[((df_fcc_clean['fid1'].isin(nodes)) | (df_fcc_clean['fid2'].isin(nodes)))]
+                        # df_fcc_subgraph['fc_graph'] = base64.b64encode(pickle.dumps(fc_subgraph))
+                        dfs_fcc_ready.append(df_fcc_subgraph)
                 else:
+
                     dfs_fcc_ready.append(df_fcc_clean)
 
             # compute the entries of the df_map
@@ -550,13 +567,14 @@ class CombinationClassifier:
                 # frags: all occurrences of all fragments (f1:0, f1:1, f2:0, etc.)
                 frags = list(set(list(df_fcc_clean['fid1'].map(str).values) + list(df_fcc_clean['fid2'].map(str).values)))
                 nfrags = len(frags)
-                # frags_u: count only different fragments (f1, f2, etc.)
-                frags_u = list(set([x.split(":")[0] for x in frags]))
-                nfrags_u = len(frags_u)
                 # filter results by min/max number of fragments
                 if nfrags < min_frags or nfrags > max_frags:
                     logging.debug(f"{gid}: discarding one fragment map because of unsuitable number of fragments ({nfrags})")
                     continue
+
+                # frags_u: count only different fragments (f1, f2, etc.)
+                frags_u = list(set([x.split(":")[0] for x in frags]))
+                nfrags_u = len(frags_u)
                 # combine aidxfs from all fragments
                 aidxfs = list(df_fcc_clean['aidxf1'].values) + list(df_fcc_clean['aidxf2'].values)
                 # organize aidxfs
@@ -568,7 +586,11 @@ class CombinationClassifier:
                 hac_frags = len(list(set([item for sublist in aidxfs.values() for item in sublist])))
                 perc_mol_cov_frags = round((hac_frags / hac_mol), 2) * 100
 
+                # attribute colors to each fragment
+
+
                 # avoid issues with pandas and complex data structures by dumping it as string
+                fc_graph_b64 = df_fcc
                 aidxfs = json.dumps(aidxfs)
                 comb = list(df_fcc_clean['abbrev'].values)
                 ncomb = len(comb)
