@@ -256,30 +256,27 @@ def draw_mols_frags(mols: List[Mol],
     :param ll_aidxs: a list of list of sets of atom indices. Each set corresponds to a fragment to highlight.
     :param debug: display atom indices on the image too
     :param size: the image size
+    :param max_mols_per_row:
     :return: a PNG image of the grid of molecules with highlighted fragments
     """
-    # abort if not logical
     if len(mols) != len(ll_aidxs):
         raise ValueError(f"Error! The number of mols is different than the number of fragment lists ({len(mols)} != {len(ll_aidxs)})")
-    # initialize
+
     atom_lists = []
     colormaps_a = []
     colormaps_b = []
-    # iterate over each molecule and use corresponding data
+
     for i, mol in enumerate(mols):
-        l_aidxs = ll_aidxs[i]
-        # debug
         if debug:
             mol = Mol(mol)
             [mol.GetAtomWithIdx(idx).SetProp('molAtomMapNumber', str(mol.GetAtomWithIdx(idx).GetIdx())) for idx in range(mol.GetNumAtoms())]
-        # compute colormap a and b for current molecule
+
+        l_aidxs = ll_aidxs[i]
         colormap_a, colormap_b = _compute_colormap_a_and_b(mol, l_aidxs, colors)
-        # record data for grid
         atom_lists.append(list(colormap_a.keys()))
         colormaps_a.append(colormap_a)
         colormaps_b.append(colormap_b)
 
-    # compute grid
     return Draw.MolsToGridImage(mols,
                                 molsPerRow=max_mols_per_row,
                                 subImgSize=size,

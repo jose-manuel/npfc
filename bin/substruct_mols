@@ -53,6 +53,10 @@ def main():
     parser.add_argument('--fmol', type=str, default='mol', help="Molecule column for csv or hdf files.")
     parser.add_argument('--fsep', type=str, default='|', help="Separator to use in case the input file is a csv.")
     parser.add_argument('output', type=str, default=None, help="Output file with substructures.")
+    parser.add_argument('--oencode', type=bool, default=True, help="Encode molecules and fragments in base64 strings (mandatory for csv files).")
+    parser.add_argument('--omol', type=str, default='mol', help="Molecule column for csv or hdf files.")
+    parser.add_argument('--ofrag', type=str, default='mol_frag', help="Molecule column for csv or hdf files.")
+    parser.add_argument('--osep', type=str, default='|', help="Separator to use in case the input file is a csv.")
     parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
     args = parser.parse_args()
 
@@ -77,6 +81,11 @@ def main():
     # output
     utils.check_arg_output_file(args.output)
     oformat, ocompression = utils.get_file_format(args.output)
+    if oformat == ".csv" and not args.oencode:
+        logging.warning(f"Output format is {oformat} but oencode is set to {args.oencode}, setting it to True")
+        oencode = True
+    else:
+        oencode = args.oencode
 
     # display infos
 
@@ -108,6 +117,10 @@ def main():
     logging.info("OUTPUT".ljust(pad) + f"{args.output}")
     logging.info("OFORMAT".ljust(pad) + f"{oformat}")
     logging.info("OCOMPRESSION".ljust(pad) + f"{ocompression}")
+    logging.info("OENCODE".ljust(pad) + f"{oencode}")
+    logging.info("OMOL".ljust(pad) + f"{args.omol}")
+    logging.info("OFRAG".ljust(pad) + f"{args.ofrag}")
+    logging.info("OSEP".ljust(pad) + f"{args.osep}")
     logging.info("LOG".ljust(pad) + f"{args.log}")
 
     # begin
