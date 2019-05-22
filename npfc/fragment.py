@@ -21,6 +21,8 @@ from rdkit.Chem import AllChem
 # graph
 import matplotlib.pyplot as plt  # required for creating a canvas for displaying graphs
 import networkx as nx
+# dev
+from npfc import save
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ CLASSES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
@@ -61,7 +63,8 @@ class Matcher:
         d['idxf'] = []
         d['aidxf'] = []
         d['mol_perc'] = []  # proportion of the molecule the substructure represents
-
+        d['mol'] = []  # encode the molecule here so we don't have to combine multiple files when trying to have a look at the results
+        d['mol_frag'] = []  # strucutre of the fragment
         # begin
         for idm, rowm in df_mols.iterrows():
             hac = rowm[col_mol_mols].GetNumAtoms()
@@ -73,6 +76,8 @@ class Matcher:
                     d['aidxf'].append(set(m))  # set for intersections later
                     d['idxf'].append(str(i))
                     d['mol_perc'].append(round(len(m)/hac, 2) * 100)
+                    d['mol'] = rowm[col_mol_mols]
+                    d['mol_frag'] = rowq[col_mol_frags]
 
         return DataFrame(d)
 

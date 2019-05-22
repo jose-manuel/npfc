@@ -156,6 +156,13 @@ def main():
     # save results
     logger.info(f"SAVING RESULTS")
     d4 = datetime.now()
+    # encode mols
+    logger.info(f"ENCODING MOLS")
+    df_aidxf['mol'] = df_aidxf['mol'].map(save.encode_mol)
+    # encode frags
+    logger.info(f"ENCODING FRAGS")
+    df_aidxf['mol_frag'] = df_aidxf['mol_frag'].map(save.encode_mol)
+    # write output
     outputs = save.save(df_aidxf, args.output, encode_mols=False)  # no molecules in this dataframe!
     logger.info(f"SAVED {outputs[0][1]} RECORDS AT {outputs[0][0]}")
 
