@@ -12,7 +12,6 @@ import logging
 import itertools
 import json
 # data handling
-from collections import OrderedDict
 import base64
 import pickle
 from pandas import DataFrame
@@ -20,6 +19,7 @@ from pandas import DataFrame
 from rdkit.Chem import Mol
 from rdkit.Chem import AllChem
 # graph
+import matplotlib.pyplot as plt  # required for creating a canvas for displaying graphs
 import networkx as nx
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ CLASSES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
@@ -491,6 +491,13 @@ class CombinationClassifier:
 
         return df_fcc
 
+    def _get_edge_info(self, graph):
+        d = {}
+        edges_raw = list(graph.edges(data=True))
+        for edge in edges_raw:
+            d[(edge[0], edge[1])] = list(edge[2].values())[0]
+        return d
+
     def map_frags(self, df_fcc: DataFrame, min_frags: int = 2, max_frags: int = 5, max_overlaps: int = 5) -> DataFrame:
         """This method process a fragment combinations computed with classify_fragment_combinations
         and return a new DataFrame with a fragment map for each molecule.
@@ -541,7 +548,8 @@ class CombinationClassifier:
                 for alt in alt_combinations:
                     df_alt = g[(g['fid1'].isin(alt)) | (g['fid2'].isin(alt))]
                     to_add = True
-                    # check if this fcc is already recorded, if so do not record it again
+                    # check if this fcc is already recorded, if so do not record it again,
+                    # this is useful in case of common parts being the only remaining parts of overlaps
                     for df_fcc_clean in dfs_fcc_clean:
                         if df_alt.equals(df_fcc_clean):
                             to_add = False
@@ -553,22 +561,24 @@ class CombinationClassifier:
             # compute fragment connectivity graph objects so we can split up disconnected subgraphs
             dfs_fcc_ready = []
             for i, df_fcc_clean in enumerate(dfs_fcc_clean):
-                fc_graph = nx.from_pandas_edgelist(df_fcc_clean, "fid1", "fid2", "abbrev")
+                # compute a graph with each fid as a node, one row means an edge between 2 fid
+                fc_graph = nx.from_pandas_edgelist(df_fcc_clean, "fid1", "fid2")
                 fc_subgraphs = list(nx.connected_component_subgraphs(fc_graph))
                 num_fc_subgraphs = len(fc_subgraphs)
+                # splitting up subgraphs
                 if num_fc_subgraphs > 1:
                     logging.debug(f"Fragment Connectivity" + f"{i}".rjust(5) + f": found {num_fc_subgraphs} fc_subgraphs, so splitting up")
+                    # for each subgraph, record corresponding rows in df only
                     for fc_subgraph in fc_subgraphs:
                         nodes = list(fc_subgraph.nodes())
-                        df_fcc_subgraph = df_fcc_clean[((df_fcc_clean['fid1'].isin(nodes)) | (df_fcc_clean['fid2'].isin(nodes)))]
-                        # df_fcc_subgraph['fc_graph'] = base64.b64encode(pickle.dumps(fc_subgraph))
+                        df_fcc_subgraph = df_fcc_clean[((df_fcc_clean['fid1'].isin(nodes)) | (df_fcc_clean['fid2'].isin(nodes)))].copy()
                         dfs_fcc_ready.append(df_fcc_subgraph)
                 else:
-
                     dfs_fcc_ready.append(df_fcc_clean)
 
             # compute the entries of the df_map
             for i, df_fcc_clean in enumerate(dfs_fcc_ready):
+
                 # string representation of the fragment combinations of this map
                 frag_map_str = '-'.join(list(df_fcc_clean['fid1'].map(str) + "[" + df_fcc_clean['abbrev'] + "]" + df_fcc_clean['fid2'].map(str)))
                 # frags: all occurrences of all fragments (f1:0, f1:1, f2:0, etc.)
@@ -593,17 +603,41 @@ class CombinationClassifier:
                 hac_frags = len(list(set([item for sublist in aidxfs.values() for item in sublist])))
                 perc_mol_cov_frags = round((hac_frags / hac_mol), 2) * 100
 
+                # compute a new graph with edge labels and encode it in base64 str for storage ### this means I compute graphs twice... room for optimization here?
+                fc_graph = base64.b64encode(pickle.dumps(nx.from_pandas_edgelist(df_fcc_clean, "fid1", "fid2", "abbrev")))
+
                 # attribute colors to each fragment
 
-
                 # avoid issues with pandas and complex data structures by dumping it as string
-                fc_graph_b64 = df_fcc
                 aidxfs = json.dumps(aidxfs)
                 comb = list(df_fcc_clean['abbrev'].values)
                 ncomb = len(comb)
                 comb_u = list(set(comb))
                 ncomb_u = len(comb_u)
-                ds_map.append({'idm': gid, 'fmid': str(i+1).zfill(3), 'nfrags': nfrags, 'nfrags_u': nfrags_u, 'ncomb': ncomb, 'ncomb_u': ncomb_u, 'hac_mol': hac_mol, 'hac_frags': hac_frags, 'perc_mol_cov_frags': perc_mol_cov_frags,  'frags': frags, 'frags_u': frags_u, 'comb': comb, 'comb_u': comb_u, 'aidxfs': aidxfs, 'map_str': frag_map_str})
+                ds_map.append({'idm': gid, 'fmid': str(i+1).zfill(3), 'nfrags': nfrags, 'nfrags_u': nfrags_u, 'ncomb': ncomb, 'ncomb_u': ncomb_u, 'hac_mol': hac_mol, 'hac_frags': hac_frags, 'perc_mol_cov_frags': perc_mol_cov_frags,  'frags': frags, 'frags_u': frags_u, 'comb': comb, 'comb_u': comb_u, 'aidxfs': aidxfs, 'map_str': frag_map_str, 'fc_graph': fc_graph})
 
         # df_map
-        return DataFrame(ds_map, columns=['idm', 'fmid', 'nfrags', 'nfrags_u', 'ncomb', 'ncomb_u', 'hac_mol', 'hac_frags', 'perc_mol_cov_frags', 'frags', 'frags_u', 'comb', 'comb_u', 'aidxfs', 'map_str'])
+        return DataFrame(ds_map, columns=['idm', 'fmid', 'nfrags', 'nfrags_u', 'ncomb', 'ncomb_u', 'hac_mol', 'hac_frags', 'perc_mol_cov_frags', 'frags', 'frags_u', 'comb', 'comb_u', 'aidxfs', 'map_str', 'fc_graph'])
+
+    def draw_fc_graph(self, fc_graph):
+        if isinstance(fc_graph, base64.bytes_types):
+            fc_graph = pickle.loads(base64.b64decode(fc_graph))
+        pos = nx.spring_layout(fc_graph)
+        edges_info = self._get_edge_info(fc_graph)
+        figure = plt.figure()
+        figure = nx.draw(fc_graph,
+                         pos,
+                         edge_color='black',
+                         width=1,
+                         linewidths=1,
+                         node_size=2000,
+                         node_color='pink',
+                         alpha=0.9,
+                         with_labels=True,
+                         )
+        figure = nx.draw_networkx_edge_labels(fc_graph,
+                                              pos,
+                                              edge_labels=edges_info,
+                                              font_color='red',
+                                              )
+        return figure

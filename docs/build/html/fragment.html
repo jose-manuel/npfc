@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Module fragment &mdash; npfc 0.1.5-1-g4f52562 documentation</title>
+  <title>Module fragment &mdash; npfc 0.1.5-2-gd0ca5af documentation</title>
   
 
   
@@ -58,7 +58,7 @@
             
             
               <div class="version">
-                0.1.5-1-g4f52562
+                0.1.5-2-gd0ca5af
               </div>
             
           
@@ -268,7 +268,7 @@ with category, type and subtype values.</p>
 
 <dl class="method">
 <dt id="npfc.fragment.CombinationClassifier.classify_fragment_combinations">
-<code class="descname">classify_fragment_combinations</code><span class="sig-paren">(</span><em>df_mols</em>, <em>df_aidxf</em>, <em>cutoff=3</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/fragment.html#CombinationClassifier.classify_fragment_combinations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.fragment.CombinationClassifier.classify_fragment_combinations" title="Permalink to this definition">¶</a></dt>
+<code class="descname">classify_fragment_combinations</code><span class="sig-paren">(</span><em>df_mols</em>, <em>df_aidxf</em>, <em>cutoff=3</em>, <em>clean=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/fragment.html#CombinationClassifier.classify_fragment_combinations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.fragment.CombinationClassifier.classify_fragment_combinations" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a DataFrame with all fragment combination categories for a given set of
 molecules and fragment atom indices obtained by substructure search.
 For more details about category, type and subtype, see doc in method classify_fragment_combination.</p>
@@ -294,6 +294,7 @@ are labelled as false positives.</p>
 <li><strong>df_mols</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code>) – the input DataFrame with molecules</li>
 <li><strong>df_aidxf</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code>) – the input DataFrame with substructure matches</li>
 <li><strong>cutoff</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>) – the maximum number of intermediary atoms between 2 fragments</li>
+<li><strong>clean</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>) – remove false positives such as cfc or substructures from results by calling the clean method.</li>
 </ul>
 </td>
 </tr>

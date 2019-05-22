@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.fragment &mdash; npfc 0.1.5-1-g4f52562 documentation</title>
+  <title>npfc.fragment &mdash; npfc 0.1.5-2-gd0ca5af documentation</title>
   
 
   
@@ -56,7 +56,7 @@
             
             
               <div class="version">
-                0.1.5-1-g4f52562
+                0.1.5-2-gd0ca5af
               </div>
             
           
@@ -517,7 +517,8 @@
 <div class="viewcode-block" id="CombinationClassifier.classify_fragment_combinations"><a class="viewcode-back" href="../../fragment.html#npfc.fragment.CombinationClassifier.classify_fragment_combinations">[docs]</a>    <span class="k">def</span> <span class="nf">classify_fragment_combinations</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                                        <span class="n">df_mols</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">,</span>
                                        <span class="n">df_aidxf</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">,</span>
-                                       <span class="n">cutoff</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span><span class="p">:</span>
+                                       <span class="n">cutoff</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span>
+                                       <span class="n">clean</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Return a DataFrame with all fragment combination categories for a given set of</span>
 <span class="sd">        molecules and fragment atom indices obtained by substructure search.</span>
 <span class="sd">        For more details about category, type and subtype, see doc in method classify_fragment_combination.</span>
@@ -540,6 +541,7 @@
 <span class="sd">        :param df_mols: the input DataFrame with molecules</span>
 <span class="sd">        :param df_aidxf: the input DataFrame with substructure matches</span>
 <span class="sd">        :param cutoff: the maximum number of intermediary atoms between 2 fragments</span>
+<span class="sd">        :param clean: remove false positives such as cfc or substructures from results by calling the clean method.</span>
 <span class="sd">        :return: a DataFrame with all fragment combination classifications</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">ds_fcc</span> <span class="o">=</span> <span class="p">[]</span>
@@ -582,8 +584,13 @@
                     <span class="n">d_fcc</span><span class="p">[</span><span class="s1">&#39;aidxf2&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">aidxf2</span>
                     <span class="n">d_fcc</span><span class="p">[</span><span class="s1">&#39;hac&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">hac</span>
                     <span class="n">ds_fcc</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d_fcc</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;=&quot;</span><span class="o">*</span><span class="mi">80</span><span class="p">)</span>
         <span class="c1"># dataframe with columns in given order</span>
-        <span class="k">return</span> <span class="n">DataFrame</span><span class="p">(</span><span class="n">ds_fcc</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;idm&#39;</span><span class="p">,</span> <span class="s1">&#39;idf1&#39;</span><span class="p">,</span> <span class="s1">&#39;idxf1&#39;</span><span class="p">,</span> <span class="s1">&#39;fid1&#39;</span><span class="p">,</span> <span class="s1">&#39;idf2&#39;</span><span class="p">,</span> <span class="s1">&#39;idxf2&#39;</span><span class="p">,</span> <span class="s1">&#39;fid2&#39;</span><span class="p">,</span> <span class="s1">&#39;abbrev&#39;</span><span class="p">,</span> <span class="s1">&#39;category&#39;</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">,</span> <span class="s1">&#39;subtype&#39;</span><span class="p">,</span> <span class="s1">&#39;aidxf1&#39;</span><span class="p">,</span> <span class="s1">&#39;aidxf2&#39;</span><span class="p">,</span> <span class="s1">&#39;hac&#39;</span><span class="p">])</span></div>
+        <span class="n">df_fcc</span> <span class="o">=</span> <span class="n">DataFrame</span><span class="p">(</span><span class="n">ds_fcc</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;idm&#39;</span><span class="p">,</span> <span class="s1">&#39;idf1&#39;</span><span class="p">,</span> <span class="s1">&#39;idxf1&#39;</span><span class="p">,</span> <span class="s1">&#39;fid1&#39;</span><span class="p">,</span> <span class="s1">&#39;idf2&#39;</span><span class="p">,</span> <span class="s1">&#39;idxf2&#39;</span><span class="p">,</span> <span class="s1">&#39;fid2&#39;</span><span class="p">,</span> <span class="s1">&#39;abbrev&#39;</span><span class="p">,</span> <span class="s1">&#39;category&#39;</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">,</span> <span class="s1">&#39;subtype&#39;</span><span class="p">,</span> <span class="s1">&#39;aidxf1&#39;</span><span class="p">,</span> <span class="s1">&#39;aidxf2&#39;</span><span class="p">,</span> <span class="s1">&#39;hac&#39;</span><span class="p">])</span>
+        <span class="c1"># clean results from false positives</span>
+        <span class="k">if</span> <span class="n">clean</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">clean</span><span class="p">(</span><span class="n">df_fcc</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">df_fcc</span></div>
 
 <div class="viewcode-block" id="CombinationClassifier.clean"><a class="viewcode-back" href="../../fragment.html#npfc.fragment.CombinationClassifier.clean">[docs]</a>    <span class="k">def</span> <span class="nf">clean</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df_fcc</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Clean a df_fcc by removing false positives such as substructures and</span>
