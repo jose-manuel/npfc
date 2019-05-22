@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.fragment &mdash; npfc 0.1.5 documentation</title>
+  <title>npfc.fragment &mdash; npfc 0.1.5-1-g4f52562 documentation</title>
   
 
   
@@ -56,7 +56,7 @@
             
             
               <div class="version">
-                0.1.5
+                0.1.5-1-g4f52562
               </div>
             
           
@@ -165,7 +165,10 @@
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">itertools</span>
 <span class="kn">import</span> <span class="nn">json</span>
-<span class="c1"># data science</span>
+<span class="c1"># data handling</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
+<span class="kn">import</span> <span class="nn">base64</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
 <span class="kn">from</span> <span class="nn">pandas</span> <span class="k">import</span> <span class="n">DataFrame</span>
 <span class="c1"># chemoinformatics</span>
 <span class="kn">from</span> <span class="nn">rdkit.Chem</span> <span class="k">import</span> <span class="n">Mol</span>
@@ -182,8 +185,12 @@
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">pass</span>
 
-<div class="viewcode-block" id="Matcher.run"><a class="viewcode-back" href="../../fragment.html#npfc.fragment.Matcher.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df_mols</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">,</span> <span class="n">df_frags</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">,</span>
-            <span class="n">col_mol_mols</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;mol&#39;</span><span class="p">,</span> <span class="n">col_mol_frags</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;mol&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span><span class="p">:</span>
+<div class="viewcode-block" id="Matcher.run"><a class="viewcode-back" href="../../fragment.html#npfc.fragment.Matcher.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+            <span class="n">df_mols</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">,</span>
+            <span class="n">df_frags</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">,</span>
+            <span class="n">col_mol_mols</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;mol&#39;</span><span class="p">,</span>
+            <span class="n">col_mol_frags</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;mol&#39;</span><span class="p">,</span>
+            <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Create a DataFrame recording every substructure (fragment) match in the</span>
 <span class="sd">        input molecule DataFrame.</span>
 
@@ -208,6 +215,7 @@
         <span class="n">d</span><span class="p">[</span><span class="s1">&#39;idxf&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">d</span><span class="p">[</span><span class="s1">&#39;aidxf&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">d</span><span class="p">[</span><span class="s1">&#39;mol_perc&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># proportion of the molecule the substructure represents</span>
+
         <span class="c1"># begin</span>
         <span class="k">for</span> <span class="n">idm</span><span class="p">,</span> <span class="n">rowm</span> <span class="ow">in</span> <span class="n">df_mols</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
             <span class="n">hac</span> <span class="o">=</span> <span class="n">rowm</span><span class="p">[</span><span class="n">col_mol_mols</span><span class="p">]</span><span class="o">.</span><span class="n">GetNumAtoms</span><span class="p">()</span>
@@ -593,35 +601,40 @@
         <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Removing cutoff connections from fragment combinations&quot;</span><span class="p">)</span>
         <span class="n">num_fcc_ini</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">df_fcc</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
         <span class="n">df_fcc</span> <span class="o">=</span> <span class="n">df_fcc</span><span class="p">[</span><span class="n">df_fcc</span><span class="p">[</span><span class="s1">&#39;abbrev&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;cfc&#39;</span><span class="p">]</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Removed {len(df_fcc.index)}/</span><span class="si">{num_fcc_ini}</span><span class="s2"> fragment combinations&quot;</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Number of remaining fragment combinations: {len(df_fcc.index)}/</span><span class="si">{num_fcc_ini}</span><span class="s2">&quot;</span><span class="p">)</span>
 
         <span class="c1"># drop fragments combinations paired with a substructure</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Removing substructures from fragment combinations&quot;</span><span class="p">)</span>
         <span class="n">df_substructures</span> <span class="o">=</span> <span class="n">df_fcc</span><span class="p">[</span><span class="n">df_fcc</span><span class="p">[</span><span class="s1">&#39;abbrev&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;ffs&#39;</span><span class="p">]</span>  <span class="c1"># all the substructures in the whole dataframe</span>
         <span class="n">num_substructures</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">df_substructures</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Number of substructures found in df_fcc: </span><span class="si">{num_substructures}</span><span class="s2">/{len(df_fcc.index)}&quot;</span><span class="p">)</span>
+        <span class="c1"># in case of substructures to remove, iterate over all identified subtructures for each molecule,</span>
+        <span class="c1"># determine what fragments are part of others and discard all entries with them</span>
         <span class="k">if</span> <span class="n">num_substructures</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Substructure combinations:</span><span class="se">\n\n</span><span class="s2">{df_substructures[[&#39;idm&#39;, &#39;fid1&#39;, &#39;fid2&#39;, &#39;abbrev&#39;]]}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Determining what fragments should be removed:&quot;</span><span class="p">)</span>
-            <span class="n">fid_to_remove</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+            <span class="c1"># intialize the iteration</span>
+            <span class="n">rowids_to_remove</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># the rowids of the df_fcc dataframe to remove</span>
             <span class="k">for</span> <span class="n">gid</span><span class="p">,</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">df_fcc</span><span class="p">[</span><span class="n">df_fcc</span><span class="p">[</span><span class="s1">&#39;idm&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">df_substructures</span><span class="p">[</span><span class="s1">&#39;idm&#39;</span><span class="p">])]</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">&#39;idm&#39;</span><span class="p">):</span>  <span class="c1"># iterate only on the groups with at least one substructure</span>
+                <span class="n">fid_to_remove</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>   <span class="c1"># fid of substructures identified for the current molecule</span>
+                <span class="c1"># for each molecule, look at what fids we should remove</span>
                 <span class="k">for</span> <span class="n">rowid</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">g</span><span class="p">[</span><span class="n">g</span><span class="p">[</span><span class="s1">&#39;abbrev&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;ffs&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+                    <span class="c1"># combination ifs ffs, so remove either fid1 or fid2 depending on hac</span>
                     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;aidxf1&#39;</span><span class="p">])</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;aidxf2&#39;</span><span class="p">]):</span>
                         <span class="n">fid_to_remove</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;fid2&#39;</span><span class="p">])</span>
                     <span class="k">else</span><span class="p">:</span>
                         <span class="n">fid_to_remove</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;fid1&#39;</span><span class="p">])</span>
-                    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;</span><span class="si">{gid}</span><span class="s2">: </span><span class="si">{row[&#39;fid1&#39;]}</span><span class="s2"> - </span><span class="si">{row[&#39;fid2&#39;]}</span><span class="s2"> ==&gt; to_remove=</span><span class="si">{fid_to_remove}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="c1"># display some debugging</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;</span><span class="si">{gid}</span><span class="s2">: </span><span class="si">{row[&#39;fid1&#39;]}</span><span class="s2"> - </span><span class="si">{row[&#39;fid2&#39;]}</span><span class="s2"> ==&gt; fid_to_remove=</span><span class="si">{fid_to_remove}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="c1"># register df_fcc rowids that will be removed for this substructure</span>
+                    <span class="n">rowids_to_remove</span> <span class="o">+=</span> <span class="nb">list</span><span class="p">(</span><span class="n">g</span><span class="p">[</span><span class="n">g</span><span class="p">[</span><span class="s2">&quot;fid1&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">fid_to_remove</span><span class="p">))]</span><span class="o">.</span><span class="n">index</span><span class="p">)</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">g</span><span class="p">[</span><span class="n">g</span><span class="p">[</span><span class="s2">&quot;fid2&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">fid_to_remove</span><span class="p">))]</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+            <span class="c1"># remove dupl in rowids_to_remove</span>
+            <span class="n">rowids_to_remove</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">rowids_to_remove</span><span class="p">))</span>
             <span class="c1"># filter the unwanted fragment combinations</span>
-            <span class="n">fid_to_remove</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">fid_to_remove</span><span class="p">)</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Number of fragments to remove: {len(fid_to_remove)}&quot;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Number of fragments combinations to remove: {len(rowids_to_remove)}&quot;</span><span class="p">)</span>
             <span class="n">nb_fcc_ini</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">df_fcc</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
-            <span class="n">df_fcc</span> <span class="o">=</span> <span class="n">df_fcc</span><span class="p">[</span><span class="o">~</span><span class="n">df_fcc</span><span class="p">[</span><span class="s1">&#39;fid1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">fid_to_remove</span><span class="p">)]</span>
-            <span class="n">df_fcc</span> <span class="o">=</span> <span class="n">df_fcc</span><span class="p">[</span><span class="o">~</span><span class="n">df_fcc</span><span class="p">[</span><span class="s1">&#39;fid2&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">fid_to_remove</span><span class="p">)]</span>
+            <span class="n">df_fcc</span> <span class="o">=</span> <span class="n">df_fcc</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="o">~</span><span class="n">df_fcc</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">rowids_to_remove</span><span class="p">)]</span>
             <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Number of fragment combinations remaining: {len(df_fcc)}/</span><span class="si">{nb_fcc_ini}</span><span class="s2">&quot;</span><span class="p">)</span>
-
-        <span class="c1"># this means the whole molecule was filled with substructures, should not happen very often!</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">df_fcc</span><span class="o">.</span><span class="n">index</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;No fragment remaining for mapping!&quot;</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">df_fcc</span></div>
 
@@ -649,12 +662,13 @@
             <span class="c1"># entries with an overlap</span>
             <span class="n">overlaps</span> <span class="o">=</span> <span class="n">g</span><span class="p">[</span><span class="n">g</span><span class="p">[</span><span class="s1">&#39;abbrev&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;ffo&#39;</span><span class="p">]</span>
             <span class="n">noverlaps</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">overlaps</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Number of overlaps found for molecule </span><span class="si">{gid}</span><span class="s2">: </span><span class="si">{noverlaps}</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">noverlaps</span> <span class="o">&gt;</span> <span class="n">max_overlaps</span><span class="p">:</span>
-                <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Too many overlap combinations (</span><span class="si">{noverlaps}</span><span class="s2">), discarding molecule &#39;</span><span class="si">{gid}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
-                <span class="k">continue</span>
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">overlaps</span><span class="o">.</span><span class="n">index</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>  <span class="c1"># the code below could certainly be improved, but this case should not happen too often</span>
-                <span class="c1"># remove these from the current group</span>
+            <span class="k">if</span> <span class="n">noverlaps</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>  <span class="c1"># the code below could certainly be improved, but this case should not happen too often</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Number of overlaps found for molecule </span><span class="si">{gid}</span><span class="s2">: </span><span class="si">{noverlaps}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="c1"># filter out molecules with too many overlaps</span>
+                <span class="k">if</span> <span class="n">noverlaps</span> <span class="o">&gt;</span> <span class="n">max_overlaps</span><span class="p">:</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Too many overlap combinations (</span><span class="si">{noverlaps}</span><span class="s2">), discarding molecule &#39;</span><span class="si">{gid}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+                    <span class="k">continue</span>
+                <span class="c1"># remove overlaps from the current group</span>
                 <span class="n">g</span> <span class="o">=</span> <span class="n">g</span><span class="p">[</span><span class="n">g</span><span class="p">[</span><span class="s1">&#39;abbrev&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;ffo&#39;</span><span class="p">]</span>
                 <span class="c1"># get fragment ids of the invariant parts of alternative paths</span>
                 <span class="n">common</span> <span class="o">=</span> <span class="n">g</span><span class="p">[(</span><span class="o">~</span><span class="n">g</span><span class="p">[</span><span class="s1">&#39;fid1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">overlaps</span><span class="p">[</span><span class="s1">&#39;fid1&#39;</span><span class="p">]))</span> <span class="o">&amp;</span> <span class="p">(</span><span class="o">~</span><span class="n">g</span><span class="p">[</span><span class="s1">&#39;fid2&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">overlaps</span><span class="p">[</span><span class="s1">&#39;fid2&#39;</span><span class="p">]))]</span>
@@ -693,8 +707,11 @@
                     <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Fragment Connectivity&quot;</span> <span class="o">+</span> <span class="n">f</span><span class="s2">&quot;</span><span class="si">{i}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">rjust</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span> <span class="o">+</span> <span class="n">f</span><span class="s2">&quot;: found </span><span class="si">{num_fc_subgraphs}</span><span class="s2"> fc_subgraphs, so splitting up&quot;</span><span class="p">)</span>
                     <span class="k">for</span> <span class="n">fc_subgraph</span> <span class="ow">in</span> <span class="n">fc_subgraphs</span><span class="p">:</span>
                         <span class="n">nodes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">fc_subgraph</span><span class="o">.</span><span class="n">nodes</span><span class="p">())</span>
-                        <span class="n">dfs_fcc_ready</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">df_fcc_clean</span><span class="p">[((</span><span class="n">df_fcc_clean</span><span class="p">[</span><span class="s1">&#39;fid1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">nodes</span><span class="p">))</span> <span class="o">|</span> <span class="p">(</span><span class="n">df_fcc_clean</span><span class="p">[</span><span class="s1">&#39;fid2&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">nodes</span><span class="p">)))])</span>
+                        <span class="n">df_fcc_subgraph</span> <span class="o">=</span> <span class="n">df_fcc_clean</span><span class="p">[((</span><span class="n">df_fcc_clean</span><span class="p">[</span><span class="s1">&#39;fid1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">nodes</span><span class="p">))</span> <span class="o">|</span> <span class="p">(</span><span class="n">df_fcc_clean</span><span class="p">[</span><span class="s1">&#39;fid2&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">nodes</span><span class="p">)))]</span>
+                        <span class="c1"># df_fcc_subgraph[&#39;fc_graph&#39;] = base64.b64encode(pickle.dumps(fc_subgraph))</span>
+                        <span class="n">dfs_fcc_ready</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">df_fcc_subgraph</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
+
                     <span class="n">dfs_fcc_ready</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">df_fcc_clean</span><span class="p">)</span>
 
             <span class="c1"># compute the entries of the df_map</span>
@@ -704,13 +721,14 @@
                 <span class="c1"># frags: all occurrences of all fragments (f1:0, f1:1, f2:0, etc.)</span>
                 <span class="n">frags</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">df_fcc_clean</span><span class="p">[</span><span class="s1">&#39;fid1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">)</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">df_fcc_clean</span><span class="p">[</span><span class="s1">&#39;fid2&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">)))</span>
                 <span class="n">nfrags</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">frags</span><span class="p">)</span>
-                <span class="c1"># frags_u: count only different fragments (f1, f2, etc.)</span>
-                <span class="n">frags_u</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">([</span><span class="n">x</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">frags</span><span class="p">]))</span>
-                <span class="n">nfrags_u</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">frags_u</span><span class="p">)</span>
                 <span class="c1"># filter results by min/max number of fragments</span>
                 <span class="k">if</span> <span class="n">nfrags</span> <span class="o">&lt;</span> <span class="n">min_frags</span> <span class="ow">or</span> <span class="n">nfrags</span> <span class="o">&gt;</span> <span class="n">max_frags</span><span class="p">:</span>
                     <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;</span><span class="si">{gid}</span><span class="s2">: discarding one fragment map because of unsuitable number of fragments (</span><span class="si">{nfrags}</span><span class="s2">)&quot;</span><span class="p">)</span>
                     <span class="k">continue</span>
+
+                <span class="c1"># frags_u: count only different fragments (f1, f2, etc.)</span>
+                <span class="n">frags_u</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">([</span><span class="n">x</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">frags</span><span class="p">]))</span>
+                <span class="n">nfrags_u</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">frags_u</span><span class="p">)</span>
                 <span class="c1"># combine aidxfs from all fragments</span>
                 <span class="n">aidxfs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">df_fcc_clean</span><span class="p">[</span><span class="s1">&#39;aidxf1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">df_fcc_clean</span><span class="p">[</span><span class="s1">&#39;aidxf2&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
                 <span class="c1"># organize aidxfs</span>
@@ -722,7 +740,11 @@
                 <span class="n">hac_frags</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">([</span><span class="n">item</span> <span class="k">for</span> <span class="n">sublist</span> <span class="ow">in</span> <span class="n">aidxfs</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">sublist</span><span class="p">])))</span>
                 <span class="n">perc_mol_cov_frags</span> <span class="o">=</span> <span class="nb">round</span><span class="p">((</span><span class="n">hac_frags</span> <span class="o">/</span> <span class="n">hac_mol</span><span class="p">),</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span>
 
+                <span class="c1"># attribute colors to each fragment</span>
+
+
                 <span class="c1"># avoid issues with pandas and complex data structures by dumping it as string</span>
+                <span class="n">fc_graph_b64</span> <span class="o">=</span> <span class="n">df_fcc</span>
                 <span class="n">aidxfs</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">aidxfs</span><span class="p">)</span>
                 <span class="n">comb</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">df_fcc_clean</span><span class="p">[</span><span class="s1">&#39;abbrev&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
                 <span class="n">ncomb</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">comb</span><span class="p">)</span>

@@ -363,7 +363,8 @@ class CombinationClassifier:
     def classify_fragment_combinations(self,
                                        df_mols: DataFrame,
                                        df_aidxf: DataFrame,
-                                       cutoff: int = 3) -> DataFrame:
+                                       cutoff: int = 3,
+                                       clean: bool = True) -> DataFrame:
         """Return a DataFrame with all fragment combination categories for a given set of
         molecules and fragment atom indices obtained by substructure search.
         For more details about category, type and subtype, see doc in method classify_fragment_combination.
@@ -386,6 +387,7 @@ class CombinationClassifier:
         :param df_mols: the input DataFrame with molecules
         :param df_aidxf: the input DataFrame with substructure matches
         :param cutoff: the maximum number of intermediary atoms between 2 fragments
+        :param clean: remove false positives such as cfc or substructures from results by calling the clean method.
         :return: a DataFrame with all fragment combination classifications
         """
         ds_fcc = []
@@ -428,8 +430,13 @@ class CombinationClassifier:
                     d_fcc['aidxf2'] = aidxf2
                     d_fcc['hac'] = hac
                     ds_fcc.append(d_fcc)
+        logging.debug("="*80)
         # dataframe with columns in given order
-        return DataFrame(ds_fcc, columns=['idm', 'idf1', 'idxf1', 'fid1', 'idf2', 'idxf2', 'fid2', 'abbrev', 'category', 'type', 'subtype', 'aidxf1', 'aidxf2', 'hac'])
+        df_fcc = DataFrame(ds_fcc, columns=['idm', 'idf1', 'idxf1', 'fid1', 'idf2', 'idxf2', 'fid2', 'abbrev', 'category', 'type', 'subtype', 'aidxf1', 'aidxf2', 'hac'])
+        # clean results from false positives
+        if clean:
+            return self.clean(df_fcc)
+        return df_fcc
 
     def clean(self, df_fcc):
         """Clean a df_fcc by removing false positives such as substructures and
