@@ -14,13 +14,13 @@ import json
 # data handling
 import base64
 import pickle
-from pandas import DataFrame
 # chemoinformatics
 from rdkit.Chem import Mol
 from rdkit.Chem import AllChem
 # graph
-import matplotlib.pyplot as plt  # required for creating a canvas for displaying graphs
 import networkx as nx
+# docs
+from pandas import DataFrame
 # dev
 from npfc import draw
 
@@ -495,13 +495,6 @@ class CombinationClassifier:
 
         return df_fcc
 
-    def _get_edge_info(self, graph):
-        d = {}
-        edges_raw = list(graph.edges(data=True))
-        for edge in edges_raw:
-            d[(edge[0], edge[1])] = list(edge[2].values())[0]
-        return d
-
     def map_frags(self, df_fcc: DataFrame, min_frags: int = 2, max_frags: int = 5, max_overlaps: int = 5) -> DataFrame:
         """This method process a fragment combinations computed with classify_fragment_combinations
         and return a new DataFrame with a fragment map for each molecule.
@@ -639,44 +632,3 @@ class CombinationClassifier:
 
         # df_map
         return DataFrame(ds_map, columns=['idm', 'fmid', 'nfrags', 'nfrags_u', 'ncomb', 'ncomb_u', 'hac_mol', 'hac_frags', 'perc_mol_cov_frags', 'frags', 'frags_u', 'comb', 'comb_u', 'aidxfs', 'map_str', 'colormap', 'fc_graph', 'mol'])
-
-    def draw_fc_graph(self, fc_graph, colormap_nodes=None):
-        """
-        Return a
-        """
-        if isinstance(fc_graph, base64.bytes_types):
-            fc_graph = pickle.loads(base64.b64decode(fc_graph))
-
-        if colormap_nodes is None:
-            # define a 2D list instead of a single tuple to avoid matplotlib warning
-            colormap_nodes = [(0.7, 0.7, 0.7)] * len(list(fc_graph.nodes()))
-
-        pos = nx.spring_layout(fc_graph)
-        edges_info = self._get_edge_info(fc_graph)
-        figure = plt.figure()
-        nx.draw(fc_graph,
-                pos,
-                edge_color='black',
-                width=1,
-                linewidths=1,
-                node_size=2000,
-                node_color=colormap_nodes,
-                alpha=0.95,
-                with_labels=True,
-                )
-        nx.draw_networkx_edge_labels(fc_graph,
-                                     pos,
-                                     edge_labels=edges_info,
-                                     font_color='red',
-                                     )
-        return figure
-
-    def draw_fc_graph_from_series(self, row, colormap_nodes_name=None):
-        """
-        """
-        if colormap_nodes_name is None:
-            colormap_nodes = None
-        elif colormap_nodes_name == "fid":
-            colormap = row["colormap"]
-            colormap_nodes = list(colormap["fragments"].values())
-        return self.draw_fc_graph(row["fc_graph"], colormap_nodes=colormap_nodes)

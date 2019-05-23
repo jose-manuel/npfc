@@ -11,6 +11,8 @@ import logging
 from math import sqrt
 # data handling
 import json
+import base64
+import pickle
 from collections import OrderedDict
 from itertools import chain
 from collections import Counter
@@ -19,13 +21,19 @@ from rdkit.Chem import Mol
 from rdkit.Chem import Atom
 from rdkit.Chem import Bond
 from rdkit.Chem import Draw
+# graph
+import networkx as nx
 # docs
+import matplotlib.pyplot as plt  # required for creating a canvas for displaying graphs
+from matplotlib.figure import Figure
+from networkx.classes.graph import Graph
 from PIL.Image import Image
 from typing import Union
 from typing import Set
 from typing import List
 from typing import Tuple
 from typing import Dict
+from pandas import Series
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ GLOBALS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
@@ -306,7 +314,7 @@ def _compute_colormap(mol, d_aidxs, colors):
 #                                 )
 
 
-def highlight_mol_frags(mol, colormap, img_size=(300, 300), debug=False):
+def highlight_mol_frags(mol, colormap, img_size=(300, 300), debug=False) -> Image:
     if debug:
         mol = Mol(mol)
         [mol.GetAtomWithIdx(idx).SetProp('molAtomMapNumber', str(mol.GetAtomWithIdx(idx).GetIdx())) for idx in range(mol.GetNumAtoms())]
@@ -342,3 +350,64 @@ def highlight_mols_frags(mols, colormaps, sub_img_size=(300, 300), max_mols_per_
                                 highlightAtomColors=colormaps_a,
                                 highlightBondColors=colormaps_b,
                                 )
+
+
+def _get_edge_info(graph):
+    d = {}
+    edges_raw = list(graph.edges(data=True))
+    for edge in edges_raw:
+        d[(edge[0], edge[1])] = list(edge[2].values())[0]
+    return d
+
+
+def fc_graph(fc_graph: Graph, colormap_nodes: List[Tuple[float]] = None) -> Figure:
+    """
+    Return a matplotlib Figure of a networkx graph.
+
+    :param fc_graph: a networkx Graph object of the fragment combinations
+    :param colormap_nodes: a colormap of RGB values for the nodes (i.e. [(0, 0, 1), (0, 1, 0)])
+    :return: a matplotlib Figure object
+    """
+    if isinstance(fc_graph, base64.bytes_types):
+        fc_graph = pickle.loads(base64.b64decode(fc_graph))
+
+    if colormap_nodes is None:
+        # define a 2D list instead of a single tuple to avoid matplotlib warning
+        colormap_nodes = [(0.7, 0.7, 0.7)] * len(list(fc_graph.nodes()))
+
+    pos = nx.spring_layout(fc_graph)
+    edges_info = _get_edge_info(fc_graph)
+    figure = plt.figure()
+    nx.draw(fc_graph,
+            pos,
+            edge_color='black',
+            width=1,
+            linewidths=1,
+            node_size=2000,
+            node_color=colormap_nodes,
+            alpha=0.95,
+            with_labels=True,
+            )
+    nx.draw_networkx_edge_labels(fc_graph,
+                                 pos,
+                                 edge_labels=edges_info,
+                                 font_color='red',
+                                 )
+    return figure
+
+
+def fc_graph_from_series(row: Series, colormap_nodes_name: str = None) -> Figure:
+    """
+    Return a matplotlib Figure of a networkx graph.
+
+    :param row: a row from a Fragment Map DataFrame (df_map)
+    :param colormap_nodes_name: the name of the Series axe (column) from which to retrieve the nodes colormap
+    :return: a matplotlib Figure object
+    """
+    if colormap_nodes_name is None:
+        colormap_nodes = None
+    elif colormap_nodes_name == "fid":
+        colormap = row["colormap"]
+        colormap_nodes = list(colormap["fragments"].values())
+
+    return fc_graph(row["fc_graph"], colormap_nodes=colormap_nodes)

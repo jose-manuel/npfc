@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.fragment &mdash; npfc 0.1.6-1-g1875c28 documentation</title>
+  <title>npfc.fragment &mdash; npfc 0.1.6-2-gcb7fc45 documentation</title>
   
 
   
@@ -56,7 +56,7 @@
             
             
               <div class="version">
-                0.1.6-1-g1875c28
+                0.1.6-2-gcb7fc45
               </div>
             
           
@@ -808,26 +808,25 @@
         <span class="n">pos</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">spring_layout</span><span class="p">(</span><span class="n">fc_graph</span><span class="p">)</span>
         <span class="n">edges_info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_edge_info</span><span class="p">(</span><span class="n">fc_graph</span><span class="p">)</span>
         <span class="n">figure</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
-        <span class="n">figure</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">fc_graph</span><span class="p">,</span>
-                         <span class="n">pos</span><span class="p">,</span>
-                         <span class="n">edge_color</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">,</span>
-                         <span class="n">width</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-                         <span class="n">linewidths</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-                         <span class="n">node_size</span><span class="o">=</span><span class="mi">2000</span><span class="p">,</span>
-                         <span class="n">node_color</span><span class="o">=</span><span class="n">colormap_nodes</span><span class="p">,</span>
-                         <span class="n">alpha</span><span class="o">=</span><span class="mf">0.95</span><span class="p">,</span>
-                         <span class="n">with_labels</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                         <span class="p">)</span>
-        <span class="n">figure</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">draw_networkx_edge_labels</span><span class="p">(</span><span class="n">fc_graph</span><span class="p">,</span>
-                                              <span class="n">pos</span><span class="p">,</span>
-                                              <span class="n">edge_labels</span><span class="o">=</span><span class="n">edges_info</span><span class="p">,</span>
-                                              <span class="n">font_color</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">,</span>
-                                              <span class="p">)</span>
+        <span class="n">nx</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">fc_graph</span><span class="p">,</span>
+                <span class="n">pos</span><span class="p">,</span>
+                <span class="n">edge_color</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">,</span>
+                <span class="n">width</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                <span class="n">linewidths</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                <span class="n">node_size</span><span class="o">=</span><span class="mi">2000</span><span class="p">,</span>
+                <span class="n">node_color</span><span class="o">=</span><span class="n">colormap_nodes</span><span class="p">,</span>
+                <span class="n">alpha</span><span class="o">=</span><span class="mf">0.95</span><span class="p">,</span>
+                <span class="n">with_labels</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="p">)</span>
+        <span class="n">nx</span><span class="o">.</span><span class="n">draw_networkx_edge_labels</span><span class="p">(</span><span class="n">fc_graph</span><span class="p">,</span>
+                                     <span class="n">pos</span><span class="p">,</span>
+                                     <span class="n">edge_labels</span><span class="o">=</span><span class="n">edges_info</span><span class="p">,</span>
+                                     <span class="n">font_color</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">,</span>
+                                     <span class="p">)</span>
         <span class="k">return</span> <span class="n">figure</span></div>
 
 <div class="viewcode-block" id="CombinationClassifier.draw_fc_graph_from_series"><a class="viewcode-back" href="../../fragment.html#npfc.fragment.CombinationClassifier.draw_fc_graph_from_series">[docs]</a>    <span class="k">def</span> <span class="nf">draw_fc_graph_from_series</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">row</span><span class="p">,</span> <span class="n">colormap_nodes_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">colormap_nodes_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">colormap_nodes</span> <span class="o">=</span> <span class="kc">None</span>
