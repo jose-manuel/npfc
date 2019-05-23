@@ -649,7 +649,7 @@ class CombinationClassifier:
                     mol = Mol(mol)
 
                 # attribute colors to each fragment atoms/bonds
-                colormap = draw._compute_colormap(mol, d_aidxs, draw.colors)
+                colormap = draw.ColorMap(mol, d_aidxs, draw.colors)
 
                 comb = list(df_fcc_clean['abbrev'].values)
                 ncomb = len(comb)

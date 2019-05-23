@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.fragment &mdash; npfc 0.1.6-4-gff21353 documentation</title>
+  <title>npfc.fragment &mdash; npfc 0.1.6-5-g40211ef documentation</title>
   
 
   
@@ -56,7 +56,7 @@
             
             
               <div class="version">
-                0.1.6-4-gff21353
+                0.1.6-5-g40211ef
               </div>
             
           
@@ -173,6 +173,7 @@
 <span class="kn">import</span> <span class="nn">networkx</span> <span class="k">as</span> <span class="nn">nx</span>
 <span class="c1"># docs</span>
 <span class="kn">from</span> <span class="nn">pandas</span> <span class="k">import</span> <span class="n">DataFrame</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">List</span>
 <span class="c1"># dev</span>
 <span class="kn">from</span> <span class="nn">npfc</span> <span class="k">import</span> <span class="n">draw</span>
 
@@ -594,12 +595,14 @@
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">clean</span><span class="p">(</span><span class="n">df_fcc</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">df_fcc</span></div>
 
-<div class="viewcode-block" id="CombinationClassifier.clean"><a class="viewcode-back" href="../../fragment.html#npfc.fragment.CombinationClassifier.clean">[docs]</a>    <span class="k">def</span> <span class="nf">clean</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df_fcc</span><span class="p">):</span>
+<div class="viewcode-block" id="CombinationClassifier.clean"><a class="viewcode-back" href="../../fragment.html#npfc.fragment.CombinationClassifier.clean">[docs]</a>    <span class="k">def</span> <span class="nf">clean</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df_fcc</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Clean a df_fcc by removing false positives such as substructures and</span>
 <span class="sd">        cutoff combinations.</span>
-<span class="sd">        Currently, the cluster terminated the vast majority of my jobs because of</span>
-<span class="sd">        memory usage, so I&#39;m trying to split up the different tasks in different</span>
-<span class="sd">        scripts.</span>
+
+<span class="sd">        Overlaps are still kept for further processing.</span>
+
+<span class="sd">        :param df_fcc: a fcc DataFrame</span>
+<span class="sd">        :return: a cleaned fcc DataFrame</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="c1"># clean the data</span>
@@ -647,6 +650,88 @@
 
         <span class="k">return</span> <span class="n">df_fcc</span></div>
 
+    <span class="k">def</span> <span class="nf">_split_overlaps</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gid</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">g</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">,</span> <span class="n">max_overlaps</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Split a fcc DataFrame containing overlap entries into different DataFrames.</span>
+
+<span class="sd">        This function is used within a loop, hence the need for gid parameter (logging).</span>
+
+<span class="sd">        :param gid: current group id</span>
+<span class="sd">        :param g: current group DataFrame</span>
+<span class="sd">        :max_overlaps: maximum number of authorized overlap entries in the DataFrame, if observed number is higher, then an empty DataFrame is returned</span>
+<span class="sd">        :return: a List of DataFrames</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># entries with an overlap</span>
+        <span class="n">overlaps</span> <span class="o">=</span> <span class="n">g</span><span class="p">[</span><span class="n">g</span><span class="p">[</span><span class="s1">&#39;abbrev&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;ffo&#39;</span><span class="p">]</span>
+        <span class="n">noverlaps</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">overlaps</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">noverlaps</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>  <span class="c1"># the code below could certainly be improved, but this case should not happen too often</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Number of overlaps found for molecule </span><span class="si">{gid}</span><span class="s2">: </span><span class="si">{noverlaps}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="c1"># filter out molecules with too many overlaps</span>
+            <span class="k">if</span> <span class="n">noverlaps</span> <span class="o">&gt;</span> <span class="n">max_overlaps</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Too many overlap combinations (</span><span class="si">{noverlaps}</span><span class="s2">), discarding molecule &#39;</span><span class="si">{gid}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+                <span class="c1"># return empty DataFrameas well as the number of overlaps found</span>
+                <span class="k">return</span> <span class="p">(</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="n">g</span><span class="o">.</span><span class="n">columns</span><span class="p">),</span> <span class="n">noverlaps</span><span class="p">)</span>
+            <span class="c1"># remove overlaps from the current group</span>
+            <span class="n">g</span> <span class="o">=</span> <span class="n">g</span><span class="p">[</span><span class="n">g</span><span class="p">[</span><span class="s1">&#39;abbrev&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;ffo&#39;</span><span class="p">]</span>
+            <span class="c1"># get fragment ids of the common parts of alternative paths</span>
+            <span class="n">common</span> <span class="o">=</span> <span class="n">g</span><span class="p">[(</span><span class="o">~</span><span class="n">g</span><span class="p">[</span><span class="s1">&#39;fid1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">overlaps</span><span class="p">[</span><span class="s1">&#39;fid1&#39;</span><span class="p">]))</span> <span class="o">&amp;</span> <span class="p">(</span><span class="o">~</span><span class="n">g</span><span class="p">[</span><span class="s1">&#39;fid2&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">overlaps</span><span class="p">[</span><span class="s1">&#39;fid2&#39;</span><span class="p">]))]</span>
+            <span class="n">common_combinations</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">rowid</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">common</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+                <span class="n">common_combinations</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;fid1&#39;</span><span class="p">])</span>
+                <span class="n">common_combinations</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;fid2&#39;</span><span class="p">])</span>
+            <span class="n">common_combinations</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">common_combinations</span><span class="p">)</span>
+            <span class="c1"># get the fragment ids of the variant parts of alternative paths</span>
+            <span class="n">alt_combinations</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">rowid</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">overlaps</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+                <span class="n">alt_combinations</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;fid1&#39;</span><span class="p">],</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;fid2&#39;</span><span class="p">]])</span>
+            <span class="c1"># get all possible paths</span>
+            <span class="n">alt_combinations</span> <span class="o">=</span> <span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">+</span> <span class="n">common_combinations</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="o">*</span><span class="n">alt_combinations</span><span class="p">))]</span>
+
+            <span class="n">dfs_fcc_clean</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">alt</span> <span class="ow">in</span> <span class="n">alt_combinations</span><span class="p">:</span>
+                <span class="n">df_alt</span> <span class="o">=</span> <span class="n">g</span><span class="p">[(</span><span class="n">g</span><span class="p">[</span><span class="s1">&#39;fid1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">alt</span><span class="p">))</span> <span class="o">|</span> <span class="p">(</span><span class="n">g</span><span class="p">[</span><span class="s1">&#39;fid2&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">alt</span><span class="p">))]</span>
+                <span class="n">to_add</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="c1"># check if this fcc is already recorded, if so do not record it again,</span>
+                <span class="c1"># this is useful in case of common parts being the only remaining parts of overlaps</span>
+                <span class="k">for</span> <span class="n">df_fcc_clean</span> <span class="ow">in</span> <span class="n">dfs_fcc_clean</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">df_alt</span><span class="o">.</span><span class="n">equals</span><span class="p">(</span><span class="n">df_fcc_clean</span><span class="p">):</span>
+                        <span class="n">to_add</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="k">if</span> <span class="n">to_add</span><span class="p">:</span>
+                    <span class="n">dfs_fcc_clean</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">df_alt</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">dfs_fcc_clean</span> <span class="o">=</span> <span class="p">[</span><span class="n">g</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="p">(</span><span class="n">dfs_fcc_clean</span><span class="p">,</span> <span class="n">noverlaps</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_split_unconnected</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dfs_fcc_clean</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">DataFrame</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">DataFrame</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        From a list of DataFrames of Fragment Combinations, split up DataFrames containing</span>
+<span class="sd">        two or more unconnected parts in different DataFrames.</span>
+<span class="sd">        For instance if a molecule has two paired fragments left and two fragments right</span>
+<span class="sd">        too far from other, then we get something like 2 and 2 instead of 4.</span>
+
+<span class="sd">        :param dfs_fcc_clean: a List of fcc DataFrames</span>
+<span class="sd">        :return: an updated List of connected fcc DataFrames</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">dfs_fcc_ready</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">df_fcc_clean</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">dfs_fcc_clean</span><span class="p">):</span>
+            <span class="c1"># compute a graph with each fid as a node, one row means an edge between 2 fid</span>
+            <span class="n">fc_graph</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">from_pandas_edgelist</span><span class="p">(</span><span class="n">df_fcc_clean</span><span class="p">,</span> <span class="s2">&quot;fid1&quot;</span><span class="p">,</span> <span class="s2">&quot;fid2&quot;</span><span class="p">)</span>
+            <span class="n">fc_subgraphs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">nx</span><span class="o">.</span><span class="n">connected_component_subgraphs</span><span class="p">(</span><span class="n">fc_graph</span><span class="p">))</span>
+            <span class="n">num_fc_subgraphs</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">fc_subgraphs</span><span class="p">)</span>
+            <span class="c1"># splitting up subgraphs</span>
+            <span class="k">if</span> <span class="n">num_fc_subgraphs</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Fragment Connectivity&quot;</span> <span class="o">+</span> <span class="n">f</span><span class="s2">&quot;</span><span class="si">{i}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">rjust</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span> <span class="o">+</span> <span class="n">f</span><span class="s2">&quot;: found </span><span class="si">{num_fc_subgraphs}</span><span class="s2"> fc_subgraphs, so splitting up&quot;</span><span class="p">)</span>
+                <span class="c1"># for each subgraph, record corresponding rows in df only</span>
+                <span class="k">for</span> <span class="n">fc_subgraph</span> <span class="ow">in</span> <span class="n">fc_subgraphs</span><span class="p">:</span>
+                    <span class="n">nodes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">fc_subgraph</span><span class="o">.</span><span class="n">nodes</span><span class="p">())</span>
+                    <span class="n">df_fcc_subgraph</span> <span class="o">=</span> <span class="n">df_fcc_clean</span><span class="p">[((</span><span class="n">df_fcc_clean</span><span class="p">[</span><span class="s1">&#39;fid1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">nodes</span><span class="p">))</span> <span class="o">|</span> <span class="p">(</span><span class="n">df_fcc_clean</span><span class="p">[</span><span class="s1">&#39;fid2&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">nodes</span><span class="p">)))]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+                    <span class="n">dfs_fcc_ready</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">df_fcc_subgraph</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">dfs_fcc_ready</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">df_fcc_clean</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">dfs_fcc_ready</span>
+
 <div class="viewcode-block" id="CombinationClassifier.map_frags"><a class="viewcode-back" href="../../fragment.html#npfc.fragment.CombinationClassifier.map_frags">[docs]</a>    <span class="k">def</span> <span class="nf">map_frags</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df_fcc</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">,</span> <span class="n">min_frags</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="n">max_frags</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span> <span class="n">max_overlaps</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;This method process a fragment combinations computed with classify_fragment_combinations</span>
 <span class="sd">        and return a new DataFrame with a fragment map for each molecule.</span>
@@ -667,62 +752,14 @@
 
         <span class="n">ds_map</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">gid</span><span class="p">,</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">df_fcc</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">&#39;idm&#39;</span><span class="p">):</span>
-            <span class="c1"># entries with an overlap</span>
-            <span class="n">overlaps</span> <span class="o">=</span> <span class="n">g</span><span class="p">[</span><span class="n">g</span><span class="p">[</span><span class="s1">&#39;abbrev&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;ffo&#39;</span><span class="p">]</span>
-            <span class="n">noverlaps</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">overlaps</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">noverlaps</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>  <span class="c1"># the code below could certainly be improved, but this case should not happen too often</span>
-                <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Number of overlaps found for molecule </span><span class="si">{gid}</span><span class="s2">: </span><span class="si">{noverlaps}</span><span class="s2">&quot;</span><span class="p">)</span>
-                <span class="c1"># filter out molecules with too many overlaps</span>
-                <span class="k">if</span> <span class="n">noverlaps</span> <span class="o">&gt;</span> <span class="n">max_overlaps</span><span class="p">:</span>
-                    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Too many overlap combinations (</span><span class="si">{noverlaps}</span><span class="s2">), discarding molecule &#39;</span><span class="si">{gid}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
-                    <span class="k">continue</span>
-                <span class="c1"># remove overlaps from the current group</span>
-                <span class="n">g</span> <span class="o">=</span> <span class="n">g</span><span class="p">[</span><span class="n">g</span><span class="p">[</span><span class="s1">&#39;abbrev&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;ffo&#39;</span><span class="p">]</span>
-                <span class="c1"># get fragment ids of the invariant parts of alternative paths</span>
-                <span class="n">common</span> <span class="o">=</span> <span class="n">g</span><span class="p">[(</span><span class="o">~</span><span class="n">g</span><span class="p">[</span><span class="s1">&#39;fid1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">overlaps</span><span class="p">[</span><span class="s1">&#39;fid1&#39;</span><span class="p">]))</span> <span class="o">&amp;</span> <span class="p">(</span><span class="o">~</span><span class="n">g</span><span class="p">[</span><span class="s1">&#39;fid2&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">overlaps</span><span class="p">[</span><span class="s1">&#39;fid2&#39;</span><span class="p">]))]</span>
-                <span class="n">common_combinations</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
-                <span class="k">for</span> <span class="n">rowid</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">common</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
-                    <span class="n">common_combinations</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;fid1&#39;</span><span class="p">])</span>
-                    <span class="n">common_combinations</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;fid2&#39;</span><span class="p">])</span>
-                <span class="n">common_combinations</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">common_combinations</span><span class="p">)</span>
-                <span class="c1"># get the fragment ids of the variant parts of alternative paths</span>
-                <span class="n">alt_combinations</span> <span class="o">=</span> <span class="p">[]</span>
-                <span class="k">for</span> <span class="n">rowid</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">overlaps</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
-                    <span class="n">alt_combinations</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;fid1&#39;</span><span class="p">],</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;fid2&#39;</span><span class="p">]])</span>
-                <span class="c1"># get all possible paths</span>
-                <span class="n">alt_combinations</span> <span class="o">=</span> <span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">+</span> <span class="n">common_combinations</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="o">*</span><span class="n">alt_combinations</span><span class="p">))]</span>
 
-                <span class="n">dfs_fcc_clean</span> <span class="o">=</span> <span class="p">[]</span>
-                <span class="k">for</span> <span class="n">alt</span> <span class="ow">in</span> <span class="n">alt_combinations</span><span class="p">:</span>
-                    <span class="n">df_alt</span> <span class="o">=</span> <span class="n">g</span><span class="p">[(</span><span class="n">g</span><span class="p">[</span><span class="s1">&#39;fid1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">alt</span><span class="p">))</span> <span class="o">|</span> <span class="p">(</span><span class="n">g</span><span class="p">[</span><span class="s1">&#39;fid2&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">alt</span><span class="p">))]</span>
-                    <span class="n">to_add</span> <span class="o">=</span> <span class="kc">True</span>
-                    <span class="c1"># check if this fcc is already recorded, if so do not record it again,</span>
-                    <span class="c1"># this is useful in case of common parts being the only remaining parts of overlaps</span>
-                    <span class="k">for</span> <span class="n">df_fcc_clean</span> <span class="ow">in</span> <span class="n">dfs_fcc_clean</span><span class="p">:</span>
-                        <span class="k">if</span> <span class="n">df_alt</span><span class="o">.</span><span class="n">equals</span><span class="p">(</span><span class="n">df_fcc_clean</span><span class="p">):</span>
-                            <span class="n">to_add</span> <span class="o">=</span> <span class="kc">False</span>
-                    <span class="k">if</span> <span class="n">to_add</span><span class="p">:</span>
-                        <span class="n">dfs_fcc_clean</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">df_alt</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">dfs_fcc_clean</span> <span class="o">=</span> <span class="p">[</span><span class="n">g</span><span class="p">]</span>
+            <span class="c1"># split overlaps into different Dataframes</span>
+            <span class="n">dfs_fcc_clean</span><span class="p">,</span> <span class="n">noverlaps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_split_overlaps</span><span class="p">(</span><span class="n">gid</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">max_overlaps</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dfs_fcc_clean</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">continue</span>
 
             <span class="c1"># compute fragment connectivity graph objects so we can split up disconnected subgraphs</span>
-            <span class="n">dfs_fcc_ready</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">df_fcc_clean</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">dfs_fcc_clean</span><span class="p">):</span>
-                <span class="c1"># compute a graph with each fid as a node, one row means an edge between 2 fid</span>
-                <span class="n">fc_graph</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">from_pandas_edgelist</span><span class="p">(</span><span class="n">df_fcc_clean</span><span class="p">,</span> <span class="s2">&quot;fid1&quot;</span><span class="p">,</span> <span class="s2">&quot;fid2&quot;</span><span class="p">)</span>
-                <span class="n">fc_subgraphs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">nx</span><span class="o">.</span><span class="n">connected_component_subgraphs</span><span class="p">(</span><span class="n">fc_graph</span><span class="p">))</span>
-                <span class="n">num_fc_subgraphs</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">fc_subgraphs</span><span class="p">)</span>
-                <span class="c1"># splitting up subgraphs</span>
-                <span class="k">if</span> <span class="n">num_fc_subgraphs</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-                    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Fragment Connectivity&quot;</span> <span class="o">+</span> <span class="n">f</span><span class="s2">&quot;</span><span class="si">{i}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">rjust</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span> <span class="o">+</span> <span class="n">f</span><span class="s2">&quot;: found </span><span class="si">{num_fc_subgraphs}</span><span class="s2"> fc_subgraphs, so splitting up&quot;</span><span class="p">)</span>
-                    <span class="c1"># for each subgraph, record corresponding rows in df only</span>
-                    <span class="k">for</span> <span class="n">fc_subgraph</span> <span class="ow">in</span> <span class="n">fc_subgraphs</span><span class="p">:</span>
-                        <span class="n">nodes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">fc_subgraph</span><span class="o">.</span><span class="n">nodes</span><span class="p">())</span>
-                        <span class="n">df_fcc_subgraph</span> <span class="o">=</span> <span class="n">df_fcc_clean</span><span class="p">[((</span><span class="n">df_fcc_clean</span><span class="p">[</span><span class="s1">&#39;fid1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">nodes</span><span class="p">))</span> <span class="o">|</span> <span class="p">(</span><span class="n">df_fcc_clean</span><span class="p">[</span><span class="s1">&#39;fid2&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">nodes</span><span class="p">)))]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-                        <span class="n">dfs_fcc_ready</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">df_fcc_subgraph</span><span class="p">)</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">dfs_fcc_ready</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">df_fcc_clean</span><span class="p">)</span>
+            <span class="n">dfs_fcc_ready</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_split_unconnected</span><span class="p">(</span><span class="n">dfs_fcc_clean</span><span class="p">)</span>
 
             <span class="c1"># compute the entries of the df_map</span>
             <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">df_fcc_clean</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">dfs_fcc_ready</span><span class="p">):</span>
