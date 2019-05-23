@@ -597,7 +597,6 @@ class CombinationClassifier:
                 frags_u = list(set([x.split(":")[0] for x in frags]))
                 nfrags_u = len(frags_u)
                 # combine aidxfs from all fragments
-                ## use frozensets instead
                 aidxfs = set()
                 aidxfs.update(df_fcc_clean['aidxf1'].values)
                 aidxfs.update(df_fcc_clean['aidxf2'].values)
@@ -616,11 +615,15 @@ class CombinationClassifier:
 
                 # compute a new graph again but this time on a single subgraph and with edge labels (room for optimization)
                 fc_graph = nx.from_pandas_edgelist(df_fcc_clean, "fid1", "fid2", "abbrev")
-                mol = df_fcc_clean.iloc[0]['mol']  # same molecule in each row, so the first one is perfectly fine
-                logging.debug(f"### type of mol {type(mol)}")
+                # same molecule in each row, so to use the first one is perfectly fine
+                mol = df_fcc_clean.iloc[0]['mol']
+
+                # in case of overlaps, the same molecule will be used more than once,
+                # so make a copy of the original so highlights are truly independant
+                if noverlaps > 0:
+                    mol = Mol(mol)
 
                 # attribute colors to each fragment
-                logging.debug(f"aidxfs: {aidxfs}")
                 colormap = draw._compute_colormap(mol, aidxfs, draw.colors)
 
                 # avoid issues with pandas and complex data structures by dumping it as string
@@ -637,9 +640,17 @@ class CombinationClassifier:
         # df_map
         return DataFrame(ds_map, columns=['idm', 'fmid', 'nfrags', 'nfrags_u', 'ncomb', 'ncomb_u', 'hac_mol', 'hac_frags', 'perc_mol_cov_frags', 'frags', 'frags_u', 'comb', 'comb_u', 'aidxfs', 'map_str', 'colormap', 'fc_graph', 'mol'])
 
-    def draw_fc_graph(self, fc_graph):
+    def draw_fc_graph(self, fc_graph, colormap_nodes=None):
+        """
+        Return a
+        """
         if isinstance(fc_graph, base64.bytes_types):
             fc_graph = pickle.loads(base64.b64decode(fc_graph))
+
+        if colormap_nodes is None:
+            # define a 2D list instead of a single tuple to avoid matplotlib warning
+            colormap_nodes = [(0.7, 0.7, 0.7)] * len(list(fc_graph.nodes()))
+
         pos = nx.spring_layout(fc_graph)
         edges_info = self._get_edge_info(fc_graph)
         figure = plt.figure()
@@ -649,8 +660,8 @@ class CombinationClassifier:
                          width=1,
                          linewidths=1,
                          node_size=2000,
-                         node_color='pink',
-                         alpha=0.9,
+                         node_color=colormap_nodes,
+                         alpha=0.95,
                          with_labels=True,
                          )
         figure = nx.draw_networkx_edge_labels(fc_graph,
@@ -659,3 +670,14 @@ class CombinationClassifier:
                                               font_color='red',
                                               )
         return figure
+
+    def draw_fc_graph_from_series(self, row, colormap_nodes_name=None):
+        """
+
+        """
+        if colormap_nodes_name is None:
+            colormap_nodes = None
+        elif colormap_nodes_name == "fid":
+            colormap = row["colormap"]
+            colormap_nodes = list(colormap["fragments"].values())
+        return self.draw_fc_graph(row["fc_graph"], colormap_nodes=colormap_nodes)
