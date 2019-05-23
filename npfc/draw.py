@@ -199,7 +199,8 @@ def scale_rgb_colormap(colormap: Dict) -> Dict:
     return {k: scale_rgb(colormap[k]) for k in colormap.keys()}
 
 
-def _compute_colormap_a_and_b(mol, l_aidxs, colors):
+def _compute_colormap(mol, d_aidxs, colors):
+    l_aidxs = list(d_aidxs.values())
     colors_k = list(colors.keys())
     colormap_a = {}
     colormap_b = {}
@@ -227,7 +228,19 @@ def _compute_colormap_a_and_b(mol, l_aidxs, colors):
             print("=" * padding + "\n" + "highlightBondColors".center(padding) + "\n" + "=" * padding)
             [print(f"{k}: {v}") for k, v in colormap_b.items()]
 
-    return (colormap_a, colormap_b)
+    # highlight bonds not colored as white, since we get sometimes the RDKit default highlight otherwise
+    # this might not be the best idea ever, but I could not find any hidden property on the mol, atoms or bonds
+    # responsible for this default behavior. To compensate, I tried to make it as fast as possible,
+    # hence the cryptic writing below.
+    # Also I do not update the _color and _num_colors properties, so further color blending should not be an issue
+    bidxs_white = {bidx: (1, 1, 1) for bidx in set([b.GetIdx() for b in mol.GetBonds()]) - set(list(colormap_b.keys()))}
+    #                      white                            all bidx of the mol          -        all colored bidx
+    # update colormap with white bond indices
+    logging.debug(f"")
+    colormap_b.update(bidxs_white)
+
+    # return results as dict
+    return {'atoms': colormap_a, 'bonds': colormap_b}
 
 
 def draw_mols_frags(mols: List[Mol],
@@ -272,10 +285,10 @@ def draw_mols_frags(mols: List[Mol],
             [mol.GetAtomWithIdx(idx).SetProp('molAtomMapNumber', str(mol.GetAtomWithIdx(idx).GetIdx())) for idx in range(mol.GetNumAtoms())]
 
         l_aidxs = ll_aidxs[i]
-        colormap_a, colormap_b = _compute_colormap_a_and_b(mol, l_aidxs, colors)
-        atom_lists.append(list(colormap_a.keys()))
-        colormaps_a.append(colormap_a)
-        colormaps_b.append(colormap_b)
+        colormap = _compute_colormap(mol, l_aidxs, colors)
+        atom_lists.append(list(colormap['atoms'].keys()))
+        colormaps_a.append(colormap['atoms'])
+        colormaps_b.append(colormap['bonds'])
 
     return Draw.MolsToGridImage(mols,
                                 molsPerRow=max_mols_per_row,

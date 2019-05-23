@@ -22,7 +22,7 @@ from rdkit.Chem import AllChem
 import matplotlib.pyplot as plt  # required for creating a canvas for displaying graphs
 import networkx as nx
 # dev
-from npfc import save
+from npfc import draw
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ CLASSES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
@@ -67,17 +67,19 @@ class Matcher:
         d['mol_frag'] = []  # strucutre of the fragment
         # begin
         for idm, rowm in df_mols.iterrows():
+            mol = Mol(rowm[col_mol_mols])
             hac = rowm[col_mol_mols].GetNumAtoms()
             for idf, rowq in df_frags.iterrows():
-                matches = rowm[col_mol_mols].GetSubstructMatches(rowq[col_mol_frags])
+                # perform the substructure search on mol so the latest matching fragment does not get highlighted
+                matches = mol.GetSubstructMatches(rowq[col_mol_frags])
                 for i, m in enumerate(matches):
                     d['idm'].append(idm)
                     d['idf'].append(idf)
-                    d['aidxf'].append(set(m))  # set for intersections later
+                    d['aidxf'].append(frozenset(m))  # frozenset so we can use intersection, etc. and still remove dupl. easily
                     d['idxf'].append(str(i))
                     d['mol_perc'].append(round(len(m)/hac, 2) * 100)
-                    d['mol'] = rowm[col_mol_mols]
-                    d['mol_frag'] = rowq[col_mol_frags]
+                    d['mol'].append(rowm[col_mol_mols])
+                    d['mol_frag'].append(rowq[col_mol_frags])
 
         return DataFrame(d)
 
@@ -366,7 +368,6 @@ class CombinationClassifier:
         return {'category': category, 'type': type, 'subtype': 'edge', 'abbrev': abbrev}
 
     def classify_fragment_combinations(self,
-                                       df_mols: DataFrame,
                                        df_aidxf: DataFrame,
                                        cutoff: int = 3,
                                        clean: bool = True) -> DataFrame:
@@ -389,16 +390,13 @@ class CombinationClassifier:
         Fragments with a number of intermediary atoms higher than defined cutoff
         are labelled as false positives.
 
-        :param df_mols: the input DataFrame with molecules
         :param df_aidxf: the input DataFrame with substructure matches
         :param cutoff: the maximum number of intermediary atoms between 2 fragments
         :param clean: remove false positives such as cfc or substructures from results by calling the clean method.
         :return: a DataFrame with all fragment combination classifications
         """
         ds_fcc = []
-        if 'idm' in df_mols.columns:
-            logging.debug("Reindexing df with 'idm'")
-            df_mols.index = df_mols['idm']
+        logging.debug(df_aidxf.columns)
         # labelling idxf
         df_aidxf['aidxf_str'] = df_aidxf['aidxf'].map(str)  # sets are an unhashable type...
 
@@ -406,7 +404,7 @@ class CombinationClassifier:
 
         # classify fragment combinations
         for gid, g in df_aidxf.groupby('idm'):
-            mol = df_mols.loc[gid]['mol']
+            mol = g.iloc[0]['mol']
             hac = mol.GetNumAtoms()  # so we can estimate how well-covered is the molecule by its fragment combinations
             # mol = df_mols[df_mols['idm'] == gid]['mol'].iloc[0]
             for i in range(len(g)):
@@ -425,6 +423,7 @@ class CombinationClassifier:
 
                     # record fragment combination
                     d_fcc['idm'] = gid
+                    d_fcc['mol'] = mol
                     d_fcc['idf1'] = idf1
                     d_fcc['idxf1'] = idxf1
                     d_fcc['fid1'] = str(idf1) + ":" + str(idxf1)
@@ -437,7 +436,7 @@ class CombinationClassifier:
                     ds_fcc.append(d_fcc)
         logging.debug("="*80)
         # dataframe with columns in given order
-        df_fcc = DataFrame(ds_fcc, columns=['idm', 'idf1', 'idxf1', 'fid1', 'idf2', 'idxf2', 'fid2', 'abbrev', 'category', 'type', 'subtype', 'aidxf1', 'aidxf2', 'hac'])
+        df_fcc = DataFrame(ds_fcc, columns=['idm', 'idf1', 'idxf1', 'fid1', 'idf2', 'idxf2', 'fid2', 'abbrev', 'category', 'type', 'subtype', 'aidxf1', 'aidxf2', 'hac', 'mol'])
         # clean results from false positives
         if clean:
             return self.clean(df_fcc)
@@ -598,7 +597,14 @@ class CombinationClassifier:
                 frags_u = list(set([x.split(":")[0] for x in frags]))
                 nfrags_u = len(frags_u)
                 # combine aidxfs from all fragments
-                aidxfs = list(df_fcc_clean['aidxf1'].values) + list(df_fcc_clean['aidxf2'].values)
+                ## use frozensets instead
+                aidxfs = set()
+                aidxfs.update(df_fcc_clean['aidxf1'].values)
+                aidxfs.update(df_fcc_clean['aidxf2'].values)
+                aidxfs = list(aidxfs)
+                logging.debug(f"aidxf1: {list(df_fcc_clean['aidxf1'].values)}")
+                logging.debug(f"aidxf2: {list(df_fcc_clean['aidxf2'].values)}")
+                logging.debug(f"aidxfs: {aidxfs}")
                 # organize aidxfs
                 aidxfs = dict(zip(frags, aidxfs))  # aidxfs is now a dict with frag: aidfx
                 for k in aidxfs.keys():
@@ -608,21 +614,28 @@ class CombinationClassifier:
                 hac_frags = len(list(set([item for sublist in aidxfs.values() for item in sublist])))
                 perc_mol_cov_frags = round((hac_frags / hac_mol), 2) * 100
 
-                # compute a new graph with edge labels and encode it in base64 str for storage ### this means I compute graphs twice... room for optimization here?
-                fc_graph = base64.b64encode(pickle.dumps(nx.from_pandas_edgelist(df_fcc_clean, "fid1", "fid2", "abbrev")))
+                # compute a new graph again but this time on a single subgraph and with edge labels (room for optimization)
+                fc_graph = nx.from_pandas_edgelist(df_fcc_clean, "fid1", "fid2", "abbrev")
+                mol = df_fcc_clean.iloc[0]['mol']  # same molecule in each row, so the first one is perfectly fine
+                logging.debug(f"### type of mol {type(mol)}")
 
                 # attribute colors to each fragment
+                logging.debug(f"aidxfs: {aidxfs}")
+                colormap = draw._compute_colormap(mol, aidxfs, draw.colors)
 
                 # avoid issues with pandas and complex data structures by dumping it as string
-                aidxfs = json.dumps(aidxfs)
+                # fc_graph = base64.b64encode(pickle.dumps(fc_graph))
+
+                # colormap = json.dumps(colormap)
+                # aidxfs = json.dumps(aidxfs)
                 comb = list(df_fcc_clean['abbrev'].values)
                 ncomb = len(comb)
                 comb_u = list(set(comb))
                 ncomb_u = len(comb_u)
-                ds_map.append({'idm': gid, 'fmid': str(i+1).zfill(3), 'nfrags': nfrags, 'nfrags_u': nfrags_u, 'ncomb': ncomb, 'ncomb_u': ncomb_u, 'hac_mol': hac_mol, 'hac_frags': hac_frags, 'perc_mol_cov_frags': perc_mol_cov_frags,  'frags': frags, 'frags_u': frags_u, 'comb': comb, 'comb_u': comb_u, 'aidxfs': aidxfs, 'map_str': frag_map_str, 'fc_graph': fc_graph})
+                ds_map.append({'idm': gid, 'fmid': str(i+1).zfill(3), 'nfrags': nfrags, 'nfrags_u': nfrags_u, 'ncomb': ncomb, 'ncomb_u': ncomb_u, 'hac_mol': hac_mol, 'hac_frags': hac_frags, 'perc_mol_cov_frags': perc_mol_cov_frags,  'frags': frags, 'frags_u': frags_u, 'comb': comb, 'comb_u': comb_u, 'aidxfs': aidxfs, 'map_str': frag_map_str, 'colormap': colormap, 'fc_graph': fc_graph, 'mol': mol})
 
         # df_map
-        return DataFrame(ds_map, columns=['idm', 'fmid', 'nfrags', 'nfrags_u', 'ncomb', 'ncomb_u', 'hac_mol', 'hac_frags', 'perc_mol_cov_frags', 'frags', 'frags_u', 'comb', 'comb_u', 'aidxfs', 'map_str', 'fc_graph'])
+        return DataFrame(ds_map, columns=['idm', 'fmid', 'nfrags', 'nfrags_u', 'ncomb', 'ncomb_u', 'hac_mol', 'hac_frags', 'perc_mol_cov_frags', 'frags', 'frags_u', 'comb', 'comb_u', 'aidxfs', 'map_str', 'colormap', 'fc_graph', 'mol'])
 
     def draw_fc_graph(self, fc_graph):
         if isinstance(fc_graph, base64.bytes_types):
