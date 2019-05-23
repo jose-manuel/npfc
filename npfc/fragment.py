@@ -10,10 +10,8 @@ This modules contains two classes:
 # standard
 import logging
 import itertools
-import json
 # data handling
-import base64
-import pickle
+from collections import OrderedDict
 # chemoinformatics
 from rdkit.Chem import Mol
 from rdkit.Chem import AllChem
@@ -502,13 +500,12 @@ class CombinationClassifier:
         This fragment map is a single line string representation of the fragment connectivity
         within a molecule and follows following syntax:
 
-            >>> f1:0[abbrev1]f2:0-f1:0[abbrev2]f3:0-f2:0[abbrev3]f3:0
+            >>> f1:0[cmo]f2:0-f1:0[fed]f3:0-f2:0[cmo]f3:0
 
-        No applying any limit of the max number of frags might have been what caused
-        crashed due to memory usage on the cluster.
-        Nope, this still happens now.
-        The real reason was because of very high numbers of overlapping combinations
-        in some molecules (366 so 2^366 graphs!)
+        with a fragment id being composed of 2 parts seperated by ":":
+            - f1: the fragment type
+            - 0: the occurrence number of the fragment type in this molecule
+
         """
         # split by overlaps
 
@@ -594,18 +591,16 @@ class CombinationClassifier:
                 aidxfs.update(df_fcc_clean['aidxf1'].values)
                 aidxfs.update(df_fcc_clean['aidxf2'].values)
                 aidxfs = list(aidxfs)
-                logging.debug(f"aidxf1: {list(df_fcc_clean['aidxf1'].values)}")
-                logging.debug(f"aidxf2: {list(df_fcc_clean['aidxf2'].values)}")
-                logging.debug(f"aidxfs: {aidxfs}")
-                # organize aidxfs
-                aidxfs = dict(zip(frags, aidxfs))  # aidxfs is now a dict with frag: aidfx
-                for k in aidxfs.keys():
-                    aidxfs[k] = list(aidxfs[k])
-                # compute fragment coverage of the molecule
-                hac_mol = g.iloc[0]['hac']  # same hac for all entries of the same molecule
-                hac_frags = len(list(set([item for sublist in aidxfs.values() for item in sublist])))
-                perc_mol_cov_frags = round((hac_frags / hac_mol), 2) * 100
 
+                # organize aidxfs
+                d_aidxs = OrderedDict(zip(frags, aidxfs))  # aidxfs is now a dict with frag: aidfx
+                for k in d_aidxs.keys():
+                    d_aidxs[k] = list(d_aidxs[k])
+
+                # compute fragment coverage of the molecule
+                hac_mol = g.iloc[0]['hac']  # same hac for all entries since this is the same molecule anyway
+                hac_frags = len(list(set([item for sublist in d_aidxs.values() for item in sublist])))
+                perc_mol_cov_frags = round((hac_frags / hac_mol), 2) * 100
                 # compute a new graph again but this time on a single subgraph and with edge labels (room for optimization)
                 fc_graph = nx.from_pandas_edgelist(df_fcc_clean, "fid1", "fid2", "abbrev")
                 # same molecule in each row, so to use the first one is perfectly fine
@@ -616,19 +611,14 @@ class CombinationClassifier:
                 if noverlaps > 0:
                     mol = Mol(mol)
 
-                # attribute colors to each fragment
-                colormap = draw._compute_colormap(mol, aidxfs, draw.colors)
+                # attribute colors to each fragment atoms/bonds
+                colormap = draw._compute_colormap(mol, d_aidxs, draw.colors)
 
-                # avoid issues with pandas and complex data structures by dumping it as string
-                # fc_graph = base64.b64encode(pickle.dumps(fc_graph))
-
-                # colormap = json.dumps(colormap)
-                # aidxfs = json.dumps(aidxfs)
                 comb = list(df_fcc_clean['abbrev'].values)
                 ncomb = len(comb)
                 comb_u = list(set(comb))
                 ncomb_u = len(comb_u)
-                ds_map.append({'idm': gid, 'fmid': str(i+1).zfill(3), 'nfrags': nfrags, 'nfrags_u': nfrags_u, 'ncomb': ncomb, 'ncomb_u': ncomb_u, 'hac_mol': hac_mol, 'hac_frags': hac_frags, 'perc_mol_cov_frags': perc_mol_cov_frags,  'frags': frags, 'frags_u': frags_u, 'comb': comb, 'comb_u': comb_u, 'aidxfs': aidxfs, 'map_str': frag_map_str, 'colormap': colormap, 'fc_graph': fc_graph, 'mol': mol})
+                ds_map.append({'idm': gid, 'fmid': str(i+1).zfill(3), 'nfrags': nfrags, 'nfrags_u': nfrags_u, 'ncomb': ncomb, 'ncomb_u': ncomb_u, 'hac_mol': hac_mol, 'hac_frags': hac_frags, 'perc_mol_cov_frags': perc_mol_cov_frags,  'frags': frags, 'frags_u': frags_u, 'comb': comb, 'comb_u': comb_u, 'map_str': frag_map_str, 'colormap': colormap, 'fc_graph': fc_graph, 'mol': mol})
 
         # df_map
-        return DataFrame(ds_map, columns=['idm', 'fmid', 'nfrags', 'nfrags_u', 'ncomb', 'ncomb_u', 'hac_mol', 'hac_frags', 'perc_mol_cov_frags', 'frags', 'frags_u', 'comb', 'comb_u', 'aidxfs', 'map_str', 'colormap', 'fc_graph', 'mol'])
+        return DataFrame(ds_map, columns=['idm', 'fmid', 'nfrags', 'nfrags_u', 'ncomb', 'ncomb_u', 'hac_mol', 'hac_frags', 'perc_mol_cov_frags', 'frags', 'frags_u', 'comb', 'comb_u', 'map_str', 'colormap', 'fc_graph', 'mol'])

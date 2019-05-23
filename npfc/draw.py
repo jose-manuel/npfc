@@ -207,8 +207,21 @@ def scale_rgb_colormap(colormap: Dict) -> Dict:
     return {k: scale_rgb(colormap[k]) for k in colormap.keys()}
 
 
-def _compute_colormap(mol, d_aidxs, colors):
+def _compute_colormap(mol: Mol, d_aidxs: Dict, colors):
+    """
+    Compute a colormap for highlighting a molecule given a dictionary of fragments {fid: [aidxs]} and specified RGB colors.
 
+    The following rules are applied for consistant highilighting:
+
+             - only one color is attributed per fragment
+             - in case there are more fragments than colors, a same color can be used for several fragments
+             - when 2 fragments of different colors overlap, their colors are blended on overlapping atoms/bonds
+             - when 2 fragments of same colors overlap, a 10% darker shade is used on overlapping atoms/bonds, so these can be distinguished
+
+    :param mol: the molecule to highlight
+    :param d_aidxs: a dictionary of fragments atom indices
+    :param colors: a color palette
+    """
     # extract all fids and sort them by alphabetical order for reproducible coloring
     fids = list(d_aidxs.keys())
     fids.sort()
@@ -314,7 +327,16 @@ def _compute_colormap(mol, d_aidxs, colors):
 #                                 )
 
 
-def highlight_mol_frags(mol, colormap, img_size=(300, 300), debug=False) -> Image:
+def highlight_mol(mol: Mol, colormap: Dict, img_size: Tuple[int] = (300, 300), debug: bool = False) -> Image:
+    """
+    Draw an Image of a molecule with highlighted atoms and bonds according to a colormap.
+
+    :param mol: the molecule to draw
+    :param colormap: a dictionary containing 3 keys: 'fragments', 'atoms' and 'bonds' and associated colors
+    :param img_size: the size of the resulting Image
+    :param debug: display atom indices on the structure
+    :return: a PNG Image of the highlighted molecule
+    """
     if debug:
         mol = Mol(mol)
         [mol.GetAtomWithIdx(idx).SetProp('molAtomMapNumber', str(mol.GetAtomWithIdx(idx).GetIdx())) for idx in range(mol.GetNumAtoms())]
@@ -328,7 +350,7 @@ def highlight_mol_frags(mol, colormap, img_size=(300, 300), debug=False) -> Imag
                                 )
 
 
-def highlight_mols_frags(mols, colormaps, sub_img_size=(300, 300), max_mols_per_row=5, debug=False):
+def highlight_mols(mols, colormaps, sub_img_size=(300, 300), max_mols_per_row=5, debug=False):
     atom_lists = []
     colormaps_a = []
     colormaps_b = []
@@ -352,10 +374,15 @@ def highlight_mols_frags(mols, colormaps, sub_img_size=(300, 300), max_mols_per_
                                 )
 
 
-def _get_edge_info(graph):
+def _get_edge_info(fc_graph: Graph) -> Dict:
+    """
+    Use the first associated data of edges for edge labelling of a networkx graph.
+
+    :param fc_graph: a Fragment Combination graph
+    :return: a Dict of syntax {(node1, node2): data}
+    """
     d = {}
-    edges_raw = list(graph.edges(data=True))
-    for edge in edges_raw:
+    for edge in list(fc_graph.edges(data=True)):
         d[(edge[0], edge[1])] = list(edge[2].values())[0]
     return d
 
