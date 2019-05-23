@@ -5,6 +5,8 @@ Tests for the standardize module.
 """
 # standard
 from pathlib import Path
+import logging
+import warnings
 # data science
 import pandas as pd
 # chemoinformatics
@@ -21,11 +23,10 @@ from npfc.standardize import FullUncharger
 from npfc.standardize import DuplicateFilter
 from npfc import load
 # configure logging
-# import logging
-# logging.basicConfig(level=logging.DEBUG)
 lg = RDLogger.logger()
 lg.setLevel(RDLogger.CRITICAL)
-
+warnings.simplefilter(action='ignore', category=pd.errors.PerformanceWarning)
+# logging.basicConfig(level=logging.DEBUG)
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FIXTURES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 

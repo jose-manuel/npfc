@@ -5,6 +5,7 @@ Functional test to make sure all step input/outputs are compatible
 for a local run of the npfc workflow.
 """
 # standard library
+import logging
 # data handling
 import pandas as pd
 # chemoinformatics
@@ -13,7 +14,7 @@ from rdkit import Chem
 import pytest
 from npfc import fragment
 
-# import logging
+# debug
 # logging.basicConfig(level=logging.DEBUG)
 
 ## TO DO LATER

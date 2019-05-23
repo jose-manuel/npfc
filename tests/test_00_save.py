@@ -10,6 +10,7 @@ are erased.
 # standard
 from glob import glob
 from pathlib import Path
+import logging
 # data handling
 import pandas as pd
 # chemoinformatics
@@ -17,8 +18,7 @@ from rdkit import Chem
 # tests
 import pytest
 from npfc import save
-
-# import logging
+# debug
 # logging.basicConfig(level=logging.DEBUG)
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FIXTURES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
