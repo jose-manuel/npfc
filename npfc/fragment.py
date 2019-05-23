@@ -654,26 +654,25 @@ class CombinationClassifier:
         pos = nx.spring_layout(fc_graph)
         edges_info = self._get_edge_info(fc_graph)
         figure = plt.figure()
-        figure = nx.draw(fc_graph,
-                         pos,
-                         edge_color='black',
-                         width=1,
-                         linewidths=1,
-                         node_size=2000,
-                         node_color=colormap_nodes,
-                         alpha=0.95,
-                         with_labels=True,
-                         )
-        figure = nx.draw_networkx_edge_labels(fc_graph,
-                                              pos,
-                                              edge_labels=edges_info,
-                                              font_color='red',
-                                              )
+        nx.draw(fc_graph,
+                pos,
+                edge_color='black',
+                width=1,
+                linewidths=1,
+                node_size=2000,
+                node_color=colormap_nodes,
+                alpha=0.95,
+                with_labels=True,
+                )
+        nx.draw_networkx_edge_labels(fc_graph,
+                                     pos,
+                                     edge_labels=edges_info,
+                                     font_color='red',
+                                     )
         return figure
 
     def draw_fc_graph_from_series(self, row, colormap_nodes_name=None):
         """
-
         """
         if colormap_nodes_name is None:
             colormap_nodes = None
