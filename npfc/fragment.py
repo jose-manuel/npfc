@@ -19,6 +19,7 @@ from rdkit.Chem import AllChem
 import networkx as nx
 # docs
 from pandas import DataFrame
+from typing import List
 # dev
 from npfc import draw
 
@@ -440,12 +441,14 @@ class CombinationClassifier:
             return self.clean(df_fcc)
         return df_fcc
 
-    def clean(self, df_fcc):
+    def clean(self, df_fcc: DataFrame) -> DataFrame:
         """Clean a df_fcc by removing false positives such as substructures and
         cutoff combinations.
-        Currently, the cluster terminated the vast majority of my jobs because of
-        memory usage, so I'm trying to split up the different tasks in different
-        scripts.
+
+        Overlaps are still kept for further processing.
+
+        :param df_fcc: a fcc DataFrame
+        :return: a cleaned fcc DataFrame
         """
 
         # clean the data
@@ -493,6 +496,88 @@ class CombinationClassifier:
 
         return df_fcc
 
+    def _split_overlaps(self, gid: str, g: DataFrame, max_overlaps: int) -> DataFrame:
+        """
+        Split a fcc DataFrame containing overlap entries into different DataFrames.
+
+        This function is used within a loop, hence the need for gid parameter (logging).
+
+        :param gid: current group id
+        :param g: current group DataFrame
+        :max_overlaps: maximum number of authorized overlap entries in the DataFrame, if observed number is higher, then an empty DataFrame is returned
+        :return: a List of DataFrames
+        """
+        # entries with an overlap
+        overlaps = g[g['abbrev'] == 'ffo']
+        noverlaps = len(overlaps.index)
+        if noverlaps > 0:  # the code below could certainly be improved, but this case should not happen too often
+            logging.debug(f"Number of overlaps found for molecule {gid}: {noverlaps}")
+            # filter out molecules with too many overlaps
+            if noverlaps > max_overlaps:
+                logging.debug(f"Too many overlap combinations ({noverlaps}), discarding molecule '{gid}'")
+                # return empty DataFrameas well as the number of overlaps found
+                return (DataFrame(columns=g.columns), noverlaps)
+            # remove overlaps from the current group
+            g = g[g['abbrev'] != 'ffo']
+            # get fragment ids of the common parts of alternative paths
+            common = g[(~g['fid1'].isin(overlaps['fid1'])) & (~g['fid2'].isin(overlaps['fid2']))]
+            common_combinations = set()
+            for rowid, row in common.iterrows():
+                common_combinations.add(row['fid1'])
+                common_combinations.add(row['fid2'])
+            common_combinations = list(common_combinations)
+            # get the fragment ids of the variant parts of alternative paths
+            alt_combinations = []
+            for rowid, row in overlaps.iterrows():
+                alt_combinations.append([row['fid1'], row['fid2']])
+            # get all possible paths
+            alt_combinations = [list(x) + common_combinations for x in list(itertools.product(*alt_combinations))]
+
+            dfs_fcc_clean = []
+            for alt in alt_combinations:
+                df_alt = g[(g['fid1'].isin(alt)) | (g['fid2'].isin(alt))]
+                to_add = True
+                # check if this fcc is already recorded, if so do not record it again,
+                # this is useful in case of common parts being the only remaining parts of overlaps
+                for df_fcc_clean in dfs_fcc_clean:
+                    if df_alt.equals(df_fcc_clean):
+                        to_add = False
+                if to_add:
+                    dfs_fcc_clean.append(df_alt)
+        else:
+            dfs_fcc_clean = [g]
+
+        return (dfs_fcc_clean, noverlaps)
+
+    def _split_unconnected(self, dfs_fcc_clean: List[DataFrame]) -> List[DataFrame]:
+        """
+        From a list of DataFrames of Fragment Combinations, split up DataFrames containing
+        two or more unconnected parts in different DataFrames.
+        For instance if a molecule has two paired fragments left and two fragments right
+        too far from other, then we get something like 2 and 2 instead of 4.
+
+        :param dfs_fcc_clean: a List of fcc DataFrames
+        :return: an updated List of connected fcc DataFrames
+        """
+        dfs_fcc_ready = []
+        for i, df_fcc_clean in enumerate(dfs_fcc_clean):
+            # compute a graph with each fid as a node, one row means an edge between 2 fid
+            fc_graph = nx.from_pandas_edgelist(df_fcc_clean, "fid1", "fid2")
+            fc_subgraphs = list(nx.connected_component_subgraphs(fc_graph))
+            num_fc_subgraphs = len(fc_subgraphs)
+            # splitting up subgraphs
+            if num_fc_subgraphs > 1:
+                logging.debug(f"Fragment Connectivity" + f"{i}".rjust(5) + f": found {num_fc_subgraphs} fc_subgraphs, so splitting up")
+                # for each subgraph, record corresponding rows in df only
+                for fc_subgraph in fc_subgraphs:
+                    nodes = list(fc_subgraph.nodes())
+                    df_fcc_subgraph = df_fcc_clean[((df_fcc_clean['fid1'].isin(nodes)) | (df_fcc_clean['fid2'].isin(nodes)))].copy()
+                    dfs_fcc_ready.append(df_fcc_subgraph)
+            else:
+                dfs_fcc_ready.append(df_fcc_clean)
+
+        return dfs_fcc_ready
+
     def map_frags(self, df_fcc: DataFrame, min_frags: int = 2, max_frags: int = 5, max_overlaps: int = 5) -> DataFrame:
         """This method process a fragment combinations computed with classify_fragment_combinations
         and return a new DataFrame with a fragment map for each molecule.
@@ -513,62 +598,14 @@ class CombinationClassifier:
 
         ds_map = []
         for gid, g in df_fcc.groupby('idm'):
-            # entries with an overlap
-            overlaps = g[g['abbrev'] == 'ffo']
-            noverlaps = len(overlaps.index)
-            if noverlaps > 0:  # the code below could certainly be improved, but this case should not happen too often
-                logging.debug(f"Number of overlaps found for molecule {gid}: {noverlaps}")
-                # filter out molecules with too many overlaps
-                if noverlaps > max_overlaps:
-                    logging.debug(f"Too many overlap combinations ({noverlaps}), discarding molecule '{gid}'")
-                    continue
-                # remove overlaps from the current group
-                g = g[g['abbrev'] != 'ffo']
-                # get fragment ids of the invariant parts of alternative paths
-                common = g[(~g['fid1'].isin(overlaps['fid1'])) & (~g['fid2'].isin(overlaps['fid2']))]
-                common_combinations = set()
-                for rowid, row in common.iterrows():
-                    common_combinations.add(row['fid1'])
-                    common_combinations.add(row['fid2'])
-                common_combinations = list(common_combinations)
-                # get the fragment ids of the variant parts of alternative paths
-                alt_combinations = []
-                for rowid, row in overlaps.iterrows():
-                    alt_combinations.append([row['fid1'], row['fid2']])
-                # get all possible paths
-                alt_combinations = [list(x) + common_combinations for x in list(itertools.product(*alt_combinations))]
 
-                dfs_fcc_clean = []
-                for alt in alt_combinations:
-                    df_alt = g[(g['fid1'].isin(alt)) | (g['fid2'].isin(alt))]
-                    to_add = True
-                    # check if this fcc is already recorded, if so do not record it again,
-                    # this is useful in case of common parts being the only remaining parts of overlaps
-                    for df_fcc_clean in dfs_fcc_clean:
-                        if df_alt.equals(df_fcc_clean):
-                            to_add = False
-                    if to_add:
-                        dfs_fcc_clean.append(df_alt)
-            else:
-                dfs_fcc_clean = [g]
+            # split overlaps into different Dataframes
+            dfs_fcc_clean, noverlaps = self._split_overlaps(gid, g, max_overlaps)
+            if len(dfs_fcc_clean) == 0:
+                continue
 
             # compute fragment connectivity graph objects so we can split up disconnected subgraphs
-            dfs_fcc_ready = []
-            for i, df_fcc_clean in enumerate(dfs_fcc_clean):
-                # compute a graph with each fid as a node, one row means an edge between 2 fid
-                fc_graph = nx.from_pandas_edgelist(df_fcc_clean, "fid1", "fid2")
-                fc_subgraphs = list(nx.connected_component_subgraphs(fc_graph))
-                num_fc_subgraphs = len(fc_subgraphs)
-                # splitting up subgraphs
-                if num_fc_subgraphs > 1:
-                    logging.debug(f"Fragment Connectivity" + f"{i}".rjust(5) + f": found {num_fc_subgraphs} fc_subgraphs, so splitting up")
-                    # for each subgraph, record corresponding rows in df only
-                    for fc_subgraph in fc_subgraphs:
-                        nodes = list(fc_subgraph.nodes())
-                        df_fcc_subgraph = df_fcc_clean[((df_fcc_clean['fid1'].isin(nodes)) | (df_fcc_clean['fid2'].isin(nodes)))].copy()
-                        dfs_fcc_ready.append(df_fcc_subgraph)
-                else:
-                    dfs_fcc_ready.append(df_fcc_clean)
+            dfs_fcc_ready = self._split_unconnected(dfs_fcc_clean)
 
             # compute the entries of the df_map
             for i, df_fcc_clean in enumerate(dfs_fcc_ready):
