@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Module standardize &mdash; npfc 0.1.7-1-gb0c2f5b documentation</title>
+  <title>Module standardize &mdash; npfc 0.1.7-2-ga1b822a documentation</title>
   
 
   
@@ -58,7 +58,7 @@
             
             
               <div class="version">
-                0.1.7-1-gb0c2f5b
+                0.1.7-2-ga1b822a
               </div>
             
           
@@ -185,10 +185,12 @@
 <dt id="npfc.standardize.DuplicateFilter.find_synonyms">
 <code class="descname">find_synonyms</code><span class="sig-paren">(</span><em>df</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#DuplicateFilter.find_synonyms"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.DuplicateFilter.find_synonyms" title="Permalink to this definition">¶</a></dt>
 <dd><p>Find synonyms within a DataFrame.</p>
-<p>The Synonyms DataFrame follows the follow syntax:
-- rowid: The InChIKey of the molecule (‘inchikey’).
-- idm_synonyms: The list of all molecule ids sharing the same InChIKey.
-- idm: The id of the molecule that was kept (first element of idm_synonyms).</p>
+<p>The Synonyms DataFrame follows the follow syntax:</p>
+<ul class="simple">
+<li>rowid: The InChIKey of the molecule (‘inchikey’).</li>
+<li>idm_synonyms: The list of all molecule ids sharing the same InChIKey.</li>
+<li>idm: The id of the molecule that was kept (first element of idm_synonyms).</li>
+</ul>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -303,18 +305,18 @@ on a protocol that the user can modify.</p>
 <blockquote>
 <div><ol class="arabic simple">
 <li><strong>initiate_mol</strong>: check if the molecule passed the RDKit conversion</li>
+<li><strong>disconnect_metal</strong>: break bonds involving metallic atoms, resulting in potentially several molecules per structure.</li>
+<li><strong>keep_best</strong>: retrieve only the “best” molecule from a structure. The best molecule, in this order, has only medchem elements, is not linear and has the largest molecular weight of the mixture.</li>
+<li><strong>filter_hac</strong>: filter molecules with a heavy atom count not in the accepted range. By default: hac &gt; 3.</li>
+<li><strong>filter_molweight</strong>: filter molecules with a molecular weight not in the accepted range. By default: molweight &lt;= 1000.0.</li>
+<li><strong>filter_nrings</strong>: filter molecules with a number of rings (Smallest Sets of Smallest Rings or SSSR) not in the accepted range. By default: nrings &gt; 0.</li>
+<li><strong>filter_medchem</strong>: filter molecules with elements not considered as medchem. By default: elements in H, B, C, N, O, F, P, S, Cl, Br, I.</li>
+<li><strong>remove_isotopes</strong>: set all atoms to their most common isotope (i.e. 14C becomes 12C which is C).</li>
+<li><strong>normalize</strong>: always write the same functional groups in the same manner.</li>
+<li><strong>uncharge</strong>: remove all charges on a molecule when it is possible. This is different from rdkit.Chem.MolStandardize.charge module as there is no attempt for reaching the zwitterion.</li>
+<li><strong>canonicalize</strong>: enumerate the canonical tautomer.</li>
+<li><strong>remove_stereo</strong>: remove all remaining stereochemistry flags on the molecule.</li>
 </ol>
-<p>2) <strong>disconnect_metal</strong>: break bonds involving metallic atoms, resulting in potentially several molecules per structure.
-4) <strong>filter_hac</strong>: filter molecules with a heavy atom count not in the accepted range. By default: hac &gt; 3.
-3) <strong>keep_best</strong>: retrieve only the “best” molecule from a structure. The best molecule, in this order, has only medchem elements, is not linear and has the largest molecular weight of the mixture.
-5) <strong>filter_molweight</strong>: filter molecules with a molecular weight not in the accepted range. By default: molweight &lt;= 1000.0.
-6) <strong>filter_nrings</strong>: filter molecules with a number of rings (Smallest Sets of Smallest Rings or SSSR) not in the accepted range. By default: nrings &gt; 0.
-7) <strong>filter_medchem</strong>: filter molecules with elements not considered as medchem. By default: elements in H, B, C, N, O, F, P, S, Cl, Br, I.
-8) <strong>remove_isotopes</strong>: set all atoms to their most common isotope (i.e. 14C becomes 12C which is C).
-9) <strong>normalize</strong>: always write the same functional groups in the same manner.
-10) <strong>uncharge</strong>: remove all charges on a molecule when it is possible. This is different from rdkit.Chem.MolStandardize.charge module as there is no attempt for reaching the zwitterion.
-11) <strong>canonicalize</strong>: enumerate the canonical tautomer.
-12) <strong>remove_stereo</strong>: remove all remaining stereochemistry flags on the molecule.</p>
 </div></blockquote>
 <p>Finally, duplicate entries can be filtered using InChiKeys when postprocessing the DataFrame with molecules (argument in the run_df method).</p>
 <p>This results in new columns in the input DataFrame:</p>

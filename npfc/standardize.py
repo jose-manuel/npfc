@@ -263,7 +263,7 @@ class Standardizer(Filter):
 
         1) **initiate_mol**: check if the molecule passed the RDKit conversion
         2) **disconnect_metal**: break bonds involving metallic atoms, resulting in potentially several molecules per structure.
-        3) **keep_best**: retrieve only the "best" molecule from a structure. The best molecule, in this order, has only medchem elements, is not linear and has the largest molecular weight of the mixture.
+        3) **keep_best**: retrieve only the "best" molecule from a mixture, which might not always be the largest one.
         4) **filter_hac**: filter molecules with a heavy atom count not in the accepted range. By default: hac > 3.
         5) **filter_molweight**: filter molecules with a molecular weight not in the accepted range. By default: molweight <= 1000.0.
         6) **filter_nrings**: filter molecules with a number of rings (Smallest Sets of Smallest Rings or SSSR) not in the accepted range. By default: nrings > 0.
@@ -294,7 +294,7 @@ class Standardizer(Filter):
 
     .. note:: For now, the user can only change the task order and the values of filters, but it would be relatively easy to add more functionality.
 
-    .. todo:: Check latest publication sent by Prof. H. Waldmann, there might be an open-source tool for deglycosylating structures, which could become a new task.
+    .. note:: For now structures are deglycosylated before being standardized using a KIME workflow. This is far from being ideal, at the node itself contains bugs and its execution is relatively slow.
     """
 
     def __init__(self,

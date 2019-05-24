@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.standardize &mdash; npfc 0.1.7-1-gb0c2f5b documentation</title>
+  <title>npfc.standardize &mdash; npfc 0.1.7-2-ga1b822a documentation</title>
   
 
   
@@ -56,7 +56,7 @@
             
             
               <div class="version">
-                0.1.7-1-gb0c2f5b
+                0.1.7-2-ga1b822a
               </div>
             
           
@@ -319,6 +319,7 @@
         <span class="sd">&quot;&quot;&quot;Find synonyms within a DataFrame.</span>
 
 <span class="sd">        The Synonyms DataFrame follows the follow syntax:</span>
+
 <span class="sd">        - rowid: The InChIKey of the molecule (&#39;inchikey&#39;).</span>
 <span class="sd">        - idm_synonyms: The list of all molecule ids sharing the same InChIKey.</span>
 <span class="sd">        - idm: The id of the molecule that was kept (first element of idm_synonyms).</span>
@@ -394,7 +395,6 @@
 <span class="sd">        within Standardizer.run only as it updates columns &#39;status&#39; and &#39;task&#39; to</span>
 <span class="sd">        respectively &#39;filtered&#39; and &#39;filter_duplicates&#39;. Might still be useful if exposed.</span>
 
-
 <span class="sd">        Moreover, update the reference file (if specified) by using a lock (from utils module) so that</span>
 <span class="sd">        no other processes can modify it at the same time. This enables a safe duplicate</span>
 <span class="sd">        molecules filtering accross chunks without having to gather everything in a single file.</span>
@@ -417,8 +417,8 @@
 
 <span class="sd">        1) **initiate_mol**: check if the molecule passed the RDKit conversion</span>
 <span class="sd">        2) **disconnect_metal**: break bonds involving metallic atoms, resulting in potentially several molecules per structure.</span>
-<span class="sd">        4) **filter_hac**: filter molecules with a heavy atom count not in the accepted range. By default: hac &gt; 3.</span>
 <span class="sd">        3) **keep_best**: retrieve only the &quot;best&quot; molecule from a structure. The best molecule, in this order, has only medchem elements, is not linear and has the largest molecular weight of the mixture.</span>
+<span class="sd">        4) **filter_hac**: filter molecules with a heavy atom count not in the accepted range. By default: hac &gt; 3.</span>
 <span class="sd">        5) **filter_molweight**: filter molecules with a molecular weight not in the accepted range. By default: molweight &lt;= 1000.0.</span>
 <span class="sd">        6) **filter_nrings**: filter molecules with a number of rings (Smallest Sets of Smallest Rings or SSSR) not in the accepted range. By default: nrings &gt; 0.</span>
 <span class="sd">        7) **filter_medchem**: filter molecules with elements not considered as medchem. By default: elements in H, B, C, N, O, F, P, S, Cl, Br, I.</span>
