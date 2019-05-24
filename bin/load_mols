@@ -10,7 +10,6 @@ export them to CSV or HDF files with RDKit Mol objects.
 # standard
 import sys
 import warnings
-from pathlib import Path
 from datetime import datetime
 import logging
 import argparse

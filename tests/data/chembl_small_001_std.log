@@ -1,0 +1,85 @@
+2019-05-24 13:25:41,684 -- INFO -- RUNNING STANDARDIZE_MOLS
+2019-05-24 13:25:41,685 -- WARNING -- PROTOCOL IS NOT DEFINED, USING DEFAULT
+2019-05-24 13:25:41,685 -- INFO -- LIBRARY VERSIONS:
+2019-05-24 13:25:41,685 -- INFO -- rdkit                                   2018.09.1
+2019-05-24 13:25:41,685 -- INFO -- pandas                                  0.23.4
+2019-05-24 13:25:41,685 -- INFO -- npfc                                    0.1.7-4-g47961b0
+2019-05-24 13:25:41,685 -- INFO -- ARGUMENTS:
+2019-05-24 13:25:41,685 -- INFO -- INPUT_MOLS                              tests/data/chembl_small_001_deglyco.sdf.gz
+2019-05-24 13:25:41,685 -- INFO -- OUTPUT_TEMPLATE                         tests/data/chembl_small_001_deglyco.csv.gz
+2019-05-24 13:25:41,685 -- INFO -- OUTPUT_DIR                              /home/gally/Projects/NPFC/src/tests/data
+2019-05-24 13:25:41,685 -- INFO -- PROTOCOL                                DEFAULT
+2019-05-24 13:25:41,685 -- INFO -- REF_FILE                                tests/data/chembl_small_ref.hdf
+2019-05-24 13:25:41,685 -- INFO -- ENCODE_MOLS                             True
+2019-05-24 13:25:41,685 -- INFO -- DECODE_MOLS                             True
+2019-05-24 13:25:41,685 -- INFO -- IN_ID                                   idm
+2019-05-24 13:25:41,685 -- INFO -- IN_MOL                                  mol
+2019-05-24 13:25:41,685 -- INFO -- IN_FORMAT                               SDF
+2019-05-24 13:25:41,685 -- INFO -- IN_COMPRESSION                          gzip
+2019-05-24 13:25:41,685 -- INFO -- OUT_MOL                                 mol
+2019-05-24 13:25:41,686 -- INFO -- OUT_ID                                  idm
+2019-05-24 13:25:41,686 -- INFO -- OUT_FORMAT                              CSV
+2019-05-24 13:25:41,686 -- INFO -- OUT_COMPRESSION                         gzip
+2019-05-24 13:25:41,686 -- INFO -- CLEAR                                   False
+2019-05-24 13:25:41,686 -- INFO -- LOG                                     INFO
+2019-05-24 13:25:41,686 -- INFO -- OUTPUT FILES:
+2019-05-24 13:25:41,686 -- INFO -- OUTPUT_PASSED                           /home/gally/Projects/NPFC/src/tests/data/chembl_small_001_deglyco_passed.csv.gz
+2019-05-24 13:25:41,686 -- INFO -- OUTPUT_FILTERED                         /home/gally/Projects/NPFC/src/tests/data/chembl_small_001_deglyco_filtered.csv.gz
+2019-05-24 13:25:41,686 -- INFO -- OUTPUT_ERROR                            /home/gally/Projects/NPFC/src/tests/data/chembl_small_001_deglyco_error.csv.gz
+2019-05-24 13:25:41,686 -- INFO -- OUTPUT_REF                              tests/data/chembl_small_ref.hdf
+2019-05-24 13:25:41,686 -- INFO -- BEGIN
+2019-05-24 13:25:41,686 -- INFO -- LOADING MOLECULES
+2019-05-24 13:25:41,988 -- INFO -- LOADED 461 RECORDS WITH 0 FAILURE(S)
+2019-05-24 13:25:41,988 -- INFO -- STANDARDIZING MOLECULES
+2019-05-24 13:25:41,988 -- INFO -- PROTOCOL:
+2019-05-24 13:25:41,988 -- INFO -- TASK #01 disconnect_metal
+2019-05-24 13:25:41,988 -- INFO -- TASK #02 keep_best
+2019-05-24 13:25:41,988 -- INFO -- TASK #03 filter_hac
+2019-05-24 13:25:41,988 -- INFO -- TASK #04 filter_molweight
+2019-05-24 13:25:41,988 -- INFO -- TASK #05 filter_nrings
+2019-05-24 13:25:41,988 -- INFO -- TASK #06 filter_medchem
+2019-05-24 13:25:41,988 -- INFO -- TASK #07 remove_isotopes
+2019-05-24 13:25:41,988 -- INFO -- TASK #08 normalize
+2019-05-24 13:25:41,988 -- INFO -- TASK #09 uncharge
+2019-05-24 13:25:41,988 -- INFO -- TASK #10 canonicalize
+2019-05-24 13:25:41,988 -- INFO -- TASK #11 remove_stereo
+2019-05-24 13:25:41,988 -- INFO -- OPTION filter_hac                       hac > 3
+2019-05-24 13:25:41,989 -- INFO -- OPTION filter_molweight                 molweight <= 1000.0
+2019-05-24 13:25:41,989 -- INFO -- OPTION filter_nrings                    nrings > 0
+2019-05-24 13:25:41,989 -- INFO -- OPTION filter_medchem                   elements in N, P, S, Cl, F, B, H, O, I, C, Br
+2019-05-24 13:25:41,989 -- INFO -- TIMEOUT FOR ABOVE TASKS                 10 SEC
+2019-05-24 13:25:41,989 -- INFO -- FILTER DUPLICATES IS SET TO TRUE
+2019-05-24 13:25:41,989 -- INFO -- RUN STANDARDIZATION
+Traceback (most recent call last):
+  File "/home/gally/Software/anaconda3/envs/npfc/lib/python3.6/site-packages/pandas/core/indexes/base.py", line 3078, in get_loc
+    return self._engine.get_loc(key)
+  File "pandas/_libs/index.pyx", line 140, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/index.pyx", line 162, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/hashtable_class_helper.pxi", line 1492, in pandas._libs.hashtable.PyObjectHashTable.get_item
+  File "pandas/_libs/hashtable_class_helper.pxi", line 1500, in pandas._libs.hashtable.PyObjectHashTable.get_item
+KeyError: 'idm'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/gally/Software/anaconda3/envs/npfc/bin/standardize_mols", line 328, in <module>
+    main()
+  File "/home/gally/Software/anaconda3/envs/npfc/bin/standardize_mols", line 237, in main
+    df_passed, df_filtered, df_error = s.run_df(df_mols)
+  File "/home/gally/Software/anaconda3/envs/npfc/lib/python3.6/site-packages/npfc/standardize.py", line 663, in run_df
+    df.index = df[self.col_id]
+  File "/home/gally/Software/anaconda3/envs/npfc/lib/python3.6/site-packages/pandas/core/frame.py", line 2688, in __getitem__
+    return self._getitem_column(key)
+  File "/home/gally/Software/anaconda3/envs/npfc/lib/python3.6/site-packages/pandas/core/frame.py", line 2695, in _getitem_column
+    return self._get_item_cache(key)
+  File "/home/gally/Software/anaconda3/envs/npfc/lib/python3.6/site-packages/pandas/core/generic.py", line 2489, in _get_item_cache
+    values = self._data.get(item)
+  File "/home/gally/Software/anaconda3/envs/npfc/lib/python3.6/site-packages/pandas/core/internals.py", line 4115, in get
+    loc = self.items.get_loc(item)
+  File "/home/gally/Software/anaconda3/envs/npfc/lib/python3.6/site-packages/pandas/core/indexes/base.py", line 3080, in get_loc
+    return self._engine.get_loc(self._maybe_cast_indexer(key))
+  File "pandas/_libs/index.pyx", line 140, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/index.pyx", line 162, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/hashtable_class_helper.pxi", line 1492, in pandas._libs.hashtable.PyObjectHashTable.get_item
+  File "pandas/_libs/hashtable_class_helper.pxi", line 1500, in pandas._libs.hashtable.PyObjectHashTable.get_item
+KeyError: 'idm'

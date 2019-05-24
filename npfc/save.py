@@ -191,9 +191,9 @@ class Saver:
                 # init
                 output_file_base = '.'.join(output_file.split('.')[:-1])
                 logging.debug(f"Output_file_base: {output_file_base}")
-                # compress the file
-                #
+                # write the file uncompressed
                 PandasTools.WriteSDF(df, output_file_base, molColName=self.col_mol, idName=self.col_id, properties=list(df.columns))
+                # compress the file
                 with open(output_file_base, 'rb') as OUTPUT:
                     with gzip.open(output_file, 'wb') as ARCHIVE:
                         shutil.copyfileobj(OUTPUT, ARCHIVE)

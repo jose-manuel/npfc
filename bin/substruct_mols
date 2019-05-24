@@ -10,7 +10,6 @@ DataFrame that can be further processed.
 # standard
 import sys
 import warnings
-from pathlib import Path
 from datetime import datetime
 import logging
 import argparse

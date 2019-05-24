@@ -19,8 +19,6 @@ import pandas as pd
 import rdkit
 from rdkit import RDLogger
 from rdkit.Chem.Scaffolds import MurckoScaffold
-# docsstrings
-# from typing import List
 # dev
 import npfc
 from npfc import load
@@ -29,35 +27,6 @@ from npfc import utils
 from npfc import standardize
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
-
-
-# def task_abbreviation(tasks: List[str]):
-#     """Helper function for a more accurate results description.
-#     Each task can result in filters or errors, so it would be nice to display
-#     counts of passed, filtered and errors in a tabular format.
-#     This however proved to be more tedious to code than anticipated because the
-#     user can provided his own protocol. For now I just leave a very general display
-#     but the best would be to deduce automatically abbreviations from tasks.
-#     Another option would be to display results as a list, which is less convenient but
-#     might be easier to do.
-
-#     :param tasks: the list of tasks contained in a protocol
-#     :return: the list of abbreviations in the same order
-#     """
-#     d_abbreviations = {'disconnect_metal': 'dm',
-#                        'keep_largest': 'kl',
-#                        'filter_hac': 'f_hac',
-#                        'filter_molweight': 'f_mw',
-#                        'filter_nrings': 'f_nr',
-#                        'filter_medchem': 'f_med',
-#                        'remove_isotopes': 'ri',
-#                        'normalize': 'norm',
-#                        'uncharge': 'unchg',
-#                        'canonicalize': 'canon',
-#                        'remove_stereo': 'rst',
-#                        }
-#
-#     return [d_abbreviations[t] for t in tasks]
 
 
 def main():
