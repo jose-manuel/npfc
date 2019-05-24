@@ -1,0 +1,35 @@
+2019-05-24 11:37:30,664 -- INFO -- RUNNING LOAD_MOLS
+2019-05-24 11:37:30,664 -- INFO -- LIBRARY VERSIONS
+2019-05-24 11:37:30,664 -- INFO -- rdkit                                   2018.09.1
+2019-05-24 11:37:30,664 -- INFO -- pandas                                  0.23.4
+2019-05-24 11:37:30,664 -- INFO -- npfc                                    0.1.7-3-g11c0258
+2019-05-24 11:37:30,664 -- INFO -- ARGUMENTS
+2019-05-24 11:37:30,664 -- INFO -- INPUT_MOLS                              tests/data/chembl_small.sdf.gz
+2019-05-24 11:37:30,664 -- INFO -- OUTPUT_MOLS                             tests/data/chembl_small.sdf.gz
+2019-05-24 11:37:30,664 -- INFO -- NRECORDS                                250
+2019-05-24 11:37:30,664 -- INFO -- SHUFFLE                                 False
+2019-05-24 11:37:30,664 -- INFO -- KEEP_PROPS                              False
+2019-05-24 11:37:30,664 -- INFO -- ENCODE_MOLS                             True
+2019-05-24 11:37:30,664 -- INFO -- DECODE_MOLS                             True
+2019-05-24 11:37:30,664 -- INFO -- IN_ID                                   chembl_id
+2019-05-24 11:37:30,664 -- INFO -- IN_MOL                                  mol
+2019-05-24 11:37:30,664 -- INFO -- IN_FORMAT                               SDF
+2019-05-24 11:37:30,664 -- INFO -- IN_COMPRESSION                          gzip
+2019-05-24 11:37:30,664 -- INFO -- OUT_MOL                                 mol
+2019-05-24 11:37:30,665 -- INFO -- OUT_ID                                  idm
+2019-05-24 11:37:30,665 -- INFO -- OUT_FORMAT                              SDF
+2019-05-24 11:37:30,665 -- INFO -- OUT_COMPRESSION                         gzip
+2019-05-24 11:37:30,665 -- INFO -- LOG                                     INFO
+2019-05-24 11:37:30,665 -- INFO -- BEGIN
+2019-05-24 11:37:30,665 -- INFO -- LOADING MOLECULES
+2019-05-24 11:37:30,947 -- INFO -- LOADED 461 RECORDS WITH 0 FAILURE(S)
+2019-05-24 11:37:30,947 -- INFO -- SAVING MOLECULES
+2019-05-24 11:37:30,947 -- WARNING -- Format is SDF, so molecules are not encoded.
+2019-05-24 11:37:31,231 -- INFO -- SAVED 250 RECORDS AT /home/gally/Projects/NPFC/src/tests/data/chembl_small_001.sdf.gz
+2019-05-24 11:37:31,231 -- INFO -- SAVED 211 RECORDS AT /home/gally/Projects/NPFC/src/tests/data/chembl_small_002.sdf.gz
+2019-05-24 11:37:31,231 -- INFO -- SUMMARY
+2019-05-24 11:37:31,231 -- INFO -- COMPUTATIONAL TIME: CONFIGURING JOB                                             0:00:00.002457
+2019-05-24 11:37:31,231 -- INFO -- COMPUTATIONAL TIME: LOADING MOLECULES                                           0:00:00.282094
+2019-05-24 11:37:31,231 -- INFO -- COMPUTATIONAL TIME: SAVING MOLECULES                                            0:00:00.284177
+2019-05-24 11:37:31,231 -- INFO -- COMPUTATIONAL TIME: TOTAL                                                       0:00:00.568728
+2019-05-24 11:37:31,231 -- INFO -- END

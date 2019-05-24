@@ -240,7 +240,7 @@ class Saver:
         else:
             # chunks
             start = 0
-            j = 0
+            j = 1
             for start in range(0, len(df.index), self.chunk_size):
                 end = start + self.chunk_size
                 output_chunk = str(output_dir) + "/" + path_output_file.stem.split('.')[0] + "_" + str(j).zfill(3) + ''.join(ext_output_file)  # stem returns file.csv for file.csv.gz

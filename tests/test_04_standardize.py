@@ -157,16 +157,16 @@ def test_std_init(standardizer):
 
 def test_std_keep_best(standardizer, mols):
     """Test if best fragments are extracted from mixtures."""
-    # mol with smaller fragments and store molweight property
+    # mol with smaller submols
     mol_clean = standardizer.keep_best(mols['mixture_1'])
     assert Chem.MolToSmiles(mol_clean) == "NCCCCN(CCCN)Cc1ccc(B(O)O)cc1"
-    # mol with larger non-medchem fragments, do not store molweight property
+    # mol with a larger non-medchem submol
     mol_clean = standardizer.keep_best(mols['mixture_2'])
     assert Chem.MolToSmiles(mol_clean) == "C1CCCCC1"
-    # mol with larger non-medchem fragments, do not store molweight property
+    # mol with a larger linear submol
     mol_clean = standardizer.keep_best(mols['mixture_3'])
     assert Chem.MolToSmiles(mol_clean) == "C1CCCC1"
-    # mol with only one fragment without sanitize
+    # mol with only one submol
     mol_clean = standardizer.keep_best(mols['tautomer_1'])
     assert Chem.MolToSmiles(mol_clean) == "O=C1C=CC=CC1"
 
