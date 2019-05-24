@@ -263,8 +263,8 @@ class Standardizer(Filter):
 
         1) **initiate_mol**: check if the molecule passed the RDKit conversion
         2) **disconnect_metal**: break bonds involving metallic atoms, resulting in potentially several molecules per structure.
-        3) **keep_largest**: retrieve only the largest molecule (molecular weight in Da) from a structure. Medchem elements are preferred over others, independant from size.
         4) **filter_hac**: filter molecules with a heavy atom count not in the accepted range. By default: hac > 3.
+        3) **keep_best**: retrieve only the "best" molecule from a structure. The best molecule, in this order, has only medchem elements, is not linear and has the largest molecular weight of the mixture.
         5) **filter_molweight**: filter molecules with a molecular weight not in the accepted range. By default: molweight <= 1000.0.
         6) **filter_nrings**: filter molecules with a number of rings (Smallest Sets of Smallest Rings or SSSR) not in the accepted range. By default: nrings > 0.
         7) **filter_medchem**: filter molecules with elements not considered as medchem. By default: elements in H, B, C, N, O, F, P, S, Cl, Br, I.
@@ -322,7 +322,7 @@ class Standardizer(Filter):
         self._suffix = suffix
         self._ref_file = ref_file
         self._default_protocol = {'tasks': ['disconnect_metal',
-                                            'keep_largest',
+                                            'keep_best',
                                             'filter_hac',
                                             'filter_molweight',
                                             'filter_nrings',
@@ -461,15 +461,23 @@ class Standardizer(Filter):
             a.SetIsotope(0)
         return mol
 
-    def keep_largest(self, mol: Mol) -> Mol:
-        """Return the largest molecule found in a molecular structure. Molecules with
-        only elements usually used in medicinal chemistry are preferred over others,
-        no matter their molecular weight.
-        The list of medchem elements is contained in the protocol paramater of the Standardizer object:
-        (protocol['filter_medchem']).
+    def keep_best(self, mol: Mol) -> Mol:
+        """Return the "best" molecule found in a molecular structure.
+
+        The "best" molecule is determined by the following criteria, sorted by priority:
+
+            1) contains only medchem elements (defined in the Standardizer attribute: protocol['filter_medchem'])
+            2) contains at least one ring
+            3) has the largest molecular weight (Da) of the mixture
+
+        So the largest molecule of a mixture might not always be selected, for instance
+        a very long aliphatic chain would be dismissed to keep a benzene molecule instead.
+
+        This is implemented in such a way because our fragments used for substructure search contain at least one ring.
+        On the contrary, this long aliphatic chain would be kept in a mixture with a non-medchem molecule.
 
         :param mol: the input molecule(s)
-        :return: the largest molecule
+        :return: the best molecule
         """
         frags = Chem.GetMolFrags(mol, asMols=True, sanitizeFrags=True)
         # no need to look further if we have only one fragment!
@@ -478,38 +486,53 @@ class Standardizer(Filter):
         # otherwise, we have to compare the fragments
         # init
         logging.debug(f"found {len(frags)} fragments")
-        largest_molweight = -1.0  # so we are sure to update this on the first iteration
-        largest_frag = None
-        largest_is_medchem = False
+        best_molweight = -1.0  # so we are sure to update this on the first iteration
+        best_frag = None
+        best_is_medchem = False
+        best_is_circular = False
         # begin
         for i, frag in enumerate(frags):
             # is_medchem
             is_medchem = self.filter_mol(frag, f'elements in {", ".join(str(x) for x in self.elements_medchem)}')
+            is_circular = self.filter_mol(frag, f"nrings > 0")
             logging.debug(f"fragment #{i} is medchem: {is_medchem}")
             # molweight
             molweight = Descriptors.ExactMolWt(frag)
             logging.debug(f"fragment #{i} molweight: {molweight}")
-            # compare to the current largest fragment
-            update_largest = False
-            if not largest_is_medchem:
-                if is_medchem:
-                    update_largest = True
-                else:
-                    if molweight > largest_molweight:
-                        update_largest = True
-            else:
-                if not is_medchem:
+
+            # compare to the current best fragment
+            update_best = False
+            compute_diff = False
+
+            if not best_is_medchem and is_medchem:
+                update_best = True
+            elif best_is_medchem and not is_medchem:
+                pass
+            elif not best_is_medchem and not is_medchem:
+                if not best_is_circular and is_circular:
+                    update_best = True
+                elif best_is_circular and not is_circular:
                     pass
                 else:
-                    if molweight > largest_molweight:
-                        update_largest = True
-            # update largest
-            if update_largest:
-                largest_is_medchem = is_medchem
-                largest_frag = frag
-                largest_molweight = molweight
-        # store molweight in case we need it later
-        return largest_frag
+                    compute_diff = True
+            else:  # best_is_medchem and is_medchem
+                if not best_is_circular and is_circular:
+                    update_best = True
+                elif best_is_circular and not is_circular:
+                    pass
+                else:
+                    compute_diff = True
+
+            if compute_diff and molweight > best_molweight:
+                update_best = True
+
+            if update_best:
+                best_is_medchem = is_medchem
+                best_is_circular = is_circular
+                best_frag = frag
+                best_molweight = molweight
+
+        return best_frag
 
     @timeout_decorator.timeout(TIMEOUT)
     def _run(self, mol: Mol) -> tuple:
@@ -538,11 +561,11 @@ class Standardizer(Filter):
                     return (mol, 'error', 'disconnect_metal')
 
             # fragments
-            elif task == 'keep_largest':
+            elif task == 'keep_best':
                 try:
-                    mol = self.keep_largest(mol)
+                    mol = self.keep_best(mol)
                 except ValueError:
-                    return (mol, 'error', 'keep_largest')
+                    return (mol, 'error', 'keep_best')
 
             # filters
             elif task == 'filter_medchem' or task == 'filter_hac' or task == 'filter_molweight' or task == 'filter_nrings':

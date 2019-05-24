@@ -58,6 +58,7 @@ def mols():
     d = {'metal': 'CC(C)(C)[N+](=Cc1ccc(cc1S(=O)(=O)O[Na])S(=O)(=O)O[Na])[O-]',
          'mixture_1': 'Cl.Cl.Cl.NCCCCN(CCCN)Cc1ccc(cc1)B(O)O',
          'mixture_2': '[Rn].C1CCC1.C1CCCCC1',
+         'mixture_3': 'C1CCCC1.CCCCCCCCCC',
          'isotope': 'F[14C](F)(F)C(Cl)C1CCCC1',
          'normalize': '[Na]OC(=O)c1ccc(C[S+2]([O-])([O-]))cc1',
          'neutral_all': 'C1CCC1C[C@H]([NH3+])C([O-])=C',
@@ -127,7 +128,7 @@ def test_std_init(standardizer):
     # default parameters
     assert set(standardizer.protocol.keys()) == set(['tasks', 'filter_hac', 'filter_molweight', 'filter_nrings', 'filter_medchem'])
     assert standardizer.protocol['tasks'] == ['disconnect_metal',
-                                              'keep_largest',
+                                              'keep_best',
                                               'filter_hac',
                                               'filter_molweight',
                                               'filter_nrings',
@@ -154,16 +155,19 @@ def test_std_init(standardizer):
     assert standardizer.protocol['filter_molweight'] == "100.0 <= molweight <= 1000.0"
 
 
-def test_std_keep_largest(standardizer, mols):
-    """Test if largest fragments are extracted from mixtures."""
+def test_std_keep_best(standardizer, mols):
+    """Test if best fragments are extracted from mixtures."""
     # mol with smaller fragments and store molweight property
-    mol_clean = standardizer.keep_largest(mols['mixture_1'])
+    mol_clean = standardizer.keep_best(mols['mixture_1'])
     assert Chem.MolToSmiles(mol_clean) == "NCCCCN(CCCN)Cc1ccc(B(O)O)cc1"
     # mol with larger non-medchem fragments, do not store molweight property
-    mol_clean = standardizer.keep_largest(mols['mixture_2'])
+    mol_clean = standardizer.keep_best(mols['mixture_2'])
     assert Chem.MolToSmiles(mol_clean) == "C1CCCCC1"
+    # mol with larger non-medchem fragments, do not store molweight property
+    mol_clean = standardizer.keep_best(mols['mixture_3'])
+    assert Chem.MolToSmiles(mol_clean) == "C1CCCC1"
     # mol with only one fragment without sanitize
-    mol_clean = standardizer.keep_largest(mols['tautomer_1'])
+    mol_clean = standardizer.keep_best(mols['tautomer_1'])
     assert Chem.MolToSmiles(mol_clean) == "O=C1C=CC=CC1"
 
 
@@ -243,10 +247,10 @@ def test_run_protocol(standardizer, mols, mols_bad):
         d['idm'].append(k)
         d['mol'].append(m)
     df_mols = pd.DataFrame(d)
-    assert len(df_mols.index) == 22
+    assert len(df_mols.index) == 23
     # run default protocol
     df_passed, df_filtered, df_error = standardizer.run_df(df_mols)
-    assert len(df_passed.index) == 11
+    assert len(df_passed.index) == 12
     assert len(df_error.index) == 3
     assert len(df_filtered.index) == 8
 
