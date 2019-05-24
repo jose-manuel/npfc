@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.standardize &mdash; npfc 0.1.7 documentation</title>
+  <title>npfc.standardize &mdash; npfc 0.1.7-1-gb0c2f5b documentation</title>
   
 
   
@@ -56,7 +56,7 @@
             
             
               <div class="version">
-                0.1.7
+                0.1.7-1-gb0c2f5b
               </div>
             
           
@@ -417,8 +417,8 @@
 
 <span class="sd">        1) **initiate_mol**: check if the molecule passed the RDKit conversion</span>
 <span class="sd">        2) **disconnect_metal**: break bonds involving metallic atoms, resulting in potentially several molecules per structure.</span>
-<span class="sd">        3) **keep_largest**: retrieve only the largest molecule (molecular weight in Da) from a structure. Medchem elements are preferred over others, independant from size.</span>
 <span class="sd">        4) **filter_hac**: filter molecules with a heavy atom count not in the accepted range. By default: hac &gt; 3.</span>
+<span class="sd">        3) **keep_best**: retrieve only the &quot;best&quot; molecule from a structure. The best molecule, in this order, has only medchem elements, is not linear and has the largest molecular weight of the mixture.</span>
 <span class="sd">        5) **filter_molweight**: filter molecules with a molecular weight not in the accepted range. By default: molweight &lt;= 1000.0.</span>
 <span class="sd">        6) **filter_nrings**: filter molecules with a number of rings (Smallest Sets of Smallest Rings or SSSR) not in the accepted range. By default: nrings &gt; 0.</span>
 <span class="sd">        7) **filter_medchem**: filter molecules with elements not considered as medchem. By default: elements in H, B, C, N, O, F, P, S, Cl, Br, I.</span>
@@ -476,7 +476,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_suffix</span> <span class="o">=</span> <span class="n">suffix</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_ref_file</span> <span class="o">=</span> <span class="n">ref_file</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_default_protocol</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;tasks&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;disconnect_metal&#39;</span><span class="p">,</span>
-                                            <span class="s1">&#39;keep_largest&#39;</span><span class="p">,</span>
+                                            <span class="s1">&#39;keep_best&#39;</span><span class="p">,</span>
                                             <span class="s1">&#39;filter_hac&#39;</span><span class="p">,</span>
                                             <span class="s1">&#39;filter_molweight&#39;</span><span class="p">,</span>
                                             <span class="s1">&#39;filter_nrings&#39;</span><span class="p">,</span>
@@ -615,55 +615,86 @@
             <span class="n">a</span><span class="o">.</span><span class="n">SetIsotope</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">mol</span></div>
 
-<div class="viewcode-block" id="Standardizer.keep_largest"><a class="viewcode-back" href="../../standardize.html#npfc.standardize.Standardizer.keep_largest">[docs]</a>    <span class="k">def</span> <span class="nf">keep_largest</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mol</span><span class="p">:</span> <span class="n">Mol</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Mol</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Return the largest molecule found in a molecular structure. Molecules with</span>
-<span class="sd">        only elements usually used in medicinal chemistry are preferred over others,</span>
-<span class="sd">        no matter their molecular weight.</span>
-<span class="sd">        The list of medchem elements is contained in the protocol paramater of the Standardizer object:</span>
-<span class="sd">        (protocol[&#39;filter_medchem&#39;]).</span>
+<div class="viewcode-block" id="Standardizer.keep_best"><a class="viewcode-back" href="../../standardize.html#npfc.standardize.Standardizer.keep_best">[docs]</a>    <span class="k">def</span> <span class="nf">keep_best</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mol</span><span class="p">:</span> <span class="n">Mol</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Mol</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Return the &quot;best&quot; molecule found in a molecular structure.</span>
+
+<span class="sd">        The &quot;best&quot; molecule is determined by the following criteria, sorted by priority:</span>
+
+<span class="sd">            1) contains only medchem elements (defined in the Standardizer attribute: protocol[&#39;filter_medchem&#39;])</span>
+<span class="sd">            2) contains at least one ring</span>
+<span class="sd">            3) has the largest molecular weight (Da) of the mixture</span>
+
+<span class="sd">        To summarize:</span>
+
+<span class="sd">        .. math::</span>
+<span class="sd">            medchem &gt; non linear &gt; molecular weight</span>
+
+<span class="sd">        So the largest molecule of a mixture might not always be selected, for instance</span>
+<span class="sd">        a very long aliphatic chain would be dismissed to keep a benzene molecule instead.</span>
+
+<span class="sd">        This is implemented in such a way because our fragments used for substructure search contain at least one ring.</span>
+<span class="sd">        On the contrary, this long aliphatic chain would be kept in a mixture with a non-medchem molecule.</span>
 
 <span class="sd">        :param mol: the input molecule(s)</span>
-<span class="sd">        :return: the largest molecule</span>
+<span class="sd">        :return: the best molecule</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">frags</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">GetMolFrags</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">asMols</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sanitizeFrags</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="c1"># no need to look further if we have only one fragment!</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">frags</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">submols</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">GetMolFrags</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">asMols</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sanitizeFrags</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="c1"># no need to look further if we have only one submol!</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">submols</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">mol</span>
         <span class="c1"># otherwise, we have to compare the fragments</span>
         <span class="c1"># init</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;found {len(frags)} fragments&quot;</span><span class="p">)</span>
-        <span class="n">largest_molweight</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span>  <span class="c1"># so we are sure to update this on the first iteration</span>
-        <span class="n">largest_frag</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="n">largest_is_medchem</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;found {len(submols)} fragments&quot;</span><span class="p">)</span>
+        <span class="n">best_molweight</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span>  <span class="c1"># so we are sure to update this on the first iteration</span>
+        <span class="n">best_frag</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">best_is_medchem</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">best_is_non_linear</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="c1"># begin</span>
-        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">frag</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">frags</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">submol</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">submols</span><span class="p">):</span>
             <span class="c1"># is_medchem</span>
-            <span class="n">is_medchem</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter_mol</span><span class="p">(</span><span class="n">frag</span><span class="p">,</span> <span class="n">f</span><span class="s1">&#39;elements in {&quot;, &quot;.join(str(x) for x in self.elements_medchem)}&#39;</span><span class="p">)</span>
+            <span class="n">is_medchem</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter_mol</span><span class="p">(</span><span class="n">submol</span><span class="p">,</span> <span class="n">f</span><span class="s1">&#39;elements in {&quot;, &quot;.join(str(x) for x in self.elements_medchem)}&#39;</span><span class="p">)</span>
+            <span class="n">is_non_linear</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter_mol</span><span class="p">(</span><span class="n">submol</span><span class="p">,</span> <span class="n">f</span><span class="s2">&quot;nrings &gt; 0&quot;</span><span class="p">)</span>
             <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;fragment #</span><span class="si">{i}</span><span class="s2"> is medchem: </span><span class="si">{is_medchem}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="c1"># molweight</span>
-            <span class="n">molweight</span> <span class="o">=</span> <span class="n">Descriptors</span><span class="o">.</span><span class="n">ExactMolWt</span><span class="p">(</span><span class="n">frag</span><span class="p">)</span>
+            <span class="n">molweight</span> <span class="o">=</span> <span class="n">Descriptors</span><span class="o">.</span><span class="n">ExactMolWt</span><span class="p">(</span><span class="n">submol</span><span class="p">)</span>
             <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;fragment #</span><span class="si">{i}</span><span class="s2"> molweight: </span><span class="si">{molweight}</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="c1"># compare to the current largest fragment</span>
-            <span class="n">update_largest</span> <span class="o">=</span> <span class="kc">False</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">largest_is_medchem</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">is_medchem</span><span class="p">:</span>
-                    <span class="n">update_largest</span> <span class="o">=</span> <span class="kc">True</span>
+
+            <span class="c1"># compare to the current best fragment</span>
+            <span class="n">update_best</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="n">compute_diff</span> <span class="o">=</span> <span class="kc">False</span>  <span class="c1"># check which</span>
+
+            <span class="c1"># 2 criteria more important than molecular weight: is_medchem &gt; is_non_linear</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">best_is_medchem</span> <span class="ow">and</span> <span class="n">is_medchem</span><span class="p">:</span>
+                <span class="n">update_best</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">elif</span> <span class="n">best_is_medchem</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">is_medchem</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">elif</span> <span class="ow">not</span> <span class="n">best_is_medchem</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">is_medchem</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">best_is_non_linear</span> <span class="ow">and</span> <span class="n">is_non_linear</span><span class="p">:</span>
+                    <span class="n">update_best</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">elif</span> <span class="n">best_is_non_linear</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">is_non_linear</span><span class="p">:</span>
+                    <span class="k">continue</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="k">if</span> <span class="n">molweight</span> <span class="o">&gt;</span> <span class="n">largest_molweight</span><span class="p">:</span>
-                        <span class="n">update_largest</span> <span class="o">=</span> <span class="kc">True</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="n">is_medchem</span><span class="p">:</span>
-                    <span class="k">pass</span>
+                    <span class="n">compute_diff</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">else</span><span class="p">:</span>  <span class="c1"># best_is_medchem and is_medchem</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">best_is_non_linear</span> <span class="ow">and</span> <span class="n">is_non_linear</span><span class="p">:</span>
+                    <span class="n">update_best</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">elif</span> <span class="n">best_is_non_linear</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">is_non_linear</span><span class="p">:</span>
+                    <span class="k">continue</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="k">if</span> <span class="n">molweight</span> <span class="o">&gt;</span> <span class="n">largest_molweight</span><span class="p">:</span>
-                        <span class="n">update_largest</span> <span class="o">=</span> <span class="kc">True</span>
-            <span class="c1"># update largest</span>
-            <span class="k">if</span> <span class="n">update_largest</span><span class="p">:</span>
-                <span class="n">largest_is_medchem</span> <span class="o">=</span> <span class="n">is_medchem</span>
-                <span class="n">largest_frag</span> <span class="o">=</span> <span class="n">frag</span>
-                <span class="n">largest_molweight</span> <span class="o">=</span> <span class="n">molweight</span>
-        <span class="c1"># store molweight in case we need it later</span>
-        <span class="k">return</span> <span class="n">largest_frag</span></div>
+                    <span class="n">compute_diff</span> <span class="o">=</span> <span class="kc">True</span>
+
+            <span class="c1"># check molweights only in case of doubt</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">update_best</span> <span class="ow">and</span> <span class="n">compute_diff</span> <span class="ow">and</span> <span class="n">molweight</span> <span class="o">&gt;</span> <span class="n">best_molweight</span><span class="p">:</span>
+                <span class="n">update_best</span> <span class="o">=</span> <span class="kc">True</span>
+
+            <span class="c1"># update best with the properties of the current mol</span>
+            <span class="k">if</span> <span class="n">update_best</span><span class="p">:</span>
+                <span class="n">best_is_medchem</span> <span class="o">=</span> <span class="n">is_medchem</span>
+                <span class="n">best_is_non_linear</span> <span class="o">=</span> <span class="n">is_non_linear</span>
+                <span class="n">best_frag</span> <span class="o">=</span> <span class="n">frag</span>
+                <span class="n">best_molweight</span> <span class="o">=</span> <span class="n">molweight</span>
+
+        <span class="k">return</span> <span class="n">best_frag</span></div>
 
     <span class="nd">@timeout_decorator</span><span class="o">.</span><span class="n">timeout</span><span class="p">(</span><span class="n">TIMEOUT</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mol</span><span class="p">:</span> <span class="n">Mol</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
@@ -692,11 +723,11 @@
                     <span class="k">return</span> <span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="s1">&#39;error&#39;</span><span class="p">,</span> <span class="s1">&#39;disconnect_metal&#39;</span><span class="p">)</span>
 
             <span class="c1"># fragments</span>
-            <span class="k">elif</span> <span class="n">task</span> <span class="o">==</span> <span class="s1">&#39;keep_largest&#39;</span><span class="p">:</span>
+            <span class="k">elif</span> <span class="n">task</span> <span class="o">==</span> <span class="s1">&#39;keep_best&#39;</span><span class="p">:</span>
                 <span class="k">try</span><span class="p">:</span>
-                    <span class="n">mol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">keep_largest</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
+                    <span class="n">mol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">keep_best</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
                 <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
-                    <span class="k">return</span> <span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="s1">&#39;error&#39;</span><span class="p">,</span> <span class="s1">&#39;keep_largest&#39;</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="s1">&#39;error&#39;</span><span class="p">,</span> <span class="s1">&#39;keep_best&#39;</span><span class="p">)</span>
 
             <span class="c1"># filters</span>
             <span class="k">elif</span> <span class="n">task</span> <span class="o">==</span> <span class="s1">&#39;filter_medchem&#39;</span> <span class="ow">or</span> <span class="n">task</span> <span class="o">==</span> <span class="s1">&#39;filter_hac&#39;</span> <span class="ow">or</span> <span class="n">task</span> <span class="o">==</span> <span class="s1">&#39;filter_molweight&#39;</span> <span class="ow">or</span> <span class="n">task</span> <span class="o">==</span> <span class="s1">&#39;filter_nrings&#39;</span><span class="p">:</span>

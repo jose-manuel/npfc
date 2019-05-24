@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Module standardize &mdash; npfc 0.1.7 documentation</title>
+  <title>Module standardize &mdash; npfc 0.1.7-1-gb0c2f5b documentation</title>
   
 
   
@@ -58,7 +58,7 @@
             
             
               <div class="version">
-                0.1.7
+                0.1.7-1-gb0c2f5b
               </div>
             
           
@@ -303,18 +303,18 @@ on a protocol that the user can modify.</p>
 <blockquote>
 <div><ol class="arabic simple">
 <li><strong>initiate_mol</strong>: check if the molecule passed the RDKit conversion</li>
-<li><strong>disconnect_metal</strong>: break bonds involving metallic atoms, resulting in potentially several molecules per structure.</li>
-<li><strong>keep_largest</strong>: retrieve only the largest molecule (molecular weight in Da) from a structure. Medchem elements are preferred over others, independant from size.</li>
-<li><strong>filter_hac</strong>: filter molecules with a heavy atom count not in the accepted range. By default: hac &gt; 3.</li>
-<li><strong>filter_molweight</strong>: filter molecules with a molecular weight not in the accepted range. By default: molweight &lt;= 1000.0.</li>
-<li><strong>filter_nrings</strong>: filter molecules with a number of rings (Smallest Sets of Smallest Rings or SSSR) not in the accepted range. By default: nrings &gt; 0.</li>
-<li><strong>filter_medchem</strong>: filter molecules with elements not considered as medchem. By default: elements in H, B, C, N, O, F, P, S, Cl, Br, I.</li>
-<li><strong>remove_isotopes</strong>: set all atoms to their most common isotope (i.e. 14C becomes 12C which is C).</li>
-<li><strong>normalize</strong>: always write the same functional groups in the same manner.</li>
-<li><strong>uncharge</strong>: remove all charges on a molecule when it is possible. This is different from rdkit.Chem.MolStandardize.charge module as there is no attempt for reaching the zwitterion.</li>
-<li><strong>canonicalize</strong>: enumerate the canonical tautomer.</li>
-<li><strong>remove_stereo</strong>: remove all remaining stereochemistry flags on the molecule.</li>
 </ol>
+<p>2) <strong>disconnect_metal</strong>: break bonds involving metallic atoms, resulting in potentially several molecules per structure.
+4) <strong>filter_hac</strong>: filter molecules with a heavy atom count not in the accepted range. By default: hac &gt; 3.
+3) <strong>keep_best</strong>: retrieve only the “best” molecule from a structure. The best molecule, in this order, has only medchem elements, is not linear and has the largest molecular weight of the mixture.
+5) <strong>filter_molweight</strong>: filter molecules with a molecular weight not in the accepted range. By default: molweight &lt;= 1000.0.
+6) <strong>filter_nrings</strong>: filter molecules with a number of rings (Smallest Sets of Smallest Rings or SSSR) not in the accepted range. By default: nrings &gt; 0.
+7) <strong>filter_medchem</strong>: filter molecules with elements not considered as medchem. By default: elements in H, B, C, N, O, F, P, S, Cl, Br, I.
+8) <strong>remove_isotopes</strong>: set all atoms to their most common isotope (i.e. 14C becomes 12C which is C).
+9) <strong>normalize</strong>: always write the same functional groups in the same manner.
+10) <strong>uncharge</strong>: remove all charges on a molecule when it is possible. This is different from rdkit.Chem.MolStandardize.charge module as there is no attempt for reaching the zwitterion.
+11) <strong>canonicalize</strong>: enumerate the canonical tautomer.
+12) <strong>remove_stereo</strong>: remove all remaining stereochemistry flags on the molecule.</p>
 </div></blockquote>
 <p>Finally, duplicate entries can be filtered using InChiKeys when postprocessing the DataFrame with molecules (argument in the run_df method).</p>
 <p>This results in new columns in the input DataFrame:</p>
@@ -380,13 +380,24 @@ is preferred.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="npfc.standardize.Standardizer.keep_largest">
-<code class="descname">keep_largest</code><span class="sig-paren">(</span><em>mol</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#Standardizer.keep_largest"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.Standardizer.keep_largest" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the largest molecule found in a molecular structure. Molecules with
-only elements usually used in medicinal chemistry are preferred over others,
-no matter their molecular weight.
-The list of medchem elements is contained in the protocol paramater of the Standardizer object:
-(protocol[‘filter_medchem’]).</p>
+<dt id="npfc.standardize.Standardizer.keep_best">
+<code class="descname">keep_best</code><span class="sig-paren">(</span><em>mol</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#Standardizer.keep_best"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.Standardizer.keep_best" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the “best” molecule found in a molecular structure.</p>
+<p>The “best” molecule is determined by the following criteria, sorted by priority:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li>contains only medchem elements (defined in the Standardizer attribute: protocol[‘filter_medchem’])</li>
+<li>contains at least one ring</li>
+<li>has the largest molecular weight (Da) of the mixture</li>
+</ol>
+</div></blockquote>
+<p>To summarize:</p>
+<div class="math">
+<p><img src="_images/math/0a8b7b296cc77ac81a737b051e2bb3b3dbb7561e.png" alt="medchem &gt; non linear &gt; molecular weight"/></p>
+</div><p>So the largest molecule of a mixture might not always be selected, for instance
+a very long aliphatic chain would be dismissed to keep a benzene molecule instead.</p>
+<p>This is implemented in such a way because our fragments used for substructure search contain at least one ring.
+On the contrary, this long aliphatic chain would be kept in a mixture with a non-medchem molecule.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -395,7 +406,7 @@ The list of medchem elements is contained in the protocol paramater of the Stand
 </tr>
 <tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><code class="xref py py-class docutils literal notranslate"><span class="pre">Mol</span></code></td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the largest molecule</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the best molecule</td>
 </tr>
 </tbody>
 </table>

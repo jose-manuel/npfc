@@ -165,6 +165,7 @@ class DuplicateFilter:
         """Find synonyms within a DataFrame.
 
         The Synonyms DataFrame follows the follow syntax:
+
         - rowid: The InChIKey of the molecule ('inchikey').
         - idm_synonyms: The list of all molecule ids sharing the same InChIKey.
         - idm: The id of the molecule that was kept (first element of idm_synonyms).
@@ -240,7 +241,6 @@ class DuplicateFilter:
         within Standardizer.run only as it updates columns 'status' and 'task' to
         respectively 'filtered' and 'filter_duplicates'. Might still be useful if exposed.
 
-
         Moreover, update the reference file (if specified) by using a lock (from utils module) so that
         no other processes can modify it at the same time. This enables a safe duplicate
         molecules filtering accross chunks without having to gather everything in a single file.
@@ -263,8 +263,8 @@ class Standardizer(Filter):
 
         1) **initiate_mol**: check if the molecule passed the RDKit conversion
         2) **disconnect_metal**: break bonds involving metallic atoms, resulting in potentially several molecules per structure.
-        4) **filter_hac**: filter molecules with a heavy atom count not in the accepted range. By default: hac > 3.
         3) **keep_best**: retrieve only the "best" molecule from a structure. The best molecule, in this order, has only medchem elements, is not linear and has the largest molecular weight of the mixture.
+        4) **filter_hac**: filter molecules with a heavy atom count not in the accepted range. By default: hac > 3.
         5) **filter_molweight**: filter molecules with a molecular weight not in the accepted range. By default: molweight <= 1000.0.
         6) **filter_nrings**: filter molecules with a number of rings (Smallest Sets of Smallest Rings or SSSR) not in the accepted range. By default: nrings > 0.
         7) **filter_medchem**: filter molecules with elements not considered as medchem. By default: elements in H, B, C, N, O, F, P, S, Cl, Br, I.
@@ -470,6 +470,11 @@ class Standardizer(Filter):
             2) contains at least one ring
             3) has the largest molecular weight (Da) of the mixture
 
+        To summarize:
+
+        .. math::
+            medchem > non linear > molecular weight
+
         So the largest molecule of a mixture might not always be selected, for instance
         a very long aliphatic chain would be dismissed to keep a benzene molecule instead.
 
@@ -479,56 +484,59 @@ class Standardizer(Filter):
         :param mol: the input molecule(s)
         :return: the best molecule
         """
-        frags = Chem.GetMolFrags(mol, asMols=True, sanitizeFrags=True)
-        # no need to look further if we have only one fragment!
-        if len(frags) < 2:
+        submols = Chem.GetMolFrags(mol, asMols=True, sanitizeFrags=True)
+        # no need to look further if we have only one submol!
+        if len(submols) < 2:
             return mol
         # otherwise, we have to compare the fragments
         # init
-        logging.debug(f"found {len(frags)} fragments")
+        logging.debug(f"found {len(submols)} fragments")
         best_molweight = -1.0  # so we are sure to update this on the first iteration
         best_frag = None
         best_is_medchem = False
-        best_is_circular = False
+        best_is_non_linear = False
         # begin
-        for i, frag in enumerate(frags):
+        for i, submol in enumerate(submols):
             # is_medchem
-            is_medchem = self.filter_mol(frag, f'elements in {", ".join(str(x) for x in self.elements_medchem)}')
-            is_circular = self.filter_mol(frag, f"nrings > 0")
+            is_medchem = self.filter_mol(submol, f'elements in {", ".join(str(x) for x in self.elements_medchem)}')
+            is_non_linear = self.filter_mol(submol, f"nrings > 0")
             logging.debug(f"fragment #{i} is medchem: {is_medchem}")
             # molweight
-            molweight = Descriptors.ExactMolWt(frag)
+            molweight = Descriptors.ExactMolWt(submol)
             logging.debug(f"fragment #{i} molweight: {molweight}")
 
             # compare to the current best fragment
             update_best = False
-            compute_diff = False
+            compute_diff = False  # check which
 
+            # 2 criteria more important than molecular weight: is_medchem > is_non_linear
             if not best_is_medchem and is_medchem:
                 update_best = True
             elif best_is_medchem and not is_medchem:
-                pass
+                continue
             elif not best_is_medchem and not is_medchem:
-                if not best_is_circular and is_circular:
+                if not best_is_non_linear and is_non_linear:
                     update_best = True
-                elif best_is_circular and not is_circular:
-                    pass
+                elif best_is_non_linear and not is_non_linear:
+                    continue
                 else:
                     compute_diff = True
             else:  # best_is_medchem and is_medchem
-                if not best_is_circular and is_circular:
+                if not best_is_non_linear and is_non_linear:
                     update_best = True
-                elif best_is_circular and not is_circular:
-                    pass
+                elif best_is_non_linear and not is_non_linear:
+                    continue
                 else:
                     compute_diff = True
 
-            if compute_diff and molweight > best_molweight:
+            # check molweights only in case of doubt
+            if not update_best and compute_diff and molweight > best_molweight:
                 update_best = True
 
+            # update best with the properties of the current mol
             if update_best:
                 best_is_medchem = is_medchem
-                best_is_circular = is_circular
+                best_is_non_linear = is_non_linear
                 best_frag = frag
                 best_molweight = molweight
 
