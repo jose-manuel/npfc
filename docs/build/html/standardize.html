@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Module standardize &mdash; npfc 0.1.7-2-ga1b822a documentation</title>
+  <title>Module standardize &mdash; npfc 0.1.7-3-g11c0258 documentation</title>
   
 
   
@@ -58,7 +58,7 @@
             
             
               <div class="version">
-                0.1.7-2-ga1b822a
+                0.1.7-3-g11c0258
               </div>
             
           
@@ -306,7 +306,7 @@ on a protocol that the user can modify.</p>
 <div><ol class="arabic simple">
 <li><strong>initiate_mol</strong>: check if the molecule passed the RDKit conversion</li>
 <li><strong>disconnect_metal</strong>: break bonds involving metallic atoms, resulting in potentially several molecules per structure.</li>
-<li><strong>keep_best</strong>: retrieve only the “best” molecule from a structure. The best molecule, in this order, has only medchem elements, is not linear and has the largest molecular weight of the mixture.</li>
+<li><strong>keep_best</strong>: retrieve only the “best” molecule from a mixture, which might not always be the largest one.</li>
 <li><strong>filter_hac</strong>: filter molecules with a heavy atom count not in the accepted range. By default: hac &gt; 3.</li>
 <li><strong>filter_molweight</strong>: filter molecules with a molecular weight not in the accepted range. By default: molweight &lt;= 1000.0.</li>
 <li><strong>filter_nrings</strong>: filter molecules with a number of rings (Smallest Sets of Smallest Rings or SSSR) not in the accepted range. By default: nrings &gt; 0.</li>
@@ -342,9 +342,9 @@ To achieve this, a scoring function is assigned to each depiction to retrieve th
 <p class="first admonition-title">Note</p>
 <p class="last">For now, the user can only change the task order and the values of filters, but it would be relatively easy to add more functionality.</p>
 </div>
-<div class="admonition-todo admonition" id="index-2">
-<p class="first admonition-title">Todo</p>
-<p class="last">Check latest publication sent by Prof. H. Waldmann, there might be an open-source tool for deglycosylating structures, which could become a new task.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">For now structures are deglycosylated before being standardized using a KIME workflow. This is far from being ideal, at the node itself contains bugs and its execution is relatively slow.</p>
 </div>
 <p>Create a Standardizer object.</p>
 <dl class="method">

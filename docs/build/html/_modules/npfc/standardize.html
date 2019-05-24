@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.standardize &mdash; npfc 0.1.7-2-ga1b822a documentation</title>
+  <title>npfc.standardize &mdash; npfc 0.1.7-3-g11c0258 documentation</title>
   
 
   
@@ -56,7 +56,7 @@
             
             
               <div class="version">
-                0.1.7-2-ga1b822a
+                0.1.7-3-g11c0258
               </div>
             
           
@@ -417,7 +417,7 @@
 
 <span class="sd">        1) **initiate_mol**: check if the molecule passed the RDKit conversion</span>
 <span class="sd">        2) **disconnect_metal**: break bonds involving metallic atoms, resulting in potentially several molecules per structure.</span>
-<span class="sd">        3) **keep_best**: retrieve only the &quot;best&quot; molecule from a structure. The best molecule, in this order, has only medchem elements, is not linear and has the largest molecular weight of the mixture.</span>
+<span class="sd">        3) **keep_best**: retrieve only the &quot;best&quot; molecule from a mixture, which might not always be the largest one.</span>
 <span class="sd">        4) **filter_hac**: filter molecules with a heavy atom count not in the accepted range. By default: hac &gt; 3.</span>
 <span class="sd">        5) **filter_molweight**: filter molecules with a molecular weight not in the accepted range. By default: molweight &lt;= 1000.0.</span>
 <span class="sd">        6) **filter_nrings**: filter molecules with a number of rings (Smallest Sets of Smallest Rings or SSSR) not in the accepted range. By default: nrings &gt; 0.</span>
@@ -448,7 +448,7 @@
 
 <span class="sd">    .. note:: For now, the user can only change the task order and the values of filters, but it would be relatively easy to add more functionality.</span>
 
-<span class="sd">    .. todo:: Check latest publication sent by Prof. H. Waldmann, there might be an open-source tool for deglycosylating structures, which could become a new task.</span>
+<span class="sd">    .. note:: For now structures are deglycosylated before being standardized using a KIME workflow. This is far from being ideal, at the node itself contains bugs and its execution is relatively slow.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>

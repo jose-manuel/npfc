@@ -466,9 +466,9 @@ class Standardizer(Filter):
 
         The "best" molecule is determined by the following criteria, sorted by priority:
 
-            1) contains only medchem elements (defined in the Standardizer attribute: protocol['filter_medchem'])
+            1) contains only medchem elements
             2) contains at least one ring
-            3) has the largest molecular weight (Da) of the mixture
+            3) has the largest molecular weight of the mixture
 
         To summarize:
 
