@@ -488,11 +488,11 @@ class Standardizer(Filter):
         # no need to look further if we have only one submol!
         if len(submols) < 2:
             return mol
-        # otherwise, we have to compare the fragments
+        # otherwise, we have to compare the submols
         # init
-        logging.debug(f"found {len(submols)} fragments")
+        logging.debug(f"found {len(submols)} submols")
         best_molweight = -1.0  # so we are sure to update this on the first iteration
-        best_frag = None
+        best_submol = None
         best_is_medchem = False
         best_is_non_linear = False
         # begin
@@ -500,15 +500,12 @@ class Standardizer(Filter):
             # is_medchem
             is_medchem = self.filter_mol(submol, f'elements in {", ".join(str(x) for x in self.elements_medchem)}')
             is_non_linear = self.filter_mol(submol, f"nrings > 0")
-            logging.debug(f"fragment #{i} is medchem: {is_medchem}")
             # molweight
             molweight = Descriptors.ExactMolWt(submol)
-            logging.debug(f"fragment #{i} molweight: {molweight}")
-
+            logging.debug(f"submol #{i}: IM={is_medchem} INL={is_non_linear} MW: {molweight}")
             # compare to the current best fragment
             update_best = False
             compute_diff = False  # check which
-
             # 2 criteria more important than molecular weight: is_medchem > is_non_linear
             if not best_is_medchem and is_medchem:
                 update_best = True
@@ -537,10 +534,10 @@ class Standardizer(Filter):
             if update_best:
                 best_is_medchem = is_medchem
                 best_is_non_linear = is_non_linear
-                best_frag = frag
+                best_submol = submol
                 best_molweight = molweight
 
-        return best_frag
+        return best_submol
 
     @timeout_decorator.timeout(TIMEOUT)
     def _run(self, mol: Mol) -> tuple:
@@ -568,7 +565,7 @@ class Standardizer(Filter):
                 except ValueError:
                     return (mol, 'error', 'disconnect_metal')
 
-            # fragments
+            # submols
             elif task == 'keep_best':
                 try:
                     mol = self.keep_best(mol)
