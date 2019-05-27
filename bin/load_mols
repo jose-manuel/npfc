@@ -126,11 +126,15 @@ def main():
                              decode=args.decode_mols,
                              in_sep=args.in_sep
                              )
-    num_failed = df_mols['mol'].isna().sum()
+    # filter out failed molecules
+    d2 = datetime.now()
+    df_failed = df_mols[df_mols['mol'].isna()]
+    num_failed = len(df_failed.index)
     logging.info(f"LOADED {len(df_mols)} RECORDS WITH {num_failed} FAILURE(S)")
+    df_mols = df_mols[~ df_mols.index.isin(df_failed.index)]
 
     # save mols
-    d2 = datetime.now()
+    d3 = datetime.now()
     logging.info("SAVING MOLECULES")
     outputs_files = save.save(df_mols,
                               args.output_mols,
@@ -145,15 +149,16 @@ def main():
     # display results
     for output in outputs_files:
         logging.info(f"SAVED {output[1]} RECORDS AT {output[0]}")
-    d3 = datetime.now()
+    d4 = datetime.now()
 
     # end
 
     logging.info("SUMMARY")
     logger.info("COMPUTATIONAL TIME: CONFIGURING JOB".ljust(pad * 2) + f"{d1-d0}")
     logger.info("COMPUTATIONAL TIME: LOADING MOLECULES".ljust(pad * 2) + f"{d2-d1}")
-    logger.info("COMPUTATIONAL TIME: SAVING MOLECULES".ljust(pad * 2) + f"{d3-d2}")
-    logger.info("COMPUTATIONAL TIME: TOTAL".ljust(pad * 2) + f"{d3-d0}")
+    logger.info("COMPUTATIONAL TIME: FILTERING OUT FAILED".ljust(pad * 2) + f"{d3-d2}")
+    logger.info("COMPUTATIONAL TIME: SAVING MOLECULES".ljust(pad * 2) + f"{d4-d3}")
+    logger.info("COMPUTATIONAL TIME: TOTAL".ljust(pad * 2) + f"{d4-d0}")
     logging.info("END")
     sys.exit(0)
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ RUN ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #

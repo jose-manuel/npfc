@@ -1,8 +1,16 @@
 LOCAL = "tests/tmp/local_workflow/"
 
 rule all:
+    input: LOCAL + "data/chembl_small_001_sub.csv.gz"
+
+
+rule substructure:
     input:
-        LOCAL + "data/chembl_small_001_passed.csv.gz"
+        LOCAL + "data/chembl_small_001_passed.csv.gz",  # molecules
+        "tests/data/crms_passed.sdf.gz"  # fragments
+    output: LOCAL + "data/chembl_small_001_sub.csv.gz"
+    log: LOCAL + "log/chembl_small_001_sub.log"
+    shell: "substruct_mols {input[0]} {input[1]} {output} 2>{log}"
 
 
 rule standardize:
@@ -11,14 +19,14 @@ rule standardize:
         LOCAL + "data/chembl_small_001_passed.csv.gz",
         LOCAL + "data/chembl_small_ref.hdf"
     log: LOCAL + "log/chembl_small_001_std.log"
-    shell: "standardize_mols {input} -o $(echo {input} | rev | cut -d_ -f2- | rev)_passed.csv.gz -r {output[1]} 2>{log}"
+    shell: "standardize_mols {input} -o $(echo {input} | rev | cut -d_ -f2- | rev).csv.gz -r {output[1]} 2>{log}"
 
 
 rule deglyco:
     input: LOCAL + "data/chembl_small_001.sdf.gz"
     output: LOCAL + "data/chembl_small_001_deglyco.sdf.gz"
     log: LOCAL + "log/chembl_small_deglyco.log"
-    shell: "deglyco_mols -s {input} -i chembl_id -o $(echo {output} | rev | cut -d/ -f3- | rev) -w /home/gally/Projects/NPFC/src/bin/deglyco_mols.knwf >{log} 2>/dev/null"
+    shell: "deglyco_mols -s {input} -i chembl_id -o {LOCAL} -w /home/gally/Projects/NPFC/src/bin/deglyco_mols.knwf >{log} 2>/dev/null"
 
 
 rule chunk:
@@ -35,5 +43,4 @@ rule mkdir:
     output:
         LOCAL + "data",
         LOCAL + "log"
-    shell:
-        "rm -rf {output[0]} {output[1]}; mkdir {output[0]} {output[1]}"
+    shell: "rm -rf {output[0]} {output[1]}; mkdir {output[0]} {output[1]}"

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.standardize &mdash; npfc 0.1.7-7-g2725ee2 documentation</title>
+  <title>npfc.standardize &mdash; npfc 0.1.7-8-gd4dbfa2 documentation</title>
   
 
   
@@ -56,7 +56,7 @@
             
             
               <div class="version">
-                0.1.7-7-g2725ee2
+                0.1.7-8-gd4dbfa2
               </div>
             
           
@@ -642,11 +642,11 @@
         <span class="c1"># no need to look further if we have only one submol!</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">submols</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">mol</span>
-        <span class="c1"># otherwise, we have to compare the fragments</span>
+        <span class="c1"># otherwise, we have to compare the submols</span>
         <span class="c1"># init</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;found {len(submols)} fragments&quot;</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;found {len(submols)} submols&quot;</span><span class="p">)</span>
         <span class="n">best_molweight</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span>  <span class="c1"># so we are sure to update this on the first iteration</span>
-        <span class="n">best_frag</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">best_submol</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="n">best_is_medchem</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="n">best_is_non_linear</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="c1"># begin</span>
@@ -654,15 +654,12 @@
             <span class="c1"># is_medchem</span>
             <span class="n">is_medchem</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter_mol</span><span class="p">(</span><span class="n">submol</span><span class="p">,</span> <span class="n">f</span><span class="s1">&#39;elements in {&quot;, &quot;.join(str(x) for x in self.elements_medchem)}&#39;</span><span class="p">)</span>
             <span class="n">is_non_linear</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter_mol</span><span class="p">(</span><span class="n">submol</span><span class="p">,</span> <span class="n">f</span><span class="s2">&quot;nrings &gt; 0&quot;</span><span class="p">)</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;fragment #</span><span class="si">{i}</span><span class="s2"> is medchem: </span><span class="si">{is_medchem}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="c1"># molweight</span>
             <span class="n">molweight</span> <span class="o">=</span> <span class="n">Descriptors</span><span class="o">.</span><span class="n">ExactMolWt</span><span class="p">(</span><span class="n">submol</span><span class="p">)</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;fragment #</span><span class="si">{i}</span><span class="s2"> molweight: </span><span class="si">{molweight}</span><span class="s2">&quot;</span><span class="p">)</span>
-
+            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;submol #</span><span class="si">{i}</span><span class="s2">: IM=</span><span class="si">{is_medchem}</span><span class="s2"> INL=</span><span class="si">{is_non_linear}</span><span class="s2"> MW: </span><span class="si">{molweight}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="c1"># compare to the current best fragment</span>
             <span class="n">update_best</span> <span class="o">=</span> <span class="kc">False</span>
             <span class="n">compute_diff</span> <span class="o">=</span> <span class="kc">False</span>  <span class="c1"># check which</span>
-
             <span class="c1"># 2 criteria more important than molecular weight: is_medchem &gt; is_non_linear</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">best_is_medchem</span> <span class="ow">and</span> <span class="n">is_medchem</span><span class="p">:</span>
                 <span class="n">update_best</span> <span class="o">=</span> <span class="kc">True</span>
@@ -691,10 +688,10 @@
             <span class="k">if</span> <span class="n">update_best</span><span class="p">:</span>
                 <span class="n">best_is_medchem</span> <span class="o">=</span> <span class="n">is_medchem</span>
                 <span class="n">best_is_non_linear</span> <span class="o">=</span> <span class="n">is_non_linear</span>
-                <span class="n">best_frag</span> <span class="o">=</span> <span class="n">frag</span>
+                <span class="n">best_submol</span> <span class="o">=</span> <span class="n">submol</span>
                 <span class="n">best_molweight</span> <span class="o">=</span> <span class="n">molweight</span>
 
-        <span class="k">return</span> <span class="n">best_frag</span></div>
+        <span class="k">return</span> <span class="n">best_submol</span></div>
 
     <span class="nd">@timeout_decorator</span><span class="o">.</span><span class="n">timeout</span><span class="p">(</span><span class="n">TIMEOUT</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mol</span><span class="p">:</span> <span class="n">Mol</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
@@ -722,7 +719,7 @@
                 <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
                     <span class="k">return</span> <span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="s1">&#39;error&#39;</span><span class="p">,</span> <span class="s1">&#39;disconnect_metal&#39;</span><span class="p">)</span>
 
-            <span class="c1"># fragments</span>
+            <span class="c1"># submols</span>
             <span class="k">elif</span> <span class="n">task</span> <span class="o">==</span> <span class="s1">&#39;keep_best&#39;</span><span class="p">:</span>
                 <span class="k">try</span><span class="p">:</span>
                     <span class="n">mol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">keep_best</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
