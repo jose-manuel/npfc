@@ -6,3 +6,4 @@ dist/
 *.egg-info/
 tests/tmp/*
 docs/build/*
+./snakemake/

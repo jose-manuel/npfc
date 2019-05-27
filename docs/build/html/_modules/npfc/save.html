@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.save &mdash; npfc 0.1.7-5-g664cc29 documentation</title>
+  <title>npfc.save &mdash; npfc 0.1.7-6-g0d04d09 documentation</title>
   
 
   
@@ -56,7 +56,7 @@
             
             
               <div class="version">
-                0.1.7-5-g664cc29
+                0.1.7-6-g0d04d09
               </div>
             
           
@@ -345,9 +345,9 @@
                 <span class="c1"># init</span>
                 <span class="n">output_file_base</span> <span class="o">=</span> <span class="s1">&#39;.&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output_file</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
                 <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Output_file_base: </span><span class="si">{output_file_base}</span><span class="s2">&quot;</span><span class="p">)</span>
-                <span class="c1"># compress the file</span>
-                <span class="c1">#</span>
+                <span class="c1"># write the file uncompressed</span>
                 <span class="n">PandasTools</span><span class="o">.</span><span class="n">WriteSDF</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">output_file_base</span><span class="p">,</span> <span class="n">molColName</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">col_mol</span><span class="p">,</span> <span class="n">idName</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">col_id</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">))</span>
+                <span class="c1"># compress the file</span>
                 <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">output_file_base</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">OUTPUT</span><span class="p">:</span>
                     <span class="k">with</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">output_file</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">ARCHIVE</span><span class="p">:</span>
                         <span class="n">shutil</span><span class="o">.</span><span class="n">copyfileobj</span><span class="p">(</span><span class="n">OUTPUT</span><span class="p">,</span> <span class="n">ARCHIVE</span><span class="p">)</span>

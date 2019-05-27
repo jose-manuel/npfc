@@ -1,0 +1,136 @@
+#!/bin/bash
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ DISCLAIMER ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+# run_deglyco
+#
+# A script for running a KNIME instance of deglyo_mols.knwf.
+#
+# This workflow is used for deglycosylating molecules using CDK.
+#
+# It takes 3 String inputs:
+#   - input_sdf: a SDF with molecules to deglycosylate
+#   - input_id: the id should be used in that SDF
+#   - output_dir: the location of where outputs should be generated. Subfolders data and log will be created inside.
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+function config {
+    echo -e "\nRUN_GLYCO"
+    echo -e "\nConfiguration"
+    echo -e "- knime_exec: $knime_exec"
+    echo -e "- knime_workflow: $knime_workflow"
+    echo -e "- input_sdf: $input_sdf"
+    echo -e "- input_id: $input_id"
+    echo -e "- output_dir: $output_dir"
+    echo ""
+}
+
+function exitcodes {
+    echo -e "\nExit codes are:"
+    echo -e "0 - this script executed without any error"
+    echo -e "1 - no argument so only usage was displayed"
+    echo -e "2 - an error was found with provided arguments"
+    echo ""
+}
+
+function usage {
+    echo -e "\nUsage is:"
+    echo -e "\nrun_deglyco -s <INPUT_SDF> -i <INPUT_ID> -o <OUTPUT_DIR>\n"
+    echo -e "with <INPUT_SDF> the SDF with the molecules to deglycosylate"
+    echo -e "with <INPUT_ID> the id to use for molecules in the SDF"
+    echo -e "with <OUTPUT_DIR> the output root directory, where subfolders data and log are computed"
+    echo -e "\n"
+    exitcodes
+}
+
+function run_workflow {
+    knime_exec=$1
+    workflow_file=$2
+    input_sdf=$3
+    input_id=$4
+    output_dir=$5
+    $knime_exec -nosplash -application org.knime.product.KNIME_BATCH_APPLICATION \
+    -nosave -reset -workflowFile=$workflow_file \
+    -workflow.variable="input_sdf,$input_sdf,String" \
+    -workflow.variable="input_id,$input_id,String" \
+    -workflow.variable="output_dir,$output_dir,String"
+}
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ VARIABLES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+knime_exec=$(realpath ~/Software/knime_3.7/knime) # fails if quoted
+workflow_file="deglyco_mols.knwf"
+# input_sdf="/home/gally/Projects/NPFC/src/tests/tmp/local_workflow/data/chembl_small_001.sdf.gz"
+# input_id="chembl_id"
+# output_dir="/home/gally/Projects/NPFC/src/tests/tmp/local_workflow/"
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ARGUMENTS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+# usage if no arguments
+if [ $# -eq 0 ]
+then
+    usage
+    exit 1
+fi
+
+# parse arguments
+echo ""
+while getopts "s:i:o:w:h" opt; do #
+    case $opt in
+        s) input_sdf=$(realpath $OPTARG);;
+        i) input_id=$OPTARG;;
+        o) output_dir=$(realpath $OPTARG);;
+        w) workflow_file=$(realpath $OPTARG);;
+        h) usage; exit 1;;
+        :)  echo "Option -$OPTARG requires an argument." >&2 ; exit 2;;
+        \?) echo "Invalid option: -$OPTARG" >&2 ; exit 2;;
+    esac
+done
+
+# check for errors in arguments
+errors=0
+# input_sdf
+if [ -z ${input_sdf+x} ]
+then
+    echo "Error! Argument input is unset!"
+    errors=$[errors + 1]
+else
+    if [ ! -f $input_sdf ]
+    then
+        echo "Error! input_sdf could not be found! ($input_sdf)"
+        errors=$[errors + 1]
+    fi
+fi
+# input_id
+if [ -z ${input_id+x} ]
+then
+    echo "Error! Argument input_id is unset!"
+    errors=$[errors + 1]
+fi
+# output_dir
+if [ -z ${output_dir+x} ]
+then
+    echo "Error! Argument output_dir is unset!"
+    errors=$[errors + 1]
+else
+    if [ ! -d $output_dir ]
+    then
+        echo "Error! output_dir could not be found! ($output_dir)"
+        errors=$[errors + 1]
+    fi
+fi
+# result of checking
+if [ $errors -gt 0 ]
+then
+    echo -e "\nOne or several errors were found with arguments. Aborting script execution."
+    exit 2
+fi
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ MAIN ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
+# display config
+config
+
+# run the workflow
+run_workflow $knime_exec $workflow_file $input_sdf $input_id $output_dir
+exit 0
