@@ -146,10 +146,7 @@ def test_std_init(standardizer):
 
     # from a json file
     json_config = 'tests/tmp/std_protocol.json'
-    with open(json_config, 'w') as JSON:
-        JSON.write('''{
-                    "tasks": ["sanitize", "filter_molweight"],
-                    "filter_molweight": "100.0 <= molweight <= 1000.0"\n}''')
+
     standardizer.protocol = json_config
     assert standardizer.protocol['tasks'] == ["sanitize", "filter_molweight"]
     assert standardizer.protocol['filter_molweight'] == "100.0 <= molweight <= 1000.0"

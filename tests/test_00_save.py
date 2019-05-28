@@ -65,7 +65,7 @@ def test_init(saver, output_file_prefix):
     # create WD if it does not exist yet
     WD.mkdir(parents=True, exist_ok=True)
     # empty it from earlier runs
-    [Path(f).unlink() for f in glob(output_file_prefix + '*') if Path(f).is_file()]
+    [Path(f).unlink() for f in glob(str(WD) + '/*') if Path(f).is_file()]
     # check saver
     assert saver.shuffle is False
     assert saver.random_seed is None

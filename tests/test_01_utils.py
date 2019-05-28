@@ -103,8 +103,14 @@ def test_arg_output_file():
 
 def test_arg_config_file():
     """Test the parsing of arguments that should be a config file."""
+    json_config = 'tests/tmp/std_protocol.json'
+    # write file, it will be also tested for standardization later
+    with open(json_config, 'w') as JSON:
+        JSON.write('''{
+                    "tasks": ["sanitize", "filter_molweight"],
+                    "filter_molweight": "100.0 <= molweight <= 1000.0"\n}''')
     # should pass
-    utils.check_arg_config_file('tests/tmp/std_protocol.json')
+    utils.check_arg_config_file(json_config)
     # should throw a ValueError
     error = False
     try:

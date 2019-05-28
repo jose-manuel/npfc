@@ -65,4 +65,4 @@ rule mkdir:
     output:
         LOCAL + "data",
         LOCAL + "log"
-    shell: "rm -rf {output[0]} {output[1]}; mkdir {output[0]} {output[1]}"
+    shell: "rm -rf LOCAL/local_workflow.png {output[0]} {output[1]}; mkdir {output[0]} {output[1]}"
