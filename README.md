@@ -1,18 +1,19 @@
 # npfc
 
-npfc stands for natural product fragment combinations. It is used for classifying
+npfc stands for Natural Product Fragment Combinations. It is used for classifying
 those into predefined categories. It is composed of a package with classes and
 tests as well as a main to run the workflow.
 
 ## Workflow
 
 The npfc workflow can be broken down in 6 successive steps:
-    1) convert a molecular file into a hdf file(s)
-    2) standardize structures within the hdf file(s)
-    3) remove duplicate entries
-    4) search the molecules for requested fragments
-    5) classify fragments combinations
-    6) generate a report
+    1) load/chunk an input file (SDF)
+    2) deglycosylate molecules using a KNIME workflow
+    3) standardize/filter structures, remove duplicates
+    4) for chembl: filter out natural products from chembl (chembl_synth)
+    5) search the molecules for requested fragments
+    6) classify fragments combinations
+    7) create molecular fragment networks
 
 ## How to use this
 
@@ -133,13 +134,9 @@ To create the task tree:
 - add extlinks to RDKit documentation (~ MolVS)
 - tweak Sanitizeflags to mimic KNIME Mol2RDKit node behavior (partial sanitization) or split molblocks/smiles before conversion to RDKit
 - implement a git hook so that only changes that pass all tests are committed
-- build up a workflow using snakemake: local for testing, on cluster for production
 - automatic release changelog (standard-version?)
 - ref_file for duplicate entries removal should be defined in the protocol
 - check if ref_file would be better in table mode for appending data instead of rewriting the whole file for each chunk
-- add nrings criteria to retrieve the "best" minor compound instead of just medchem during keep_largest in standardization
-- add option for recomputing 2D coordinates in standardization (best of 4: input, coordgen, allchem and avalon)
--
 
 ## Some weird errors encountered during development
     - cannot set user-defined timeout for standardization because the timeout value is set during the loading of the library
