@@ -9,7 +9,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="npfc",
-    version='0.1.7-7-g2725ee2',
+    version='0.1.7-8-gd4dbfa2',
     author="Jose-Manuel Gally",
     author_email="josemanuel.gally@mpi-dortmund.mpg.de",
     description="A package for classifying fragment combinations in molecules",
@@ -29,7 +29,8 @@ setuptools.setup(
              'bin/standardize_mols',
              'bin/peek_hdf',
              'bin/substruct_mols',
-             'bin/classify_frags_comb',
+             'bin/classify_frags',
              'bin/deglyco_mols',
+             'bin/map_frags',
              ],
 )

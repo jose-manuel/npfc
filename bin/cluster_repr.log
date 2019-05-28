@@ -1,7 +1,0 @@
-usage: standardize_mols [-h] [-o OUTPUT_TEMPLATE] [-p PROTOCOL] [-r REF_FILE]
-                        [-d DECODE_MOLS] [-e ENCODE_MOLS] [-m MURCKO]
-                        [-k KEEP_INTERMEDIATES] [-c CLEAR] [--in_id IN_ID]
-                        [--in_mol IN_MOL] [--in_sep IN_SEP] [--out_id OUT_ID]
-                        [--out_mol OUT_MOL] [--out_sep OUT_SEP] [--log LOG]
-                        input_mols
-standardize_mols: error: argument -c/--clear: expected one argument

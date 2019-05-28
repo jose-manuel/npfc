@@ -1,0 +1,135 @@
+#!/usr/bin/env python
+
+"""
+Script map_frags
+==========================
+This script is used for generating fragment maps from fragment combination classifications.
+"""
+
+# standard
+import warnings
+import sys
+from datetime import datetime
+import logging
+import pandas as pd
+import argparse
+import json
+import base64
+import pickle
+# chemoinformatics
+import rdkit
+# dev
+import npfc
+from npfc import load
+from npfc import save
+from npfc import utils
+from npfc import fragment
+# disable SettingWithCopyWarning warnings
+pd.options.mode.chained_assignment = None  # default='warn'
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
+def main():
+
+    # init
+    d0 = datetime.now()
+    description = """Script used for mapping fragment combinations.
+
+    It uses the installed npfc libary in your favorite env manager.
+
+    Example:
+
+        >>> map_frags file_fcc.csv.gz file_map.csv.gz
+
+    """
+
+    # parameters CLI
+    parser = argparse.ArgumentParser(description=description, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument('input_fcc', type=str, default=None, help="Input file for fragment combination classifications.")
+    parser.add_argument('output_map', type=str, default=None, help="Output file basename. It gets appended with the type of output being produced: raw, clean and map.")
+    parser.add_argument('--min-frags', type=int, default=2, help="Maximum number of fragments allowed for computing a graph. Molecules with a lower number are filtered out.")
+    parser.add_argument('--max-frags', type=int, default=9999, help="Maximum number of fragments allowed for computing a graph. Molecules with a higher number are filtered out.")
+    parser.add_argument('--max-overlaps', type=int, default=5, help="Minimum number of overlapping fragment combinations for processing a molecule. Molecules with a higher number are filtered out.")
+    parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
+    args = parser.parse_args()
+
+    # logging
+    logger = utils._configure_logger(args.log)
+    logger.info("RUNNING FRAGMENT MAPPING")
+    warnings.filterwarnings('ignore', category=pd.io.pytables.PerformanceWarning)  # if None is returned instead of a molecule, do not complain about mixed types
+    pad = 40
+
+    # parse arguments
+    utils.check_arg_input_file(args.input_fcc)
+    utils.check_arg_output_file(args.output_map)
+    utils.check_arg_positive_number(args.min_frags)
+    utils.check_arg_positive_number(args.max_frags)
+    utils.check_arg_positive_number(args.max_overlaps)
+    fcc_format, fcc_compression = utils.get_file_format(args.input_fcc)
+    out_format, out_compression = utils.get_file_format(args.output_map)
+
+    # display infos
+    logger.info("LIBRARY VERSIONS:")
+    logger.info("rdkit".ljust(pad) + f"{rdkit.__version__}")
+    logger.info("pandas".ljust(pad) + f"{pd.__version__}")
+    logger.info("npfc".ljust(pad) + f"{npfc.__version__}")
+    logger.info("ARGUMENTS:")
+    logging.info("INPUT_FCC".ljust(pad) + f"{args.input_fcc}")
+    logging.info("FCC_FORMAT".ljust(pad) + f"{fcc_format}")
+    logging.info("FCC_COMPRESSION".ljust(pad) + f"{fcc_compression}")
+    logging.info("OUTPUT_MAP".ljust(pad) + f"{args.output_map}")
+    logging.info("OUT_FORMAT".ljust(pad) + f"{out_format}")
+    logging.info("OUT_COMPRESSION".ljust(pad) + f"{out_compression}")
+    logging.info("MIN_FRAGS".ljust(pad) + f"{args.min_frags}")
+    logging.info("MAX_FRAGS".ljust(pad) + f"{args.max_frags}")
+    logging.info("MAX_OVERLAPS".ljust(pad) + f"{args.max_overlaps}")
+    logging.info("LOG".ljust(pad) + f"{args.log}")
+
+    # begin
+    logging.info("BEGIN")
+
+    # load fcc
+    logging.info("LOADING FRAGMENT COMBINATIONS")
+    d1 = datetime.now()
+    df_fcc = load.from_file(args.input_fcc,
+                            keep_props=True,
+                            )
+    logging.info(f"FOUND {len(df_fcc.index)} FRAGMENT COMBINATIONS")
+
+    # extract sets from strings (will likely fail with hdf input!!!)
+    logging.info(f"DECODING ATOM INDICES")
+    df_fcc['aidxf1'] = df_fcc['aidxf1'].map(lambda x: frozenset(json.loads(x)))
+    df_fcc['aidxf2'] = df_fcc['aidxf2'].map(lambda x: frozenset(json.loads(x)))
+
+    # mapping fragment combinations
+    logger.info(f"MAPPING REMAINING FRAGMENT COMBINATIONS")
+    d2 = datetime.now()
+    c = fragment.CombinationClassifier()
+    df_map = c.map_frags(df_fcc, min_frags=args.min_frags, max_frags=args.max_frags, max_overlaps=args.max_overlaps)
+    logger.info(f"COMPUTED {len(df_map.index)} FRAGMENT COMBINATION NETWORKS")
+
+    # save map results
+    logger.info(f"ENCODING COLORMAP")
+    df_map['colormap'] = df_map['colormap'].map(lambda x: base64.b64encode(pickle.dumps(x)))
+    logger.info(f"SAVING MAP RESULTS AT '{args.output_map}'")
+    d3 = datetime.now()
+    save.save(df_map, args.output_map, encode_mols=True)
+
+    # end
+    d4 = datetime.now()
+    logging.info("SUMMARY")
+    logger.info("COMPUTATIONAL TIME: CONFIGURING JOB".ljust(pad * 2) + f"{d1-d0}")
+    logger.info("COMPUTATIONAL TIME: LOADING FRAGMENT COMBINATIONS".ljust(pad * 2) + f"{d2-d1}")
+    logger.info("COMPUTATIONAL TIME: MAPPING COMBINATIONS".ljust(pad * 2) + f"{d3-d2}")
+    logger.info("COMPUTATIONAL TIME: SAVING FRAGMENT COMBINATIONS NETWORKS".ljust(pad * 2) + f"{d4-d3}")
+    logger.info("COMPUTATIONAL TIME: TOTAL".ljust(pad * 2) + f"{d4-d0}")
+    logging.info("END")
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ MAIN ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
+if __name__ == '__main__':
+    main()
+    sys.exit(0)

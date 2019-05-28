@@ -1,15 +1,31 @@
 LOCAL = "tests/tmp/local_workflow/"
 
 rule all:
-    input: LOCAL + "data/chembl_small_001_sub.csv.gz"
+    input:
+        LOCAL + "data/chembl_small_001_map_crms.csv.gz",
+        LOCAL + "local_workflow.png"
+
+
+rule map:
+    input: LOCAL + "data/chembl_small_001_fcc_crms.csv.gz"
+    output: LOCAL + "data/chembl_small_001_map_crms.csv.gz"
+    log: LOCAL + "log/chembl_small_001_map_crms.log"
+    shell: "map_frags {input} {output} 2>{log}"
+
+
+rule classify:
+    input: LOCAL + "data/chembl_small_001_sub_crms.csv.gz"
+    output: LOCAL + "data/chembl_small_001_fcc_crms.csv.gz"
+    log: LOCAL + "log/chembl_small_001_fcc_crms.log"
+    shell: "classify_frags {input} {output} 2>{log}"
 
 
 rule substructure:
     input:
         LOCAL + "data/chembl_small_001_passed.csv.gz",  # molecules
-        "tests/data/crms_passed.sdf.gz"  # fragments
-    output: LOCAL + "data/chembl_small_001_sub.csv.gz"
-    log: LOCAL + "log/chembl_small_001_sub.log"
+        "tests/data/crms_passed.csv.gz"  # fragments
+    output: LOCAL + "data/chembl_small_001_sub_crms.csv.gz"
+    log: LOCAL + "log/chembl_small_001_sub_crms.log"
     shell: "substruct_mols {input[0]} {input[1]} {output} 2>{log}"
 
 
@@ -37,6 +53,12 @@ rule chunk:
     output: LOCAL + "data/chembl_small_001.sdf.gz"
     log: LOCAL + "log/chembl_small.log"
     shell: "load_mols {input[0]} $(echo {output} | rev | cut -d_ -f2- | rev).sdf.gz -n 500 --in_id chembl_id 2>{log}"
+
+
+rule tasktree:
+    input: LOCAL
+    output: LOCAL + "local_workflow.png"
+    shell: "snakemake -s tests/local_workflow.smk --dag | dot -Tpng > {output}"
 
 
 rule mkdir:
