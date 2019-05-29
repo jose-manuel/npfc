@@ -32,6 +32,42 @@ pdf formats. Please have a look at each step specifically for more details.
 
 ## References used for packaging this project
 
+### Conda environment
+
+Export conda env to yml file:
+
+>>> conda env export > conda_npfc.yml
+
+Use this yml file to create a conda env:
+
+>>> conda env create -f conda_npfc.yml
+
+Careful as two dependencies were installed with pip and require special handling:
+
+#### timeout_decorator
+
+This package is used for setting a timeout for standardizing molecules.
+
+To install it, just run:
+
+>>> pip install timeout_decorator
+
+#### pdbeccdutils
+
+This package is used for comparing 2D depictions of a same molecule and retrieve
+the "best" one.
+
+Unfortunately, the latest release (0.5, tested on the 28th of May 2019) is broken and
+cannot be imported anymore in my environment (missing "dataclasses"). So I just used
+the 0.4 git clone I have on my laptop instead. I sent this copy to the cluster.
+This is very whacky and I hope I can find a better way before releasing this package.
+
+Inside of the package root folder:
+
+>>> python setup.py sdist
+>>> cd dist
+>>> pip install pdbeccdutils-0.4.tar.gz
+
 ### Package syntax
 
 https://packaging.python.org/tutorials/packaging-projects/

@@ -1,1 +1,1 @@
-include npfc/__version__.py
+ graft npfc

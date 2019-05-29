@@ -1,6 +1,5 @@
 import setuptools
 
-
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
@@ -9,7 +8,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="npfc",
-    version='0.1.8-1-gd554589',
+    version='0.1.8-2-gabaf32b',
     author="Jose-Manuel Gally",
     author_email="josemanuel.gally@mpi-dortmund.mpg.de",
     description="A package for classifying fragment combinations in molecules",
@@ -33,4 +32,6 @@ setuptools.setup(
              'bin/deglyco_mols',
              'bin/map_frags',
              ],
+    # package_data={'npfc': ['data/deglyco_mols.knwf']},  # key: package name, value: list of data files
+    include_package_data=True,
 )
