@@ -31,6 +31,7 @@ setuptools.setup(
              'bin/classify_frags',
              'bin/deglyco_mols',
              'bin/map_frags',
+             'bin/chunk_sdf',
              ],
     # package_data={'npfc': ['data/deglyco_mols.knwf']},  # key: package name, value: list of data files
     include_package_data=True,
