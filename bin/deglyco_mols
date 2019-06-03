@@ -18,7 +18,7 @@ function config {
     echo -e "\nRUN_GLYCO"
     echo -e "\nConfiguration"
     echo -e "- knime_exec: $knime_exec"
-    echo -e "- knime_workflow: $knime_workflow"
+    echo -e "- workflow_file: $workflow_file"
     echo -e "- input_sdf: $input_sdf"
     echo -e "- input_id: $input_id"
     echo -e "- output_dir: $output_dir"
@@ -45,22 +45,27 @@ function usage {
 }
 
 function run_workflow {
+    # initialize arguments
     knime_exec=$1
     workflow_file=$2
     input_sdf=$3
     input_id=$4
     output_dir=$5
+    # run the KNIME worklow
     $knime_exec -nosplash -application org.knime.product.KNIME_BATCH_APPLICATION \
     -nosave -reset -workflowFile=$workflow_file \
     -workflow.variable="input_sdf,$input_sdf,String" \
     -workflow.variable="input_id,$input_id,String" \
-    -workflow.variable="output_dir,$output_dir,String"
+    -workflow.variable="output_dir,$output_dir,String" \
+    -vmargs -Dorg.knime.core.maxThreads=1  # vmargs are jvm vars and need to be provided last
+
 }
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ VARIABLES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
+
 knime_exec=$(realpath ~/Software/knime_3.7/knime) # fails if quoted
-workflow_file="deglyco_mols.knwf"
+
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ARGUMENTS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
@@ -79,6 +84,7 @@ while getopts "s:i:o:w:h" opt; do #
         i) input_id=$OPTARG;;
         o) output_dir=$(realpath $OPTARG);;
         w) workflow_file=$(realpath $OPTARG);;
+        n) num_threads=$OPTARG;;
         h) usage; exit 1;;
         :)  echo "Option -$OPTARG requires an argument." >&2 ; exit 2;;
         \?) echo "Invalid option: -$OPTARG" >&2 ; exit 2;;
@@ -116,6 +122,26 @@ else
         echo "Error! output_dir could not be found! ($output_dir)"
         errors=$[errors + 1]
     fi
+fi
+# workflow_file
+if [ -z ${workflow_file+x} ]
+then
+    echo "Error! Argument workflow_file is unset!"
+    errors=$[errors + 1]
+else
+    if [ ! -f $workflow_file ]
+    then
+        echo "Error! workflow_file could not be found! ($workflow_file)"
+        errors=$[errors + 1]
+    fi
+fi
+# num_threads
+if [ -z ${workflow_file+x} ]
+then
+    echo "Warning! Argument num_threads is not specified, setting it to 1"
+    num_threads=1
+else
+    echo "Argument num_threads values $num_threads"
 fi
 # result of checking
 if [ $errors -gt 0 ]
