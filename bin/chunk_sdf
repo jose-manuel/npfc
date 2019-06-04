@@ -45,12 +45,26 @@ function chunk_sdf {
     output_dir=$2
     nrecords=$3
 
+
+    # 0/ determine gunzip version so we know if argument k is available or not
+    gunzip_version=$(echo $(gunzip --version) | cut -d' ' -f3)
+    echo "gzip_version is $gzip_version"
+
     # 1/ uncompress gzip files
     ext=$(echo $input_sdf | rev | cut -d. -f1 | rev)
     if [ $ext = 'gz' ]
     then
         echo -e "Uncompressing $input_sdf"
-        gunzip -k $input_sdf
+        # use k arg on gunzip version higher than 1.5, will fail for lower versions than 1.5
+        if [ $gzip_version = '1.5' ]
+        then
+            gunzip $input_sdf
+            compress_input="true"
+        else
+            gunzip -k $input_sdf  # available only with gzip 1.6, cluster version is 1.5
+            compress_input="false"
+
+        fi
         input_sdf=$(echo $input_sdf | rev | cut -d. -f2- | rev)  # remove .gzip from the file name
     fi
 
@@ -71,8 +85,14 @@ function chunk_sdf {
     # 3/ compress the chunks and delete the uncompressed input_sdf
     if [ $ext = 'gz' ]
     then
-         echo -e "Deleting temporary files"
-         rm -f $input_sdf  # original input_sdf variable has been overwritten with uncompressed file
+         echo -e "Removing temporary files"
+         # delete the uncompressed file only if gzip was used with k argument, otherwise just compress it again
+         if [ $compress_input = "false"]
+         then
+             rm -f $input_sdf  # original input_sdf variable has been overwritten with uncompressed file
+         else
+             gzip $input_sdf
+        fi
     fi
     echo -e "Compressing chunks"
     gzip -f ${chunk_base}_[0-9][0-9][0-9].sdf

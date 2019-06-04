@@ -164,6 +164,12 @@ Also, the atom plugin git-log can be summoned with ctrl+shift+p to visualize the
 To create the task tree:
 >>> snakemake --dag | dot -Tsvg > dag.svg
 
+To run a Snakemake job locally:
+>>> snakemake -s run_crms.smk
+
+To run a Snakemake on the cluster:
+>>> snakemake -s run_crms.smk --jobs 999 --cluster 'bsub -q mpi-short -R "scratch" -J {cluster.name}'
+
 
 ## Stuff to think about
 
