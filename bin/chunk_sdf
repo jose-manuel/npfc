@@ -48,7 +48,7 @@ function chunk_sdf {
 
     # 0/ determine gunzip version so we know if argument k is available or not
     gunzip_version=$(echo $(gunzip --version) | cut -d' ' -f3)
-    echo "gzip_version is $gzip_version"
+    echo "gunzip_version is $gunzip_version"
 
     # 1/ uncompress gzip files
     ext=$(echo $input_sdf | rev | cut -d. -f1 | rev)
@@ -56,7 +56,7 @@ function chunk_sdf {
     then
         echo -e "Uncompressing $input_sdf"
         # use k arg on gunzip version higher than 1.5, will fail for lower versions than 1.5
-        if [ $gzip_version = '1.5' ]
+        if [ $gunzip_version = '1.5' ]
         then
             gunzip $input_sdf
             compress_input="true"
