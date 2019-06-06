@@ -47,10 +47,9 @@ def main():
     # parameters CLI
 
     parser = argparse.ArgumentParser(description=description, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('input-mols', type=str, default=None, help="Input file for the molecules to filter.")
-    parser.add_argument('input-syn', type=str, default=None, help="Synonym file for the molecules to filter.")
-    parser.add_argument('ref-syn', type=str, default=None, help="Synonym file for the reference to use as filter.")
-    parser.add_argument('output-mols', type=str, default=None, help="Output file.")
+    parser.add_argument('mols', type=str, default=None, help="Input file for the molecules to filter.")
+    parser.add_argument('synref', type=str, default=None, help="Synonym file for the reference to use as filter.")
+    parser.add_argument('output', type=str, default=None, help="Output file.")
     parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
     args = parser.parse_args()
 
@@ -64,21 +63,17 @@ def main():
 
     # parse arguments
 
-    # input_mols
-    utils.check_arg_input_file(args.input_mols)
-    mformat, mcompression = utils.get_file_format(args.input_mols)
+    # mols
+    utils.check_arg_input_file(args.mols)
+    mformat, mcompression = utils.get_file_format(args.mols)
 
-    # input_syn
-    utils.check_arg_input_file(args.input_syn)
-    fformat, fcompression = utils.get_file_format(args.input_syn)
+    # synref
+    utils.check_arg_input_file(args.synref)
+    fformat, fcompression = utils.get_file_format(args.synref)
 
-    # ref_syn
-    utils.check_arg_input_file(args.ref_syn)
-    fformat, fcompression = utils.get_file_format(args.ref_syn)
-
-    # output_mols
-    utils.check_arg_output_file(args.output_mols)
-    oformat, ocompression = utils.get_file_format(args.output_mols)
+    # output
+    utils.check_arg_output_file(args.output)
+    oformat, ocompression = utils.get_file_format(args.output)
 
     # display infos
 
@@ -89,64 +84,47 @@ def main():
     logger.info("npfc".ljust(pad) + f"{npfc.__version__}")
     # arguments
     logger.info("ARGUMENTS:")
-    logging.info("INPUT_MOLS".ljust(pad) + f"{args.input_mols}")
-    logging.info("INPUT_SYN".ljust(pad) + f"{args.input_syn}")
-    logging.info("REF_SYN".ljust(pad) + f"{args.ref_syn}")
-    logging.info("OUTPUT_MOLS".ljust(pad) + f"{args.output_mols}")
+    logging.info("mols".ljust(pad) + f"{args.mols}")
+    logging.info("synref".ljust(pad) + f"{args.synref}")
+    logging.info("output".ljust(pad) + f"{args.output}")
     logging.info("LOG".ljust(pad) + f"{args.log}")
 
     # begin
 
     logging.info("BEGIN")
 
-    # loading input_syn
-    input_syn_key = Path(args.input_syn).stem
-    logging.info(f"LOADING INPUT_SYN WITH KEY={input_syn_key}")
+    # loading synref
+    synref_key = Path(args.synref).stem
+    logging.info(f"LOADING SYNREF WITH KEY={synref_key}")
     d1 = datetime.now()
-    df_input_syn = pd.read_hdf(args.input_syn, key=input_syn_key)
-    logging.info(f"NUMBER OF RECORDS IN INPUT_SYN: {len(df_input_syn.index)}")
+    df_synref = pd.read_hdf(args.synref, decode=False)
+    logging.info(f"NUMBER OF RECORDS IN SYNREF: {len(df_synref.index)}")
 
-    # loading ref_syn
-    ref_syn_key = Path(args.ref_syn).stem
-    logging.info(f"LOADING REF_SYN WITH KEY={ref_syn_key}")
+    # load mols
+    logging.info("LOADING MOLS")
     d2 = datetime.now()
-    df_ref_syn = pd.read_hdf(args.ref_syn, decode=False)
-    logging.info(f"NUMBER OF RECORDS IN REF_SYN: {len(df_ref_syn.index)}")
-
-    # load input_syn
-    logging.info("LOADING INPUT_MOLS")
-    d3 = datetime.now()
-    df_mols = pd.read_csv(args.input_mols, sep="|", compression="gzip")  # no need for decoding mols
-
-    # subset synonyms
-    logging.info("SUBSETTING INPUT_SYN")
-    d4 = datetime.now()
-    df_subset_syn = df_input_syn[~df_input_syn.index.isin(df_ref_syn.index)]
-    print(f"NUMBER OF RECORDS IN SUBSET: {len(df_subset_syn.index)}")
-
+    df_mols = pd.read_csv(args.mols, sep="|", compression="gzip")  # no need for decoding mols
     # subset mols
-    logger.info(f"SUBSETTING INPUT_MOLS")
-    d5 = datetime.now()
+    logger.info(f"SUBSETTING MOLS")
+    d3 = datetime.now()
     num_ini = len(df_mols.index)
-    df_mols_subset = df_mols[df_mols['idm'].isin(df_subset_syn['idm'])]
+    df_mols_subset = df_mols[~df_mols['inchikey'].isin(df_synref.index)]
     logging.info(f"NUMBER OF REMAINING RECORDS IN SUBSET: {len(df_mols_subset.index)}/{num_ini}")
 
     # save results
     logger.info(f"SAVING RESULTS")
-    d6 = datetime.now()
-    df_mols_subset.to_csv(args.output_mols, sep="|", compression="gzip")
+    d4 = datetime.now()
+    df_mols_subset.to_csv(args.output, sep="|", compression="gzip")
 
     # end
-    d7 = datetime.now()
+    d5 = datetime.now()
     logging.info("SUMMARY")
     logger.info("COMPUTATIONAL TIME: CONFIGURING JOB".ljust(pad * 2) + f"{d1-d0}")
-    logger.info("COMPUTATIONAL TIME: LOADING INPUT_SYN".ljust(pad * 2) + f"{d2-d1}")
-    logger.info("COMPUTATIONAL TIME: LOADING REF_SYN".ljust(pad * 2) + f"{d3-d2}")
-    logger.info("COMPUTATIONAL TIME: LOADING INPUT_MOL".ljust(pad * 2) + f"{d4-d3}")
-    logger.info("COMPUTATIONAL TIME: SUBSETIING SYNONYMS".ljust(pad * 2) + f"{d5-d4}")
-    logger.info("COMPUTATIONAL TIME: SUBSETIING MOLS".ljust(pad * 2) + f"{d6-d5}")
-    logger.info("COMPUTATIONAL TIME: SAVING SUBSET".ljust(pad * 2) + f"{d7-d6}")
-    logger.info("COMPUTATIONAL TIME: TOTAL".ljust(pad * 2) + f"{d7-d0}")
+    logger.info("COMPUTATIONAL TIME: LOADING SYNREF".ljust(pad * 2) + f"{d2-d1}")
+    logger.info("COMPUTATIONAL TIME: LOADING INPUT_MOL".ljust(pad * 2) + f"{d3-d2}")
+    logger.info("COMPUTATIONAL TIME: SUBSETIING MOLS".ljust(pad * 2) + f"{d4-d3}")
+    logger.info("COMPUTATIONAL TIME: SAVING SUBSET".ljust(pad * 2) + f"{d5-d4}")
+    logger.info("COMPUTATIONAL TIME: TOTAL".ljust(pad * 2) + f"{d5-d0}")
     logging.info("END")
     sys.exit(0)
 

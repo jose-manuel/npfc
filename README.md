@@ -161,6 +161,8 @@ Also, the atom plugin git-log can be summoned with ctrl+shift+p to visualize the
 
 ## Snakemake
 
+### Useful Commands
+
 To create the task tree:
 >>> snakemake --dag | dot -Tsvg > dag.svg
 
@@ -169,6 +171,40 @@ To run a Snakemake job locally:
 
 To run a Snakemake on the cluster:
 >>> snakemake -s run_crms.smk --jobs 999 --cluster 'bsub -q mpi-short -R "scratch" -J {cluster.name}'
+
+### NPFC pipelines
+
+Actually, 3 pipelines are present in the NPFC project:
+    - prep_crms:
+    - fcc_dnp
+    - fcc_chembl
+
+
+## Run jobs on clusters
+
+### GWDG1
+
+The Goettingen cluster (Gesellschaft fuer wissenschaftliche Datenverarbeitung mit mbH Goettingen)
+can be used for running jobs using either lsf (bsub) or slurm (sbatch).
+There is something wrong with the way lsf is configured as job parameters specified in bsub scripts
+are simply ignored. This makes that one has to specify everything with command line arguments.
+
+
+### CLEM
+
+clem is the name of the local slurm cluster at the MPI-Dortmund. It is mainly used
+for processing microscope imaging but the nodes e045 to e048 (3 nodes) are Axel's to use for
+Cell Painting. When there is no CP going on, I can use the nodes for NPFC.
+In order to avoid conflicts with other research groups, I have to specifiy the correct
+queue (--partition comas). Also if I want to run one job per core (24 cores per node),
+I also have to use the argument --oversubscribe.
+
+It is also possible to check how many cores are being used by directly logging into the
+node from the front-end and use htop.
+
+A ganglia server is also accessible from the browser:
+
+http://clem.mpi-dortmund.mpg.de/ganglia/
 
 
 ## Stuff to think about

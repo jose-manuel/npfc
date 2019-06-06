@@ -177,6 +177,7 @@ class DuplicateFilter:
 
         .. todo:: optimize code (table format for reference file, numpy for setting up lists when grouping?)
         """
+        df = df.copy()  # this certainly removes the pandas warnings but is it the right way of doing this?
         # check on col_mol
         if self.col_mol not in df.columns:
             raise ValueError(f"Error! No column {self.col_mol} found for col_mol parameter.")
@@ -185,7 +186,6 @@ class DuplicateFilter:
             raise ValueError(f"Error! Unauthorized value for on parameter ({self.on}).")
         elif self.on not in df.columns:
             logging.warning(f"Column {self.on} not found, so computing it.")
-            df = df.copy()  # this certainly removes the pandas warnings but is it the right way of doing this?
             df.loc[:, self.on] = df.loc[:, self.col_mol].map(rdinchi.MolToInchiKey)
         # init
         df.index = df[self.on]
@@ -250,7 +250,7 @@ class DuplicateFilter:
         """
         # any molecule whose id is not in df_synonyms[col_id] is a duplicate of another
         df_synonyms = self.find_synonyms(df)
-        df = df.copy()  # supress warnings, but might significantly slow down the process..?
+        # df = df.copy()  # supress warnings, but might significantly slow down the process..?
         df.loc[~df.loc[:, self.col_id].isin(df_synonyms.loc[:, self.col_id]), ['status', 'task']] = ('filtered', 'filter_dupl')
         return df
 
@@ -663,6 +663,8 @@ class Standardizer(Filter):
         df_error = df[df['status'] == 'error']
         df_filtered = df[df['status'] == 'filtered']
         df = df[df['status'] == 'passed']
+        # compute InChiKeys
+        df.loc[:, 'inchikey'] = df.loc[:, self.col_mol].map(rdinchi.MolToInchiKey)
         # filter duplicates
         if self.filter_duplicates:
             dupl_filter = DuplicateFilter(on=self.on, col_mol=self.col_mol, col_id=self.col_id, ref_file=self.ref_file)
@@ -671,7 +673,7 @@ class Standardizer(Filter):
             df.index = df[self.col_id]
             df.drop(self.col_id, axis=1, inplace=True)
             # separate dupl from the rest
-            df_filtered = pd.concat([df_filtered, df[df['status'] == 'filtered']], join='inner')  # drop inchikey col as the info is stored in ref_file anyway
+            df_filtered = pd.concat([df_filtered, df[df['status'] == 'filtered'][[c for c in df.columns if c != 'inchikey']]], join='inner')  # drop inchikey col as the info is stored in ref_file anyway
             df = df[df['status'] == 'passed']
         # compute 2D depictions
         if self.compute_2D:
