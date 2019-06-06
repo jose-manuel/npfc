@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.standardize &mdash; npfc 0.1.11-1-g370ece0 documentation</title>
+  <title>npfc.standardize &mdash; npfc 0.2.0 documentation</title>
   
 
   
@@ -56,7 +56,7 @@
             
             
               <div class="version">
-                0.1.11-1-g370ece0
+                0.2.0
               </div>
             
           
@@ -331,6 +331,7 @@
 
 <span class="sd">        .. todo:: optimize code (table format for reference file, numpy for setting up lists when grouping?)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>  <span class="c1"># this certainly removes the pandas warnings but is it the right way of doing this?</span>
         <span class="c1"># check on col_mol</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">col_mol</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Error! No column </span><span class="si">{self.col_mol}</span><span class="s2"> found for col_mol parameter.&quot;</span><span class="p">)</span>
@@ -339,7 +340,6 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Error! Unauthorized value for on parameter (</span><span class="si">{self.on}</span><span class="s2">).&quot;</span><span class="p">)</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">on</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
             <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Column </span><span class="si">{self.on}</span><span class="s2"> not found, so computing it.&quot;</span><span class="p">)</span>
-            <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>  <span class="c1"># this certainly removes the pandas warnings but is it the right way of doing this?</span>
             <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="bp">self</span><span class="o">.</span><span class="n">on</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="bp">self</span><span class="o">.</span><span class="n">col_mol</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">rdinchi</span><span class="o">.</span><span class="n">MolToInchiKey</span><span class="p">)</span>
         <span class="c1"># init</span>
         <span class="n">df</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">on</span><span class="p">]</span>
@@ -404,7 +404,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># any molecule whose id is not in df_synonyms[col_id] is a duplicate of another</span>
         <span class="n">df_synonyms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">find_synonyms</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
-        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>  <span class="c1"># supress warnings, but might significantly slow down the process..?</span>
+        <span class="c1"># df = df.copy()  # supress warnings, but might significantly slow down the process..?</span>
         <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="o">~</span><span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="bp">self</span><span class="o">.</span><span class="n">col_id</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">df_synonyms</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="bp">self</span><span class="o">.</span><span class="n">col_id</span><span class="p">]),</span> <span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">,</span> <span class="s1">&#39;task&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;filtered&#39;</span><span class="p">,</span> <span class="s1">&#39;filter_dupl&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">df</span></div></div>
 
@@ -817,6 +817,8 @@
         <span class="n">df_error</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;error&#39;</span><span class="p">]</span>
         <span class="n">df_filtered</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;filtered&#39;</span><span class="p">]</span>
         <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;passed&#39;</span><span class="p">]</span>
+        <span class="c1"># compute InChiKeys</span>
+        <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s1">&#39;inchikey&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="bp">self</span><span class="o">.</span><span class="n">col_mol</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">rdinchi</span><span class="o">.</span><span class="n">MolToInchiKey</span><span class="p">)</span>
         <span class="c1"># filter duplicates</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter_duplicates</span><span class="p">:</span>
             <span class="n">dupl_filter</span> <span class="o">=</span> <span class="n">DuplicateFilter</span><span class="p">(</span><span class="n">on</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">on</span><span class="p">,</span> <span class="n">col_mol</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">col_mol</span><span class="p">,</span> <span class="n">col_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">col_id</span><span class="p">,</span> <span class="n">ref_file</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ref_file</span><span class="p">)</span>
@@ -825,7 +827,7 @@
             <span class="n">df</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">col_id</span><span class="p">]</span>
             <span class="n">df</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">col_id</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             <span class="c1"># separate dupl from the rest</span>
-            <span class="n">df_filtered</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">df_filtered</span><span class="p">,</span> <span class="n">df</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;filtered&#39;</span><span class="p">]],</span> <span class="n">join</span><span class="o">=</span><span class="s1">&#39;inner&#39;</span><span class="p">)</span>  <span class="c1"># drop inchikey col as the info is stored in ref_file anyway</span>
+            <span class="n">df_filtered</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">df_filtered</span><span class="p">,</span> <span class="n">df</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;filtered&#39;</span><span class="p">][[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="n">c</span> <span class="o">!=</span> <span class="s1">&#39;inchikey&#39;</span><span class="p">]]],</span> <span class="n">join</span><span class="o">=</span><span class="s1">&#39;inner&#39;</span><span class="p">)</span>  <span class="c1"># drop inchikey col as the info is stored in ref_file anyway</span>
             <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;passed&#39;</span><span class="p">]</span>
         <span class="c1"># compute 2D depictions</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_2D</span><span class="p">:</span>

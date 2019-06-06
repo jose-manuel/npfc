@@ -58,7 +58,7 @@ ref_syn = ROOT + "dnp/data/4_std/data/dnp_ref.hdf"
 
 INPUT_OUT = [WD + "1_input/data/chembl_" + cid + ".sdf.gz" for cid in chunk_ids]  # chunk_sdf
 STD_OUT = [WD + "4_std/data/chembl_" + cid + "_passed.csv.gz" for cid in chunk_ids]  # standardize_mols
-MAP_OUT = [WD + "8_map/data/chembl_" + cid + "_map.csv.gz" for cid in chunk_ids]  # map_frags
+MAP_OUT = [WD + "8_map/log/chembl_" + cid + "_map.csv.gz" for cid in chunk_ids]  # map_frags
 # for DNP
 STD_OUT_DNP = [ROOT + "dnp/data/" + "4_std/data/dnp_" + cid + "_passed.csv.gz" for cid in chunks_ids_dnp]  # standardize_mols
 

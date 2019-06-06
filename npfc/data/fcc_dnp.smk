@@ -66,7 +66,7 @@ rule MAP:
     priority: 11
     input: WD + "6_fcc/data/dnp_{cid}_fcc.csv.gz"
     output: WD + "7_map/data/dnp_{cid}_map.csv.gz"
-    log: WD + "7_map/data/dnp_{cid}_map.log"
+    log: WD + "7_map/log/dnp_{cid}_map.log"
     shell: "map_frags {input} {output} --min-frags 2 --max-frags 9999 --max-overlaps 5 >{log} 2>&1"
 
 rule FCC:
