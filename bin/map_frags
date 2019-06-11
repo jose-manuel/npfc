@@ -110,8 +110,10 @@ def main():
     logger.info(f"COMPUTED {len(df_map.index)} FRAGMENT COMBINATION NETWORKS")
 
     # save map results
-    logger.info(f"ENCODING COLORMAP")
-    df_map['colormap'] = df_map['colormap'].map(lambda x: base64.b64encode(pickle.dumps(x)))
+    logger.info(f"ENCODING GRAPHS")
+    df_map['graph'] = df_map['graph'].map(lambda x: base64.b64encode(pickle.dumps(x)).decode("utf-8"))
+    logger.info(f"ENCODING COLORMAPS")
+    df_map['colormap'] = df_map['colormap'].map(lambda x: base64.b64encode(pickle.dumps(x)).decode("utf-8"))
     logger.info(f"SAVING MAP RESULTS AT '{args.output_map}'")
     d3 = datetime.now()
     save.save(df_map, args.output_map, encode_mols=True)

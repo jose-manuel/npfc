@@ -580,7 +580,7 @@ class CombinationClassifier:
 
         return dfs_fcc_ready
 
-    def map_frags(self, df_fcc: DataFrame, min_frags: int = 2, max_frags: int = 5, max_overlaps: int = 5, encode_graph=True, encode_colormap=True) -> DataFrame:
+    def map_frags(self, df_fcc: DataFrame, min_frags: int = 2, max_frags: int = 5, max_overlaps: int = 5) -> DataFrame:
         """This method process a fragment combinations computed with classify_fragment_combinations
         and return a new DataFrame with a fragment map for each molecule.
 
@@ -642,10 +642,7 @@ class CombinationClassifier:
                 perc_mol_cov_frags = round((hac_frags / hac_mol), 2) * 100
 
                 # compute a new graph again but this time on a single subgraph and with edge labels (room for optimization)
-                fc_graph = nx.from_pandas_edgelist(df_fcc_clean, "fid1", "fid2", "abbrev")
-                # encode the fc_graph into base64 strings for storing in CSV
-                if encode_graph:
-                    fc_graph = base64.b64encode(pickle.dumps(fc_graph)).decode("utf-8")
+                graph = nx.from_pandas_edgelist(df_fcc_clean, "fid1", "fid2", "abbrev")
 
                 # same molecule in each row, so to use the first one is perfectly fine
                 mol = df_fcc_clean.iloc[0]['mol']
@@ -657,15 +654,12 @@ class CombinationClassifier:
 
                 # attribute colors to each fragment atoms/bonds
                 colormap = draw.ColorMap(mol, d_aidxs, draw.colors)
-                # encode colormap for storage
-                if encode_colormap:
-                    colormap = base64.b64encode(pickle.dumps(colormap)).decode("utf-8")
 
                 comb = list(df_fcc_clean['abbrev'].values)
                 ncomb = len(comb)
                 comb_u = list(set(comb))
                 ncomb_u = len(comb_u)
-                ds_map.append({'idm': gid, 'fmid': str(i+1).zfill(3), 'nfrags': nfrags, 'nfrags_u': nfrags_u, 'ncomb': ncomb, 'ncomb_u': ncomb_u, 'hac_mol': hac_mol, 'hac_frags': hac_frags, 'perc_mol_cov_frags': perc_mol_cov_frags,  'frags': frags, 'frags_u': frags_u, 'comb': comb, 'comb_u': comb_u, 'map_str': frag_map_str, 'colormap': colormap, 'fc_graph': fc_graph, 'mol': mol})
+                ds_map.append({'idm': gid, 'fmid': str(i+1).zfill(3), 'nfrags': nfrags, 'nfrags_u': nfrags_u, 'ncomb': ncomb, 'ncomb_u': ncomb_u, 'hac_mol': hac_mol, 'hac_frags': hac_frags, 'perc_mol_cov_frags': perc_mol_cov_frags,  'frags': frags, 'frags_u': frags_u, 'comb': comb, 'comb_u': comb_u, 'map_str': frag_map_str, 'colormap': colormap, 'graph': graph, 'mol': mol})
 
         # df_map
-        return DataFrame(ds_map, columns=['idm', 'fmid', 'nfrags', 'nfrags_u', 'ncomb', 'ncomb_u', 'hac_mol', 'hac_frags', 'perc_mol_cov_frags', 'frags', 'frags_u', 'comb', 'comb_u', 'map_str', 'colormap', 'fc_graph', 'mol'])
+        return DataFrame(ds_map, columns=['idm', 'fmid', 'nfrags', 'nfrags_u', 'ncomb', 'ncomb_u', 'hac_mol', 'hac_frags', 'perc_mol_cov_frags', 'frags', 'frags_u', 'comb', 'comb_u', 'map_str', 'colormap', 'graph', 'mol'])
