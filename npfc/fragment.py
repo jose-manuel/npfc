@@ -643,9 +643,9 @@ class CombinationClassifier:
 
                 # compute a new graph again but this time on a single subgraph and with edge labels (room for optimization)
                 fc_graph = nx.from_pandas_edgelist(df_fcc_clean, "fid1", "fid2", "abbrev")
-                # encode the fc_graph for storing in CSV
+                # encode the fc_graph into base64 strings for storing in CSV
                 if encode_graphs:
-                    fc_graph = base64.b64encode(pickle.dumps(fc_graph))
+                    fc_graph = base64.b64encode(pickle.dumps(fc_graph)).decode("utf-8")
 
                 # same molecule in each row, so to use the first one is perfectly fine
                 mol = df_fcc_clean.iloc[0]['mol']
