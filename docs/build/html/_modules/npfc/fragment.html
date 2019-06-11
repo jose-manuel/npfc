@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.fragment &mdash; npfc 0.2.1 documentation</title>
+  <title>npfc.fragment &mdash; npfc 0.2.1-1-ga8b4289 documentation</title>
   
 
   
@@ -56,7 +56,7 @@
             
             
               <div class="version">
-                0.2.1
+                0.2.1-1-ga8b4289
               </div>
             
           
@@ -797,9 +797,9 @@
 
                 <span class="c1"># compute a new graph again but this time on a single subgraph and with edge labels (room for optimization)</span>
                 <span class="n">fc_graph</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">from_pandas_edgelist</span><span class="p">(</span><span class="n">df_fcc_clean</span><span class="p">,</span> <span class="s2">&quot;fid1&quot;</span><span class="p">,</span> <span class="s2">&quot;fid2&quot;</span><span class="p">,</span> <span class="s2">&quot;abbrev&quot;</span><span class="p">)</span>
-                <span class="c1"># encode the fc_graph for storing in CSV</span>
+                <span class="c1"># encode the fc_graph into base64 strings for storing in CSV</span>
                 <span class="k">if</span> <span class="n">encode_graphs</span><span class="p">:</span>
-                    <span class="n">fc_graph</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64encode</span><span class="p">(</span><span class="n">pickle</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">fc_graph</span><span class="p">))</span>
+                    <span class="n">fc_graph</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64encode</span><span class="p">(</span><span class="n">pickle</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">fc_graph</span><span class="p">))</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
 
                 <span class="c1"># same molecule in each row, so to use the first one is perfectly fine</span>
                 <span class="n">mol</span> <span class="o">=</span> <span class="n">df_fcc_clean</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;mol&#39;</span><span class="p">]</span>

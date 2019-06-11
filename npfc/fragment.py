@@ -580,7 +580,7 @@ class CombinationClassifier:
 
         return dfs_fcc_ready
 
-    def map_frags(self, df_fcc: DataFrame, min_frags: int = 2, max_frags: int = 5, max_overlaps: int = 5, encode_graphs=True) -> DataFrame:
+    def map_frags(self, df_fcc: DataFrame, min_frags: int = 2, max_frags: int = 5, max_overlaps: int = 5, encode_graph=True, encode_colormap=True) -> DataFrame:
         """This method process a fragment combinations computed with classify_fragment_combinations
         and return a new DataFrame with a fragment map for each molecule.
 
@@ -644,7 +644,7 @@ class CombinationClassifier:
                 # compute a new graph again but this time on a single subgraph and with edge labels (room for optimization)
                 fc_graph = nx.from_pandas_edgelist(df_fcc_clean, "fid1", "fid2", "abbrev")
                 # encode the fc_graph into base64 strings for storing in CSV
-                if encode_graphs:
+                if encode_graph:
                     fc_graph = base64.b64encode(pickle.dumps(fc_graph)).decode("utf-8")
 
                 # same molecule in each row, so to use the first one is perfectly fine
@@ -657,6 +657,9 @@ class CombinationClassifier:
 
                 # attribute colors to each fragment atoms/bonds
                 colormap = draw.ColorMap(mol, d_aidxs, draw.colors)
+                # encode colormap for storage
+                if encode_colormap:
+                    colormap = base64.b64encode(pickle.dumps(colormap)).decode("utf-8")
 
                 comb = list(df_fcc_clean['abbrev'].values)
                 ncomb = len(comb)
