@@ -10,8 +10,6 @@ This modules contains two classes:
 # standard
 import logging
 import itertools
-import pickle
-import base64
 # data handling
 from collections import OrderedDict
 # chemoinformatics

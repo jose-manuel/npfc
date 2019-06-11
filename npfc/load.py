@@ -11,7 +11,6 @@ import logging
 import gzip
 from pathlib import Path
 import base64
-import json
 # data science
 import psycopg2
 import pandas as pd
