@@ -8,7 +8,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="npfc",
-    version='0.2.2',
+    version='0.2.2-1-gedf6e68',
     author="Jose-Manuel Gally",
     author_email="josemanuel.gally@mpi-dortmund.mpg.de",
     description="A package for classifying fragment combinations in molecules",
@@ -33,6 +33,7 @@ setuptools.setup(
              'bin/map_frags',
              'bin/chunk_sdf',
              'bin/subset_mols',
+             'bin/annotate_pnp',
              ],
     # package_data={'npfc': ['data/deglyco_mols.knwf']},  # key: package name, value: list of data files
     include_package_data=True,

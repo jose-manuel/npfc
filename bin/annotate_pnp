@@ -1,0 +1,185 @@
+#!/usr/bin/env python
+
+"""
+Script annotate_pnp
+==========================
+This script is used for annotating Pseudo Natural Products (PNP).
+"""
+
+# standard
+import warnings
+import sys
+from datetime import datetime
+import logging
+import pandas as pd
+import argparse
+import json
+import base64
+import pickle
+from pathlib import Path
+# chemoinformatics
+import rdkit
+# dev
+import npfc
+from npfc import load
+from npfc import save
+from npfc import utils
+from npfc import fragment
+# disable SettingWithCopyWarning warnings
+pd.options.mode.chained_assignment = None  # default='warn'
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
+def find_pseudo_natural_products(df, df_ref):
+    results = []
+    for i in range(len(df.index)):
+        row = df.iloc[i]
+        edges = row["graph"].edges()
+        idm = row["idm"]
+        pnp = True
+        for j in range(len(df_ref.index)):
+            row_ref = df_ref.iloc[j]
+            edges_ref = row_ref["graph"].edges
+            idm_ref = row_ref["idm"]
+
+            if all(edge_ref in edges for edge_ref in edges_ref):
+                pnp = False
+                logging.info(f"RESULT: {idm} => False ({idm_ref})")
+                results.append(False)
+                break
+
+        if pnp:
+            logging.info(f"RESULT: {idm} => True (pseudo-natural-product)")
+            results.append(True)
+
+    print(f"NUMBER OF RESULTS: {len(results)}")
+    return results
+
+
+def main():
+
+    # init
+    d0 = datetime.now()
+    description = """Script is used for annotating Pseudo Natural Products (PNP).
+
+    It takes two inputs:
+        - the map file with the molecules to annotate by comparing fragment maps (graphs)
+        - a folder that contains molecular files of natural products
+
+    It creates one output:
+        - the input molecular file annotated with a new column "pnp" valuing either True or False.
+
+    It uses the installed npfc libary in your favorite env manager.
+
+    Example:
+
+        >>> annotate_pnp file_map.csv.gz file_map.csv.gz
+
+    """
+
+    # parameters CLI
+    parser = argparse.ArgumentParser(description=description, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument('input_map', type=str, default=None, help="Fragment Map file to annotate")
+    parser.add_argument('ref_dir', type=str, default=None, help="Directory with Fragment Map files to use as references (currently wiht syntax: <name>_map.csv.gz)")
+    parser.add_argument('output_map', type=str, default=None, help="Output file basename. It gets appended with the type of output being produced: raw, clean and map.")
+    parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
+    args = parser.parse_args()
+
+    # logging
+    logger = utils._configure_logger(args.log)
+    logger.info("RUNNING MAP ANNOTATION")
+    warnings.filterwarnings('ignore', category=pd.io.pytables.PerformanceWarning)  # if None is returned instead of a molecule, do not complain about mixed types
+    pad = 40
+
+    # parse arguments
+    utils.check_arg_input_file(args.input_map)
+    utils.check_arg_output_file(args.output_map)
+    input_format, input_compression = utils.get_file_format(args.input_map)
+    out_format, out_compression = utils.get_file_format(args.output_map)
+
+    # get the list of reference files
+    p = Path(args.ref_dir)
+    if not p.is_dir():
+        raise ValueError(f"ERROR! REF_DIR COULD NOT BE FOUND! ({args.ref_dir})")
+    ref_files = [str(x) for x in list(p.glob("*_map.csv.gz"))]
+    ref_files.sort()
+    logging.info(f"FOUND {len(ref_files)} FRAGMENT MAP FILES AT {args.ref_dir}")
+
+    # display infos
+    logger.info("LIBRARY VERSIONS:")
+    logger.info("rdkit".ljust(pad) + f"{rdkit.__version__}")
+    logger.info("pandas".ljust(pad) + f"{pd.__version__}")
+    logger.info("npfc".ljust(pad) + f"{npfc.__version__}")
+    logger.info("ARGUMENTS:")
+    logging.info("INPUT_FCC".ljust(pad) + f"{args.input_map}")
+    logging.info("INPUT_FORMAT".ljust(pad) + f"{input_format}")
+    logging.info("INPUT_COMPRESSION".ljust(pad) + f"{input_compression}")
+    logging.info("REF_DIR".ljust(pad) + f"{args.ref_dir}")
+    logging.info("NUM REF_DIR".ljust(pad) + f"{len(ref_files)}")
+    logging.info("OUTPUT_MAP".ljust(pad) + f"{args.output_map}")
+    logging.info("OUT_FORMAT".ljust(pad) + f"{out_format}")
+    logging.info("OUT_COMPRESSION".ljust(pad) + f"{out_compression}")
+    logging.info("LOG".ljust(pad) + f"{args.log}")
+
+    # begin
+    logging.info("BEGIN")
+
+    # load map
+    logging.info("LOADING FRAGMENT MAPS")
+    d1 = datetime.now()
+    df_map = pd.read_csv(args.input_map, sep="|", compression="gzip")
+    logging.info(f"FOUND {len(df_map.index)} FRAGMENT MAPS")
+    logging.info("DESERIALIZING GRAPHS")
+    df_map['graph'] = df_map['graph'].map(lambda x: pickle.loads(base64.b64decode(x)))
+
+    # load map_refs
+    logging.info("LOADING ALL REFERENCE FRAGMENT MAPS")
+    d2 = datetime.now()
+    df_map_ref = pd.concat([pd.read_csv(x, sep="|", compression="gzip") for x in ref_files])
+    logging.info(f"FOUND {len(df_map_ref.index)} FRAGMENT MAPS IN TOTAL")
+    logging.info("DESERIALIZING GRAPHS")
+    df_map_ref['graph'] = df_map_ref['graph'].map(lambda x: pickle.loads(base64.b64decode(x)))
+
+    # mapping fragment combinations
+    logger.info(f"ANNOTATING REMAINING FRAGMENT MAPS")
+    d3 = datetime.now()
+    df_map["pnp"] = find_pseudo_natural_products(df_map, df_map_ref)
+
+    logger.info(f"DISPLAYING RESULTS")
+    d4 = datetime.now()
+    # pnps
+    df_pnps = df_map[df_map["pnp"] is True][["idm"]]
+    logger.info(f"LIST OF PNPs {len(df_pnps.index)}")
+    [print("PNP: " + df_pnps.iloc[i]["idm"]) for i in range(len(df_pnps.index))]
+    # others
+    df_others = df_map[~df_map["idm"].isin(df_pnps['idm'])][["idm"]]
+    logger.info(f"LIST OF NON-PNPs {len(df_others.index)}")
+    [print("NON-PNP: " + df_others.iloc[i]["idm"]) for i in range(len(df_others.index))]
+
+    # saving results
+    logger.info(f"SAVING MAP RESULTS AT '{args.output_map}'")
+    d5 = datetime.now()
+    logger.info(f"ENCODING GRAPHS")
+    df_map['graph'] = df_map['graph'].map(lambda x: base64.b64encode(pickle.dumps(x)).decode("utf-8"))
+    save.save(df_map, args.output_map, encode_mols=True)
+
+    # end
+    d6 = datetime.now()
+    logging.info("SUMMARY")
+    logger.info("COMPUTATIONAL TIME: CONFIGURING JOB".ljust(pad * 2) + f"{d1-d0}")
+    logger.info("COMPUTATIONAL TIME: LOADING INPUT FRAGMENT MAPS".ljust(pad * 2) + f"{d2-d1}")
+    logger.info("COMPUTATIONAL TIME: LOADING REFERENCE FRAGMENT MAPS".ljust(pad * 2) + f"{d3-d2}")
+    logger.info("COMPUTATIONAL TIME: ANNOTATING FRAGMENT MAPS".ljust(pad * 2) + f"{d4-d3}")
+    logger.info("COMPUTATIONAL TIME: DISPLAYING RESULTS".ljust(pad * 2) + f"{d5-d4}")
+    logger.info("COMPUTATIONAL TIME: SAVING ANNOTATED FRAGMENT MAPS".ljust(pad * 2) + f"{d6-d5}")
+    logger.info("COMPUTATIONAL TIME: TOTAL".ljust(pad * 2) + f"{d6-d0}")
+    logging.info("END")
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ MAIN ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
+if __name__ == '__main__':
+    main()
+    sys.exit(0)
