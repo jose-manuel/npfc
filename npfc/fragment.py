@@ -10,6 +10,8 @@ This modules contains two classes:
 # standard
 import logging
 import itertools
+import pickle
+import base64
 # data handling
 from collections import OrderedDict
 # chemoinformatics
@@ -578,7 +580,7 @@ class CombinationClassifier:
 
         return dfs_fcc_ready
 
-    def map_frags(self, df_fcc: DataFrame, min_frags: int = 2, max_frags: int = 5, max_overlaps: int = 5) -> DataFrame:
+    def map_frags(self, df_fcc: DataFrame, min_frags: int = 2, max_frags: int = 5, max_overlaps: int = 5, encode_graphs=True) -> DataFrame:
         """This method process a fragment combinations computed with classify_fragment_combinations
         and return a new DataFrame with a fragment map for each molecule.
 
@@ -638,8 +640,13 @@ class CombinationClassifier:
                 hac_mol = g.iloc[0]['hac']  # same hac for all entries since this is the same molecule anyway
                 hac_frags = len(list(set([item for sublist in d_aidxs.values() for item in sublist])))
                 perc_mol_cov_frags = round((hac_frags / hac_mol), 2) * 100
+
                 # compute a new graph again but this time on a single subgraph and with edge labels (room for optimization)
                 fc_graph = nx.from_pandas_edgelist(df_fcc_clean, "fid1", "fid2", "abbrev")
+                # encode the fc_graph for storing in CSV
+                if encode_graphs:
+                    fc_graph = base64.b64encode(pickle.dumps(fc_graph))
+
                 # same molecule in each row, so to use the first one is perfectly fine
                 mol = df_fcc_clean.iloc[0]['mol']
 

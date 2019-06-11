@@ -1,0 +1,245 @@
+#!/usr/bin/env python
+
+"""
+Script plot_pipeline_results
+==========================
+This script is used for generating CSV files for plotting the results produced
+by the FCC workflow. The root folder of the current job has to be specified
+(Where the snakefile is located).
+
+It will browse every subfolder and generate results in a plots subfolder in the
+root folder.
+"""
+
+# standard
+import sys
+import warnings
+from datetime import datetime
+import logging
+import argparse
+import subprocess
+from pathlib import Path
+from collections import OrderedDict
+# data handling
+import pandas as pd
+# chemoinformatics
+import rdkit
+from rdkit import RDLogger
+# custom libraries
+import npfc
+from npfc import utils
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
+def check_chunks(WD: str):
+    """This functions will look up the expected amount of chunks produced by the
+    "1_input" step and verify if all chunks are present in subsequent tasks.
+    If not, it will raise a ValueError.
+
+    Subfolders 0_raw and 1_input are excluded from the checks.
+
+    :param WD: Working Directory of the pipeline to check (parent folder of the smk file)
+    :return: True if no error was found, ValueError otherwise
+    """
+    # go inside data subfolder in WD
+    WD = Path(WD + "data")
+
+    # initialize the references for comparing
+    chunks_ini = [str(s).split("_")[-1].split(".")[0] for s in list(WD.glob("1_input/data/*[0-9][0-9][0-9].sdf.gz"))]
+    num_chunks_ini = len(chunks_ini)
+    # define what subfolders are to be checked
+    subfolders = [str(d).split("/")[-1] for d in WD.iterdir() if d.is_dir() if str(d).split("/")[-1] not in ("0_raw", "1_input")]
+
+    # record errors in case of missing chunks
+    errors = OrderedDict()
+    for sf in subfolders:
+        chunks_sf = [str(s).split("/")[-1] for s in list(WD.glob(str(sf) + "/data/*[0-9][0-9][0-9]*.gz"))]
+        # currently no suffix is appended because of retrocompatibility issues
+        if sf == "2_load":
+            chunks_sf = [s.split("_")[-1] for s in chunks_sf]
+        else:
+            chunks_sf = [s.split("_")[-2] for s in chunks_sf]
+        # check if the number of chunks match
+        if len(chunks_sf) < num_chunks_ini:
+            errors[sf] = [csf for csf in chunks_ini if csf not in chunks_sf]
+    # raise a ValueError if any chunk is missing, describe which ones
+    if errors:  # empty dicts are evaluated to False
+        msg = "Error! Missing chunks found:\n"
+        for sf in errors.keys():
+            msg += f"{sf}".ljust(12) + f" ({len(errors[sf])}):\n".rjust(3) + ", ".join([c for c in errors[sf]]) + "\n"
+        raise ValueError(msg)
+
+    return True
+
+
+def plot_result_deglyco(WD: str, output_csv: str):
+    """This functions computes the CSV file for checking on the status of the deglycosylation.
+    The WD is the subfolder of the deglycosylation (3_deglyco).
+    Since the job is executed by a KNIME workflow, I used a log file to store the smiles alongside
+    the status of the molecule. This is these files we are parsing like CSV.
+    """
+
+    # go inside log subfolder in WD
+    WD = Path(WD + "log")
+
+    # iterate over the log files to count status
+    chunks = list(WD.glob("*[0-9][0-9][0-9]_deglyco.log"))
+    chunks.sort()
+    num_tot = 0
+    num_unchanged = 0
+    num_deglycosylated = 0
+    num_failed = 0
+    num_error = 0
+    for c in chunks:
+        df = pd.read_csv(c, sep="|")
+        num_tot += len(df.index)
+        num_unchanged += len(df[df['status'] == 'unchanged'].index)
+        num_deglycosylated += len(df[df['status'] == 'deglycosylated'].index)
+        num_failed += len(df[df['status'] == 'failed'].index)
+        num_error += len(df[df['status'] == 'error'].index)
+    # create a dataframe with counts
+    df = pd.DataFrame({"deglycosylated": [num_deglycosylated], "unchanged": [num_unchanged], "failed": [num_failed], 'error': [num_error]}).T.rename({0: "Count"}, axis=1)
+    df['Status'] = df.index
+    df['Perc_status'] = round(df['Count'] / num_tot, 2) * 100
+
+    # export to csv
+    format, compression = utils.get_file_format(output_csv)
+    df.to_csv(output_csv, sep="|", compression=compression, index=False)
+
+    return df
+
+
+def _parse_std_chunks(chunks):
+
+    dfs = []
+    for c in chunks:
+        df = pd.read_csv(c, sep="|", compression="gzip").groupby("task").count()[['status']].rename({'status': 'Count'}, axis=1)
+        if len(df.index) > 0:
+            dfs.append(df)
+
+    # if no case was found, return an empty dataframe
+    if len(dfs) == 0:
+        df = pd.DataFrame([], columns=["Count", "Status", "Perc_status"])
+        return df
+
+    # concatenate all dataframes and compute the sum of all counts
+    df = pd.concat(dfs)
+    df["Status"] = df.index  # I don't know how to group by index!
+    df = df.groupby("Status").sum()
+    df["Status"] = df.index.map(lambda x: x.replace('filter_', ''))
+    num_tot = df["Count"].sum()
+    df['Perc_status'] = round(df['Count'] / num_tot, 2) * 100
+
+    return df
+
+
+def plot_result_std(WD: str, output_csv: str):
+    """This functions computes the CSV file for checking on the status of the standardization.
+    The WD is the subfolder of the standardization (4_std) and it uses the log files for counting
+    status.
+    """
+
+    # go inside log subfolder in WD
+    WD_LOG = WD + "log"
+    WD_LOG = Path(WD_LOG)
+
+    # iterate over the log files to count status
+    chunks = list(WD_LOG.glob("*[0-9][0-9][0-9]_std.log"))
+    chunks.sort()
+    num_tot = 0
+    num_passed = 0
+    num_filtered = 0
+    num_error = 0
+
+    for c in chunks:
+        df = pd.read_csv(c, sep="@", header=None)  # char not found in the log file so we can extract all lines as one column
+        passed, filtered, error = [int(x) for x in df[df[0].str.contains("COUNT")].iloc[0][0].split()[-3:]]
+        num_passed += passed
+        num_filtered += filtered
+        num_error += error
+        num_tot += passed + filtered + error
+
+    df = pd.DataFrame({"passed": [num_passed], "filtered": [num_filtered], "error": [num_error]}).T.rename({0: "Count"}, axis=1)
+    df['Status'] = df.index
+    df['Perc_status'] = round(df['Count'] / num_tot, 2) * 100
+
+    # export to csv
+    format, compression = utils.get_file_format(output_csv)
+    df.to_csv(output_csv, sep="|", compression=compression, index=False)
+
+    # details
+
+    # go inside data subfolder in WD
+    WD_DATA = WD + "data"
+    WD_DATA = Path(WD_DATA)
+
+    # passed
+
+    df_passed = pd.DataFrame([[num_passed, "standardized", 100.0]], columns=["Count", "Status", "Perc_status"])
+    output_csv_passed = output_csv.split(".")[0] + "_passed.csv"
+    if compression is not None:
+        output_csv_passed += ".gz"
+    df_passed.to_csv(output_csv_passed, sep="|", compression=compression, index=False)
+
+    # filtered
+
+    chunks = list(WD_DATA.glob("*[0-9][0-9][0-9]_filtered.csv.gz"))
+    chunks.sort()
+    df_filtered = _parse_std_chunks(chunks)
+    output_csv_filtered = output_csv.split(".")[0] + "_filtered.csv"
+    if compression is not None:
+        output_csv_filtered += ".gz"
+    df_filtered.to_csv(output_csv_filtered, sep="|", compression=compression, index=False)
+
+    # error
+
+    chunks = list(WD_DATA.glob("*[0-9][0-9][0-9]_error.csv.gz"))
+    chunks.sort()
+    df_error = _parse_std_chunks(chunks)
+    output_csv_error = output_csv.split(".")[0] + "_error.csv"
+    if compression is not None:
+        output_csv_error += ".gz"
+    df_error.to_csv(output_csv_error, sep="|", compression=compression, index=False)
+
+    return df
+
+
+def plot_result_fcc(WD: str, output_csv: str):
+    pass
+
+
+if __name__ == '__main__':
+
+    parser = argparse.ArgumentParser(description="Compute all required files for analyzing FCC results", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument('wd', type=str, default='./', help="Working directory from the job to analyse (root folder, where the smk file is)")
+    parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
+    args = parser.parse_args()
+
+    # logging
+    logger = utils._configure_logger(args.log)
+    logger.info("RUNNING PLOT_PIPELINE_RESULTS")
+    warnings.filterwarnings('ignore', category=pd.io.pytables.PerformanceWarning)  # if None is returned instead of a molecule, do not complain about mixed types
+    pad = 40
+    lg = RDLogger.logger()
+    lg.setLevel(RDLogger.INFO)
+
+    # define WD
+    if args.wd.endswith("/"):
+        wd = args.wd
+    else:
+        wd = args.wd + "/"
+    p = Path(wd + "figures")
+    if not p.is_dir():
+        logging.warning(f"WARNING! OUTPUT SUBFOLDER MISSING, SO CREATING IT AT: {wd + 'figures'}")
+        p.mkdir(parents=True)
+    else:
+        logging.info(f"OUTPUT SUBFOLDER LOCATED AT: {wd + 'figures'}")
+
+    logging.info("CHECKING FOR MISSING CHUNKS")
+    check_chunks(wd)
+    logging.info("CHECKING RESULTS FROM DEGLYCOSYLATION")
+    plot_result_deglyco(wd + "data/3_deglyco/", wd + "figures/3_deglyco_status.csv")
+    logging.info("CHECKING RESULTS FROM STANDARDIZATION")
+    plot_result_std(wd + "data/4_std/", wd + "figures/4_std_status.csv")
