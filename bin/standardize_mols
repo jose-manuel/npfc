@@ -204,7 +204,6 @@ def main():
     # run protocol
     logger.info(f"RUN STANDARDIZATION")
     df_passed, df_filtered, df_error = s.run_df(df_mols)
-    print(f"columns in df_passed: {df_passed.columns}")
 
     logger.info(f"RESULTS:")
     num_passed = len(df_passed.index)

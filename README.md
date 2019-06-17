@@ -68,6 +68,21 @@ Inside of the package root folder:
 >>> cd dist
 >>> pip install pdbeccdutils-0.4.tar.gz
 
+#### networkx
+
+I don't know why networkx is a special case. It is installed using conda install.
+
+Since I intend to have the same version everywhere:
+
+>>> conda install networkx==2.2
+
+
+#### knime
+
+Things got out of hand and I now have to run a KNIME worklow in the pipeline.
+
+
+
 ### Package syntax
 
 https://packaging.python.org/tutorials/packaging-projects/
@@ -193,7 +208,7 @@ are simply ignored. This makes that one has to specify everything with command l
 ### CLEM
 
 clem is the name of the local slurm cluster at the MPI-Dortmund. It is mainly used
-for processing microscope imaging but the nodes e045 to e048 (3 nodes) are Axel's to use for
+for processing microscope imaging but the nodes e045 to e047 (3 nodes) are Axel's to use for
 Cell Painting. When there is no CP going on, I can use the nodes for NPFC.
 In order to avoid conflicts with other research groups, I have to specifiy the correct
 queue (--partition comas). Also if I want to run one job per core (24 cores per node),

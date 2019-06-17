@@ -22,6 +22,7 @@ from pathlib import Path
 from collections import OrderedDict
 # data handling
 import pandas as pd
+import numpy as np
 # chemoinformatics
 import rdkit
 from rdkit import RDLogger
@@ -80,18 +81,25 @@ def plot_result_deglyco(WD: str, output_csv: str):
     Since the job is executed by a KNIME workflow, I used a log file to store the smiles alongside
     the status of the molecule. This is these files we are parsing like CSV.
     """
-
+    logger.info("PLOT_RESULT_DEGLYCO")
     # go inside log subfolder in WD
-    WD = Path(WD + "log")
+    WD += "log"
+    logger.info(f"WD={WD}")
+    WD = Path(WD)
 
     # iterate over the log files to count status
     chunks = list(WD.glob("*[0-9][0-9][0-9]_deglyco.log"))
     chunks.sort()
+    logger.info(f"FOUND {len(chunks)} CHUNKS")
+
+    # initiate counts
     num_tot = 0
     num_unchanged = 0
     num_deglycosylated = 0
     num_failed = 0
     num_error = 0
+
+    # count status
     for c in chunks:
         df = pd.read_csv(c, sep="|")
         num_tot += len(df.index)
@@ -99,14 +107,17 @@ def plot_result_deglyco(WD: str, output_csv: str):
         num_deglycosylated += len(df[df['status'] == 'deglycosylated'].index)
         num_failed += len(df[df['status'] == 'failed'].index)
         num_error += len(df[df['status'] == 'error'].index)
+
     # create a dataframe with counts
     df = pd.DataFrame({"deglycosylated": [num_deglycosylated], "unchanged": [num_unchanged], "failed": [num_failed], 'error': [num_error]}).T.rename({0: "Count"}, axis=1)
-    df['Status'] = df.index
-    df['Perc_status'] = round(df['Count'] / num_tot, 2) * 100
+    df['Category'] = df.index
+    df['Perc_status'] = round(df['Count'] / num_tot, 3) * 100
+    logger.info(f"RESULTS:\n{df}\n")
 
     # export to csv
     format, compression = utils.get_file_format(output_csv)
     df.to_csv(output_csv, sep="|", compression=compression, index=False)
+    logger.info(f"SAVED RESULTS AT '{output_csv}'")
 
     return df
 
@@ -121,16 +132,16 @@ def _parse_std_chunks(chunks):
 
     # if no case was found, return an empty dataframe
     if len(dfs) == 0:
-        df = pd.DataFrame([], columns=["Count", "Status", "Perc_status"])
+        df = pd.DataFrame([], columns=["Count", "Category", "Perc_status"])
         return df
 
     # concatenate all dataframes and compute the sum of all counts
     df = pd.concat(dfs)
-    df["Status"] = df.index  # I don't know how to group by index!
-    df = df.groupby("Status").sum()
-    df["Status"] = df.index.map(lambda x: x.replace('filter_', ''))
+    df["Category"] = df.index  # I don't know how to group by index!
+    df = df.groupby("Category").sum()
+    df["Category"] = df.index.map(lambda x: x.replace('filter_', ''))
     num_tot = df["Count"].sum()
-    df['Perc_status'] = round(df['Count'] / num_tot, 2) * 100
+    df['Perc_status'] = round(df['Count'] / num_tot, 3) * 100
 
     return df
 
@@ -140,14 +151,20 @@ def plot_result_std(WD: str, output_csv: str):
     The WD is the subfolder of the standardization (4_std) and it uses the log files for counting
     status.
     """
+    logger.info("PLOT_RESULT_STD")
 
     # go inside log subfolder in WD
     WD_LOG = WD + "log"
+    logger.info("GENERAL RESULTS")
+    logger.info(f"WD={WD_LOG}")
     WD_LOG = Path(WD_LOG)
 
     # iterate over the log files to count status
     chunks = list(WD_LOG.glob("*[0-9][0-9][0-9]_std.log"))
     chunks.sort()
+    logger.info(f"FOUND {len(chunks)} CHUNKS")
+
+    # initiate counts
     num_tot = 0
     num_passed = 0
     num_filtered = 0
@@ -162,52 +179,166 @@ def plot_result_std(WD: str, output_csv: str):
         num_tot += passed + filtered + error
 
     df = pd.DataFrame({"passed": [num_passed], "filtered": [num_filtered], "error": [num_error]}).T.rename({0: "Count"}, axis=1)
-    df['Status'] = df.index
-    df['Perc_status'] = round(df['Count'] / num_tot, 2) * 100
+    df['Category'] = df.index
+    df['Perc_status'] = round(df['Count'] / num_tot, 3) * 100
+
+    # display results
+    logger.info(f"RESULTS:\n{df}\n")
 
     # export to csv
     format, compression = utils.get_file_format(output_csv)
     df.to_csv(output_csv, sep="|", compression=compression, index=False)
+    logger.info(f"SAVED RESULTS AT '{output_csv}'")
 
     # details
 
     # go inside data subfolder in WD
     WD_DATA = WD + "data"
+    logger.info("DETAILED RESULTS")
+    logger.info(f"WD={WD_DATA}")
     WD_DATA = Path(WD_DATA)
 
     # passed
-
-    df_passed = pd.DataFrame([[num_passed, "standardized", 100.0]], columns=["Count", "Status", "Perc_status"])
+    logger.info("PASSED")
+    df_passed = pd.DataFrame([[num_passed, "standardized", 100.0]], columns=["Count", "Category", "Perc_status"])
     output_csv_passed = output_csv.split(".")[0] + "_passed.csv"
     if compression is not None:
         output_csv_passed += ".gz"
     df_passed.to_csv(output_csv_passed, sep="|", compression=compression, index=False)
+    logger.info(f"SAVED RESULTS AT '{output_csv_passed}'")
 
     # filtered
-
+    logger.info("FILTERED")
     chunks = list(WD_DATA.glob("*[0-9][0-9][0-9]_filtered.csv.gz"))
     chunks.sort()
     df_filtered = _parse_std_chunks(chunks)
+    logger.info(f"RESULTS:\n{df_filtered}\n")
+
     output_csv_filtered = output_csv.split(".")[0] + "_filtered.csv"
     if compression is not None:
         output_csv_filtered += ".gz"
     df_filtered.to_csv(output_csv_filtered, sep="|", compression=compression, index=False)
+    logger.info(f"SAVED RESULTS AT '{output_csv_filtered}'")
 
     # error
-
+    logger.info("ERROR")
     chunks = list(WD_DATA.glob("*[0-9][0-9][0-9]_error.csv.gz"))
     chunks.sort()
     df_error = _parse_std_chunks(chunks)
+    logger.info(f"RESULTS:\n{df_error}\n")
+
     output_csv_error = output_csv.split(".")[0] + "_error.csv"
     if compression is not None:
         output_csv_error += ".gz"
     df_error.to_csv(output_csv_error, sep="|", compression=compression, index=False)
+    logger.info(f"SAVED RESULTS AT '{output_csv_error}'")
 
     return df
 
 
-def plot_result_fcc(WD: str, output_csv: str):
+def plot_result_map(WD: str, output_csv: str):
+    logger.info("PLOT_RESULT_MAP")
+    # go inside log subfolder in WD
+    logger.info(f"WD={WD}")
+    p = Path(WD)
+
+    # iterate over the data files to count status
+    chunks = list(p.glob("data/*_map/data/*[0-9][0-9][0-9]_map.csv.gz"))
+    chunks.sort()
+    logger.info(f"FOUND {len(chunks)} CHUNKS_MAP")
+
+    # concatenate all files into a single DataFrame
+    df_map = pd.concat([pd.read_csv(x, sep="|", compression="gzip") for x in chunks])
+
+    # group fragment maps into mols
+    df_map.sort_values(["idm", "nfrags"], ascending=True, inplace=True)  # lowest number of frags per mol
+
+    # count the number of fragments per molecule
+
+    # > 1 fragments
+    chunks = list(p.glob("data/*_sub/data/*[0-9][0-9][0-9]_sub.csv.gz"))
+    chunks.sort()
+    df_sub = pd.concat([pd.read_csv(x, sep='|', compression='gzip') for x in chunks])
+    num_sub2 = len(df_sub.groupby('idm').filter(lambda x: len(x) > 1).groupby("idm").first().index)
+    # num_sub2 = len(df_mols.index)
+    logger.info(f"NUMBER OF MOLECULES WITH >1 NATURAL FRAGMENTS: {num_sub2}")
+
+    # 1 fragment: filter results in sub
+    chunks = list(p.glob("data/*_sub/data/*[0-9][0-9][0-9]_sub.csv.gz"))
+    chunks.sort()
+    logger.info(f"FOUND {len(chunks)} CHUNKS_SUB")
+    num_sub1 = len(df_sub.groupby('idm').filter(lambda x: len(x) == 1).groupby("idm").first().index)
+    logger.info(f"NUMBER OF MOLECULES WITH 1 NATURAL FRAGMENT: {num_sub1}")
+
+    # num_tot
+    logger.info("COMPUTING TOTAL NUMBER OF MOLECULES")
+    chunks = list(p.glob("data/*_synth/data/*[0-9][0-9][0-9]_synth.csv.gz"))
+    logger.info(f"FOUND {len(chunks)} CHUNKS_SYNTH")
+    # if no chunks found in synth (DNP, ect.), then use std instead
+    if len(chunks) == 0:
+        chunks = list(p.glob("data/*_std/data/*[0-9][0-9][0-9]_passed.csv.gz"))
+        logger.info(f"FOUND {len(chunks)} CHUNKS_STD. USING THEM INSTEAD OF CHUNKS_SYNTH")
+    num_tot = len(pd.concat([pd.read_csv(x, sep='|', compression='gzip') for x in chunks]).index)
+
+    # 0 fragment: num_tot - num_sub1 - num_sub2
+    num_sub0 = num_tot - num_sub1 - num_sub2
+    logger.info(f"NUMBER OF MOLECULES WITH NO NATURAL FRAGMENT: {num_sub0}")
+
+    # TODO: groupby nfrags, add the counts for 0 and 1 to these
+
+    sys.exit(0)
+
     pass
+
+
+def plot_result_pnp(WD: str, output_csv: str):
+
+    logger.info("PLOT_RESULT_PNP")
+    # go inside log subfolder in WD
+    WD = WD + "data"
+    logger.info(f"WD={WD}")
+    WD = Path(WD)
+
+    # iterate over the data files to count status
+    chunks = list(WD.glob("*[0-9][0-9][0-9]_pnp.csv.gz"))
+    chunks.sort()
+    logger.info(f"FOUND {len(chunks)} CHUNKS")
+
+    # initiate counts
+    num_pnp_fm = 0
+    num_non_pnp_fm = 0
+    num_pnp_mol = 0
+    num_non_pnp_mol = 0
+
+    # begin to count
+    for c in chunks:
+        # fragment maps
+        df = pd.read_csv(c, sep="|", compression="gzip")
+        num_pnp_fm += len(df[df['pnp_fm']].index)
+        num_non_pnp_fm += len(df[~df['pnp_fm']].index)
+        # mols
+        df.sort_values(["idm", "pnp_mol"], ascending=False, inplace=True)  # first member of a group is set to True
+        df_mols = df.groupby("idm", sort=False).first()  #
+
+        num_pnp_mol += len(df_mols[df_mols["pnp_mol"]].index)
+        num_non_pnp_mol += len(df_mols[~df_mols["pnp_mol"]].index)
+
+    # totals
+    num_tot_fm = num_pnp_fm + num_non_pnp_fm
+    logger.info(f"TOTAL NUMBER OF FRAGMENT MAPS: {num_tot_fm}")
+    num_tot_mol = num_pnp_mol + num_non_pnp_mol
+    logger.info(f"TOTAL NUMBER OF MOLECULES: {num_tot_mol}")
+
+    # result
+    df = pd.DataFrame({"PNP_fm": [num_pnp_fm], "Non-PNP_fm": [num_non_pnp_fm], "PNP_mol": [num_pnp_mol], "Non-PNP_mol": [num_non_pnp_mol]}).T.rename({0: "Count"}, axis=1)
+    df['Category'] = df.index
+    df['Perc'] = [round(x/num_tot_mol, 3) * 100 if "_mol" in y else round(x/num_tot_fm, 3) * 100 for x, y in zip(df["Count"], df['Category'])]
+    logger.info(f"RESULTS:\n{df}\n")
+
+    # export to csv
+    format, compression = utils.get_file_format(output_csv)
+    df.to_csv(output_csv, sep="|", compression=compression, index=False)
+    logger.info(f"SAVED RESULTS AT '{output_csv}'")
 
 
 if __name__ == '__main__':
@@ -232,14 +363,47 @@ if __name__ == '__main__':
         wd = args.wd + "/"
     p = Path(wd + "figures")
     if not p.is_dir():
-        logging.warning(f"WARNING! OUTPUT SUBFOLDER MISSING, SO CREATING IT AT: {wd + 'figures'}")
+        logger.warning(f"WARNING! OUTPUT SUBFOLDER MISSING, SO CREATING IT AT: {wd + 'figures'}")
         p.mkdir(parents=True)
     else:
-        logging.info(f"OUTPUT SUBFOLDER LOCATED AT: {wd + 'figures'}")
+        logger.info(f"OUTPUT SUBFOLDER LOCATED AT: {wd + 'figures'}")
 
-    logging.info("CHECKING FOR MISSING CHUNKS")
-    check_chunks(wd)
-    logging.info("CHECKING RESULTS FROM DEGLYCOSYLATION")
-    plot_result_deglyco(wd + "data/3_deglyco/", wd + "figures/3_deglyco_status.csv")
-    logging.info("CHECKING RESULTS FROM STANDARDIZATION")
-    plot_result_std(wd + "data/4_std/", wd + "figures/4_std_status.csv")
+    dataset = wd.split("/")[-2]
+    logger.info(f"DATASET='{dataset}'")
+
+    # logger.info("=" * pad)
+    # logger.info("CHECKING FOR MISSING CHUNKS".center(pad))
+    # logger.info("=" * pad)
+    # check_chunks(wd)
+    #
+    # logger.info("=" * pad)
+    # logger.info("CHECKING RESULTS FROM DEGLYCOSYLATION".center(pad))
+    # logger.info("=" * pad)
+    # subfolder_deglyco = [str(x) for x in list(Path(wd).glob("data/*_deglyco"))][0] + "/"
+    # plot_result_deglyco(subfolder_deglyco, wd + f"figures/{dataset}_deglyco.csv")
+    #
+    # logger.info("=" * pad)
+    # logger.info("CHECKING RESULTS FROM STANDARDIZATION".center(pad))
+    # logger.info("=" * pad)
+    # try:
+    #     subfolder_std = [str(x) for x in list(Path(wd).glob("data/*_std"))][0] + "/"
+    #     plot_result_std(subfolder_std, wd + f"figures/{dataset}_std.csv")
+    # except IndexError:
+    #     logger.info("NO STANDARDIZATION RESULTS TO CHECK")
+
+    logger.info("=" * pad)
+    logger.info("CHECKING RESULTS FROM MAPPING")
+    logger.info("=" * pad)
+    try:
+        plot_result_map(wd, wd + f"figures/{dataset}_map.csv")
+    except IndexError:
+        logger.info("NO MAP RESULTS TO CHECK")
+
+    # logger.info("=" * pad)
+    # logger.info("CHECKING RESULTS FROM PNP".center(pad))
+    # logger.info("=" * pad)
+    # try:
+    #     subfolder_pnp = [str(x) for x in list(Path(wd).glob("data/*_pnp"))][0] + "/"
+    #     plot_result_pnp(subfolder_pnp, wd + f"figures/{dataset}_pnp.csv")
+    # except IndexError:
+    #     logger.info("NO PNP RESULTS TO CHECK")

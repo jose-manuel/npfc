@@ -55,10 +55,11 @@ chunks_ids_dnp = [str(i+1).zfill(3) for i in range(num_chunks_dnp)]
 
 # expected outputs at key points of the pipeline
 ref_syn = ROOT + "dnp/data/4_std/data/dnp_ref.hdf"
+ref_dir = ROOT + "dnp/data/7_map/data/"
 
 INPUT_OUT = [WD + "1_input/data/chembl_" + cid + ".sdf.gz" for cid in chunk_ids]  # chunk_sdf
 STD_OUT = [WD + "4_std/data/chembl_" + cid + "_passed.csv.gz" for cid in chunk_ids]  # standardize_mols
-MAP_OUT = [WD + "8_map/log/chembl_" + cid + "_map.csv.gz" for cid in chunk_ids]  # map_frags
+PNP_OUT = [WD + "9_pnp/data/chembl_" + cid + "_pnp.csv.gz" for cid in chunk_ids]  # annotate_pnp
 # for DNP
 STD_OUT_DNP = [ROOT + "dnp/data/" + "4_std/data/dnp_" + cid + "_passed.csv.gz" for cid in chunks_ids_dnp]  # standardize_mols
 
@@ -68,13 +69,20 @@ STD_OUT_DNP = [ROOT + "dnp/data/" + "4_std/data/dnp_" + cid + "_passed.csv.gz" f
 
 rule all:
     input:
-        MAP_OUT  # final output of the pipeline
+        PNP_OUT  # final output of the pipeline
+
+rule PNP:
+    priority: 0
+    input: WD + "8_map/data/chembl_{cid}_map.csv.gz"
+    output: WD + "9_pnp/data/chembl_{cid}_pnp.csv.gz"
+    log: WD + "9_pnp/log/chembl_{cid}_pnp.log"
+    shell: "annotate_pnp {input} " + ref_dir + " {output} >{log} 2>&1"
 
 rule MAP:
     priority: 1
     input: WD + "7_fcc/data/chembl_{cid}_fcc.csv.gz"
     output: WD + "8_map/data/chembl_{cid}_map.csv.gz"
-    log: WD + "8_map/data/chembl_{cid}_map.log"
+    log: WD + "8_map/log/chembl_{cid}_map.log"
     shell: "map_frags {input} {output} --min-frags 2 --max-frags 9999 --max-overlaps 5 >{log} 2>&1"
 
 rule FCC:
