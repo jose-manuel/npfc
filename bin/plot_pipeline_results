@@ -18,17 +18,24 @@ from datetime import datetime
 import logging
 import argparse
 import subprocess
+from collections import Counter
+import pickle
+import base64
 from pathlib import Path
 from collections import OrderedDict
 # data handling
+import json
+import numpy as np
 import pandas as pd
 import numpy as np
 # chemoinformatics
 import rdkit
+from rdkit import Chem
 from rdkit import RDLogger
 # custom libraries
 import npfc
 from npfc import utils
+from npfc import load
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
@@ -90,7 +97,7 @@ def plot_result_deglyco(WD: str, output_csv: str):
     # iterate over the log files to count status
     chunks = list(WD.glob("*[0-9][0-9][0-9]_deglyco.log"))
     chunks.sort()
-    logger.info(f"FOUND {len(chunks)} CHUNKS")
+    logger.info(f"FOUND {len(chunks):,d} CHUNKS")
 
     # initiate counts
     num_tot = 0
@@ -108,6 +115,7 @@ def plot_result_deglyco(WD: str, output_csv: str):
         num_failed += len(df[df['status'] == 'failed'].index)
         num_error += len(df[df['status'] == 'error'].index)
 
+    logger.info(f"TOTAL NUMBER OF MOLECULES: {num_tot:,d}")
     # create a dataframe with counts
     df = pd.DataFrame({"deglycosylated": [num_deglycosylated], "unchanged": [num_unchanged], "failed": [num_failed], 'error': [num_error]}).T.rename({0: "Count"}, axis=1)
     df['Category'] = df.index
@@ -162,7 +170,7 @@ def plot_result_std(WD: str, output_csv: str):
     # iterate over the log files to count status
     chunks = list(WD_LOG.glob("*[0-9][0-9][0-9]_std.log"))
     chunks.sort()
-    logger.info(f"FOUND {len(chunks)} CHUNKS")
+    logger.info(f"FOUND {len(chunks):,d} CHUNKS")
 
     # initiate counts
     num_tot = 0
@@ -242,53 +250,306 @@ def plot_result_map(WD: str, output_csv: str):
     logger.info(f"WD={WD}")
     p = Path(WD)
 
-    # iterate over the data files to count status
-    chunks = list(p.glob("data/*_map/data/*[0-9][0-9][0-9]_map.csv.gz"))
-    chunks.sort()
-    logger.info(f"FOUND {len(chunks)} CHUNKS_MAP")
+    format, compression = utils.get_file_format(output_csv)
+    output_csv_basename = output_csv.split(".csv")[0]
+    logger.info(f"OUTPUTS BASENAME: {output_csv_basename}")
 
-    # concatenate all files into a single DataFrame
-    df_map = pd.concat([pd.read_csv(x, sep="|", compression="gzip") for x in chunks])
-
-    # group fragment maps into mols
-    df_map.sort_values(["idm", "nfrags"], ascending=True, inplace=True)  # lowest number of frags per mol
-
-    # count the number of fragments per molecule
-
-    # > 1 fragments
-    chunks = list(p.glob("data/*_sub/data/*[0-9][0-9][0-9]_sub.csv.gz"))
-    chunks.sort()
-    df_sub = pd.concat([pd.read_csv(x, sep='|', compression='gzip') for x in chunks])
-    num_sub2 = len(df_sub.groupby('idm').filter(lambda x: len(x) > 1).groupby("idm").first().index)
-    # num_sub2 = len(df_mols.index)
-    logger.info(f"NUMBER OF MOLECULES WITH >1 NATURAL FRAGMENTS: {num_sub2}")
-
-    # 1 fragment: filter results in sub
-    chunks = list(p.glob("data/*_sub/data/*[0-9][0-9][0-9]_sub.csv.gz"))
-    chunks.sort()
-    logger.info(f"FOUND {len(chunks)} CHUNKS_SUB")
-    num_sub1 = len(df_sub.groupby('idm').filter(lambda x: len(x) == 1).groupby("idm").first().index)
-    logger.info(f"NUMBER OF MOLECULES WITH 1 NATURAL FRAGMENT: {num_sub1}")
-
-    # num_tot
-    logger.info("COMPUTING TOTAL NUMBER OF MOLECULES")
+    # parse std results (num_mol_tot_std)
+    logger.info("STD -- COMPUTING TOTAL NUMBER OF MOLECULES BEFORE SUBSTRUCTURE SEARCH")
     chunks = list(p.glob("data/*_synth/data/*[0-9][0-9][0-9]_synth.csv.gz"))
-    logger.info(f"FOUND {len(chunks)} CHUNKS_SYNTH")
+    logger.info(f"STD -- FOUND {len(chunks):,d} CHUNKS_SYNTH")
     # if no chunks found in synth (DNP, ect.), then use std instead
     if len(chunks) == 0:
         chunks = list(p.glob("data/*_std/data/*[0-9][0-9][0-9]_passed.csv.gz"))
-        logger.info(f"FOUND {len(chunks)} CHUNKS_STD. USING THEM INSTEAD OF CHUNKS_SYNTH")
-    num_tot = len(pd.concat([pd.read_csv(x, sep='|', compression='gzip') for x in chunks]).index)
+        logger.info(f"STD -- FOUND {len(chunks)} CHUNKS_STD. USING THEM INSTEAD OF CHUNKS_SYNTH")
+    num_mol_tot_std = sum([len(pd.read_csv(x, sep='|', compression='gzip').index) for x in chunks])
+    logger.info(f"STD -- TOTAL NUMBER OF MOLECULES: {num_mol_tot_std:,d}")
 
-    # 0 fragment: num_tot - num_sub1 - num_sub2
-    num_sub0 = num_tot - num_sub1 - num_sub2
-    logger.info(f"NUMBER OF MOLECULES WITH NO NATURAL FRAGMENT: {num_sub0}")
+    # parse sub results
+    chunks = list(p.glob("data/*_sub/data/*[0-9][0-9][0-9]_sub.csv.gz"))
+    chunks.sort()
+    logger.info(f"SUB -- FOUND {len(chunks):,d} CHUNKS_SUB")
+    df_sub = pd.concat([pd.read_csv(x, sep='|', compression='gzip') for x in chunks])
+    num_tot_hit_sub = len(df_sub.index)
+    logger.info(f"SUB -- TOTAL NUMBER OF SUBSTRUCTURE HITS: {num_tot_hit_sub:,d}")
 
-    # TODO: groupby nfrags, add the counts for 0 and 1 to these
+    # regroup by molecule
+    df_sub['count_hit_per_mol'] = df_sub.groupby(['idm', 'idf'])['aidxf'].transform(len)
+    groups_mols_sub = df_sub[["idm", "idf", "count_hit_per_mol"]].groupby("idm")
+    num_tot_mol_sub = len(groups_mols_sub)
+    logger.info(f"SUB -- TOTAL NUMBER OF MOLECULES WITH >0 NATURAL FRAGMENTS: {num_tot_mol_sub:,d}")
 
-    sys.exit(0)
+    # entries with > 1 fragments
+    num_mol_gt1_sub = len(groups_mols_sub.filter(lambda x: len(x) > 1).groupby("idm").first().index)
+    logger.info(f"SUB -- NUMBER OF MOLECULES WITH >1 NATURAL FRAGMENTS: {num_mol_gt1_sub:,d}")
 
-    pass
+    # entries with 1 fragment
+    num_mol_eq1_sub = len(groups_mols_sub.filter(lambda x: len(x) == 1).groupby("idm").first().index)
+    logger.info(f"SUB -- NUMBER OF MOLECULES WITH 1 NATURAL FRAGMENT: {num_mol_eq1_sub:,d}")
+
+    # missing entries (0 fragment)
+    num_mol_eq0_sub = num_mol_tot_std - num_mol_eq1_sub - num_mol_gt1_sub
+    logger.info(f"SUB -- NUMBER OF MOLECULES WITH 0 NATURAL FRAGMENT: {num_mol_eq0_sub:,d}")
+
+    # # clear dupl
+    # df_sub.drop_duplicates(["idm", "idf"], inplace=True)  # clear dupl only now because counts of mols before are based on the number of elements per group
+    #
+    # # counts
+    # df_sub_counts = groups_mols_sub.sum().rename({"count_hit_per_mol": "NumSubstructHits"}, axis=1)
+    # df_sub_counts = df_sub_counts.groupby("NumSubstructHits").count().rename({"idf": "NumMols"}, axis=1)
+    # df_sub_counts = pd.concat([pd.DataFrame({"NumMols": [num_mol_eq0_sub]}, index=[0]), df_sub_counts], ignore_index=False)
+    # df_sub_counts = df_sub_counts.reset_index().rename({"index": "NumSubstructHits"}, axis=1)
+    # logger.info(f"SUB -- RESULTS -- SUBSTRUCTURE HITS:\n{df_sub_counts}\n")
+    # output_csv_counts_sub = output_csv_basename + "_sub_counts.csv"
+    # if compression is not None:
+    #     output_csv_counts_sub += ".gz"
+    # df_sub_counts.to_csv(output_csv_counts_sub, sep="|", compression=compression, index=False)
+    # logger.info(f"SUB -- SAVED RESULTS AT '{output_csv_counts_sub}'")
+    #
+    # # unique counts
+    # df_sub_counts = groups_mols_sub.count().rename({"count_hit_per_mol": "NumUniqueSubstructHits"}, axis=1)
+    # df_sub_counts = df_sub_counts.groupby("NumUniqueSubstructHits").count().rename({"idf": "NumMols"}, axis=1)
+    # df_sub_counts = pd.concat([pd.DataFrame({"NumMols": [num_mol_eq0_sub]}, index=[0]), df_sub_counts], ignore_index=False)
+    # df_sub_counts = df_sub_counts.reset_index().rename({"index": "NumUniqueSubstructHits"}, axis=1)
+    # logger.info(f"SUB -- RESULTS -- UNIQUE SUBSTRUCTURE HITS:\n{df_sub_counts}\n")
+    # output_csv_counts_unique_sub = output_csv_basename + "_sub_counts_unique.csv"
+    # if compression is not None:
+    #     output_csv_counts_unique_sub += ".gz"
+    # df_sub_counts.to_csv(output_csv_counts_unique_sub, sep="|", compression=compression, index=False)
+    # logger.info(f"SUB -- SAVED RESULTS AT '{output_csv_counts_unique_sub}'")
+
+    # parse fcc results
+    chunks = list(p.glob("data/*_fcc/data/*[0-9][0-9][0-9]_fcc.csv.gz"))
+    chunks.sort()
+    logger.info(f"FCC -- FOUND {len(chunks):,d} CHUNKS_FCC")
+    df_fcc = pd.concat([pd.read_csv(x, sep='|', compression='gzip') for x in chunks])
+    num_tot_comb_fcc = len(df_fcc.index)
+    logger.info(f"FCC -- TOTAL NUMBER OF COMBINATIONS: {num_tot_comb_fcc:,d}")
+    num_tot_mol_fcc = len(df_fcc.groupby('idm').first().index)
+    logger.info(f"FCC -- TOTAL NUMBER OF MOLECULES: {num_tot_mol_fcc:,d}")
+
+    # missing molecules (filtered because false positives)
+    num_mol_fp_fcc = num_mol_gt1_sub - num_tot_mol_fcc
+    logger.info(f"FCC -- NUMBER OF FILTERED MOLECULES BECAUSE OF FP: {num_mol_fp_fcc:,d}")
+
+    # parse map results
+    chunks = list(p.glob("data/*_map/data/*[0-9][0-9][0-9]_map.csv.gz"))
+    chunks.sort()
+    logger.info(f"MAP -- FOUND {len(chunks):,d} CHUNKS_MAP")
+    df_map = pd.concat([pd.read_csv(x, sep="|", compression="gzip") for x in chunks])
+    df_map.sort_values(["idm", "nfrags"], ascending=True, inplace=True)  # lowest number of frags per mol so first element of each group has the smallest fm
+    num_tot_fm_map = len(df_map.index)
+    logger.info(f"MAP -- TOTAL NUMBER OF FRAGMENT MAPS: {num_tot_fm_map:,d}")
+    num_tot_mol_map = len(df_map.groupby('idm').first().index)
+    logger.info(f"MAP -- TOTAL NUMBER OF MOLECULES: {num_tot_mol_map:,d}")
+
+    # missing molecules (filtered because of overlaps and min/max frags)
+    num_mol_fp_map = num_tot_mol_fcc - num_tot_mol_map
+    logger.info(f"MAP -- NUMBER OF FILTERED MOLECULES BECAUSE OF FP: {num_mol_fp_map:,d}")
+
+    # fragment counts per fm
+    df_sub_counts = df_map.groupby('nfrags').count()[['idm']].rename({'idm': 'NumFragmentMaps'}, axis=1)
+    df_sub_counts.reset_index(inplace=True)
+    df_sub_counts.rename({"nfrags": "NumFrags"}, axis=1, inplace=True)
+    logger.info(f"MAP -- RESULTS -- NUMBER OF FRAGMENTS FOUND PER FRAGMENT MAP:\n{df_sub_counts}\n")
+    output_csv_counts_sub = output_csv_basename + "_map_numfragperfm_counts.csv"
+    if compression is not None:
+        output_csv_counts_sub += ".gz"
+    df_sub_counts.to_csv(output_csv_counts_sub, sep="|", compression=compression, index=False)
+    logger.info(f"MAP -- SAVED RESULTS AT '{output_csv_counts_sub}'")
+
+    # unique fragment counts per fm
+    df_sub_counts = df_map.groupby('nfrags_u').count()[['idm']].rename({'idm': 'NumFragmentMaps'}, axis=1)
+    df_sub_counts.reset_index(inplace=True)
+    df_sub_counts.rename({"nfrags_u": "NumUniqueFrags"}, axis=1, inplace=True)
+    logger.info(f"MAP -- RESULTS -- NUMBER OF UNIQUE FRAGMENTS FOUND PER FRAGMENT MAP:\n{df_sub_counts}\n")
+    output_csv_counts_sub = output_csv_basename + "_map_numuniquefragperfm_counts.csv"
+    if compression is not None:
+        output_csv_counts_sub += ".gz"
+    df_sub_counts.to_csv(output_csv_counts_sub, sep="|", compression=compression, index=False)
+    logger.info(f"MAP -- SAVED RESULTS AT '{output_csv_counts_sub}'")
+
+    # smallest fm per mol
+    df_map.sort_values(["idm", "nfrags"], inplace=True)  # ascending so first element of each idm group has the smallest nfrags
+    df_map_mol = df_map.groupby('idm').first()
+    df_map_mol.reset_index(inplace=True)
+    df_map_mol.rename({"index": "idm"}, axis=True, inplace=True)
+
+    # fragment counts per mol
+    df_sub_counts = df_map_mol.groupby('nfrags').count()[['idm']].rename({'idm': 'NumMols'}, axis=1)
+    df_sub_counts.reset_index(inplace=True)
+    df_sub_counts.rename({"nfrags": "NumFrags"}, axis=1, inplace=True)
+    logger.info(f"MAP -- RESULTS -- NUMBER OF FRAGMENTS FOUND PER MOLECULE:\n{df_sub_counts}\n")
+    output_csv_counts_sub = output_csv_basename + "_map_numfragpermol_counts.csv"
+    if compression is not None:
+        output_csv_counts_sub += ".gz"
+    df_sub_counts.to_csv(output_csv_counts_sub, sep="|", compression=compression, index=False)
+    logger.info(f"MAP -- SAVED RESULTS AT '{output_csv_counts_sub}'")
+
+    # unique fragment counts per mol
+    df_sub_counts = df_map_mol.groupby('nfrags_u').count()[['idm']].rename({'idm': 'NumMols'}, axis=1)
+    df_sub_counts.reset_index(inplace=True)
+    df_sub_counts.rename({"nfrags_u": "NumUniqueFrags"}, axis=1, inplace=True)
+    logger.info(f"MAP -- RESULTS -- NUMBER OF UNIQUE FRAGMENTS FOUND PER MOLECULE:\n{df_sub_counts}\n")
+    output_csv_counts_sub = output_csv_basename + "_map_numuniquefragpermol_counts.csv"
+    if compression is not None:
+        output_csv_counts_sub += ".gz"
+    df_sub_counts.to_csv(output_csv_counts_sub, sep="|", compression=compression, index=False)
+    logger.info(f"MAP -- SAVED RESULTS AT '{output_csv_counts_sub}'")
+
+    # fragment map coverage by fragments
+    df_frag_fm_cov = df_map[["perc_mol_cov_frags", "idm"]]
+    df_frag_fm_cov_counts = df_frag_fm_cov.groupby("perc_mol_cov_frags").count()
+    df_frag_fm_cov_counts.reset_index(inplace=True)
+    df_frag_fm_cov_counts.rename({"perc_mol_cov_frags": "Perc_Frag_Coverage_Per_FragmentMap", "idm": "NumFragMaps"}, axis=1, inplace=True)
+    logger.info(f"MAP -- RESULTS -- PERC OF FRAGMENT COVERAGE PER FRAGMENT MAP:\n{df_frag_fm_cov_counts}\n")
+    output_csv_counts_sub = output_csv_basename + "_map_perc_frag_cov_fm_counts.csv"
+    if compression is not None:
+        output_csv_counts_sub += ".gz"
+    df_frag_fm_cov_counts.to_csv(output_csv_counts_sub, sep="|", compression=compression, index=False)
+    logger.info(f"MAP -- SAVED RESULTS AT '{output_csv_counts_sub}'")
+
+    # molecule coverage by fragments
+    df_map["colormap"] = df_map["colormap"].map(lambda x: pickle.loads(base64.b64decode(x)))
+    df_map["aidxs"] = df_map["colormap"].map(lambda x: [k for k in x.atoms.keys()])
+    groups_mol_map = df_map[['idm', 'hac_mol', 'aidxs']].groupby("idm")
+    df_frag_mol_cov = groups_mol_map.agg({'aidxs': 'sum'})
+    df_frag_mol_cov["hac_mol"] = groups_mol_map.first()['hac_mol']  # ok instead of joint because groups are in the same order
+    df_frag_mol_cov["hac_frags"] = df_frag_mol_cov["aidxs"].map(lambda x: len(list(set(x))))
+    df_frag_mol_cov.drop("aidxs", axis=1, inplace=True)
+    df_frag_mol_cov["Perc_Frag_Coverage_Per_Mol"] = df_frag_mol_cov.apply(lambda x: round(x["hac_frags"] / x["hac_mol"], 2) * 100, axis=1)
+    df_frag_mol_cov.drop("hac_frags", axis=1, inplace=True)
+    df_frag_mol_cov.rename({"hac_mol": "NumMols"}, axis=1, inplace=True)
+    df_frag_mol_cov_counts = df_frag_mol_cov.groupby("Perc_Frag_Coverage_Per_Mol").count()
+    df_frag_mol_cov_counts.reset_index(inplace=True)
+    logger.info(f"MAP -- RESULTS -- PERC OF FRAGMENT COVERAGE PER MOLECULE:\n{df_frag_mol_cov_counts}\n")
+    output_csv_counts_sub = output_csv_basename + "_map_perc_frag_cov_mol_counts.csv"
+    if compression is not None:
+        output_csv_counts_sub += ".gz"
+    df_frag_mol_cov_counts.to_csv(output_csv_counts_sub, sep="|", compression=compression, index=False)
+    logger.info(f"MAP -- SAVED RESULTS AT '{output_csv_counts_sub}'")
+
+    # top 10 most occurring unique fragments per molecule
+    df_map_tmp = df_map.copy()
+    df_map_tmp['frags'] = df_map_tmp['frags'].map(lambda x: json.loads(x.replace("'", '"')))
+    df_map_tmp['frags_idf'] = df_map_tmp['frags'].map(lambda x: list(set([y.split(':')[0] for y in x])))
+    df_map_tmp = df_map_tmp[['idm', 'frags_idf']]
+    df_idf_counts = df_map_tmp.set_index(['idm'])['frags_idf'].apply(pd.Series).stack()
+    df_idf_counts = df_idf_counts.reset_index()
+    df_idf_counts.columns = ['idm', 'idh', 'idf']
+    df_idf_counts = df_idf_counts.groupby('idf').count()[['idh']].rename({'idh': 'Count'}, axis=1).sort_values('Count', ascending=False)
+    # df_top_10 = df_idf_counts.head(10)
+    df_idf_counts.reset_index(inplace=True)
+    df_idf_counts['Rank'] = df_idf_counts.index
+    df_idf_counts['Rank'] = df_idf_counts['Rank'].map(lambda x: x + 1)
+    # display the corresponding fragments
+    df_frags = load.from_file('/home/gally/Projects/NPFC/data/scaffolds/crms/data/3_murcko/data/crms_passed.csv.gz').drop(['status', 'task', "status_deglyco", "_Name", "inchikey"], axis=1)
+    df_frags['idm'] = df_frags['idm'].astype(int)
+    df_idf_counts['idf'] = df_idf_counts['idf'].astype(int)
+    df_frags['idm'] = df_frags['idm'].astype(int)
+    df_idf_counts = df_idf_counts.merge(df_frags, left_on='idf', right_on='idm')
+    df_idf_counts.index = range(len(df_idf_counts.index))
+    # total of fragments
+    idf_counts_tot = df_idf_counts['Count'].sum()
+    df_top10 = df_idf_counts.head(10)
+    df_top10["smiles"] = df_top10["mol"].map(Chem.MolToSmiles)
+    df_top10.drop(["mol", "idm"], axis=1, inplace=True)
+    # percentage of the top 10
+    df_top10['Perc'] = df_top10['Count'].map(lambda x: round(x / idf_counts_tot, 4) * 100)
+    df_top10['Perc_cum'] = 100 * round(df_top10['Count'].cumsum() / idf_counts_tot, 4)
+    logger.info(f"MAP -- RESULTS -- TOP 10 MOST OCCURRING UNIQUE FRAGMENTS PER MOLECULE:\n{df_top10}\n")
+    output_csv_counts_sub = output_csv_basename + "_map_top10_unique.csv"
+    if compression is not None:
+        output_csv_counts_sub += ".gz"
+    df_top10.to_csv(output_csv_counts_sub, sep="|", compression=compression, index=False)
+    logger.info(f"MAP -- SAVED RESULTS AT '{output_csv_counts_sub}'")
+
+    # top 10 most occurring fragments per molecule
+    df_map_tmp = df_map.copy()
+    df_map_tmp['frags'] = df_map_tmp['frags'].map(lambda x: json.loads(x.replace("'", '"')))
+    groups_mol_map = df_map.groupby("idm")
+    df_map_tmp = groups_mol_map.agg({'frags': 'sum'})
+    df_map_tmp.reset_index(inplace=True)
+    df_map_tmp["frags"] = df_map_tmp["frags"].map(lambda x: json.loads(x.replace("][", ",").replace("'", '"')))  # sum was supposed to concatenate lists, not convert them to str and then concatenate them
+    df_map_tmp['frags'] = df_map_tmp['frags'].map(lambda x: list(set(x)))  # still 32:0, etc. so we can see when multiple fragments occur in one map
+    df_idf_counts = df_map_tmp.set_index(['idm'])['frags'].apply(pd.Series).stack()
+    df_idf_counts = df_idf_counts.reset_index()
+    df_idf_counts.columns = ['idm', 'idh', 'idf']
+    df_idf_counts["idf"] = df_idf_counts["idf"].map(lambda x: x.split(":")[0])
+    df_idf_counts = df_idf_counts.groupby('idf').count()[['idh']].rename({'idh': 'Count'}, axis=1).sort_values('Count', ascending=False)
+    df_idf_counts.reset_index(inplace=True)
+    df_idf_counts['Rank'] = df_idf_counts.index
+    df_idf_counts['Rank'] = df_idf_counts['Rank'].map(lambda x: x + 1)
+    df_idf_counts['idf'] = df_idf_counts['idf'].astype(int)
+    df_idf_counts = df_idf_counts.merge(df_frags, left_on='idf', right_on='idm')
+    df_idf_counts.index = range(len(df_idf_counts.index))
+    idf_counts_tot = df_idf_counts['Count'].sum()
+    df_top10 = df_idf_counts.head(10)
+    df_top10["smiles"] = df_top10["mol"].map(Chem.MolToSmiles)
+    df_top10.drop(["mol", "idm"], axis=1, inplace=True)
+    # percentage of the top 10
+    df_top10['Perc'] = df_top10['Count'].map(lambda x: round(x / idf_counts_tot, 4) * 100)
+    df_top10['Perc_cum'] = 100 * round(df_top10['Count'].cumsum() / idf_counts_tot, 4)
+    logger.info(f"MAP -- RESULTS -- TOP 10 MOST OCCURRING FRAGMENTS PER MOLECULE:\n{df_top10}\n")
+    output_csv_counts_sub = output_csv_basename + "_map_top10_mol.csv"
+    if compression is not None:
+        output_csv_counts_sub += ".gz"
+    df_top10.to_csv(output_csv_counts_sub, sep="|", compression=compression, index=False)
+    logger.info(f"MAP -- SAVED RESULTS AT '{output_csv_counts_sub}'")
+
+    # combinations
+
+    # initialization
+    categories = ['fsp', 'fed', 'fbr', 'fot',
+                  'cmo',
+                  'cbs', 'cbe', 'cbb', 'cbo',
+                  'cts', 'cte', 'ctb', 'cto',
+                  'cos', 'coe', 'cob', 'coo',
+                  ]
+    df_map["comb"] = df_map["comb"].map(lambda x: json.loads(x.replace("'", '"')))
+
+
+    # # all combs found in all fragment maps  # misleading?
+    # ds_comb = []
+    # for i in range(len(df_map.index)):
+    #     d = dict(Counter(df_map.iloc[i]['comb']))
+    #     ds_comb.append(d)
+    # df_comb = pd.DataFrame(ds_comb, columns=categories).fillna(0)
+    # df_comb = pd.DataFrame(df_comb.apply(lambda x: pd.to_numeric(x, downcast='integer')).sum()).rename({0: "Count"}, axis=1)
+    # df_comb['Category'] = df_comb.index
+    # df_comb['Perc'] = df_comb['Count'].map(lambda x: round(x/df_comb['Count'].sum(), 4)*100)
+    # logger.info(f"MAP -- RESULTS -- FRAGMENT COMBINATIONS FOUND IN ALL FRAGMENT MAPS:\n{df_comb}\n")
+    # output_csv_counts_sub = output_csv_basename + "_map_fragcomb.csv"
+    # if compression is not None:
+    #     output_csv_counts_sub += ".gz"
+    # df_comb.to_csv(output_csv_counts_sub, sep="|", compression=compression, index=False)
+    # logger.info(f"MAP -- SAVED RESULTS AT '{output_csv_counts_sub}'")
+
+    # all combs per molecule
+    df_map_tmp = df_map[['idm', 'map_str', 'fmid']].copy()
+    df_map_tmp["map_str"] = df_map_tmp["map_str"].map(lambda x: x.split("-"))
+    groups_mol_map = df_map_tmp.groupby('idm')
+    df_map_tmp = groups_mol_map.agg({'map_str': 'sum'})
+    df_map_tmp.reset_index(inplace=True)
+    # remove dupl. common parts between alternative fragment maps
+    df_map_tmp["map_str"] = df_map_tmp["map_str"].map(lambda x: list(set(x)))
+    df_map_tmp["comb"] = df_map_tmp["map_str"].map(lambda x: [y.split("[")[1].split("]")[0] for y in x])
+    df_map_tmp.drop("map_str", axis=1, inplace=True)
+    # count remaining combinations
+    ds_comb = []
+    for i in range(len(df_map_tmp.index)):
+        d = dict(Counter(df_map_tmp.iloc[i]['comb']))
+        ds_comb.append(d)
+    df_comb = pd.DataFrame(ds_comb, columns=categories).fillna(0)
+    df_comb = pd.DataFrame(df_comb.apply(lambda x: pd.to_numeric(x, downcast='integer')).sum()).rename({0: "Count"}, axis=1)
+    df_comb['Category'] = df_comb.index
+    df_comb['Perc'] = df_comb['Count'].map(lambda x: round(x/df_comb['Count'].sum(), 4)*100)
+    logger.info(f"MAP -- RESULTS -- FRAGMENT COMBINATIONS FOUND IN ALL FRAGMENT MAPS:\n{df_comb}\n")
+    output_csv_counts_sub = output_csv_basename + "_map_fragcomb.csv"
+    if compression is not None:
+        output_csv_counts_sub += ".gz"
+    df_comb.to_csv(output_csv_counts_sub, sep="|", compression=compression, index=False)
+    logger.info(f"MAP -- SAVED RESULTS AT '{output_csv_counts_sub}'")
 
 
 def plot_result_pnp(WD: str, output_csv: str):
@@ -302,7 +563,7 @@ def plot_result_pnp(WD: str, output_csv: str):
     # iterate over the data files to count status
     chunks = list(WD.glob("*[0-9][0-9][0-9]_pnp.csv.gz"))
     chunks.sort()
-    logger.info(f"FOUND {len(chunks)} CHUNKS")
+    logger.info(f"FOUND {len(chunks):,d} CHUNKS")
 
     # initiate counts
     num_pnp_fm = 0
@@ -325,9 +586,9 @@ def plot_result_pnp(WD: str, output_csv: str):
 
     # totals
     num_tot_fm = num_pnp_fm + num_non_pnp_fm
-    logger.info(f"TOTAL NUMBER OF FRAGMENT MAPS: {num_tot_fm}")
+    logger.info(f"TOTAL NUMBER OF FRAGMENT MAPS: {num_tot_fm:,d}")
     num_tot_mol = num_pnp_mol + num_non_pnp_mol
-    logger.info(f"TOTAL NUMBER OF MOLECULES: {num_tot_mol}")
+    logger.info(f"TOTAL NUMBER OF MOLECULES: {num_tot_mol:,d}")
 
     # result
     df = pd.DataFrame({"PNP_fm": [num_pnp_fm], "Non-PNP_fm": [num_non_pnp_fm], "PNP_mol": [num_pnp_mol], "Non-PNP_mol": [num_non_pnp_mol]}).T.rename({0: "Count"}, axis=1)
@@ -352,6 +613,7 @@ if __name__ == '__main__':
     logger = utils._configure_logger(args.log)
     logger.info("RUNNING PLOT_PIPELINE_RESULTS")
     warnings.filterwarnings('ignore', category=pd.io.pytables.PerformanceWarning)  # if None is returned instead of a molecule, do not complain about mixed types
+    pd.options.mode.chained_assignment = None  # disable pd.io.pytables.SettingWithCopyWarning
     pad = 40
     lg = RDLogger.logger()
     lg.setLevel(RDLogger.INFO)
@@ -371,39 +633,40 @@ if __name__ == '__main__':
     dataset = wd.split("/")[-2]
     logger.info(f"DATASET='{dataset}'")
 
-    # logger.info("=" * pad)
-    # logger.info("CHECKING FOR MISSING CHUNKS".center(pad))
-    # logger.info("=" * pad)
-    # check_chunks(wd)
-    #
-    # logger.info("=" * pad)
-    # logger.info("CHECKING RESULTS FROM DEGLYCOSYLATION".center(pad))
-    # logger.info("=" * pad)
-    # subfolder_deglyco = [str(x) for x in list(Path(wd).glob("data/*_deglyco"))][0] + "/"
-    # plot_result_deglyco(subfolder_deglyco, wd + f"figures/{dataset}_deglyco.csv")
-    #
-    # logger.info("=" * pad)
-    # logger.info("CHECKING RESULTS FROM STANDARDIZATION".center(pad))
-    # logger.info("=" * pad)
-    # try:
-    #     subfolder_std = [str(x) for x in list(Path(wd).glob("data/*_std"))][0] + "/"
-    #     plot_result_std(subfolder_std, wd + f"figures/{dataset}_std.csv")
-    # except IndexError:
-    #     logger.info("NO STANDARDIZATION RESULTS TO CHECK")
+    logger.info("=" * pad)
+    logger.info("CHECKING FOR MISSING CHUNKS".center(pad))
+    logger.info("=" * pad)
+    if check_chunks(wd):
+        logger.info("ALL EXPECTED CHUNKS WERE FOUND!")
 
     logger.info("=" * pad)
-    logger.info("CHECKING RESULTS FROM MAPPING")
+    logger.info("CHECKING RESULTS FROM DEGLYCOSYLATION".center(pad))
+    logger.info("=" * pad)
+    subfolder_deglyco = [str(x) for x in list(Path(wd).glob("data/*_deglyco"))][0] + "/"
+    plot_result_deglyco(subfolder_deglyco, wd + f"figures/{dataset}_deglyco.csv")
+
+    logger.info("=" * pad)
+    logger.info("CHECKING RESULTS FROM STANDARDIZATION".center(pad))
     logger.info("=" * pad)
     try:
-        plot_result_map(wd, wd + f"figures/{dataset}_map.csv")
+        subfolder_std = [str(x) for x in list(Path(wd).glob("data/*_std"))][0] + "/"
+        plot_result_std(subfolder_std, wd + f"figures/{dataset}_std.csv")
+    except IndexError:
+        logger.info("NO STANDARDIZATION RESULTS TO CHECK")
+
+    logger.info("=" * pad)
+    logger.info("CHECKING RESULTS FROM MAPPING".center(pad))
+    logger.info("=" * pad)
+    try:
+        plot_result_map(wd, wd + f"figures/{dataset}.csv")
     except IndexError:
         logger.info("NO MAP RESULTS TO CHECK")
 
-    # logger.info("=" * pad)
-    # logger.info("CHECKING RESULTS FROM PNP".center(pad))
-    # logger.info("=" * pad)
-    # try:
-    #     subfolder_pnp = [str(x) for x in list(Path(wd).glob("data/*_pnp"))][0] + "/"
-    #     plot_result_pnp(subfolder_pnp, wd + f"figures/{dataset}_pnp.csv")
-    # except IndexError:
-    #     logger.info("NO PNP RESULTS TO CHECK")
+    logger.info("=" * pad)
+    logger.info("CHECKING RESULTS FROM PNP".center(pad))
+    logger.info("=" * pad)
+    try:
+        subfolder_pnp = [str(x) for x in list(Path(wd).glob("data/*_pnp"))][0] + "/"
+        plot_result_pnp(subfolder_pnp, wd + f"figures/{dataset}_pnp.csv")
+    except IndexError:
+        logger.info("NO PNP RESULTS TO CHECK")

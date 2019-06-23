@@ -16,7 +16,10 @@
 
 from rdkit import Chem
 from rdkit.Chem import rdMolDescriptors
-import sys, math, gzip, pickle
+import sys
+import math
+import gzip
+import pickle
 import os.path
 from collections import namedtuple
 
