@@ -244,7 +244,7 @@ def plot_result_std(WD: str, output_csv: str):
     return df
 
 
-def plot_result_map(WD: str, output_csv: str):
+def plot_result_map(WD: str, output_csv: str, file_frags: str):
     logger.info("PLOT_RESULT_MAP")
     # go inside log subfolder in WD
     logger.info(f"WD={WD}")
@@ -443,7 +443,7 @@ def plot_result_map(WD: str, output_csv: str):
     df_idf_counts['Rank'] = df_idf_counts.index
     df_idf_counts['Rank'] = df_idf_counts['Rank'].map(lambda x: x + 1)
     # display the corresponding fragments
-    df_frags = load.from_file('/home/gally/Projects/NPFC/data/scaffolds/crms/data/3_murcko/data/crms_passed.csv.gz').drop(['status', 'task', "status_deglyco", "_Name", "inchikey"], axis=1)
+    df_frags = load.from_file(file_frags).drop(['status', 'task', "status_deglyco", "_Name", "inchikey"], axis=1)
     df_frags['idm'] = df_frags['idm'].astype(int)
     df_idf_counts['idf'] = df_idf_counts['idf'].astype(int)
     df_frags['idm'] = df_frags['idm'].astype(int)
@@ -606,6 +606,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description="Compute all required files for analyzing FCC results", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('wd', type=str, default='./', help="Working directory from the job to analyse (root folder, where the smk file is)")
+    parser.add_argument('frags', type=str, default='None', help="Fragment file used for substructure search")
     parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
     args = parser.parse_args()
 
@@ -617,6 +618,12 @@ if __name__ == '__main__':
     pad = 40
     lg = RDLogger.logger()
     lg.setLevel(RDLogger.INFO)
+
+    if args.frags is None:
+        logger.error("ERROR! FRAGS MUST BE DEFINED!")
+        sys.exit(1)
+    else:
+        utils.check_arg_input_file(args.frags)
 
     # define WD
     if args.wd.endswith("/"):
@@ -658,7 +665,7 @@ if __name__ == '__main__':
     logger.info("CHECKING RESULTS FROM MAPPING".center(pad))
     logger.info("=" * pad)
     try:
-        plot_result_map(wd, wd + f"figures/{dataset}.csv")
+        plot_result_map(wd, wd + f"figures/{dataset}.csv", args.frags)
     except IndexError:
         logger.info("NO MAP RESULTS TO CHECK")
 
