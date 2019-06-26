@@ -3,14 +3,13 @@ Module test_03_filter
 ====================
 Tests for the filter module.
 """
-# standard
-import logging
 # chemoinformatics
 from rdkit import Chem
 # tests
 import pytest
 from npfc.filter import Filter
 # debug
+# import logging
 # logging.basicConfig(level=logging.DEBUG)
 
 

@@ -12,9 +12,9 @@ from rdkit import Chem
 # tests
 import pytest
 from npfc import fragment
-import logging
 # debug
-# logging.basicConfig(level=logging.DEBUG)  # uncomment to debug
+# import logging
+# logging.basicConfig(level=logging.DEBUG)
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FIXTURES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #

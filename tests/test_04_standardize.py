@@ -5,13 +5,13 @@ Tests for the standardize module.
 """
 # standard
 from pathlib import Path
-import logging
 import warnings
 # data science
 import pandas as pd
 # chemoinformatics
 from rdkit import Chem
 from rdkit import RDLogger
+from rdkit.Chem import Mol
 from rdkit.Chem import rdinchi
 from rdkit.Chem.MolStandardize.metal import MetalDisconnector
 from rdkit.Chem.MolStandardize.normalize import Normalizer
@@ -26,7 +26,10 @@ from npfc import load
 lg = RDLogger.logger()
 lg.setLevel(RDLogger.CRITICAL)
 warnings.simplefilter(action='ignore', category=pd.errors.PerformanceWarning)
+# debug
+# import logging
 # logging.basicConfig(level=logging.DEBUG)
+
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FIXTURES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
@@ -55,7 +58,8 @@ def duplicate_filter():
 @pytest.fixture
 def mols():
     """An example of a DataFrame with molecules."""
-    d = {'metal': 'CC(C)(C)[N+](=Cc1ccc(cc1S(=O)(=O)O[Na])S(=O)(=O)O[Na])[O-]',
+    d = {'empty': '',
+         'metal': 'CC(C)(C)[N+](=Cc1ccc(cc1S(=O)(=O)O[Na])S(=O)(=O)O[Na])[O-]',
          'mixture_1': 'Cl.Cl.Cl.NCCCCN(CCCN)Cc1ccc(cc1)B(O)O',
          'mixture_2': '[Rn].C1CCC1.C1CCCCC1',
          'mixture_3': 'C1CCCC1.CCCCCCCCCC',
@@ -127,7 +131,8 @@ def test_std_disconnect_metal(standardizer, mols):
 def test_std_init(standardizer):
     # default parameters
     assert set(standardizer.protocol.keys()) == set(['tasks', 'filter_hac', 'filter_molweight', 'filter_nrings', 'filter_medchem'])
-    assert standardizer.protocol['tasks'] == ['disconnect_metal',
+    assert standardizer.protocol['tasks'] == ['filter_empty',
+                                              'disconnect_metal',
                                               'keep_best',
                                               'filter_hac',
                                               'filter_molweight',
@@ -244,19 +249,19 @@ def test_run_protocol(standardizer, mols, mols_bad):
         d['idm'].append(k)
         d['mol'].append(m)
     df_mols = pd.DataFrame(d)
-    assert len(df_mols.index) == 23
+    assert len(df_mols.index) == 24
     # run default protocol
     df_passed, df_filtered, df_error = standardizer.run_df(df_mols)
     assert len(df_passed.index) == 12
     assert len(df_error.index) == 3
-    assert len(df_filtered.index) == 8
+    assert len(df_filtered.index) == 9
 
 
-@pytest.mark.skip   # decorators are set only once, so the TIMEOUT value cannot be changed inside of the decorators. no idea for a work-around now so just skip the test as it is long.
-def test_standardizer_timeout(mols_timeout, standardizer_fast):
-    """Test if timeout is enforced and can be configured."""
-    mol, status, task = standardizer_fast.run(mols_timeout['timeout'])
-    assert isinstance(mol, Chem.Mol) is True
+@pytest.mark.skip  # skip this test to avoid 10s waiting time
+def test_standardizer_timeout(mols_timeout, standardizer):
+    """Test if timeout is enforced. It is set to 10s and cannot be changed without reinstalling the library."""
+    mol, status, task = standardizer.run(mols_timeout['timeout'])
+    assert isinstance(mol, Mol) is True
     assert status == 'filtered'
     assert task == 'timeout'
 
@@ -265,4 +270,4 @@ def save_mols(mols):
     """Export the molecules to a SDF for testing the npfc pipeline."""
     from rdkit.Chem import PandasTools
     mols['idm'] = f"MOL{str()}"
-    PandasTools.WriteSDF(mols, "tests/tmp/example_mols.sdf", )
+    PandasTools.WriteSDF(mols, "tests/tmp/example_mols.sdf")

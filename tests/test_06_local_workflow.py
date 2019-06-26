@@ -5,11 +5,11 @@ Functional test to make sure all step input/outputs are compatible
 for a local run of the npfc workflow.
 """
 # standard library
-import logging
 import subprocess
 from pathlib import Path
 import pkg_resources
 # debug
+# import logging
 # logging.basicConfig(level=logging.DEBUG)
 
 

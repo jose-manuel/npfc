@@ -262,17 +262,18 @@ class Standardizer(Filter):
     By default this protocol consists in 12 tasks applied to each molecule invidually:
 
         1) **initiate_mol**: check if the molecule passed the RDKit conversion
-        2) **disconnect_metal**: break bonds involving metallic atoms, resulting in potentially several molecules per structure.
-        3) **keep_best**: retrieve only the "best" molecule from a mixture, which might not always be the largest one.
-        4) **filter_hac**: filter molecules with a heavy atom count not in the accepted range. By default: hac > 3.
-        5) **filter_molweight**: filter molecules with a molecular weight not in the accepted range. By default: molweight <= 1000.0.
-        6) **filter_nrings**: filter molecules with a number of rings (Smallest Sets of Smallest Rings or SSSR) not in the accepted range. By default: nrings > 0.
-        7) **filter_medchem**: filter molecules with elements not considered as medchem. By default: elements in H, B, C, N, O, F, P, S, Cl, Br, I.
-        8) **remove_isotopes**: set all atoms to their most common isotope (i.e. 14C becomes 12C which is C).
-        9) **normalize**: always write the same functional groups in the same manner.
-        10) **uncharge**: remove all charges on a molecule when it is possible. This is different from rdkit.Chem.MolStandardize.charge module as there is no attempt for reaching the zwitterion.
-        11) **canonicalize**: enumerate the canonical tautomer.
-        12) **remove_stereo**: remove all remaining stereochemistry flags on the molecule.
+        2) **filter_empty**: filter molecules with empty structures
+        3) **disconnect_metal**: break bonds involving metallic atoms, resulting in potentially several molecules per structure.
+        4) **keep_best**: retrieve only the "best" molecule from a mixture, which might not always be the largest one.
+        5) **filter_hac**: filter molecules with a heavy atom count not in the accepted range. By default: hac > 3.
+        6) **filter_molweight**: filter molecules with a molecular weight not in the accepted range. By default: molweight <= 1000.0.
+        7) **filter_nrings**: filter molecules with a number of rings (Smallest Sets of Smallest Rings or SSSR) not in the accepted range. By default: nrings > 0.
+        8) **filter_medchem**: filter molecules with elements not considered as medchem. By default: elements in H, B, C, N, O, F, P, S, Cl, Br, I.
+        9) **remove_isotopes**: set all atoms to their most common isotope (i.e. 14C becomes 12C which is C).
+        10) **normalize**: always write the same functional groups in the same manner.
+        11) **uncharge**: remove all charges on a molecule when it is possible. This is different from rdkit.Chem.MolStandardize.charge module as there is no attempt for reaching the zwitterion.
+        12) **canonicalize**: enumerate the canonical tautomer.
+        13) **remove_stereo**: remove all remaining stereochemistry flags on the molecule.
 
     Finally, duplicate entries can be filtered using InChiKeys when postprocessing the DataFrame with molecules (argument in the run_df method).
 
@@ -321,7 +322,8 @@ class Standardizer(Filter):
         self._on = on
         self._suffix = suffix
         self._ref_file = ref_file
-        self._default_protocol = {'tasks': ['disconnect_metal',
+        self._default_protocol = {'tasks': ['filter_empty',
+                                            'disconnect_metal',
                                             'keep_best',
                                             'filter_hac',
                                             'filter_molweight',
@@ -558,19 +560,27 @@ class Standardizer(Filter):
         # begin protocol
         mol = copy.deepcopy(mol)
         for task in self._protocol['tasks']:
-            # metals
-            if task == 'disconnect_metal':
+            # filter_empty
+            if task == 'filter_empty':
+                try:
+                    if not mol.GetNumAtoms():
+                        return ('', 'filtered', task)
+                except ValueError:
+                    return ('', 'error', task)
+
+            # disconnect_metal
+            elif task == 'disconnect_metal':
                 try:
                     mol = self.metal_disconnector.disconnect(mol)
                 except ValueError:
                     return (mol, 'error', 'disconnect_metal')
 
-            # submols
+            # keep_best
             elif task == 'keep_best':
                 try:
                     mol = self.keep_best(mol)
                 except ValueError:
-                    return (mol, 'error', 'keep_best')
+                    return (mol, 'error', task)
 
             # filters
             elif task == 'filter_medchem' or task == 'filter_hac' or task == 'filter_molweight' or task == 'filter_nrings':
@@ -586,6 +596,7 @@ class Standardizer(Filter):
                     Chem.SanitizeMol(mol)
                 except ValueError:
                     return (mol, 'error', task)
+
             # remove_isotopes
             elif task == 'remove_isotopes':
                 try:
@@ -599,6 +610,7 @@ class Standardizer(Filter):
                     mol = self.normalizer.normalize(mol)
                 except ValueError:
                     return (mol, 'error', task)
+
             # uncharge
             elif task == 'uncharge':
                 try:
@@ -624,6 +636,7 @@ class Standardizer(Filter):
             # something else?
             else:
                 raise ValueError(f"Unknown task: {task}")
+
         # a molecule that passed all the protocole!
         return (mol, 'passed', 'standardize')
 
@@ -658,23 +671,25 @@ class Standardizer(Filter):
         """
         # run standardization protocol
         df.index = df[self.col_id]
-        df[self.col_mol], df['status'], df['task'] = zip(*df[self.col_mol].map(self.run))
+        df.loc[:, self.col_mol], df.loc[:, 'status'], df.loc[:, 'task'] = zip(*df[self.col_mol].map(self.run))
         # do not apply filter duplicates on molecules with errors or that were already filtered for x reasons
         df_error = df[df['status'] == 'error']
         df_filtered = df[df['status'] == 'filtered']
         df = df[df['status'] == 'passed']
+        df = df.copy()  # only way I found to suppress pandas warnings in a "clean" way
         # compute InChiKeys
+        # df.reset_index(drop=True, inplace=True)
         df.loc[:, 'inchikey'] = df.loc[:, self.col_mol].map(rdinchi.MolToInchiKey)
         # filter duplicates
         if self.filter_duplicates:
             dupl_filter = DuplicateFilter(on=self.on, col_mol=self.col_mol, col_id=self.col_id, ref_file=self.ref_file)
             df = dupl_filter.mark_dupl(df)
             # clean up for postprocess
-            df.index = df[self.col_id]
-            df.drop(self.col_id, axis=1, inplace=True)
+            df.set_index("idm", inplace=True)
             # separate dupl from the rest
             df_filtered = pd.concat([df_filtered, df[df['status'] == 'filtered'][[c for c in df.columns if c != 'inchikey']]], join='inner')  # drop inchikey col as the info is stored in ref_file anyway
             df = df[df['status'] == 'passed']
+
         # compute 2D depictions
         if self.compute_2D:
             df['mol'] = df['mol'].map(self.compute_2D)
