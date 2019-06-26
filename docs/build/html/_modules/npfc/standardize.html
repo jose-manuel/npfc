@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.standardize &mdash; npfc 0.2.6-2-g95a194c documentation</title>
+  <title>npfc.standardize &mdash; npfc 0.2.7 documentation</title>
   
 
   
@@ -56,7 +56,7 @@
             
             
               <div class="version">
-                0.2.6-2-g95a194c
+                0.2.7
               </div>
             
           
@@ -80,8 +80,17 @@
               
             
             
-              <!-- Local TOC -->
-              <div class="local-toc"></div>
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../load.html">Module load</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../save.html">Module save</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../filter.html">Module filter</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../standardize.html">Module standardize</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../fragment.html">Module fragment</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../utils.html">Module utils</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../draw.html">Module draw</a></li>
+</ul>
+
             
           
         </div>
@@ -407,17 +416,18 @@
 <span class="sd">    By default this protocol consists in 12 tasks applied to each molecule invidually:</span>
 
 <span class="sd">        1) **initiate_mol**: check if the molecule passed the RDKit conversion</span>
-<span class="sd">        2) **disconnect_metal**: break bonds involving metallic atoms, resulting in potentially several molecules per structure.</span>
-<span class="sd">        3) **keep_best**: retrieve only the &quot;best&quot; molecule from a mixture, which might not always be the largest one.</span>
-<span class="sd">        4) **filter_hac**: filter molecules with a heavy atom count not in the accepted range. By default: hac &gt; 3.</span>
-<span class="sd">        5) **filter_molweight**: filter molecules with a molecular weight not in the accepted range. By default: molweight &lt;= 1000.0.</span>
-<span class="sd">        6) **filter_nrings**: filter molecules with a number of rings (Smallest Sets of Smallest Rings or SSSR) not in the accepted range. By default: nrings &gt; 0.</span>
-<span class="sd">        7) **filter_medchem**: filter molecules with elements not considered as medchem. By default: elements in H, B, C, N, O, F, P, S, Cl, Br, I.</span>
-<span class="sd">        8) **remove_isotopes**: set all atoms to their most common isotope (i.e. 14C becomes 12C which is C).</span>
-<span class="sd">        9) **normalize**: always write the same functional groups in the same manner.</span>
-<span class="sd">        10) **uncharge**: remove all charges on a molecule when it is possible. This is different from rdkit.Chem.MolStandardize.charge module as there is no attempt for reaching the zwitterion.</span>
-<span class="sd">        11) **canonicalize**: enumerate the canonical tautomer.</span>
-<span class="sd">        12) **remove_stereo**: remove all remaining stereochemistry flags on the molecule.</span>
+<span class="sd">        2) **filter_empty**: filter molecules with empty structures</span>
+<span class="sd">        3) **disconnect_metal**: break bonds involving metallic atoms, resulting in potentially several molecules per structure.</span>
+<span class="sd">        4) **keep_best**: retrieve only the &quot;best&quot; molecule from a mixture, which might not always be the largest one.</span>
+<span class="sd">        5) **filter_hac**: filter molecules with a heavy atom count not in the accepted range. By default: hac &gt; 3.</span>
+<span class="sd">        6) **filter_molweight**: filter molecules with a molecular weight not in the accepted range. By default: molweight &lt;= 1000.0.</span>
+<span class="sd">        7) **filter_nrings**: filter molecules with a number of rings (Smallest Sets of Smallest Rings or SSSR) not in the accepted range. By default: nrings &gt; 0.</span>
+<span class="sd">        8) **filter_medchem**: filter molecules with elements not considered as medchem. By default: elements in H, B, C, N, O, F, P, S, Cl, Br, I.</span>
+<span class="sd">        9) **remove_isotopes**: set all atoms to their most common isotope (i.e. 14C becomes 12C which is C).</span>
+<span class="sd">        10) **normalize**: always write the same functional groups in the same manner.</span>
+<span class="sd">        11) **uncharge**: remove all charges on a molecule when it is possible. This is different from rdkit.Chem.MolStandardize.charge module as there is no attempt for reaching the zwitterion.</span>
+<span class="sd">        12) **canonicalize**: enumerate the canonical tautomer.</span>
+<span class="sd">        13) **remove_stereo**: remove all remaining stereochemistry flags on the molecule.</span>
 
 <span class="sd">    Finally, duplicate entries can be filtered using InChiKeys when postprocessing the DataFrame with molecules (argument in the run_df method).</span>
 
@@ -466,7 +476,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_on</span> <span class="o">=</span> <span class="n">on</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_suffix</span> <span class="o">=</span> <span class="n">suffix</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_ref_file</span> <span class="o">=</span> <span class="n">ref_file</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_default_protocol</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;tasks&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;disconnect_metal&#39;</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_default_protocol</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;tasks&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;filter_empty&#39;</span><span class="p">,</span>
+                                            <span class="s1">&#39;disconnect_metal&#39;</span><span class="p">,</span>
                                             <span class="s1">&#39;keep_best&#39;</span><span class="p">,</span>
                                             <span class="s1">&#39;filter_hac&#39;</span><span class="p">,</span>
                                             <span class="s1">&#39;filter_molweight&#39;</span><span class="p">,</span>
@@ -703,19 +714,27 @@
         <span class="c1"># begin protocol</span>
         <span class="n">mol</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_protocol</span><span class="p">[</span><span class="s1">&#39;tasks&#39;</span><span class="p">]:</span>
-            <span class="c1"># metals</span>
-            <span class="k">if</span> <span class="n">task</span> <span class="o">==</span> <span class="s1">&#39;disconnect_metal&#39;</span><span class="p">:</span>
+            <span class="c1"># filter_empty</span>
+            <span class="k">if</span> <span class="n">task</span> <span class="o">==</span> <span class="s1">&#39;filter_empty&#39;</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">mol</span><span class="o">.</span><span class="n">GetNumAtoms</span><span class="p">():</span>
+                        <span class="k">return</span> <span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;filtered&#39;</span><span class="p">,</span> <span class="n">task</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;error&#39;</span><span class="p">,</span> <span class="n">task</span><span class="p">)</span>
+
+            <span class="c1"># disconnect_metal</span>
+            <span class="k">elif</span> <span class="n">task</span> <span class="o">==</span> <span class="s1">&#39;disconnect_metal&#39;</span><span class="p">:</span>
                 <span class="k">try</span><span class="p">:</span>
                     <span class="n">mol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">metal_disconnector</span><span class="o">.</span><span class="n">disconnect</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
                 <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
                     <span class="k">return</span> <span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="s1">&#39;error&#39;</span><span class="p">,</span> <span class="s1">&#39;disconnect_metal&#39;</span><span class="p">)</span>
 
-            <span class="c1"># submols</span>
+            <span class="c1"># keep_best</span>
             <span class="k">elif</span> <span class="n">task</span> <span class="o">==</span> <span class="s1">&#39;keep_best&#39;</span><span class="p">:</span>
                 <span class="k">try</span><span class="p">:</span>
                     <span class="n">mol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">keep_best</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
                 <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
-                    <span class="k">return</span> <span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="s1">&#39;error&#39;</span><span class="p">,</span> <span class="s1">&#39;keep_best&#39;</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="s1">&#39;error&#39;</span><span class="p">,</span> <span class="n">task</span><span class="p">)</span>
 
             <span class="c1"># filters</span>
             <span class="k">elif</span> <span class="n">task</span> <span class="o">==</span> <span class="s1">&#39;filter_medchem&#39;</span> <span class="ow">or</span> <span class="n">task</span> <span class="o">==</span> <span class="s1">&#39;filter_hac&#39;</span> <span class="ow">or</span> <span class="n">task</span> <span class="o">==</span> <span class="s1">&#39;filter_molweight&#39;</span> <span class="ow">or</span> <span class="n">task</span> <span class="o">==</span> <span class="s1">&#39;filter_nrings&#39;</span><span class="p">:</span>
@@ -731,6 +750,7 @@
                     <span class="n">Chem</span><span class="o">.</span><span class="n">SanitizeMol</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
                 <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
                     <span class="k">return</span> <span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="s1">&#39;error&#39;</span><span class="p">,</span> <span class="n">task</span><span class="p">)</span>
+
             <span class="c1"># remove_isotopes</span>
             <span class="k">elif</span> <span class="n">task</span> <span class="o">==</span> <span class="s1">&#39;remove_isotopes&#39;</span><span class="p">:</span>
                 <span class="k">try</span><span class="p">:</span>
@@ -744,6 +764,7 @@
                     <span class="n">mol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">normalizer</span><span class="o">.</span><span class="n">normalize</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
                 <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
                     <span class="k">return</span> <span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="s1">&#39;error&#39;</span><span class="p">,</span> <span class="n">task</span><span class="p">)</span>
+
             <span class="c1"># uncharge</span>
             <span class="k">elif</span> <span class="n">task</span> <span class="o">==</span> <span class="s1">&#39;uncharge&#39;</span><span class="p">:</span>
                 <span class="k">try</span><span class="p">:</span>
@@ -769,6 +790,7 @@
             <span class="c1"># something else?</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Unknown task: </span><span class="si">{task}</span><span class="s2">&quot;</span><span class="p">)</span>
+
         <span class="c1"># a molecule that passed all the protocole!</span>
         <span class="k">return</span> <span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="s1">&#39;passed&#39;</span><span class="p">,</span> <span class="s1">&#39;standardize&#39;</span><span class="p">)</span>
 
@@ -803,23 +825,25 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># run standardization protocol</span>
         <span class="n">df</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">col_id</span><span class="p">]</span>
-        <span class="n">df</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">col_mol</span><span class="p">],</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">],</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;task&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">df</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">col_mol</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">run</span><span class="p">))</span>
+        <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="bp">self</span><span class="o">.</span><span class="n">col_mol</span><span class="p">],</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s1">&#39;status&#39;</span><span class="p">],</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s1">&#39;task&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">df</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">col_mol</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">run</span><span class="p">))</span>
         <span class="c1"># do not apply filter duplicates on molecules with errors or that were already filtered for x reasons</span>
         <span class="n">df_error</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;error&#39;</span><span class="p">]</span>
         <span class="n">df_filtered</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;filtered&#39;</span><span class="p">]</span>
         <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;passed&#39;</span><span class="p">]</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>  <span class="c1"># only way I found to suppress pandas warnings in a &quot;clean&quot; way</span>
         <span class="c1"># compute InChiKeys</span>
+        <span class="c1"># df.reset_index(drop=True, inplace=True)</span>
         <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s1">&#39;inchikey&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="bp">self</span><span class="o">.</span><span class="n">col_mol</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">rdinchi</span><span class="o">.</span><span class="n">MolToInchiKey</span><span class="p">)</span>
         <span class="c1"># filter duplicates</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter_duplicates</span><span class="p">:</span>
             <span class="n">dupl_filter</span> <span class="o">=</span> <span class="n">DuplicateFilter</span><span class="p">(</span><span class="n">on</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">on</span><span class="p">,</span> <span class="n">col_mol</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">col_mol</span><span class="p">,</span> <span class="n">col_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">col_id</span><span class="p">,</span> <span class="n">ref_file</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ref_file</span><span class="p">)</span>
             <span class="n">df</span> <span class="o">=</span> <span class="n">dupl_filter</span><span class="o">.</span><span class="n">mark_dupl</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
             <span class="c1"># clean up for postprocess</span>
-            <span class="n">df</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">col_id</span><span class="p">]</span>
-            <span class="n">df</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">col_id</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">df</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s2">&quot;idm&quot;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             <span class="c1"># separate dupl from the rest</span>
             <span class="n">df_filtered</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">df_filtered</span><span class="p">,</span> <span class="n">df</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;filtered&#39;</span><span class="p">][[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="n">c</span> <span class="o">!=</span> <span class="s1">&#39;inchikey&#39;</span><span class="p">]]],</span> <span class="n">join</span><span class="o">=</span><span class="s1">&#39;inner&#39;</span><span class="p">)</span>  <span class="c1"># drop inchikey col as the info is stored in ref_file anyway</span>
             <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;passed&#39;</span><span class="p">]</span>
+
         <span class="c1"># compute 2D depictions</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_2D</span><span class="p">:</span>
             <span class="n">df</span><span class="p">[</span><span class="s1">&#39;mol&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;mol&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">compute_2D</span><span class="p">)</span>

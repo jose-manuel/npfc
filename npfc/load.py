@@ -47,15 +47,15 @@ def decode_mol_base64(string: str) -> Mol:
         return None
 
 
-def from_pgsql(dbname: str,
-               user: str,
-               psql: str,
-               src_id: str,
-               src_mol: str,
-               mol_format: str = None,
-               col_mol: str = 'mol',
-               col_id: str = 'idm',
-               keep_db_cols: bool = False) -> pd.DataFrame:
+def pgsql(dbname: str,
+          user: str,
+          psql: str,
+          src_id: str,
+          src_mol: str,
+          mol_format: str = None,
+          col_mol: str = 'mol',
+          col_id: str = 'idm',
+          keep_db_cols: bool = False) -> pd.DataFrame:
     """Load molecules from a PGSQL query.
     The col_mol will is parsed by RDKit depending on the mol_format argument.
     If no mol_format is specified, then the column is returned untouched.
@@ -100,17 +100,17 @@ def from_pgsql(dbname: str,
     return df
 
 
-def from_file(input_file: str,
-              in_id: str = 'idm',
-              in_mol: str = 'mol',
-              in_sep: str = '|',
-              mol_format: str = 'rdkit',
-              out_id: str = 'idm',
-              out_mol: str = 'mol',
-              keep_props: bool = True,
-              decode: bool = True,
-              cols_list: List[str] = [],
-              ):
+def file(input_file: str,
+         in_id: str = 'idm',
+         in_mol: str = 'mol',
+         in_sep: str = '|',
+         mol_format: str = 'rdkit',
+         out_id: str = 'idm',
+         out_mol: str = 'mol',
+         keep_props: bool = True,
+         decode: bool = True,
+         cols_list: List[str] = [],
+         ):
     # check arguments
     utils.check_arg_input_file(input_file)
     format, compression = utils.get_file_format(input_file)
@@ -208,102 +208,3 @@ def _from_csv(input_csv: str, in_sep: str = '|', compression: str = None):
             return pd.read_csv(input_csv, sep=in_sep, index_col='Unnamed: 0', compression=compression)  # define rowidx with rowids, if any
         except (ValueError, KeyError):
             return pd.read_csv(input_csv, sep=in_sep, compression=compression)
-
-# def from_csv(input_csv: str,
-#              mol_format: str = 'rdkit',
-#              decode_mols: bool = True,
-#              col_mol: str = 'mol',
-#              col_id: str = 'idm',
-#              sep: str = '|',
-#              keep_props: bool = True,
-#              cols_list: List[str] = []) -> pd.DataFrame:
-#     """Load molecules from a CSV file.
-#     In case molecules were stored with encoding (base64), they need to be decoded
-#     before using them as RDKit molecules.
-#
-#     :param input_csv: the input hdf filename
-#     :param decode_mols: use base64 to decode molecules encoded as strings
-#     :param col_mol: the DataFrame column name where molecules are stored
-#     :return: a DataFrame with Mol objects
-#     """
-#     # check for filename
-#     logging.debug(f"Checking if input_hdf exists at {input_csv}")
-#     utils.check_arg_input_file(input_csv)
-#     # read file according to its compression
-#     suffixes = Path(input_csv).suffixes
-#     if len(suffixes) == 1:
-#         # read data
-#         df = pd.read_csv(input_csv, sep=sep, index_col='Unnamed: 0')
-#     else:
-#         compression = utils.get_conversion(suffixes[1])
-#         try:
-#             df = pd.read_csv(input_csv, sep=sep, index_col='Unnamed: 0', compression=compression)  # in case csv comes with rowidx, use rowidx
-#         except KeyError:
-#             df = pd.read_csv(input_csv, sep=sep, compression=compression)
-#     logging.debug(f"Found {len(df.index)} records in input_hdf")
-#     # process data
-#     df[col_mol] = df[col_mol].map(CONVERTERS[format])
-#     num_failed = df[col_mol].isna().sum()
-#     if num_failed > 0:
-#         logging.warning(f"{num_failed} structures could not be initialized from format '{format}'")
-#     if decode_mols:
-#         logging.debug(f"Decoding structures")
-#         if col_mol not in df.columns:
-#             raise ValueError(f"col_mol {col_mol} could not be found in DataFrame, available columns are: {list(df.columns.values)}")
-#         else:
-#             df[col_mol] = df[col_mol].map(decode_mol_base64)
-#     # restaure list format
-#     if len(cols_list) > 0:
-#         for c in cols_list:
-#             df[c] = df[c].map(json.loads)
-#     # keep_props
-#     if not keep_props:
-#         df.drop([c for c in df.columns if c not in (col_id, col_mol)], axis=1, inplace=True)
-#
-#     return df
-#
-#
-# def from_file(input_file: str,
-#               decode_mols: bool = True,
-#               src_id: str = '_Name',
-#               col_mol: str = 'mol',
-#               col_id: str = 'idm',
-#               sep: str = '|',
-#               keep_props: bool = True,
-#               cols_list: List[str] = []):
-#     """Load molecules from a file with molecules (i.e. SDF, HDF or CSV).
-#     In case molecules were stored with encoding (base64), they need to be decoded
-#     before using them as RDKit molecules.
-#
-#     :param input_file: the input filename (sdf, hdf or csv)
-#     :param decode_mols: use base64 to decode molecules encoded as strings
-#     :param col_mol: the DataFrame column name where molecules are stored
-#     :return: a DataFrame with Mol objects
-#     """
-#     # check input file
-#     utils.check_arg_input_file(input_file)
-#     # check format and compression
-#     input_format = Path(input_file).suffixes[0]
-#
-#     if input_format == '.sdf':
-#         df_mols = from_sdf(input_file,
-#                            src_id=src_id,
-#                            col_mol=col_mol,
-#                            col_id=col_id,
-#                            keep_props=keep_props,
-#                            )
-#     elif input_format == '.csv':
-#         df_mols = from_csv(input_file,
-#                            col_id=col_id,
-#                            col_mol=col_mol,
-#                            keep_props=keep_props,
-#                            decode_mols=decode_mols,
-#                            sep=sep,
-#                            )
-#     else:   # check on argument for input does not leave any other option than sdf, csv or hdf
-#         df_mols = from_hdf(input_file,
-#                            decode_mols=decode_mols,
-#                            col_mol=col_mol,
-#                            )
-#
-#         return df_mols

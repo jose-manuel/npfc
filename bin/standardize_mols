@@ -174,15 +174,15 @@ def main():
     # load mols
     logging.info("LOADING MOLECULES")
     d1 = datetime.now()
-    df_mols = load.from_file(args.input_mols,
-                             in_id=args.in_id,
-                             out_id=args.out_id,
-                             in_mol=args.in_mol,
-                             out_mol=args.out_mol,
-                             keep_props=True,
-                             decode=args.decode_mols,
-                             in_sep=args.in_sep
-                             )
+    df_mols = load.file(args.input_mols,
+                        in_id=args.in_id,
+                        out_id=args.out_id,
+                        in_mol=args.in_mol,
+                        out_mol=args.out_mol,
+                        keep_props=True,
+                        decode=args.decode_mols,
+                        in_sep=args.in_sep
+                        )
     num_failed = df_mols['mol'].isna().sum()
     logging.info(f"LOADED {len(df_mols)} RECORDS WITH {num_failed} FAILURE(S)")
 

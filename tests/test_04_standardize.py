@@ -216,7 +216,7 @@ def test_remove_dupl(standardizer, input_files_dupl):
     filtered = 0
     error = 0
     for f in input_files_dupl:
-        df = load.from_file(f)
+        df = load.file(f)
         df_passed, df_filtered, df_error = standardizer.run_df(df)
         passed += len(df_passed.index)
         filtered += len(df_filtered.index)
@@ -228,7 +228,7 @@ def test_remove_dupl(standardizer, input_files_dupl):
     error = 0
     standardizer.ref_file = ref_file
     for f in input_files_dupl:
-        df = load.from_file(f)
+        df = load.file(f)
         df_passed, df_filtered, df_error = standardizer.run_df(df)
         passed += len(df_passed.index)
         filtered += len(df_filtered.index)

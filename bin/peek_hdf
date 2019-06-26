@@ -95,7 +95,7 @@ if __name__ == '__main__':
     d0 = datetime.datetime.now()
     logging.info("LOADING INPUT_HDF")
     if args.mol_col is not None:
-        df = load.from_file(args.input_hdf, decode=args.decode_mols, in_mol=args.col_mol, out_mol=args.col_mol)
+        df = load.file(args.input_hdf, decode=args.decode_mols, in_mol=args.col_mol, out_mol=args.col_mol)
         num_failed = df[args.col_mol].isna().sum()
         logging.info(f"LOADED {len(df)} RECORDS WITH {num_failed} FAILURE(S)")
     else:

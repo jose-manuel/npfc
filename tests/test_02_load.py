@@ -38,12 +38,12 @@ def input_sdf():
 def test_from_sdf(input_sdf):
     """Read a sdf file with or without properties."""
     # without properties
-    df = load.from_file(input_sdf, keep_props=False, in_id='_Name', out_id='idm')
+    df = load.file(input_sdf, keep_props=False, in_id='_Name', out_id='idm')
     assert len(df.index) == 5
     assert list(df.columns.values) == ['idm', 'mol']
     assert isinstance(df.iloc[0]['mol'], Mol)
     # with properties
-    df = load.from_file(input_sdf, keep_props=True, in_id='_Name', out_id='idm')
+    df = load.file(input_sdf, keep_props=True, in_id='_Name', out_id='idm')
     assert len(df.index) == 5
     assert list(df.columns.values) == ['idm', 'mol', 'prop']
     assert isinstance(df.iloc[0]['mol'], Mol)
@@ -52,7 +52,7 @@ def test_from_sdf(input_sdf):
 def test_from_sdf_gz(input_sdf):
     """Read a compressed sdf file."""
     # without properties
-    df = load.from_file(input_sdf + '.gz', keep_props=False, in_id='_Name', out_id='idm')
+    df = load.file(input_sdf + '.gz', keep_props=False, in_id='_Name', out_id='idm')
     assert len(df.index) == 5
     assert list(df.columns.values) == ['idm', 'mol']
     assert isinstance(df.iloc[0]['mol'], Mol)
@@ -60,7 +60,7 @@ def test_from_sdf_gz(input_sdf):
 
 def test_from_hdf(input_hdf):
     """Read a hdf file with encoded molecules."""
-    df = load.from_file(input_hdf)
+    df = load.file(input_hdf)
     assert len(df.index) == 5
     assert list(df.columns.values) == ['mol', 'idm', 'prop']
     assert isinstance(df.iloc[0]['mol'], Mol)
@@ -69,12 +69,12 @@ def test_from_hdf(input_hdf):
 def test_from_csv(input_csv):
     """Read a csv file with encoded molecules."""
     # without properties
-    df = load.from_file(input_csv, keep_props=False)
+    df = load.file(input_csv, keep_props=False)
     assert len(df.index) == 5
     assert list(df.columns.values) == ['mol', 'idm']
     assert isinstance(df.iloc[0]['mol'], Mol)
     # with properties
-    df = load.from_file(input_csv, keep_props=True)
+    df = load.file(input_csv, keep_props=True)
     assert len(df.index) == 5
     assert list(df.columns.values) == ['mol', 'idm', 'prop']
     assert isinstance(df.iloc[0]['mol'], Mol)
@@ -82,7 +82,7 @@ def test_from_csv(input_csv):
 
 def test_from_csv_gz(input_csv):
     """Read a csv file with encoded molecules."""
-    df = load.from_file(input_csv + '.gz', keep_props=False)
+    df = load.file(input_csv + '.gz', keep_props=False)
     assert len(df.index) == 5
     assert list(df.columns.values) == ['mol', 'idm']
     assert isinstance(df.iloc[0]['mol'], Mol)

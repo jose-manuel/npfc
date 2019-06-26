@@ -92,9 +92,9 @@ def main():
     # load sub
     logging.info("LOADING SUBSTRUCTURE MATCHES")
     d1 = datetime.now()
-    df_sub = load.from_file(args.input_sub,
-                            keep_props=True,
-                            )
+    df_sub = load.file(args.input_sub,
+                       keep_props=True,
+                       )
     logging.info(f"FOUND {len(df_sub.index)} SUBSTRUCTURE MATCHES")
 
     # extract sets from strings (will likely fail with hdf input!!!)

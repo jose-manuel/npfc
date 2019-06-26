@@ -92,9 +92,9 @@ def main():
     # load fcc
     logging.info("LOADING FRAGMENT COMBINATIONS")
     d1 = datetime.now()
-    df_fcc = load.from_file(args.input_fcc,
-                            keep_props=True,
-                            )
+    df_fcc = load.file(args.input_fcc,
+                       keep_props=True,
+                       )
     logging.info(f"FOUND {len(df_fcc.index)} FRAGMENT COMBINATIONS")
 
     # extract sets from strings (will likely fail with hdf input!!!)

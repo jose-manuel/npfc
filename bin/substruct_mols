@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python
 
 """
@@ -130,15 +131,15 @@ def main():
     # load mols
     logging.info("LOADING MOLECULES")
     d1 = datetime.now()
-    df_mols = load.from_file(args.minput,
-                             in_id=args.mid,
-                             out_id=args.mid,
-                             in_mol=args.mmol,
-                             out_mol=args.mmol,
-                             keep_props=False,
-                             in_sep=args.msep,
-                             decode=args.mdecode,
-                             )
+    df_mols = load.file(args.minput,
+                        in_id=args.mid,
+                        out_id=args.mid,
+                        in_mol=args.mmol,
+                        out_mol=args.mmol,
+                        keep_props=False,
+                        in_sep=args.msep,
+                        decode=args.mdecode,
+                        )
     df_mols.index = df_mols[args.mid]
     num_failed = df_mols['mol'].isna().sum()
     logging.info(f"LOADED {len(df_mols)} RECORDS WITH {num_failed} FAILURE(S)")
@@ -146,15 +147,15 @@ def main():
     # load frags
     logging.info("LOADING FRAGMENTS")
     d2 = datetime.now()
-    df_frags = load.from_file(args.finput,
-                              in_id=args.fid,
-                              out_id=args.fid,
-                              in_mol=args.fmol,
-                              out_mol=args.fmol,
-                              keep_props=False,
-                              in_sep=args.fsep,
-                              decode=args.fdecode,
-                              )
+    df_frags = load.file(args.finput,
+                         in_id=args.fid,
+                         out_id=args.fid,
+                         in_mol=args.fmol,
+                         out_mol=args.fmol,
+                         keep_props=False,
+                         in_sep=args.fsep,
+                         decode=args.fdecode,
+                         )
     df_frags.index = df_frags[args.fid]
     num_failed = df_frags['mol'].isna().sum()
     logging.info(f"LOADED {len(df_frags)} RECORDS WITH {num_failed} FAILURE(S)")

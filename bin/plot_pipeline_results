@@ -443,7 +443,7 @@ def plot_result_map(WD: str, output_csv: str, file_frags: str):
     df_idf_counts['Rank'] = df_idf_counts.index
     df_idf_counts['Rank'] = df_idf_counts['Rank'].map(lambda x: x + 1)
     # display the corresponding fragments
-    df_frags = load.from_file(file_frags).drop(['status', 'task', "status_deglyco", "_Name", "inchikey"], axis=1)
+    df_frags = load.file(file_frags).drop(['status', 'task', "status_deglyco", "_Name", "inchikey"], axis=1)
     df_frags['idm'] = df_frags['idm'].astype(int)
     df_idf_counts['idf'] = df_idf_counts['idf'].astype(int)
     df_frags['idm'] = df_frags['idm'].astype(int)

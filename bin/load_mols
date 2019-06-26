@@ -117,15 +117,15 @@ def main():
     # load mols
     logging.info("LOADING MOLECULES")
     d1 = datetime.now()
-    df_mols = load.from_file(args.input_mols,
-                             in_id=args.in_id,
-                             out_id=args.out_id,
-                             in_mol=args.in_mol,
-                             out_mol=args.out_mol,
-                             keep_props=args.keep_props,
-                             decode=args.decode_mols,
-                             in_sep=args.in_sep
-                             )
+    df_mols = load.file(args.input_mols,
+                        in_id=args.in_id,
+                        out_id=args.out_id,
+                        in_mol=args.in_mol,
+                        out_mol=args.out_mol,
+                        keep_props=args.keep_props,
+                        decode=args.decode_mols,
+                        in_sep=args.in_sep
+                        )
     # filter out failed molecules
     d2 = datetime.now()
     df_failed = df_mols[df_mols['mol'].isna()]
