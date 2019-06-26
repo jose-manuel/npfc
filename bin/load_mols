@@ -136,7 +136,7 @@ def main():
     # save mols
     d3 = datetime.now()
     logging.info("SAVING MOLECULES")
-    outputs_files = save.save(df_mols,
+    outputs_files = save.file(df_mols,
                               args.output_mols,
                               col_mol=args.out_mol,
                               col_id=args.out_id,

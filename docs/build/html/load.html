@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Module load &mdash; npfc 0.2.7 documentation</title>
+  <title>Module load &mdash; npfc 0.2.7-1-ga0759a1 documentation</title>
   
 
   
@@ -58,7 +58,7 @@
             
             
               <div class="version">
-                0.2.7
+                0.2.7-1-ga0759a1
               </div>
             
           
@@ -178,8 +178,8 @@ on disk.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="npfc.load.from_pgsql">
-<code class="descclassname">npfc.load.</code><code class="descname">from_pgsql</code><span class="sig-paren">(</span><em>dbname</em>, <em>user</em>, <em>psql</em>, <em>src_id</em>, <em>src_mol</em>, <em>mol_format=None</em>, <em>col_mol='mol'</em>, <em>col_id='idm'</em>, <em>keep_db_cols=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/load.html#from_pgsql"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.load.from_pgsql" title="Permalink to this definition">¶</a></dt>
+<dt id="npfc.load.pgsql">
+<code class="descclassname">npfc.load.</code><code class="descname">pgsql</code><span class="sig-paren">(</span><em>dbname</em>, <em>user</em>, <em>psql</em>, <em>src_id</em>, <em>src_mol</em>, <em>mol_format=None</em>, <em>col_mol='mol'</em>, <em>col_id='idm'</em>, <em>keep_db_cols=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/load.html#pgsql"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.load.pgsql" title="Permalink to this definition">¶</a></dt>
 <dd><p>Load molecules from a PGSQL query.
 The col_mol will is parsed by RDKit depending on the mol_format argument.
 If no mol_format is specified, then the column is returned untouched.</p>

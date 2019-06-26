@@ -116,7 +116,7 @@ def main():
     df_map['colormap'] = df_map['colormap'].map(lambda x: base64.b64encode(pickle.dumps(x)).decode("utf-8"))
     logger.info(f"SAVING MAP RESULTS AT '{args.output_map}'")
     d3 = datetime.now()
-    save.save(df_map, args.output_map, encode_mols=True)
+    save.file(df_map, args.output_map, encode_mols=True)
 
     # end
     d4 = datetime.now()

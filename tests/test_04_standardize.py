@@ -36,8 +36,8 @@ warnings.simplefilter(action='ignore', category=pd.errors.PerformanceWarning)
 
 @pytest.fixture
 def input_files_dupl():
-    wd = Path('tests/tmp')
-    return [str(f) for f in list(wd.glob('test_save_dupl_*.csv.gz'))]
+    p = Path('tests/tmp')
+    return [str(f) for f in list(p.glob('test_save_dupl_00[1-4].csv.gz'))]
 
 
 @pytest.fixture
@@ -210,7 +210,7 @@ def test_std_remove_stereochemistry(mols):
 def test_remove_dupl(standardizer, input_files_dupl):
     """Remove duplicates accross chunks using a syn file"""
     standardizer.protocol = {'tasks': []}  # remove duplicates only
-    ref_file = 'tests/tmp/test_save_dupl_ref.hdf'
+    ref_file = 'tests/tmp/test_dupl_ref.hdf'
     # without ref file
     passed = 0
     filtered = 0
@@ -233,6 +233,7 @@ def test_remove_dupl(standardizer, input_files_dupl):
         passed += len(df_passed.index)
         filtered += len(df_filtered.index)
         error += len(df_error.index)
+
     assert passed == 4 and filtered == 3 and error == 0
 
 

@@ -82,7 +82,6 @@ Since I intend to have the same version everywhere:
 Things got out of hand and I now have to run a KNIME worklow in the pipeline.
 
 
-
 ### Package syntax
 
 https://packaging.python.org/tutorials/packaging-projects/
@@ -145,7 +144,12 @@ This command actually runs all the tests and execute the following commands:
 ## Testing the package while developing
 
 Go to src directory and type:
-python -m pytest tests -svv
+
+>>> python -m pytest tests -svv
+
+Also, to skip local workflow tests:
+
+>>> python -m pytest --ignore-glob='*06*' tests -sv
 
 ## Generating sphinx docs
 

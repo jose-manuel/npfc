@@ -219,13 +219,13 @@ def main():
         if args.keep_intermediates:
             logger.info(f"SAVING INTERMEDIATE OUTPUTS:")
             # passed
-            outputs = save.save(df_passed, output_passed_intermediate)
+            outputs = save.file(df_passed, output_passed_intermediate)
             logger.info(f"SAVED {outputs[0][1]} RECORDS AT {outputs[0][0]}")
             # filtered
-            outputs = save.save(df_filtered, output_filtered_intermediate)
+            outputs = save.file(df_filtered, output_filtered_intermediate)
             logger.info(f"SAVED {outputs[0][1]} RECORDS AT {outputs[0][0]}")
             # error
-            outputs = save.save(df_error, output_error_intermediate)
+            outputs = save.file(df_error, output_error_intermediate)
             logger.info(f"SAVED {outputs[0][1]} RECORDS AT {outputs[0][0]}")
             # ref
             Path(output_ref).rename(ref_file_intermediate)
@@ -264,13 +264,13 @@ def main():
     d7 = datetime.now()
     logger.info(f"SAVING OUTPUTS")
     # passed
-    outputs = save.save(df_passed, output_passed)
+    outputs = save.file(df_passed, output_passed)
     logger.info(f"SAVED {outputs[0][1]} RECORDS AT {outputs[0][0]}")
     # filtered
-    outputs = save.save(df_filtered, output_filtered)
+    outputs = save.file(df_filtered, output_filtered)
     logger.info(f"SAVED {outputs[0][1]} RECORDS AT {outputs[0][0]}")
     # error
-    outputs = save.save(df_error, output_error)
+    outputs = save.file(df_error, output_error)
     logger.info(f"SAVED {outputs[0][1]} RECORDS AT {outputs[0][0]}")
     d8 = datetime.now()
 

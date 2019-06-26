@@ -117,7 +117,7 @@ def main():
         # save raw results
         logger.info(f"SAVING RAW RESULTS AT '{output_raw}'")
         d4 = datetime.now()
-        save.save(df_fcc, output_raw)
+        save.file(df_fcc, output_raw)
 
         # run cleaning
         logger.info(f"CLEANING COMBINATIONS")
@@ -133,7 +133,7 @@ def main():
     df_fcc['aidxf2'] = df_fcc['aidxf2'].map(lambda x: json.dumps(list(x)))
     logger.info(f"SAVING CLEAN RESULTS AT '{args.output_fcc}'")
     d6 = datetime.now()
-    save.save(df_fcc, args.output_fcc)
+    save.file(df_fcc, args.output_fcc)
 
     # end
     d7 = datetime.now()
