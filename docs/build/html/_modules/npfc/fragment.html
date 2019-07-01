@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.fragment &mdash; npfc 0.3.0 documentation</title>
+  <title>npfc.fragment &mdash; npfc 0.3.0-1-g1a385d2 documentation</title>
   
 
   
@@ -56,7 +56,7 @@
             
             
               <div class="version">
-                0.3.0
+                0.3.0-1-g1a385d2
               </div>
             
           
@@ -165,8 +165,6 @@
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">itertools</span>
 <span class="c1"># data handling</span>
-<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">Counter</span>
-<span class="kn">from</span> <span class="nn">itertools</span> <span class="k">import</span> <span class="n">chain</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
 <span class="c1"># chemoinformatics</span>
 <span class="kn">from</span> <span class="nn">rdkit.Chem</span> <span class="k">import</span> <span class="n">Mol</span>
@@ -771,7 +769,6 @@
 
                 <span class="c1"># d_aidxs: a dict containing the occurrences of each fragment type</span>
                 <span class="n">d_aidxs</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># normal dict</span>
-                <span class="n">d_frags</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1">################## decide what to do here: columns with frags occurrences or just map_str instead?</span>
                 <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">df_fcc_clean</span><span class="o">.</span><span class="n">index</span><span class="p">)):</span>
                     <span class="n">row</span> <span class="o">=</span> <span class="n">df_fcc_clean</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
                     <span class="c1"># idf1</span>

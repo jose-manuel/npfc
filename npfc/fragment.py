@@ -12,6 +12,7 @@ import logging
 import itertools
 # data handling
 from collections import OrderedDict
+from collections import Counter
 # chemoinformatics
 from rdkit.Chem import Mol
 from rdkit.Chem import AllChem
@@ -655,7 +656,12 @@ class CombinationClassifier:
                 perc_mol_cov_frags = round((hac_frags / hac_mol), 2) * 100
 
                 # compute a new graph again but this time on a single subgraph and with edge labels (room for optimization)
-                graph = nx.from_pandas_edgelist(df_fcc_clean, "idf1", "idf2", "abbrev")
+                # count the number of equivalent edges (sames ids and same abbrev)
+                df_fcc_clean = df_fcc_clean.copy()  # ### one day I will have to understand why all of the Pandas warnings appear all the time
+                df_fcc_clean['n_abbrev'] = df_fcc_clean.groupby(['idf1', 'idf2', 'abbrev'])['abbrev'].transform('count')
+                df_fcc_clean.drop_duplicates(subset=["idf1", "idf2", "abbrev"], keep="first", inplace=True)
+                # compute the graph
+                graph = nx.from_pandas_edgelist(df_fcc_clean, source="idf1", target="idf2", edge_attr=["abbrev", "n_abbrev"])
 
                 # same molecule in each row, so to use the first one is perfectly fine
                 mol = df_fcc_clean.iloc[0]['mol']

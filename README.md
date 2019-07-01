@@ -243,3 +243,11 @@ http://clem.mpi-dortmund.mpg.de/ganglia/
         - if output is smiles, remove all hydrogens so heavy atoms are radicals
         - high failure rate (10%) which returns empty molecules
         - if the sugar is inside of the molecule, then fragments are returned. Yet to define if the larger fragment is the better one
+
+## TODO
+
+    - fragment: count the number of combinations involving repeating fragments, store it into graph as weight for edges, only connection type will be used for pnp annotation
+    - automate the nfn computation and display using cytoscape.js/CyREST?
+    - automate the rendering of MFGs using cytoscape.js/CyREST?
+    - annotate molecules with bioactivities
+    - standardize: switch to csv file and add rotate ref file using an option for max num of entries (1M?)
