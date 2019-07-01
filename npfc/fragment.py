@@ -11,8 +11,6 @@ This modules contains two classes:
 import logging
 import itertools
 # data handling
-from collections import Counter
-from itertools import chain
 from collections import OrderedDict
 # chemoinformatics
 from rdkit.Chem import Mol
@@ -617,7 +615,6 @@ class CombinationClassifier:
 
                 # d_aidxs: a dict containing the occurrences of each fragment type
                 d_aidxs = {}  # normal dict
-                d_frags = {}  ################## decide what to do here: columns with frags occurrences or just map_str instead?
                 for j in range(len(df_fcc_clean.index)):
                     row = df_fcc_clean.iloc[j]
                     # idf1
