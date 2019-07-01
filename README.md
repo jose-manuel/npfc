@@ -234,6 +234,7 @@ http://clem.mpi-dortmund.mpg.de/ganglia/
 - automatic release changelog (standard-version?)
 - ref_file for duplicate entries removal should be defined in the protocol
 - check if ref_file would be better in table mode for appending data instead of rewriting the whole file for each chunk
+- problem with the way local workflows are tested: cannot be tested on the fly as they use the currently installed npfc version
 
 ## Some weird errors encountered during development
     - cannot set user-defined timeout for standardization because the timeout value is set during the loading of the library

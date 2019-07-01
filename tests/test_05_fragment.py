@@ -3,7 +3,8 @@ tests.test_fcc
 ~~~~~~~~~~
 Tests for the npfc.fcc module.
 """
-# standard library
+
+# standard
 import logging
 # data handling
 import pandas as pd
@@ -13,7 +14,6 @@ from rdkit import Chem
 import pytest
 from npfc import fragment
 # debug
-# import logging
 # logging.basicConfig(level=logging.DEBUG)
 
 
@@ -38,6 +38,15 @@ def df_frags():
     df_frags = pd.DataFrame({'smiles': ['C1NCCC1', 'C1CCCOC1']}, index=['QA', 'QB'])
     df_frags['mol'] = df_frags['smiles'].map(Chem.MolFromSmiles)
     return df_frags
+
+
+@pytest.fixture
+def df_case_repeated_frag():
+    """A molecule with a fragment repeated twice to test how colormap is computed."""
+    df_mols = pd.DataFrame({'mol': [Chem.MolFromSmiles('OCCC(C1CCCC1)C1CCC2CCCCC2C1')]}, index=['REPEATEDFRAGS'])
+    df_frags = pd.DataFrame({'smiles': ['C1CCCCC1', 'C1CCCC1']}, index=['A', 'B'])
+    df_frags['mol'] = df_frags['smiles'].map(Chem.MolFromSmiles)
+    return (df_mols, df_frags)
 
 
 @pytest.fixture
@@ -164,172 +173,182 @@ def df_mol_connection_false_positive_cutoff():
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ TESTS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
+#
+# def test_fcc_run_substructure_match(fcc, fm, df_mol_fusion_spiro, df_frags):
+#     """Check that the df_aidxf obtained by substructure match is adequate."""
+#     df_aidxf = fm.run(df_mol_fusion_spiro, df_frags)
+#     assert list(df_aidxf.index) == [0, 1]
+#     assert list(df_aidxf['idm']) == ["fsp"] * 2
+#     assert list(df_aidxf['idf']) == ['QA', 'QB']
+#     assert list(df_aidxf['aidxf']) == [{0, 1, 2, 3, 4}, {2, 5, 6, 7, 8, 9}]
+#     assert list(df_aidxf['mol_perc']) == [50.0, 60.0]
+#     assert list(df_aidxf['mol'].map(Chem.MolToSmiles)) == ['C1COCC2(C1)CCNC2'] * 2
+#
+#
+# def test_fcc_fusion_spiro(fcc, fm, df_mol_fusion_spiro, df_frags):
+#     """Check if fusion spiro fragment combinations are identified."""
+#     df_aidxf = fm.run(df_mol_fusion_spiro, df_frags)
+#     df_fcc = fcc.classify_fragment_combinations(df_aidxf)
+#     result = df_fcc.iloc[0]
+#     assert result['category'] == 'fusion' and result['type'] == 'spiro' and result['subtype'] == '' and result['abbrev'] == 'fsp'
+#
+#
+# def test_fcc_fusion_edge(fcc, fm, df_mol_fusion_edge, df_frags):
+#     """Check if fusion edge fragment combinations are identified."""
+#     df_aidxf = fm.run(df_mol_fusion_edge, df_frags)
+#     df_fcc = fcc.classify_fragment_combinations(df_aidxf)
+#     result = df_fcc.iloc[0]
+#     assert result['category'] == 'fusion' and result['type'] == 'edge' and result['subtype'] == '' and result['abbrev'] == 'fed'
+#
+#
+# def test_fcc_fusion_bridged(fcc, fm, df_mol_fusion_bridged, df_frags):
+#     """Check if fusion bridged fragment combinations are identified."""
+#     df_aidxf = fm.run(df_mol_fusion_bridged, df_frags)
+#     df_fcc = fcc.classify_fragment_combinations(df_aidxf)
+#     result = df_fcc.iloc[0]
+#     assert result['category'] == 'fusion' and result['type'] == 'bridged' and result['subtype'] == '' and result['abbrev'] == 'fbr'
+#
+#
+# @pytest.mark.skip  # no example for fot yet!
+# def test_fcc_fusion_other(fcc, fm, df_mol_fusion_other, df_frags):
+#     """Check if fusion other fragment combinations are identified."""
+#     df_aidxf = fm.run(df_mol_fusion_other, df_frags)
+#     df_fcc = fcc.classify_fragment_combinations(df_aidxf)
+#     result = df_fcc.iloc[0]
+#     assert result['category'] == 'fusion' and result['type'] == 'other' and result['subtype'] == '' and result['abbrev'] == 'fot'
+#
+#
+# def test_fcc_connection_monopodal(fcc, fm, df_mol_connection_monopodal, df_frags):
+#     """Check if connection monopodal fragment combinations are identified."""
+#     df_aidxf = fm.run(df_mol_connection_monopodal, df_frags)
+#     df_fcc = fcc.classify_fragment_combinations(df_aidxf)
+#     result = df_fcc.iloc[0]
+#     assert result['category'] == 'connection' and result['type'] == 'monopodal' and result['subtype'] == '' and result['abbrev'] == 'cmo'
+#
+#
+# def test_fcc_connection_bipodal_spiro(fcc, fm, df_mol_connection_bipodal_spiro, df_frags):
+#     """Check if connection bipodal spiro fragment combinations are identified."""
+#     df_aidxf = fm.run(df_mol_connection_bipodal_spiro, df_frags)
+#     df_fcc = fcc.classify_fragment_combinations(df_aidxf)
+#     result = df_fcc.iloc[0]
+#     assert result['category'] == 'connection' and result['type'] == 'bipodal' and result['subtype'] == 'spiro' and result['abbrev'] == 'cbs'
+#
+#
+# def test_fcc_connection_bipodal_edge(fcc, fm, df_mol_connection_bipodal_edge, df_frags):
+#     """Check if connection bipodal edge fragment combinations are identified."""
+#     df_aidxf = fm.run(df_mol_connection_bipodal_edge, df_frags)
+#     df_fcc = fcc.classify_fragment_combinations(df_aidxf)
+#     result = df_fcc.iloc[0]
+#     assert result['category'] == 'connection' and result['type'] == 'bipodal' and result['subtype'] == 'edge' and result['abbrev'] == 'cbe'
+#
+#
+# def test_fcc_connection_bipodal_bridged(fcc, fm, df_mol_connection_bipodal_bridged, df_frags):
+#     """Check if connection bipodal bridged fragment combinations are identified."""
+#     df_aidxf = fm.run(df_mol_connection_bipodal_bridged, df_frags)
+#     df_fcc = fcc.classify_fragment_combinations(df_aidxf)
+#     result = df_fcc.iloc[0]
+#     assert result['category'] == 'connection' and result['type'] == 'bipodal' and result['subtype'] == 'bridged' and result['abbrev'] == 'cbb'
+#
+#
+# def test_fcc_connection_tripodal_spiro(fcc, fm, df_mol_connection_tripodal_spiro, df_frags):
+#     """Check if connection tripodal spiro fragment combinations are identified."""
+#     df_aidxf = fm.run(df_mol_connection_tripodal_spiro, df_frags)
+#     df_fcc = fcc.classify_fragment_combinations(df_aidxf)
+#     result = df_fcc.iloc[0]
+#     assert result['category'] == 'connection' and result['type'] == 'tripodal' and result['subtype'] == 'spiro' and result['abbrev'] == 'cts'
+#
+#
+# def test_fcc_connection_tripodal_edge(fcc, fm, df_mol_connection_tripodal_edge, df_frags):
+#     """Check if connection tripodal edge fragment combinations are identified."""
+#     df_aidxf = fm.run(df_mol_connection_tripodal_edge, df_frags)
+#     df_fcc = fcc.classify_fragment_combinations(df_aidxf)
+#     result = df_fcc.iloc[0]
+#     assert result['category'] == 'connection' and result['type'] == 'tripodal' and result['subtype'] == 'edge' and result['abbrev'] == 'cte'
+#
+#
+# def test_fcc_connection_tripodal_bridged(fcc, fm, df_mol_connection_tripodal_bridged, df_frags):
+#     """Check if connection tripodal bridged fragment combinations are identified."""
+#     df_aidxf = fm.run(df_mol_connection_tripodal_bridged, df_frags)
+#     df_fcc = fcc.classify_fragment_combinations(df_aidxf)
+#     result = df_fcc.iloc[0]
+#     assert result['category'] == 'connection' and result['type'] == 'tripodal' and result['subtype'] == 'bridged' and result['abbrev'] == 'ctb'
+#
+#
+# def test_fcc_connection_other_spiro(fcc, fm, df_mol_connection_other_spiro, df_frags):
+#     """Check if connection other spiro fragment combinations are identified."""
+#     df_aidxf = fm.run(df_mol_connection_other_spiro, df_frags)
+#     df_fcc = fcc.classify_fragment_combinations(df_aidxf)
+#     result = df_fcc.iloc[0]
+#     assert result['category'] == 'connection' and result['type'] == 'other' and result['subtype'] == 'spiro' and result['abbrev'] == 'cos'
+#
+#
+# @pytest.mark.skip  # classified as bridged now...
+# def test_fcc_connection_other_edge(fcc, fm, df_mol_connection_other_edge, df_frags):
+#     """Check if connection other edge fragment combinations are identified."""
+#     df_aidxf = fm.run(df_mol_connection_other_edge, df_frags)
+#     df_fcc = fcc.classify_fragment_combinations(df_aidxf)
+#     result = df_fcc.iloc[0]
+#     assert result['category'] == 'connection' and result['type'] == 'other' and result['subtype'] == 'edge' and result['abbrev'] == 'coe'
+#
+#
+# def test_fcc_connection_other_bridged(fcc, fm, df_mol_connection_other_bridged, df_frags):
+#     """Check if connection other bridged fragment combinations are identified."""
+#     df_aidxf = fm.run(df_mol_connection_other_bridged, df_frags)
+#     df_fcc = fcc.classify_fragment_combinations(df_aidxf)
+#     result = df_fcc.iloc[0]
+#     assert result['category'] == 'connection' and result['type'] == 'other' and result['subtype'] == 'bridged' and result['abbrev'] == 'cob'
+#
+#
+# def test_fcc_fusion_false_positive_substructure(fcc, fm, df_mol_fusion_false_positive_substructure, df_frags_fusion_false_positive_substructure):
+#     """Check if fusion false_positive substructure fragment combinations are identified."""
+#     df_aidxf = fm.run(df_mol_fusion_false_positive_substructure, df_frags_fusion_false_positive_substructure)
+#     df_fcc = fcc.classify_fragment_combinations(df_aidxf, clean=False)
+#     result = df_fcc.iloc[0]
+#     assert result['category'] == 'fusion' and result['type'] == 'false_positive' and result['subtype'] == 'substructure' and result['abbrev'] == 'ffs'
+#     assert len(fcc.clean(df_fcc).index) == 0
+#
+#
+# def test_fcc_connection_false_positive_cutoff(fcc, fm, df_mol_connection_false_positive_cutoff, df_frags):
+#     """Check if fusion false_positive cutoff fragment combinations are identified."""
+#     df_aidxf = fm.run(df_mol_connection_false_positive_cutoff, df_frags)
+#     df_fcc = fcc.classify_fragment_combinations(df_aidxf, clean=False)
+#     result = df_fcc.iloc[0]
+#     assert result['category'] == 'connection' and result['type'] == 'false_positive' and result['subtype'] == 'cutoff' and result['abbrev'] == 'cfc'
+#     assert len(fcc.clean(df_fcc).index) == 0
+#
 
-def test_fcc_run_substructure_match(fcc, fm, df_mol_fusion_spiro, df_frags):
-    """Check that the df_aidxf obtained by substructure match is adequate."""
-    df_aidxf = fm.run(df_mol_fusion_spiro, df_frags)
-    assert list(df_aidxf.index) == [0, 1]
-    assert list(df_aidxf['idm']) == ["fsp"] * 2
-    assert list(df_aidxf['idf']) == ['QA', 'QB']
-    assert list(df_aidxf['aidxf']) == [{0, 1, 2, 3, 4}, {2, 5, 6, 7, 8, 9}]
-    assert list(df_aidxf['mol_perc']) == [50.0, 60.0]
-    assert list(df_aidxf['mol'].map(Chem.MolToSmiles)) == ['C1COCC2(C1)CCNC2'] * 2
-
-
-def test_fcc_fusion_spiro(fcc, fm, df_mol_fusion_spiro, df_frags):
-    """Check if fusion spiro fragment combinations are identified."""
-    df_aidxf = fm.run(df_mol_fusion_spiro, df_frags)
+def test_case_repeated_frag(fcc, fm, df_case_repeated_frag):
+    df_aidxf = fm.run(df_case_repeated_frag[0], df_case_repeated_frag[1])
     df_fcc = fcc.classify_fragment_combinations(df_aidxf)
-    result = df_fcc.iloc[0]
-    assert result['category'] == 'fusion' and result['type'] == 'spiro' and result['subtype'] == '' and result['abbrev'] == 'fsp'
-
-
-def test_fcc_fusion_edge(fcc, fm, df_mol_fusion_edge, df_frags):
-    """Check if fusion edge fragment combinations are identified."""
-    df_aidxf = fm.run(df_mol_fusion_edge, df_frags)
-    df_fcc = fcc.classify_fragment_combinations(df_aidxf)
-    result = df_fcc.iloc[0]
-    assert result['category'] == 'fusion' and result['type'] == 'edge' and result['subtype'] == '' and result['abbrev'] == 'fed'
-
-
-def test_fcc_fusion_bridged(fcc, fm, df_mol_fusion_bridged, df_frags):
-    """Check if fusion bridged fragment combinations are identified."""
-    df_aidxf = fm.run(df_mol_fusion_bridged, df_frags)
-    df_fcc = fcc.classify_fragment_combinations(df_aidxf)
-    result = df_fcc.iloc[0]
-    assert result['category'] == 'fusion' and result['type'] == 'bridged' and result['subtype'] == '' and result['abbrev'] == 'fbr'
-
-
-@pytest.mark.skip  # no example for fot yet!
-def test_fcc_fusion_other(fcc, fm, df_mol_fusion_other, df_frags):
-    """Check if fusion other fragment combinations are identified."""
-    df_aidxf = fm.run(df_mol_fusion_other, df_frags)
-    df_fcc = fcc.classify_fragment_combinations(df_aidxf)
-    result = df_fcc.iloc[0]
-    assert result['category'] == 'fusion' and result['type'] == 'other' and result['subtype'] == '' and result['abbrev'] == 'fot'
-
-
-def test_fcc_connection_monopodal(fcc, fm, df_mol_connection_monopodal, df_frags):
-    """Check if connection monopodal fragment combinations are identified."""
-    df_aidxf = fm.run(df_mol_connection_monopodal, df_frags)
-    df_fcc = fcc.classify_fragment_combinations(df_aidxf)
-    result = df_fcc.iloc[0]
-    assert result['category'] == 'connection' and result['type'] == 'monopodal' and result['subtype'] == '' and result['abbrev'] == 'cmo'
-
-
-def test_fcc_connection_bipodal_spiro(fcc, fm, df_mol_connection_bipodal_spiro, df_frags):
-    """Check if connection bipodal spiro fragment combinations are identified."""
-    df_aidxf = fm.run(df_mol_connection_bipodal_spiro, df_frags)
-    df_fcc = fcc.classify_fragment_combinations(df_aidxf)
-    result = df_fcc.iloc[0]
-    assert result['category'] == 'connection' and result['type'] == 'bipodal' and result['subtype'] == 'spiro' and result['abbrev'] == 'cbs'
-
-
-def test_fcc_connection_bipodal_edge(fcc, fm, df_mol_connection_bipodal_edge, df_frags):
-    """Check if connection bipodal edge fragment combinations are identified."""
-    df_aidxf = fm.run(df_mol_connection_bipodal_edge, df_frags)
-    df_fcc = fcc.classify_fragment_combinations(df_aidxf)
-    result = df_fcc.iloc[0]
-    assert result['category'] == 'connection' and result['type'] == 'bipodal' and result['subtype'] == 'edge' and result['abbrev'] == 'cbe'
-
-
-def test_fcc_connection_bipodal_bridged(fcc, fm, df_mol_connection_bipodal_bridged, df_frags):
-    """Check if connection bipodal bridged fragment combinations are identified."""
-    df_aidxf = fm.run(df_mol_connection_bipodal_bridged, df_frags)
-    df_fcc = fcc.classify_fragment_combinations(df_aidxf)
-    result = df_fcc.iloc[0]
-    assert result['category'] == 'connection' and result['type'] == 'bipodal' and result['subtype'] == 'bridged' and result['abbrev'] == 'cbb'
-
-
-def test_fcc_connection_tripodal_spiro(fcc, fm, df_mol_connection_tripodal_spiro, df_frags):
-    """Check if connection tripodal spiro fragment combinations are identified."""
-    df_aidxf = fm.run(df_mol_connection_tripodal_spiro, df_frags)
-    df_fcc = fcc.classify_fragment_combinations(df_aidxf)
-    result = df_fcc.iloc[0]
-    assert result['category'] == 'connection' and result['type'] == 'tripodal' and result['subtype'] == 'spiro' and result['abbrev'] == 'cts'
-
-
-def test_fcc_connection_tripodal_edge(fcc, fm, df_mol_connection_tripodal_edge, df_frags):
-    """Check if connection tripodal edge fragment combinations are identified."""
-    df_aidxf = fm.run(df_mol_connection_tripodal_edge, df_frags)
-    df_fcc = fcc.classify_fragment_combinations(df_aidxf)
-    result = df_fcc.iloc[0]
-    assert result['category'] == 'connection' and result['type'] == 'tripodal' and result['subtype'] == 'edge' and result['abbrev'] == 'cte'
-
-
-def test_fcc_connection_tripodal_bridged(fcc, fm, df_mol_connection_tripodal_bridged, df_frags):
-    """Check if connection tripodal bridged fragment combinations are identified."""
-    df_aidxf = fm.run(df_mol_connection_tripodal_bridged, df_frags)
-    df_fcc = fcc.classify_fragment_combinations(df_aidxf)
-    result = df_fcc.iloc[0]
-    assert result['category'] == 'connection' and result['type'] == 'tripodal' and result['subtype'] == 'bridged' and result['abbrev'] == 'ctb'
-
-
-def test_fcc_connection_other_spiro(fcc, fm, df_mol_connection_other_spiro, df_frags):
-    """Check if connection other spiro fragment combinations are identified."""
-    df_aidxf = fm.run(df_mol_connection_other_spiro, df_frags)
-    df_fcc = fcc.classify_fragment_combinations(df_aidxf)
-    result = df_fcc.iloc[0]
-    assert result['category'] == 'connection' and result['type'] == 'other' and result['subtype'] == 'spiro' and result['abbrev'] == 'cos'
-
-
-@pytest.mark.skip  # classified as bridged now...
-def test_fcc_connection_other_edge(fcc, fm, df_mol_connection_other_edge, df_frags):
-    """Check if connection other edge fragment combinations are identified."""
-    df_aidxf = fm.run(df_mol_connection_other_edge, df_frags)
-    df_fcc = fcc.classify_fragment_combinations(df_aidxf)
-    result = df_fcc.iloc[0]
-    assert result['category'] == 'connection' and result['type'] == 'other' and result['subtype'] == 'edge' and result['abbrev'] == 'coe'
-
-
-def test_fcc_connection_other_bridged(fcc, fm, df_mol_connection_other_bridged, df_frags):
-    """Check if connection other bridged fragment combinations are identified."""
-    df_aidxf = fm.run(df_mol_connection_other_bridged, df_frags)
-    df_fcc = fcc.classify_fragment_combinations(df_aidxf)
-    result = df_fcc.iloc[0]
-    assert result['category'] == 'connection' and result['type'] == 'other' and result['subtype'] == 'bridged' and result['abbrev'] == 'cob'
-
-
-def test_fcc_fusion_false_positive_substructure(fcc, fm, df_mol_fusion_false_positive_substructure, df_frags_fusion_false_positive_substructure):
-    """Check if fusion false_positive substructure fragment combinations are identified."""
-    df_aidxf = fm.run(df_mol_fusion_false_positive_substructure, df_frags_fusion_false_positive_substructure)
-    df_fcc = fcc.classify_fragment_combinations(df_aidxf, clean=False)
-    result = df_fcc.iloc[0]
-    assert result['category'] == 'fusion' and result['type'] == 'false_positive' and result['subtype'] == 'substructure' and result['abbrev'] == 'ffs'
-    assert len(fcc.clean(df_fcc).index) == 0
-
-
-def test_fcc_connection_false_positive_cutoff(fcc, fm, df_mol_connection_false_positive_cutoff, df_frags):
-    """Check if fusion false_positive cutoff fragment combinations are identified."""
-    df_aidxf = fm.run(df_mol_connection_false_positive_cutoff, df_frags)
-    df_fcc = fcc.classify_fragment_combinations(df_aidxf, clean=False)
-    result = df_fcc.iloc[0]
-    assert result['category'] == 'connection' and result['type'] == 'false_positive' and result['subtype'] == 'cutoff' and result['abbrev'] == 'cfc'
-    assert len(fcc.clean(df_fcc).index) == 0
-
-
-def test_case_chembl_1(fcc, fm, df_case_chembl_1):
-    """Test to see how ffo and ffs combinations are deal with."""
-    df_aidxf = fm.run(df_case_chembl_1[0], df_case_chembl_1[1])
-    df_fcc = fcc.classify_fragment_combinations(df_aidxf, clean=False)
-    logging.debug(f"\nRaw results for chembl_1:\n{df_fcc}\n")
-    assert list(df_fcc['abbrev'].values) == ['ffs', 'cmo', 'ffo', 'ffs', 'cmo',
-                                             'fed', 'fed', 'cmo', 'cmo', 'ffs']
-    df_fcc = fcc.clean(df_fcc)
-    logging.debug(f"\nClean results for chembl_1:\n{df_fcc}\n")
-    assert list(df_fcc['abbrev'].values) == ['cmo', 'ffo', 'cmo']
+    logging.debug(f"\nClean results for df_case_repeated_frag:\n{df_fcc}\n")
+    # assert list(df_fcc['abbrev'].values) == ['cmo', 'ffo', 'cmo']
     df_map = fcc.map_frags(df_fcc)
-    logging.debug(f"\nFragment map for chembl_1:\n{df_map}\n")
-    assert list(df_map['map_str'] == ["2:0[cmo]32:1", "32:1[cmo]320:3"])
+    logging.debug(f"\nFragment map for df_case_repeated_frag:\n{df_map}\n")
+    # assert list(df_map['map_str'] == ["2:0[cmo]32:1", "32:1[cmo]320:3"])
 
-
-def test_case_chembl_2(fcc, fm, df_case_chembl_2):
-    """Test to see if aidxfs are processed correctly."""
-    df_aidxf = fm.run(df_case_chembl_2[0], df_case_chembl_2[1])
-    logging.debug(f"\nSubstructure hits for chembl_2:\n{df_aidxf}\n")
-    df_fcc = fcc.classify_fragment_combinations(df_aidxf)
-    logging.debug(f"\nClean results for chembl_1:\n{df_fcc}\n")
-    assert list(df_fcc['abbrev'].values) == ['fbr']
-    df_map = fcc.map_frags(df_fcc)
-    logging.debug(f"\nFragment map for chembl_1:\n{df_map}\n")
-    assert list(df_map['map_str'] == ["678:1[fbr]1141:0"])
+#
+# def test_case_chembl_1(fcc, fm, df_case_chembl_1):
+#     """Test to see how ffo and ffs combinations are deal with."""
+#     df_aidxf = fm.run(df_case_chembl_1[0], df_case_chembl_1[1])
+#     df_fcc = fcc.classify_fragment_combinations(df_aidxf, clean=False)
+#     logging.debug(f"\nRaw results for chembl_1:\n{df_fcc}\n")
+#     assert list(df_fcc['abbrev'].values) == ['ffs', 'cmo', 'ffo', 'ffs', 'cmo',
+#                                              'fed', 'fed', 'cmo', 'cmo', 'ffs']
+#     df_fcc = fcc.clean(df_fcc)
+#     logging.debug(f"\nClean results for chembl_1:\n{df_fcc}\n")
+#     assert list(df_fcc['abbrev'].values) == ['cmo', 'ffo', 'cmo']
+#     df_map = fcc.map_frags(df_fcc)
+#     logging.debug(f"\nFragment map for chembl_1:\n{df_map}\n")
+#     assert list(df_map['map_str'] == ["2:0[cmo]32:1", "32:1[cmo]320:3"])
+#
+#
+# def test_case_chembl_2(fcc, fm, df_case_chembl_2):
+#     """Test to see if aidxfs are processed correctly."""
+#     df_aidxf = fm.run(df_case_chembl_2[0], df_case_chembl_2[1])
+#     logging.debug(f"\nSubstructure hits for chembl_2:\n{df_aidxf}\n")
+#     df_fcc = fcc.classify_fragment_combinations(df_aidxf)
+#     logging.debug(f"\nClean results for chembl_2:\n{df_fcc}\n")
+#     assert list(df_fcc['abbrev'].values) == ['fbr']
+#     df_map = fcc.map_frags(df_fcc)
+#     logging.debug(f"\nFragment map for chembl_1:\n{df_map}\n")
+#     assert list(df_map['map_str'] == ["678:1[fbr]1141:0"])

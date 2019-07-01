@@ -11,6 +11,8 @@ This modules contains two classes:
 import logging
 import itertools
 # data handling
+from collections import Counter
+from itertools import chain
 from collections import OrderedDict
 # chemoinformatics
 from rdkit.Chem import Mol
@@ -612,35 +614,51 @@ class CombinationClassifier:
 
                 # string representation of the fragment combinations of this map
                 frag_map_str = '-'.join(list(df_fcc_clean['fid1'].map(str) + "[" + df_fcc_clean['abbrev'] + "]" + df_fcc_clean['fid2'].map(str)))
-                # frags: all occurrences of all fragments (f1:0, f1:1, f2:0, etc.)
-                frags = list(set(list(df_fcc_clean['fid1'].map(str).values) + list(df_fcc_clean['fid2'].map(str).values)))
+
+                # d_aidxs: a dict containing the occurrences of each fragment type
+                d_aidxs = {}  # normal dict
+                d_frags = {}  ################## decide what to do here: columns with frags occurrences or just map_str instead?
+                for j in range(len(df_fcc_clean.index)):
+                    row = df_fcc_clean.iloc[j]
+                    # idf1
+                    if row["idf1"] not in d_aidxs.keys():
+                        d_aidxs[row["idf1"]] = [row["aidxf1"]]
+                    elif row["aidxf1"] not in d_aidxs[row["idf1"]]:
+                        d_aidxs[row["idf1"]].append(row["aidxf1"])
+                    # idf2
+                    if row["idf2"] not in d_aidxs.keys():
+                        d_aidxs[row["idf2"]] = [row["aidxf2"]]
+                    elif row["aidxf2"] not in d_aidxs[row["idf2"]]:
+                        d_aidxs[row["idf2"]].append(row["aidxf2"])
+
+                # sort d_aidxs for reproducible colormaps
+                d_aidxs = OrderedDict(sorted(d_aidxs.items()))
+
+                # count fragment occurrences (non-unique)
+                frags = list(set([x for x in df_fcc_clean['fid1'].map(str).values] + [x for x in df_fcc_clean['fid2'].map(str).values]))
                 nfrags = len(frags)
-                # filter results by min/max number of fragments
+
+                # filter results by min/max number of fragment occurrences
                 if nfrags < min_frags or nfrags > max_frags:
                     logging.debug(f"{gid}: discarding one fragment map because of unsuitable number of fragments ({nfrags})")
                     continue
 
-                # frags_u: count only different fragments (f1, f2, etc.)
-                frags_u = list(set([x.split(":")[0] for x in frags]))
+                # count unique fragment types (unique)
+                frags_u = list(d_aidxs.keys())
                 nfrags_u = len(frags_u)
-                # combine aidxfs from all fragments
-                aidxfs = set()
-                aidxfs.update(df_fcc_clean['aidxf1'].values)
-                aidxfs.update(df_fcc_clean['aidxf2'].values)
-                aidxfs = list(aidxfs)
-
-                # organize aidxfs
-                d_aidxs = OrderedDict(zip(frags, aidxfs))  # aidxfs is now a dict with frag: aidfx
-                for k in d_aidxs.keys():
-                    d_aidxs[k] = list(d_aidxs[k])
 
                 # compute fragment coverage of the molecule
                 hac_mol = g.iloc[0]['hac']  # same hac for all entries since this is the same molecule anyway
-                hac_frags = len(list(set([item for sublist in d_aidxs.values() for item in sublist])))
+                # hac
+                hac_frags = set()
+                for k in d_aidxs.keys():
+                    hac_frags.update(set([item for sublist in d_aidxs[k] for item in sublist]))
+                hac_frags = len(hac_frags)
+                # perc
                 perc_mol_cov_frags = round((hac_frags / hac_mol), 2) * 100
 
                 # compute a new graph again but this time on a single subgraph and with edge labels (room for optimization)
-                graph = nx.from_pandas_edgelist(df_fcc_clean, "fid1", "fid2", "abbrev")
+                graph = nx.from_pandas_edgelist(df_fcc_clean, "idf1", "idf2", "abbrev")
 
                 # same molecule in each row, so to use the first one is perfectly fine
                 mol = df_fcc_clean.iloc[0]['mol']
@@ -657,7 +675,7 @@ class CombinationClassifier:
                 ncomb = len(comb)
                 comb_u = list(set(comb))
                 ncomb_u = len(comb_u)
-                ds_map.append({'idm': gid, 'fmid': str(i+1).zfill(3), 'nfrags': nfrags, 'nfrags_u': nfrags_u, 'ncomb': ncomb, 'ncomb_u': ncomb_u, 'hac_mol': hac_mol, 'hac_frags': hac_frags, 'perc_mol_cov_frags': perc_mol_cov_frags,  'frags': frags, 'frags_u': frags_u, 'comb': comb, 'comb_u': comb_u, 'map_str': frag_map_str, 'colormap': colormap, 'graph': graph, 'mol': mol})
+                ds_map.append({'idm': gid, 'fmid': str(i+1).zfill(3), 'nfrags': nfrags, 'nfrags_u': nfrags_u, 'ncomb': ncomb, 'ncomb_u': ncomb_u, 'hac_mol': hac_mol, 'hac_frags': hac_frags, 'perc_mol_cov_frags': perc_mol_cov_frags, 'frags': frags, 'frags_u': frags_u, 'comb': comb, 'comb_u': comb_u, 'map_str': frag_map_str, 'd_aidxs': d_aidxs, 'colormap': colormap, 'graph': graph, 'mol': mol})
 
         # df_map
-        return DataFrame(ds_map, columns=['idm', 'fmid', 'nfrags', 'nfrags_u', 'ncomb', 'ncomb_u', 'hac_mol', 'hac_frags', 'perc_mol_cov_frags', 'frags', 'frags_u', 'comb', 'comb_u', 'map_str', 'colormap', 'graph', 'mol'])
+        return DataFrame(ds_map, columns=['idm', 'fmid', 'nfrags', 'nfrags_u', 'ncomb', 'ncomb_u', 'hac_mol', 'hac_frags', 'perc_mol_cov_frags', 'frags', 'frags_u', 'comb', 'comb_u', 'map_str', 'd_aidxs', 'colormap', 'graph', 'mol'])

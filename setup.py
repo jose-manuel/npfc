@@ -8,14 +8,17 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="npfc",
-    version='0.2.7',
-    author="Jose-Manuel Gally",
-    author_email="josemanuel.gally@mpi-dortmund.mpg.de",
+    version='0.2.8',
+    author="Stephane Bourg, Jose-Manuel Gally",
+    author_email="stephane.bourg@crns.fr",
     description="A package for classifying fragment combinations in molecules",
     long_description=long_description,
     long_description_content_type="text/markdown",
     # url="https://github.com/pypa/sampleproject",
     packages=setuptools.find_packages(),
+    install_requires=[
+          'pip',
+      ],
     setup_requires=["pytest-runner"],
     tests_require=["pytest"],
     keywords=['chemoinformatics', 'natural products', 'fragments', 'chemical biology'],

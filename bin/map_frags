@@ -110,6 +110,8 @@ def main():
     logger.info(f"COMPUTED {len(df_map.index)} FRAGMENT COMBINATION NETWORKS")
 
     # save map results
+    logger.info(f"ENCODING FRAGMENT ATOM INDICES")
+    df_map['d_aidxs'] = df_map['d_aidxs'].map(lambda x: base64.b64encode(pickle.dumps(x)).decode("utf-8"))
     logger.info(f"ENCODING GRAPHS")
     df_map['graph'] = df_map['graph'].map(lambda x: base64.b64encode(pickle.dumps(x)).decode("utf-8"))
     logger.info(f"ENCODING COLORMAPS")

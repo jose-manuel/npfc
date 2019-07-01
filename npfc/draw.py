@@ -113,7 +113,7 @@ def set_atom_or_bond_color(atom_or_bond: Union[Atom, Bond], color: Tuple[float])
     This is possible because they share the same API for doing executing this task.
     If a color is already defined, then an attempt is made to blend it with
     the new color. The number of colors that were already mixed is used for weighting the blending.
-    In case the same color is found, a 10% darker shade is used after blending, so we can still distinguish common atoms and bonds.
+    In case the same color is found, a 15% darker shade is used after blending, so we can still distinguish common atoms and bonds.
     The atom or bond property is modified in place (_num_colors, _color).
 
     .. note:: Due to the color palette I am using, I could only get a "olive green" when blending red and green. To get a proper golden yellow, I hard-coded the color for this particular blending.
@@ -138,8 +138,9 @@ def set_atom_or_bond_color(atom_or_bond: Union[Atom, Bond], color: Tuple[float])
         if tuple(round(x, 4) for x in new_color) == (0.7211, 0.8246, 0.4472):
             new_color = (1.0, 0.9294, 0.0)
 
+        # in case of the same color being applied, use a 15% darker shade
         if new_color == old_color:
-            new_color = tuple((x * 0.9 for x in color))
+            new_color = tuple((x * 0.85 for x in color))
     else:
         new_color = color
 
@@ -359,7 +360,7 @@ class ColorMap:
         num_atom_colors = len(set(self.atoms.values()))
         # bonds require special handling because of a hack
         bond_colors = set(self.bonds.values())
-        bond_colors.remove((1, 1, 1))  # do not count hard-coded white bonds
+        bond_colors.remove((1, 1, 1))  # do not count hard-coded white bonds, also white color cannot happen during blending
         num_bond_colors = len(bond_colors)
 
         return str(f"num_frags={num_frags}, num_atom_colors={num_atom_colors}, num_bond_colors={num_bond_colors}")
@@ -370,48 +371,36 @@ class ColorMap:
 
         The following rules are applied for consistant highilighting:
 
-                 - only one color is attributed per fragment
+                 - only one color is attributed per fragment type (defined by fragment id, i.e. f1 in f1:0)
                  - in case there are more fragments than colors, a same color can be used for several fragments
                  - when 2 fragments of different colors overlap, their colors are blended on overlapping atoms/bonds
-                 - when 2 fragments of same colors overlap, a 10% darker shade is used on overlapping atoms/bonds, so these can be distinguished
+                 - when 2 fragments of same colors overlap, a 15% darker shade is used on overlapping atoms/bonds, so these can be distinguished
 
         :param mol: the molecule to highlight
-        :param d_aidxs: a dictionary of fragments atom indices
+        :param d_aidxs: a dictionary of fragments atom indices with fragment ids as keys and list of iterable as values
         :param colors: a color palette
         """
-        # extract all fids and sort them by alphabetical order for reproducible coloring
-        fids = list(d_aidxs.keys())
-        fids.sort()
-        # get corresponding values
-        l_aidxs = [d_aidxs[fid] for fid in fids]
+
         colors_k = list(colors.keys())  # colors is a OrderedDict, so no need for resorting colors
-        colormap_a = {}  # atoms
-        colormap_b = {}  # bonds
+        aidxs_colored = set()  # atoms
+        bidxs_colored = set()  # bonds
         colormap_f = OrderedDict()  # fragments are colored and stored in order
-        for i, (fid, aidxs) in enumerate(zip(fids, l_aidxs)):
+        # for i, (fid, aidxs_l) in enumerate(zip(fids, l_aidxs)):
+        for i, (fid, aidxs_l) in enumerate(d_aidxs.items()):
             # pick a color
             color = colors[colors_k[i % len(colors_k)]]
             colormap_f[fid] = color
+            # print(f"fid: {fid}, color: {color}, aidxs_l: {aidxs_l}")
             # highlight the corresponding fragment
-            set_atoms_color(mol, aidxs, color)
-            bidxs = get_bidxs(mol, aidxs)
-            set_bonds_color(mol, bidxs, color)
-            # colormaps for the current fragment, might not be the same as input if atom/bond was already colored
-            colormap_a_curr = get_atoms_color(mol, aidxs)
-            colormap_b_curr = get_bonds_color(mol, bidxs)
-            # colormaps for the whole molecule
-            colormap_a.update(colormap_a_curr)
-            colormap_b.update(colormap_b_curr)
-            # display detailed results in case of debugging
-            if logging.getLogger().level == logging.DEBUG:
-                padding = 30
-                logging.debug(f"Highlighting the molecule #{i}:")
-                print("=" * padding + "\n" + "highlightAtomLists".center(padding) + "\n" + "=" * padding)
-                print([a for a in list(colormap_a.keys())])
-                print("=" * padding + "\n" + "highlightAtomColors".center(padding) + "\n" + "=" * padding)
-                [print(f"{k}: {v}") for k, v in colormap_a.items()]
-                print("=" * padding + "\n" + "highlightBondColors".center(padding) + "\n" + "=" * padding)
-                [print(f"{k}: {v}") for k, v in colormap_b.items()]
+            for aidxs in aidxs_l:
+                set_atoms_color(mol, aidxs, color)
+                bidxs = get_bidxs(mol, aidxs)
+                set_bonds_color(mol, bidxs, color)
+                aidxs_colored.update(set(aidxs))
+                bidxs_colored.update(set(bidxs))
+
+        colormap_a = get_atoms_color(mol, aidxs_colored)  # atoms
+        colormap_b = get_bonds_color(mol, bidxs_colored)  # bonds
 
         # highlight bonds not colored as white, since we get sometimes the RDKit default highlight otherwise
         # this might not be the best idea ever, but I could not find any hidden property on the mol, atoms or bonds
@@ -421,8 +410,72 @@ class ColorMap:
         bidxs_white = {bidx: (1, 1, 1) for bidx in set([b.GetIdx() for b in mol.GetBonds()]) - set(list(colormap_b.keys()))}
         #                      white                            all bidx of the mol          -        all colored bidx
         # update colormap with white bond indices
-        logging.debug(f"")
+        logging.debug(f"Highlighting out-of-fragment-bonds in white")
         colormap_b.update(bidxs_white)
 
         # return results as tuple
+        # print(f"colormap_f : {colormap_f}")
         return (colormap_f, colormap_a, colormap_b)
+
+    # def _compute_colormap(self, mol: Mol, d_aidxs: Dict, colors):
+    #     """
+    #     Compute a colormap for highlighting a molecule given a dictionary of fragments {fid: [aidxs]} and specified RGB colors.
+    #
+    #     The following rules are applied for consistant highilighting:
+    #
+    #              - only one color is attributed per fragment
+    #              - in case there are more fragments than colors, a same color can be used for several fragments
+    #              - when 2 fragments of different colors overlap, their colors are blended on overlapping atoms/bonds
+    #              - when 2 fragments of same colors overlap, a 15% darker shade is used on overlapping atoms/bonds, so these can be distinguished
+    #
+    #     :param mol: the molecule to highlight
+    #     :param d_aidxs: a dictionary of fragments atom indices
+    #     :param colors: a color palette
+    #     """
+    #     # extract all fids and sort them by alphabetical order for reproducible coloring
+    #     fids = list(d_aidxs.keys())
+    #     fids.sort()
+    #     # get corresponding values
+    #     l_aidxs = [d_aidxs[fid] for fid in fids]
+    #     colors_k = list(colors.keys())  # colors is a OrderedDict, so no need for resorting colors
+    #     colormap_a = {}  # atoms
+    #     colormap_b = {}  # bonds
+    #     colormap_f = OrderedDict()  # fragments are colored and stored in order
+    #     for i, (fid, aidxs) in enumerate(zip(fids, l_aidxs)):
+    #         # pick a color
+    #         color = colors[colors_k[i % len(colors_k)]]
+    #         colormap_f[fid] = color
+    #         # highlight the corresponding fragment
+    #         set_atoms_color(mol, aidxs, color)
+    #         bidxs = get_bidxs(mol, aidxs)
+    #         set_bonds_color(mol, bidxs, color)
+    #         # colormaps for the current fragment, might not be the same as input if atom/bond was already colored
+    #         colormap_a_curr = get_atoms_color(mol, aidxs)
+    #         colormap_b_curr = get_bonds_color(mol, bidxs)
+    #         # colormaps for the whole molecule
+    #         colormap_a.update(colormap_a_curr)
+    #         colormap_b.update(colormap_b_curr)
+    #         # display detailed results in case of debugging
+    #         # if logging.getLogger().level == logging.DEBUG:
+    #         #     padding = 30
+    #         #     logging.debug(f"Highlighting the molecule #{i}:")
+    #         #     print("=" * padding + "\n" + "highlightAtomLists".center(padding) + "\n" + "=" * padding)
+    #         #     print([a for a in list(colormap_a.keys())])
+    #         #     print("=" * padding + "\n" + "highlightAtomColors".center(padding) + "\n" + "=" * padding)
+    #         #     [print(f"{k}: {v}") for k, v in colormap_a.items()]
+    #         #     print("=" * padding + "\n" + "highlightBondColors".center(padding) + "\n" + "=" * padding)
+    #         #     [print(f"{k}: {v}") for k, v in colormap_b.items()]
+    #
+    #     # highlight bonds not colored as white, since we get sometimes the RDKit default highlight otherwise
+    #     # this might not be the best idea ever, but I could not find any hidden property on the mol, atoms or bonds
+    #     # responsible for this default for behavior. To compensate, I tried to make it as fast as possible,
+    #     # hence the cryptic writing below.
+    #     # Also I do not update the _color and _num_colors properties, so further color blending should not be an issue
+    #     bidxs_white = {bidx: (1, 1, 1) for bidx in set([b.GetIdx() for b in mol.GetBonds()]) - set(list(colormap_b.keys()))}
+    #     #                      white                            all bidx of the mol          -        all colored bidx
+    #     # update colormap with white bond indices
+    #     logging.debug(f"")
+    #     colormap_b.update(bidxs_white)
+    #
+    #     # return results as tuple
+    #     return (colormap_f, colormap_a, colormap_b)

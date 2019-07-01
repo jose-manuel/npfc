@@ -15,18 +15,18 @@ import pkg_resources
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ TESTS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
-def test_init_folder():
-    """Removes all files in tmp worklow output folder"""
-    p = Path('tests/tmp/local_workflow')
-    p.mkdir(parents=True, exist_ok=True)
-    for f in [x for x in p.iterdir() if x.is_file()]:
-        f.unlink()
+# def test_init_folder():
+#     """Removes all files in tmp worklow output folder"""
+#     p = Path('tests/tmp/local_workflow')
+#     p.mkdir(parents=True, exist_ok=True)
+#     for f in [x for x in p.iterdir() if x.is_file()]:
+#         f.unlink()
 
-
-def test_01_prep_crms_small():
-    """Run the pipeline for preparing fragments (crms) on a small dataset"""
-    smk_file = pkg_resources.resource_filename('npfc', 'data/prep_crms_small.smk')
-    subprocess.run("snakemake -s " + smk_file, shell=True, check=True)
+#
+# def test_01_prep_crms_small():
+#     """Run the pipeline for preparing fragments (crms) on a small dataset"""
+#     smk_file = pkg_resources.resource_filename('npfc', 'data/prep_crms_small.smk')
+#     subprocess.run("snakemake -s " + smk_file, shell=True, check=True)
     # assert Path("tests/tmp/local_workflow/local_workflow.png").exists()
     # assert Path("tests/tmp/local_workflow/data/chembl_small_001_map_crms.csv.gz").exists()
 

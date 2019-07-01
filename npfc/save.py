@@ -51,8 +51,6 @@ def file(df: pd.DataFrame,
     """A method for saving DataFrames with molecules to different file types.
     This is handy way of using the Saver class without having to keep a Saver object.
 
-    .. note:: I did this because it was the most easiest way, I guess I'll have to investigate class methods for a better implementation.
-
     :param df: the input DataFrame
     :param output_file: the output file
     :param shuffle: randomize records
