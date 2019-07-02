@@ -327,7 +327,7 @@ def test_case_repeated_frag(fcc, fm, df_case_repeated_frag):
     assert len(df_map.index) == 1
     logging.debug(f"\nFragment map for df_case_repeated_frag:\n{df_map}\n")
     g = df_map.iloc[0]["graph"]
-    assert list(g.edges(data=True)) == [('A', 'A', {'abbrev': 'fed'}), ('A', 'B', {'abbrev': 'cmo'})]
+    assert list(g.edges(data=True)) == [('A', 'A', {'abbrev': 'fed', 'n_abbrev': 1, 'idm': 'REPEATEDFRAGS'}), ('A', 'B', {'abbrev': 'cmo', 'n_abbrev': 2, 'idm': 'REPEATEDFRAGS'})]
 
 
 def test_case_chembl_1(fcc, fm, df_case_chembl_1):

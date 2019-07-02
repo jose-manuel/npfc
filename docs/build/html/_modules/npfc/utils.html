@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.utils &mdash; npfc 0.3.1-2-g92332fe documentation</title>
+  <title>npfc.utils &mdash; npfc 0.3.1-3-g5b2b79b documentation</title>
   
 
   
@@ -56,7 +56,7 @@
             
             
               <div class="version">
-                0.3.1-2-g92332fe
+                0.3.1-3-g5b2b79b
               </div>
             
           
@@ -274,7 +274,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># output_format</span>
     <span class="n">p</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">input_dir</span><span class="p">)</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">p</span><span class="o">.</span><span class="n">is_folder</span><span class="p">():</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">p</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Error! Input dir could not be found at &#39;</span><span class="si">{input_dir}</span><span class="s2">&#39;.&quot;</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="kc">True</span></div>
@@ -315,7 +315,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># output_format</span>
     <span class="n">path_output_file</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">output_dir</span><span class="p">)</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">path_output_file</span><span class="o">.</span><span class="n">is_folder</span><span class="p">():</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">path_output_file</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
         <span class="n">path_output_file</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="kc">True</span></div>

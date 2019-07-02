@@ -661,7 +661,7 @@ class CombinationClassifier:
                 df_fcc_clean['n_abbrev'] = df_fcc_clean.groupby(['idf1', 'idf2', 'abbrev'])['abbrev'].transform('count')
                 df_fcc_clean.drop_duplicates(subset=["idf1", "idf2", "abbrev"], keep="first", inplace=True)
                 # compute the graph
-                graph = nx.from_pandas_edgelist(df_fcc_clean, source="idf1", target="idf2", edge_attr=["abbrev", "n_abbrev"])
+                graph = nx.from_pandas_edgelist(df_fcc_clean, source="idf1", target="idf2", edge_attr=["abbrev", "n_abbrev", "idm"])
 
                 # same molecule in each row, so to use the first one is perfectly fine
                 mol = df_fcc_clean.iloc[0]['mol']
