@@ -120,7 +120,7 @@ def check_arg_input_dir(input_dir: str) -> bool:
     """
     # output_format
     p = Path(input_dir)
-    if not p.is_folder():
+    if not p.is_dir():
         raise ValueError(f"Error! Input dir could not be found at '{input_dir}'.")
 
     return True
@@ -161,7 +161,7 @@ def check_arg_output_dir(output_dir: str) -> bool:
     """
     # output_format
     path_output_file = Path(output_dir)
-    if not path_output_file.is_folder():
+    if not path_output_file.is_dir():
         path_output_file.mkdir(parents=True, exist_ok=True)
 
     return True

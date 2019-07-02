@@ -14,7 +14,7 @@ from datetime import datetime
 import logging
 import pandas as pd
 import argparse
-import json
+from pathlib import Path
 import base64
 import pickle
 # chemoinformatics
@@ -43,6 +43,8 @@ def main():
 
         >>> network_frags input_dir_maps output_file_nfn
 
+    For parsing input files in input_dir, it takes example on first file read in folder for parsing options (file type and compression).
+
     """
 
     # parameters CLI
@@ -59,13 +61,11 @@ def main():
     pad = 40
 
     # parse arguments
-    utils.check_arg_input_file(args.input_fcc)
-    utils.check_arg_output_file(args.output_map)
-    utils.check_arg_positive_number(args.min_frags)
-    utils.check_arg_positive_number(args.max_frags)
-    utils.check_arg_positive_number(args.max_overlaps)
-    fcc_format, fcc_compression = utils.get_file_format(args.input_fcc)
-    out_format, out_compression = utils.get_file_format(args.output_map)
+    utils.check_arg_input_dir(args.input_dir)
+    utils.check_arg_output_file(args.output_nfn)
+    chunks_map = [str(x) for x in list(Path(args.input_dir).glob("*"))]
+    chunks_map.sort()   # in place
+    map_format, map_compression = utils.get_file_format(chunks_map[0])  # take example on first file read
 
     # display infos
     logger.info("LIBRARY VERSIONS:")
@@ -74,12 +74,18 @@ def main():
     logger.info("npfc".ljust(pad) + f"{npfc.__version__}")
     logger.info("ARGUMENTS:")
     logging.info("INPUT_FCC".ljust(pad) + f"{args.input_fcc}")
-    logging.info("FCC_FORMAT".ljust(pad) + f"{fcc_format}")
-    logging.info("FCC_COMPRESSION".ljust(pad) + f"{fcc_compression}")
-    logging.info("OUTPUT_MAP".ljust(pad) + f"{args.output_map}")
-    logging.info("OUT_FORMAT".ljust(pad) + f"{out_format}")
-    logging.info("OUT_COMPRESSION".ljust(pad) + f"{out_compression}")
-    logging.info("MIN_FRAGS".ljust(pad) + f"{args.min_frags}")
-    logging.info("MAX_FRAGS".ljust(pad) + f"{args.max_frags}")
-    logging.info("MAX_OVERLAPS".ljust(pad) + f"{args.max_overlaps}")
+    logging.info("MAP_FORMAT".ljust(pad) + f"{map_format}")
+    logging.info("MAP_COMPRESSION".ljust(pad) + f"{map_compression}")
+    logging.info("OUTPUT_NFN".ljust(pad) + f"{args.output_nfn}")
     logging.info("LOG".ljust(pad) + f"{args.log}")
+
+    # parse map files
+    # df_map = pd.concat([pd.read_csv(x, sep="|", compression="gzip") for x in chunks])
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ MAIN ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
+if __name__ == '__main__':
+    main()
+    sys.exit(0)
