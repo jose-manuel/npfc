@@ -44,7 +44,7 @@ def label_pnp_maps(df, df_ref):
     df_ref["edges_ref"] = df_ref["graph"].map(lambda x: x.edges(data=True))
 
     for i in range(len(df.index)):
-        edges = df.iat[i, 16].edges(data=True)
+        edges = df.iat[i, 16].edges(data='abbrev')
         pnp = True
         for j in range(len(df_ref.index)):
 
