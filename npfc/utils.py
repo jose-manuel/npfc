@@ -112,6 +112,20 @@ def check_arg_input_file(input_file: str) -> bool:
     return True
 
 
+def check_arg_input_dir(input_dir: str) -> bool:
+    """Return True of the input_dir exists.
+
+    :param input_dir: the output directory
+    :return: True if the directory exists.
+    """
+    # output_format
+    p = Path(input_dir)
+    if not p.is_folder():
+        raise ValueError(f"Error! Input dir could not be found at '{input_dir}'.")
+
+    return True
+
+
 def check_arg_output_file(output_file: str, create_parent_dir: bool = True) -> bool:
     """Return True of the output_file has the expected format (deduced from the file extension).
 

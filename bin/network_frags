@@ -1,0 +1,85 @@
+#!/usr/bin/env python
+
+"""
+Script network_frags
+==========================
+This script is used for generating the Natural Fragment Network (NFN) edges file by combining nx Graph objects.
+The output file can then be imported to Cytoscape.
+"""
+
+# standard
+import warnings
+import sys
+from datetime import datetime
+import logging
+import pandas as pd
+import argparse
+import json
+import base64
+import pickle
+# chemoinformatics
+import rdkit
+# dev
+import npfc
+from npfc import load
+from npfc import save
+from npfc import utils
+from npfc import fragment
+# disable SettingWithCopyWarning warnings
+pd.options.mode.chained_assignment = None  # default='warn'
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
+def main():
+
+    # init
+    d0 = datetime.now()
+    description = """Script used for mapping fragment combinations.
+
+    It uses the installed npfc libary in your favorite env manager.
+
+    Example:
+
+        >>> network_frags input_dir_maps output_file_nfn
+
+    """
+
+    # parameters CLI
+    parser = argparse.ArgumentParser(description=description, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument('input_dir', type=str, default=None, help="Input dir for fragment maps.")
+    parser.add_argument('output_nfn', type=str, default=None, help="Output file ")
+    parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
+    args = parser.parse_args()
+
+    # logging
+    logger = utils._configure_logger(args.log)
+    logger.info("RUNNING FRAGMENT NETWORKING")
+    warnings.filterwarnings('ignore', category=pd.io.pytables.PerformanceWarning)  # if None is returned instead of a molecule, do not complain about mixed types
+    pad = 40
+
+    # parse arguments
+    utils.check_arg_input_file(args.input_fcc)
+    utils.check_arg_output_file(args.output_map)
+    utils.check_arg_positive_number(args.min_frags)
+    utils.check_arg_positive_number(args.max_frags)
+    utils.check_arg_positive_number(args.max_overlaps)
+    fcc_format, fcc_compression = utils.get_file_format(args.input_fcc)
+    out_format, out_compression = utils.get_file_format(args.output_map)
+
+    # display infos
+    logger.info("LIBRARY VERSIONS:")
+    logger.info("rdkit".ljust(pad) + f"{rdkit.__version__}")
+    logger.info("pandas".ljust(pad) + f"{pd.__version__}")
+    logger.info("npfc".ljust(pad) + f"{npfc.__version__}")
+    logger.info("ARGUMENTS:")
+    logging.info("INPUT_FCC".ljust(pad) + f"{args.input_fcc}")
+    logging.info("FCC_FORMAT".ljust(pad) + f"{fcc_format}")
+    logging.info("FCC_COMPRESSION".ljust(pad) + f"{fcc_compression}")
+    logging.info("OUTPUT_MAP".ljust(pad) + f"{args.output_map}")
+    logging.info("OUT_FORMAT".ljust(pad) + f"{out_format}")
+    logging.info("OUT_COMPRESSION".ljust(pad) + f"{out_compression}")
+    logging.info("MIN_FRAGS".ljust(pad) + f"{args.min_frags}")
+    logging.info("MAX_FRAGS".ljust(pad) + f"{args.max_frags}")
+    logging.info("MAX_OVERLAPS".ljust(pad) + f"{args.max_overlaps}")
+    logging.info("LOG".ljust(pad) + f"{args.log}")
