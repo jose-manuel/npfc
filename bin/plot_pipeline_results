@@ -399,9 +399,11 @@ def plot_result_map(WD: str, output_csv: str, file_frags: str):
 
     # fragment map coverage by fragments
     df_frag_fm_cov = df_map[["perc_mol_cov_frags", "idm"]]
+    num_tot_fm_fcc_molcov = len(df_frag_fm_cov.index)
     df_frag_fm_cov_counts = df_frag_fm_cov.groupby("perc_mol_cov_frags").count()
     df_frag_fm_cov_counts.reset_index(inplace=True)
     df_frag_fm_cov_counts.rename({"perc_mol_cov_frags": "Perc_Frag_Coverage_Per_FragmentMap", "idm": "NumFragMaps"}, axis=1, inplace=True)
+    df_frag_fm_cov_counts["PercFM"] = (df_frag_fm_cov_counts["NumFragMaps"] / num_tot_fm_fcc_molcov) * 100
     logger.info(f"MAP -- RESULTS -- PERC OF FRAGMENT COVERAGE PER FRAGMENT MAP:\n{df_frag_fm_cov_counts}\n")
     output_csv_counts_sub = output_csv_basename + "_map_perc_frag_cov_fm_counts.csv"
     if compression is not None:
@@ -413,6 +415,8 @@ def plot_result_map(WD: str, output_csv: str, file_frags: str):
     df_map["colormap"] = df_map["colormap"].map(lambda x: pickle.loads(base64.b64decode(x)))
     df_map["aidxs"] = df_map["colormap"].map(lambda x: [k for k in x.atoms.keys()])
     groups_mol_map = df_map[['idm', 'hac_mol', 'aidxs']].groupby("idm")
+    num_tot_mol_fcc_molcov = len(groups_mol_map)
+    logger.info(f"MAP -- FCC -- TOTAL NUMBER OF MOLS WHEN CHECKING COVERAGE PER MOLECULE: {num_tot_mol_fcc_molcov}")
     df_frag_mol_cov = groups_mol_map.agg({'aidxs': 'sum'})
     df_frag_mol_cov["hac_mol"] = groups_mol_map.first()['hac_mol']  # ok instead of joint because groups are in the same order
     df_frag_mol_cov["hac_frags"] = df_frag_mol_cov["aidxs"].map(lambda x: len(list(set(x))))
@@ -421,6 +425,7 @@ def plot_result_map(WD: str, output_csv: str, file_frags: str):
     df_frag_mol_cov.drop("hac_frags", axis=1, inplace=True)
     df_frag_mol_cov.rename({"hac_mol": "NumMols"}, axis=1, inplace=True)
     df_frag_mol_cov_counts = df_frag_mol_cov.groupby("Perc_Frag_Coverage_Per_Mol").count()
+    df_frag_mol_cov_counts["PercMols"] = (df_frag_mol_cov_counts["NumMols"] / num_tot_mol_fcc_molcov) * 100
     df_frag_mol_cov_counts.reset_index(inplace=True)
     logger.info(f"MAP -- RESULTS -- PERC OF FRAGMENT COVERAGE PER MOLECULE:\n{df_frag_mol_cov_counts}\n")
     output_csv_counts_sub = output_csv_basename + "_map_perc_frag_cov_mol_counts.csv"
