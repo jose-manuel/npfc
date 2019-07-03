@@ -208,7 +208,7 @@ def scale_rgb_colormap(colormap: Dict) -> Dict:
     return {k: scale_rgb(colormap[k]) for k in colormap.keys()}
 
 
-def highlight_mol(mol: Mol, colormap: 'ColorMap', img_size: Tuple[int] = (300, 300), debug: bool = False) -> Image:
+def highlight_mol(mol: Mol, colormap: 'ColorMap', img_size: Tuple[int] = (300, 300), debug: bool = False, svg: bool = False) -> Image:
     """
     Draw an Image of a molecule with highlighted atoms and bonds according to a colormap.
 
@@ -216,6 +216,7 @@ def highlight_mol(mol: Mol, colormap: 'ColorMap', img_size: Tuple[int] = (300, 3
     :param colormap: the colormap to use for highlighting the molecule
     :param img_size: the size of the resulting Image
     :param debug: display atom indices on the structure
+    :param svg: use SVG format instead of PNG
     :return: a PNG Image of the highlighted molecule
     """
     if debug:
@@ -228,6 +229,7 @@ def highlight_mol(mol: Mol, colormap: 'ColorMap', img_size: Tuple[int] = (300, 3
                                 highlightAtomLists=[[int(x) for x in list(colormap.atoms.keys())]],
                                 highlightAtomColors=[colormap.atoms],
                                 highlightBondColors=[colormap.bonds],
+                                useSVG=svg,
                                 )
 
 
@@ -236,6 +238,7 @@ def highlight_mols(mols: List[Mol],
                    sub_img_size: Tuple[int] = (300, 300),
                    max_mols_per_row: int = 5,
                    debug: bool = False,
+                   svg: bool = False,
                    ):
     """
     Draw an Image of a list of molecules with highlighted atoms and bonds
@@ -246,6 +249,7 @@ def highlight_mols(mols: List[Mol],
     :param sub_img_size: the size of the image of every molecule composing the grid
     :param max_mols_per_row: the maximum number of molecules displayed per row
     :param debug: display atom indices on the structure
+    :param svg: use SVG format instead of PNG
     :return: a PNG Image of the highlighted molecule
     """
     atom_lists = []
@@ -268,6 +272,7 @@ def highlight_mols(mols: List[Mol],
                                 highlightAtomLists=atom_lists,
                                 highlightAtomColors=colormaps_a,
                                 highlightBondColors=colormaps_b,
+                                useSVG=svg,
                                 )
 
 
@@ -360,7 +365,10 @@ class ColorMap:
         num_atom_colors = len(set(self.atoms.values()))
         # bonds require special handling because of a hack
         bond_colors = set(self.bonds.values())
-        bond_colors.remove((1, 1, 1))  # do not count hard-coded white bonds, also white color cannot happen during blending
+        try:
+            bond_colors.remove((1, 1, 1))  # do not count hard-coded white bonds, also white color cannot happen during blending
+        except KeyError:
+            pass
         num_bond_colors = len(bond_colors)
 
         return str(f"num_frags={num_frags}, num_atom_colors={num_atom_colors}, num_bond_colors={num_bond_colors}")
