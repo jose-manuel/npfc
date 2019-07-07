@@ -68,6 +68,15 @@ def df_case_chembl_2():
 
 
 @pytest.fixture
+def df_case_dnp_1():
+    """A molecule with mislabeld as cbr instead of ffo."""
+    df_mols = pd.DataFrame({'mol': [Chem.MolFromSmiles('OCC(O)C1=CC(O)=C(O)N1')]}, index=['00242908-  -001'])
+    df_frags = pd.DataFrame({'smiles': ['OC1=CC=CN1', 'CC1=CC=CN1']}, index=['1567', '1967'])
+    df_frags['mol'] = df_frags['smiles'].map(Chem.MolFromSmiles)
+    return (df_mols, df_frags)
+
+
+@pytest.fixture
 def df_mol_fusion_spiro():
     """Example molecule with the fusion spiro fragment combination."""
     return pd.DataFrame({'mol': [Chem.MolFromSmiles('C1CC2(CN1)CCCOC2')]}, index=['fsp'])
@@ -355,3 +364,16 @@ def test_case_chembl_2(fcc, fm, df_case_chembl_2):
     df_map = fcc.map_frags(df_fcc)
     logging.debug(f"\nFragment map for chembl_1:\n{df_map}\n")
     assert list(df_map['map_str'] == ["678:1[fbr]1141:0"])
+
+
+def test_case_dnp_1(fcc, fm, df_case_dnp_1):
+    """Test if some ffo are not mislabeled as cbr."""
+    df_aidxf = fm.run(df_case_dnp_1[0], df_case_dnp_1[1])
+    logging.debug(f"\nSubstructure hits for chembl_2:\n{df_aidxf}\n")
+    df_fcc = fcc.classify_fragment_combinations(df_aidxf)
+    row = df_fcc.iloc[0]
+    print(f"Result: {row['idm']}: {row['abbrev']}")
+    logging.debug(f"\nClean results for chembl_2:\n{df_fcc}\n")
+    # assert list(df_fcc['abbrev'].values) == ['fbr']
+    df_map = fcc.map_frags(df_fcc)
+    logging.debug(f"\nFragment map for chembl_1:\n{df_map}\n")

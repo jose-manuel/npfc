@@ -47,9 +47,8 @@ def label_pnp_maps(df, df_ref):
         edges = df.iat[i, 16].edges(data='abbrev')
         pnp = True
         for j in range(len(df_ref.index)):
-
+            # if all edges of tested mol are present in ref edges, then it is not PNP
             if all(edge_ref in edges for edge_ref in df_ref.iat[j, 18]):
-                pnp = False
                 results.append(False)
                 break
 

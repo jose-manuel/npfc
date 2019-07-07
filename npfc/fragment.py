@@ -194,10 +194,6 @@ class CombinationClassifier:
                 abbrev = 'fed'
                 logging.debug(f"Classification: {abbrev}")
                 return {'category': category, 'type': 'edge', 'subtype': '', 'abbrev': abbrev}
-            elif 3 <= len(aidx_fused) <= 5:
-                abbrev = 'fbr'
-                logging.debug(f"Classification: {abbrev}")
-                return {'category': category, 'type': 'bridged', 'subtype': '', 'abbrev': 'fbr'}
             else:
                 sssr = mol.GetRingInfo().AtomRings()  # smallest sets of smallest rings
                 for aidxr in sssr:
@@ -207,8 +203,15 @@ class CombinationClassifier:
                         abbrev = 'ffo'
                         logging.debug(f"Classification: {abbrev}")
                         return {'category': category, 'type': 'false_positive', 'subtype': 'overlap', 'abbrev': abbrev}
-                # something unknown with > 5 fused atoms!
-                return {'category': category, 'type': 'unknown', 'subtype': '', 'abbrev': 'fot'}
+
+                # need to check for fbr after ffo since 3-5 atoms might actually define a full ring
+                if 3 <= len(aidx_fused) <= 5:
+                    abbrev = 'fbr'
+                    logging.debug(f"Classification: {abbrev}")
+                    return {'category': category, 'type': 'bridged', 'subtype': '', 'abbrev': 'fbr'}
+                else:
+                    # something unknown with > 5 fused atoms!
+                    return {'category': category, 'type': 'unknown', 'subtype': '', 'abbrev': 'fot'}
         else:
             category = 'connection'
             logging.debug(f"category: {category}")
