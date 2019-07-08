@@ -41,7 +41,6 @@ def label_pnp_maps(df, df_ref):
 
     """
     results = []
-    df_ref["edges_ref"] = df_ref["graph"].map(lambda x: x.edges(data=True))
 
     for i in range(len(df.index)):
         edges = df.iat[i, 16].edges(data='abbrev')
@@ -156,6 +155,7 @@ def main():
     logging.info(f"FOUND {len(df_map_ref.index)} REFERENCE FRAGMENT MAPS")
     logging.info("DESERIALIZING GRAPHS")
     df_map_ref['graph'] = df_map_ref['graph'].map(lambda x: pickle.loads(base64.b64decode(x)))
+    df_map_ref["edges_ref"] = df_map_ref["graph"].map(lambda x: x.edges(data="abbrev"))
 
     # mapping fragment combinations
     logger.info(f"ANNOTATING REMAINING FRAGMENT MAPS")
