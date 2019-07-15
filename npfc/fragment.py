@@ -66,15 +66,19 @@ class Matcher:
         d['mol'] = []  # encode the molecule here so we don't have to combine multiple files when trying to have a look at the results
         d['mol_frag'] = []  # strucutre of the fragment
         # begin
-        for idm, rowm in df_mols.iterrows():
+        print(df_mols)
+        for i in range(len(df_mols.index)):
+            rowm = df_mols.iloc[i]
+            print(rowm)
             mol = Mol(rowm[col_mol_mols])
-            hac = rowm[col_mol_mols].GetNumAtoms()
-            for idf, rowq in df_frags.iterrows():
+            hac = rowm[col_mol_mols].GetNumAtoms()  # ### check if not already available in df
+            for j in range(len(df_frags.index)):
+                rowq = df_frags.iloc[j]
                 # perform the substructure search on mol so the latest matching fragment does not get highlighted
                 matches = mol.GetSubstructMatches(rowq[col_mol_frags])
                 for i, m in enumerate(matches):
-                    d['idm'].append(idm)
-                    d['idf'].append(idf)
+                    d['idm'].append(rowm.name)
+                    d['idf'].append(rowq.name)
                     d['aidxf'].append(frozenset(m))  # frozenset so we can use intersection, etc. and still remove dupl. easily
                     d['idxf'].append(str(i))
                     d['mol_perc'].append(round(len(m)/hac, 2) * 100)
@@ -480,6 +484,7 @@ class CombinationClassifier:
             for gid, g in df_fcc[df_fcc['idm'].isin(df_substructures['idm'])].groupby('idm'):  # iterate only on the groups with at least one substructure
                 fid_to_remove = set()   # fid of substructures identified for the current molecule
                 # for each molecule, look at what fids we should remove
+                # g = g[g['abbrev'] == 'ffs']
                 for rowid, row in g[g['abbrev'] == 'ffs'].iterrows():
                     # combination ifs ffs, so remove either fid1 or fid2 depending on hac
                     if len(row['aidxf1']) > len(row['aidxf2']):
@@ -526,13 +531,15 @@ class CombinationClassifier:
             # get fragment ids of the common parts of alternative paths
             common = g[(~g['fid1'].isin(overlaps['fid1'])) & (~g['fid2'].isin(overlaps['fid2']))]
             common_combinations = set()
-            for rowid, row in common.iterrows():
+            for i in range(len(common.index)):
+                row = common.iloc[i]
                 common_combinations.add(row['fid1'])
                 common_combinations.add(row['fid2'])
             common_combinations = list(common_combinations)
             # get the fragment ids of the variant parts of alternative paths
             alt_combinations = []
-            for rowid, row in overlaps.iterrows():
+            for i in range(len(overlaps)):
+                row = overlaps.iloc[i]
                 alt_combinations.append([row['fid1'], row['fid2']])
             # get all possible paths
             alt_combinations = [list(x) + common_combinations for x in list(itertools.product(*alt_combinations))]

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.fragment &mdash; npfc 0.3.2-1-ge1fc026 documentation</title>
+  <title>npfc.fragment &mdash; npfc 0.3.5 documentation</title>
   
 
   
@@ -56,7 +56,7 @@
             
             
               <div class="version">
-                0.3.2-1-ge1fc026
+                0.3.5
               </div>
             
           
@@ -348,10 +348,6 @@
                 <span class="n">abbrev</span> <span class="o">=</span> <span class="s1">&#39;fed&#39;</span>
                 <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Classification: </span><span class="si">{abbrev}</span><span class="s2">&quot;</span><span class="p">)</span>
                 <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;category&#39;</span><span class="p">:</span> <span class="n">category</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;edge&#39;</span><span class="p">,</span> <span class="s1">&#39;subtype&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;abbrev&#39;</span><span class="p">:</span> <span class="n">abbrev</span><span class="p">}</span>
-            <span class="k">elif</span> <span class="mi">3</span> <span class="o">&lt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">aidx_fused</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">5</span><span class="p">:</span>
-                <span class="n">abbrev</span> <span class="o">=</span> <span class="s1">&#39;fbr&#39;</span>
-                <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Classification: </span><span class="si">{abbrev}</span><span class="s2">&quot;</span><span class="p">)</span>
-                <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;category&#39;</span><span class="p">:</span> <span class="n">category</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;bridged&#39;</span><span class="p">,</span> <span class="s1">&#39;subtype&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;abbrev&#39;</span><span class="p">:</span> <span class="s1">&#39;fbr&#39;</span><span class="p">}</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">sssr</span> <span class="o">=</span> <span class="n">mol</span><span class="o">.</span><span class="n">GetRingInfo</span><span class="p">()</span><span class="o">.</span><span class="n">AtomRings</span><span class="p">()</span>  <span class="c1"># smallest sets of smallest rings</span>
                 <span class="k">for</span> <span class="n">aidxr</span> <span class="ow">in</span> <span class="n">sssr</span><span class="p">:</span>
@@ -361,8 +357,15 @@
                         <span class="n">abbrev</span> <span class="o">=</span> <span class="s1">&#39;ffo&#39;</span>
                         <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Classification: </span><span class="si">{abbrev}</span><span class="s2">&quot;</span><span class="p">)</span>
                         <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;category&#39;</span><span class="p">:</span> <span class="n">category</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;false_positive&#39;</span><span class="p">,</span> <span class="s1">&#39;subtype&#39;</span><span class="p">:</span> <span class="s1">&#39;overlap&#39;</span><span class="p">,</span> <span class="s1">&#39;abbrev&#39;</span><span class="p">:</span> <span class="n">abbrev</span><span class="p">}</span>
-                <span class="c1"># something unknown with &gt; 5 fused atoms!</span>
-                <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;category&#39;</span><span class="p">:</span> <span class="n">category</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;unknown&#39;</span><span class="p">,</span> <span class="s1">&#39;subtype&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;abbrev&#39;</span><span class="p">:</span> <span class="s1">&#39;fot&#39;</span><span class="p">}</span>
+
+                <span class="c1"># need to check for fbr after ffo since 3-5 atoms might actually define a full ring</span>
+                <span class="k">if</span> <span class="mi">3</span> <span class="o">&lt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">aidx_fused</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">5</span><span class="p">:</span>
+                    <span class="n">abbrev</span> <span class="o">=</span> <span class="s1">&#39;fbr&#39;</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Classification: </span><span class="si">{abbrev}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;category&#39;</span><span class="p">:</span> <span class="n">category</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;bridged&#39;</span><span class="p">,</span> <span class="s1">&#39;subtype&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;abbrev&#39;</span><span class="p">:</span> <span class="s1">&#39;fbr&#39;</span><span class="p">}</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># something unknown with &gt; 5 fused atoms!</span>
+                    <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;category&#39;</span><span class="p">:</span> <span class="n">category</span><span class="p">,</span> <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;unknown&#39;</span><span class="p">,</span> <span class="s1">&#39;subtype&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;abbrev&#39;</span><span class="p">:</span> <span class="s1">&#39;fot&#39;</span><span class="p">}</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">category</span> <span class="o">=</span> <span class="s1">&#39;connection&#39;</span>
             <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;category: </span><span class="si">{category}</span><span class="s2">&quot;</span><span class="p">)</span>
