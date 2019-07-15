@@ -484,7 +484,6 @@ class CombinationClassifier:
             for gid, g in df_fcc[df_fcc['idm'].isin(df_substructures['idm'])].groupby('idm'):  # iterate only on the groups with at least one substructure
                 fid_to_remove = set()   # fid of substructures identified for the current molecule
                 # for each molecule, look at what fids we should remove
-                # g = g[g['abbrev'] == 'ffs']
                 for rowid, row in g[g['abbrev'] == 'ffs'].iterrows():
                     # combination ifs ffs, so remove either fid1 or fid2 depending on hac
                     if len(row['aidxf1']) > len(row['aidxf2']):

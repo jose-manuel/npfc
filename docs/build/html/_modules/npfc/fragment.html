@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.fragment &mdash; npfc 0.3.5 documentation</title>
+  <title>npfc.fragment &mdash; npfc 0.3.5-1-ga8de55d documentation</title>
   
 
   
@@ -56,7 +56,7 @@
             
             
               <div class="version">
-                0.3.5
+                0.3.5-1-ga8de55d
               </div>
             
           
@@ -220,15 +220,19 @@
         <span class="n">d</span><span class="p">[</span><span class="s1">&#39;mol&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># encode the molecule here so we don&#39;t have to combine multiple files when trying to have a look at the results</span>
         <span class="n">d</span><span class="p">[</span><span class="s1">&#39;mol_frag&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># strucutre of the fragment</span>
         <span class="c1"># begin</span>
-        <span class="k">for</span> <span class="n">idm</span><span class="p">,</span> <span class="n">rowm</span> <span class="ow">in</span> <span class="n">df_mols</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">df_mols</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">df_mols</span><span class="o">.</span><span class="n">index</span><span class="p">)):</span>
+            <span class="n">rowm</span> <span class="o">=</span> <span class="n">df_mols</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">rowm</span><span class="p">)</span>
             <span class="n">mol</span> <span class="o">=</span> <span class="n">Mol</span><span class="p">(</span><span class="n">rowm</span><span class="p">[</span><span class="n">col_mol_mols</span><span class="p">])</span>
-            <span class="n">hac</span> <span class="o">=</span> <span class="n">rowm</span><span class="p">[</span><span class="n">col_mol_mols</span><span class="p">]</span><span class="o">.</span><span class="n">GetNumAtoms</span><span class="p">()</span>
-            <span class="k">for</span> <span class="n">idf</span><span class="p">,</span> <span class="n">rowq</span> <span class="ow">in</span> <span class="n">df_frags</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+            <span class="n">hac</span> <span class="o">=</span> <span class="n">rowm</span><span class="p">[</span><span class="n">col_mol_mols</span><span class="p">]</span><span class="o">.</span><span class="n">GetNumAtoms</span><span class="p">()</span>  <span class="c1"># ### check if not already available in df</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">df_frags</span><span class="o">.</span><span class="n">index</span><span class="p">)):</span>
+                <span class="n">rowq</span> <span class="o">=</span> <span class="n">df_frags</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
                 <span class="c1"># perform the substructure search on mol so the latest matching fragment does not get highlighted</span>
                 <span class="n">matches</span> <span class="o">=</span> <span class="n">mol</span><span class="o">.</span><span class="n">GetSubstructMatches</span><span class="p">(</span><span class="n">rowq</span><span class="p">[</span><span class="n">col_mol_frags</span><span class="p">])</span>
                 <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">matches</span><span class="p">):</span>
-                    <span class="n">d</span><span class="p">[</span><span class="s1">&#39;idm&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">idm</span><span class="p">)</span>
-                    <span class="n">d</span><span class="p">[</span><span class="s1">&#39;idf&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">idf</span><span class="p">)</span>
+                    <span class="n">d</span><span class="p">[</span><span class="s1">&#39;idm&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rowm</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+                    <span class="n">d</span><span class="p">[</span><span class="s1">&#39;idf&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rowq</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
                     <span class="n">d</span><span class="p">[</span><span class="s1">&#39;aidxf&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">frozenset</span><span class="p">(</span><span class="n">m</span><span class="p">))</span>  <span class="c1"># frozenset so we can use intersection, etc. and still remove dupl. easily</span>
                     <span class="n">d</span><span class="p">[</span><span class="s1">&#39;idxf&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
                     <span class="n">d</span><span class="p">[</span><span class="s1">&#39;mol_perc&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">m</span><span class="p">)</span><span class="o">/</span><span class="n">hac</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span>
@@ -634,6 +638,7 @@
             <span class="k">for</span> <span class="n">gid</span><span class="p">,</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">df_fcc</span><span class="p">[</span><span class="n">df_fcc</span><span class="p">[</span><span class="s1">&#39;idm&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">df_substructures</span><span class="p">[</span><span class="s1">&#39;idm&#39;</span><span class="p">])]</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">&#39;idm&#39;</span><span class="p">):</span>  <span class="c1"># iterate only on the groups with at least one substructure</span>
                 <span class="n">fid_to_remove</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>   <span class="c1"># fid of substructures identified for the current molecule</span>
                 <span class="c1"># for each molecule, look at what fids we should remove</span>
+                <span class="c1"># g = g[g[&#39;abbrev&#39;] == &#39;ffs&#39;]</span>
                 <span class="k">for</span> <span class="n">rowid</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">g</span><span class="p">[</span><span class="n">g</span><span class="p">[</span><span class="s1">&#39;abbrev&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;ffs&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
                     <span class="c1"># combination ifs ffs, so remove either fid1 or fid2 depending on hac</span>
                     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;aidxf1&#39;</span><span class="p">])</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;aidxf2&#39;</span><span class="p">]):</span>
@@ -680,13 +685,15 @@
             <span class="c1"># get fragment ids of the common parts of alternative paths</span>
             <span class="n">common</span> <span class="o">=</span> <span class="n">g</span><span class="p">[(</span><span class="o">~</span><span class="n">g</span><span class="p">[</span><span class="s1">&#39;fid1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">overlaps</span><span class="p">[</span><span class="s1">&#39;fid1&#39;</span><span class="p">]))</span> <span class="o">&amp;</span> <span class="p">(</span><span class="o">~</span><span class="n">g</span><span class="p">[</span><span class="s1">&#39;fid2&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">overlaps</span><span class="p">[</span><span class="s1">&#39;fid2&#39;</span><span class="p">]))]</span>
             <span class="n">common_combinations</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
-            <span class="k">for</span> <span class="n">rowid</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">common</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">common</span><span class="o">.</span><span class="n">index</span><span class="p">)):</span>
+                <span class="n">row</span> <span class="o">=</span> <span class="n">common</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
                 <span class="n">common_combinations</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;fid1&#39;</span><span class="p">])</span>
                 <span class="n">common_combinations</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;fid2&#39;</span><span class="p">])</span>
             <span class="n">common_combinations</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">common_combinations</span><span class="p">)</span>
             <span class="c1"># get the fragment ids of the variant parts of alternative paths</span>
             <span class="n">alt_combinations</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="k">for</span> <span class="n">rowid</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">overlaps</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">overlaps</span><span class="p">)):</span>
+                <span class="n">row</span> <span class="o">=</span> <span class="n">overlaps</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
                 <span class="n">alt_combinations</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;fid1&#39;</span><span class="p">],</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;fid2&#39;</span><span class="p">]])</span>
             <span class="c1"># get all possible paths</span>
             <span class="n">alt_combinations</span> <span class="o">=</span> <span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">+</span> <span class="n">common_combinations</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="o">*</span><span class="n">alt_combinations</span><span class="p">))]</span>

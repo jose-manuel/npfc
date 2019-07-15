@@ -61,10 +61,6 @@ function run_workflow {
 
 }
 
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ VARIABLES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
-
-
-knime_exec=$(realpath ~/Software/knime_3.7/knime) # fails if quoted
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ARGUMENTS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
@@ -83,6 +79,7 @@ while getopts "s:i:o:w:h" opt; do #
         s) input_sdf=$(realpath $OPTARG);;
         i) input_id=$OPTARG;;
         o) output_dir=$(realpath $OPTARG);;
+        k) knime_exec=$(realpath $OPTARG);;
         w) workflow_file=$(realpath $OPTARG);;
         n) num_threads=$OPTARG;;
         h) usage; exit 1;;
@@ -134,6 +131,23 @@ else
         echo "Error! workflow_file could not be found! ($workflow_file)"
         errors=$[errors + 1]
     fi
+fi
+# knime_exec
+if [ -z ${knime_exec+x} ]
+then
+    echo "knime_exec is unset! Looking in user PATH..."
+    knime_exec=$(which knime)
+    if [ $? -eq 0 ]
+    then
+        echo "knime_exec found at $knime_exec"
+    else
+        echo "knime_exec was not found in PATH either!"
+        errors=$[errors + 1]
+    fi
+elif [ ! -f $knime_exec ]
+then
+    echo "Error! workflow_file could not be found! ($workflow_file)"
+    errors=$[errors + 1]
 fi
 # num_threads
 if [ -z ${workflow_file+x} ]
