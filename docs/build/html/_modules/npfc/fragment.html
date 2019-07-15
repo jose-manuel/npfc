@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.fragment &mdash; npfc 0.3.5-1-ga8de55d documentation</title>
+  <title>npfc.fragment &mdash; npfc 0.3.5-2-g93a7072 documentation</title>
   
 
   
@@ -56,7 +56,7 @@
             
             
               <div class="version">
-                0.3.5-1-ga8de55d
+                0.3.5-2-g93a7072
               </div>
             
           
@@ -638,7 +638,6 @@
             <span class="k">for</span> <span class="n">gid</span><span class="p">,</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">df_fcc</span><span class="p">[</span><span class="n">df_fcc</span><span class="p">[</span><span class="s1">&#39;idm&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">df_substructures</span><span class="p">[</span><span class="s1">&#39;idm&#39;</span><span class="p">])]</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">&#39;idm&#39;</span><span class="p">):</span>  <span class="c1"># iterate only on the groups with at least one substructure</span>
                 <span class="n">fid_to_remove</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>   <span class="c1"># fid of substructures identified for the current molecule</span>
                 <span class="c1"># for each molecule, look at what fids we should remove</span>
-                <span class="c1"># g = g[g[&#39;abbrev&#39;] == &#39;ffs&#39;]</span>
                 <span class="k">for</span> <span class="n">rowid</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">g</span><span class="p">[</span><span class="n">g</span><span class="p">[</span><span class="s1">&#39;abbrev&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;ffs&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
                     <span class="c1"># combination ifs ffs, so remove either fid1 or fid2 depending on hac</span>
                     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;aidxf1&#39;</span><span class="p">])</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;aidxf2&#39;</span><span class="p">]):</span>

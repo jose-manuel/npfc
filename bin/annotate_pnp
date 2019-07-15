@@ -41,18 +41,16 @@ def label_pnp_maps(df, df_ref):
 
     """
     results = []
-
     for i in range(len(df.index)):
         edges = df.iat[i, 16].edges(data='abbrev')
         pnp = True
         for j in range(len(df_ref.index)):
             # if all edges of tested mol are present in ref edges, then it is not PNP
             if all(edge_ref in edges for edge_ref in df_ref.iat[j, 18]):
-                results.append(False)
+                pnp = False
                 break
 
-        if pnp:
-            results.append(True)
+        results.append(pnp)
 
     return results
 
@@ -158,7 +156,7 @@ def main():
     df_map_ref["edges_ref"] = df_map_ref["graph"].map(lambda x: x.edges(data="abbrev"))
 
     # mapping fragment combinations
-    logger.info(f"ANNOTATING REMAINING FRAGMENT MAPS")
+    logger.info(f"ANNOTATING FRAGMENT MAPS")
     d3 = datetime.now()
     df_map["pnp_fm"] = label_pnp_maps(df_map, df_map_ref)
 
