@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Module fragment &mdash; npfc 0.3.5-2-g93a7072 documentation</title>
+  <title>Module fragment &mdash; npfc 0.3.5-3-g1c78e51 documentation</title>
   
 
   
@@ -58,7 +58,7 @@
             
             
               <div class="version">
-                0.3.5-2-g93a7072
+                0.3.5-3-g1c78e51
               </div>
             
           
@@ -157,7 +157,7 @@
             
   <span class="target" id="module-npfc.fragment"></span><div class="section" id="module-fragment">
 <h1>Module fragment<a class="headerlink" href="#module-fragment" title="Permalink to this headline">¶</a></h1>
-<p>This modules contains two classes:</p>
+<p>This modules contains two classes: AHAH</p>
 <blockquote>
 <div><ul class="simple">
 <li>Matcher for substructure search</li>
@@ -174,12 +174,15 @@
 <code class="descname">classify_fragment_combination</code><span class="sig-paren">(</span><em>mol</em>, <em>aidxf1</em>, <em>aidxf2</em>, <em>cutoff=3</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/fragment.html#CombinationClassifier.classify_fragment_combination"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.fragment.CombinationClassifier.classify_fragment_combination" title="Permalink to this definition">¶</a></dt>
 <dd><p>Classify a fragment combination found in a molecule as a dictionary
 with category, type and subtype values.</p>
+<p>Following algorithm is applied for classifying fragment combinations:</p>
+<img alt="_images/fragment_tree.png" src="_images/fragment_tree.png" />
+<p>Fragment 1: red; Fragment 2: green; Fused Atoms: yellow.</p>
 <p>Possible classifications are:</p>
 <ul class="simple">
 <li><dl class="first docutils">
 <dt>fusion</dt>
 <dd><ul class="first last">
-<li>spiro fsp)</li>
+<li>spiro (fsp)</li>
 <li>edge (fed)</li>
 <li>bridged (fbr)</li>
 <li>other (fot)</li>
@@ -385,24 +388,47 @@ be considered when estimating the distance between fragments.</p>
 <code class="descname">map_frags</code><span class="sig-paren">(</span><em>df_fcc</em>, <em>min_frags=2</em>, <em>max_frags=5</em>, <em>max_overlaps=5</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/fragment.html#CombinationClassifier.map_frags"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.fragment.CombinationClassifier.map_frags" title="Permalink to this definition">¶</a></dt>
 <dd><p>This method process a fragment combinations computed with classify_fragment_combinations
 and return a new DataFrame with a fragment map for each molecule.</p>
-<p>This fragment map is a single line string representation of the fragment connectivity
-within a molecule and follows following syntax:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">f1</span><span class="p">:</span><span class="mi">0</span><span class="p">[</span><span class="n">cmo</span><span class="p">]</span><span class="n">f2</span><span class="p">:</span><span class="mi">0</span><span class="o">-</span><span class="n">f1</span><span class="p">:</span><span class="mi">0</span><span class="p">[</span><span class="n">fed</span><span class="p">]</span><span class="n">f3</span><span class="p">:</span><span class="mi">0</span><span class="o">-</span><span class="n">f2</span><span class="p">:</span><span class="mi">0</span><span class="p">[</span><span class="n">cmo</span><span class="p">]</span><span class="n">f3</span><span class="p">:</span><span class="mi">0</span>
-</pre></div>
-</div>
+<p><a class="reference internal" href="_images/map_ex1_mol.svg"><img alt="pic1" src="_images/map_ex1_mol.svg" width="43%" /></a> <a class="reference internal" href="_images/map_ex1_graph.svg"><img alt="pic2" src="_images/map_ex1_graph.svg" width="56%" /></a></p>
+<p>Each highlighted fragment of the molecule consists of a node of the graph.
+Fragment Combinations are used as edges for displaying fragment interactions and are annotated
+with the idm as well as the category of the combination.</p>
 <dl class="docutils">
-<dt>with a fragment id being composed of 2 parts seperated by “:”:</dt>
+<dt>A str representation is also computed:</dt>
+<dd>frag1[cmo]frag2-frag2[fed]frag3</dd>
+<dt>Two objects are computed and stored as b64 strings:</dt>
 <dd><ul class="first last simple">
-<li>f1: the fragment type</li>
-<li>0: the occurrence number of the fragment type in this molecule</li>
+<li><dl class="first docutils">
+<dt>colormap: a custom object with 3 informations regarding highlight colors (RGB values):</dt>
+<dd><ul class="first last">
+<li>fragments: the color attributed to each fragment</li>
+<li>atoms: the color attributed to each atom</li>
+<li>bonds: the color attributed to each bond</li>
 </ul>
 </dd>
 </dl>
+</li>
+<li>graph: a nx object used comparing fragment connectivity among molecules.</li>
+</ul>
+</dd>
+</dl>
+<p>Molecules can be filtered using thresholds.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>df_fcc</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code>) – a Dataframe with pairwise fragment combinations</li>
+<li><strong>min_frags</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>) – a threshold for the minimum number of fragments allowed per fragment map</li>
+<li><strong>max_frags</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>) – a threshold for the maximum number of fragments allowed per fragment map</li>
+<li><strong>max_overlaps</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>) – a threshold for the maximum number of overlap combinations found in the molecule</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a DataFrame representing fragment maps</p>
+</td>
 </tr>
 </tbody>
 </table>

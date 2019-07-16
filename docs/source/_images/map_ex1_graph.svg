@@ -1,0 +1,78 @@
+<?xml version="1.0" standalone="no"?>
+
+<svg 
+     version="1.1"
+     baseProfile="full"
+     xmlns="http://www.w3.org/2000/svg"
+     xmlns:xlink="http://www.w3.org/1999/xlink"
+     xmlns:ev="http://www.w3.org/2001/xml-events"
+     x="0px"
+     y="0px"
+     width="1508px"
+     height="704px"
+     viewBox="0 0 1508 704"
+     >
+<title></title>
+<desc>Creator: FreeHEP Graphics2D Driver Producer: org.freehep.graphicsio.svg.SVGGraphics2D Revision Source:  Date: Monday, July 15, 2019 5:06:08 PM CEST</desc>
+<g stroke-linejoin="miter" stroke-dashoffset="0" stroke-dasharray="none" stroke-width="1" stroke-miterlimit="10" stroke-linecap="square">
+<g fill-opacity="1" fill-rule="nonzero" stroke="none" fill="#ffffff">
+  <path d="M 0 0 L 1508 0 L 1508 704 L 0 704 L 0 0 z"/>
+</g> <!-- drawing style -->
+<g transform="matrix(3.807481607136742, 0, 0, 3.807481607136742, 734.6745671230567, 1587.5286428546965)">
+<g stroke-linejoin="round" stroke-width="0.972058117389679" stroke-linecap="round" fill="none" stroke-opacity="1" stroke="#000000">
+  <path d="M -41.818084716796875 -349.0951232910156 C -77.6512680053711 -349.0951232910156 -84.91339874267578 -370.88153076171875 -58.03851318359375 -397.75640869140625 C -31.16362762451172 -424.63128662109375 -9.377227783203125 -417.3691711425781 -9.377227783203125 -381.5359802246094"/>
+</g> <!-- drawing style -->
+</g> <!-- transform -->
+<g transform="matrix(3.807481607136742, 0, 0, 3.807481607136742, 734.6745671230567, 1587.5286428546965)">
+<g stroke-linejoin="round" stroke-width="2.032485246658325" stroke-linecap="round" fill="none" stroke-opacity="1" stroke="#000000">
+  <path d="M -7.8543009757995605 -297.0564880371094 L -8.428242683410645 -316.66815185546875"/>
+</g> <!-- drawing style -->
+</g> <!-- transform -->
+<g transform="matrix(3.807481607136742, 0, 0, 3.807481607136742, 734.6745671230567, 1587.5286428546965)">
+<g stroke-linejoin="round" stroke-width="2" stroke-linecap="round" fill="none" stroke-opacity="1" stroke="#000000">
+  <path d="M 22.063629150390625 -349.0951232910156 C 22.063629150390625 -331.73081748498004 7.987078022832463 -317.6542663574219 -9.377227783203125 -317.6542663574219 C -26.741533589238713 -317.6542663574219 -40.818084716796875 -331.73081748498004 -40.818084716796875 -349.0951232910156 C -40.818084716796875 -366.4594290970512 -26.741533589238713 -380.5359802246094 -9.377227783203125 -380.5359802246094 C 7.987078022832463 -380.5359802246094 22.063629150390625 -366.4594290970512 22.063629150390625 -349.0951232910156 z"/>
+</g> <!-- drawing style -->
+</g> <!-- transform -->
+<g transform="matrix(3.807481607136742, 0, 0, 3.807481607136742, 734.6745671230567, 1587.5286428546965)">
+<g fill-opacity="1" fill-rule="nonzero" stroke="none" fill="#66ff66">
+  <path d="M 22.063629150390625 -349.0951232910156 C 22.063629150390625 -331.73081748498004 7.987078022832463 -317.6542663574219 -9.377227783203125 -317.6542663574219 C -26.741533589238713 -317.6542663574219 -40.818084716796875 -331.73081748498004 -40.818084716796875 -349.0951232910156 C -40.818084716796875 -366.4594290970512 -26.741533589238713 -380.5359802246094 -9.377227783203125 -380.5359802246094 C 7.987078022832463 -380.5359802246094 22.063629150390625 -366.4594290970512 22.063629150390625 -349.0951232910156 z"/>
+</g> <!-- drawing style -->
+</g> <!-- transform -->
+<g transform="matrix(3.807481607136742, 0, 0, 3.807481607136742, 650.522228659267, 284.71773001993495)">
+<text fill-opacity="1" font-style="normal" font-family="Helvetica" font-weight="normal" stroke="none" fill="#000000" font-size="20" x="0" y="0">32</text>
+</g> <!-- transform -->
+<g transform="matrix(3.807481607136742, 0, 0, 3.807481607136742, 734.6745671230567, 1587.5286428546965)">
+<g stroke-linejoin="round" stroke-width="2" stroke-linecap="round" fill="none" stroke-opacity="1" stroke="#000000">
+  <path d="M 22.100669860839844 -266.9941711425781 C 22.100669860839844 -250.9363841731326 9.083264933581638 -237.91897583007812 -6.974517822265625 -237.91897583007812 C -23.032300578112892 -237.91897583007812 -36.049705505371094 -250.9363841731326 -36.049705505371094 -266.9941711425781 C -36.049705505371094 -283.05195811202367 -23.032300578112892 -296.0693664550781 -6.974517822265625 -296.0693664550781 C 9.083264933581638 -296.0693664550781 22.100669860839844 -283.05195811202367 22.100669860839844 -266.9941711425781 z"/>
+</g> <!-- drawing style -->
+</g> <!-- transform -->
+<g transform="matrix(3.807481607136742, 0, 0, 3.807481607136742, 734.6745671230567, 1587.5286428546965)">
+<g fill-opacity="1" fill-rule="nonzero" stroke="none" fill="#ff9999">
+  <path d="M 22.100669860839844 -266.9941711425781 C 22.100669860839844 -250.9363841731326 9.083264933581638 -237.91897583007812 -6.974517822265625 -237.91897583007812 C -23.032300578112892 -237.91897583007812 -36.049705505371094 -250.9363841731326 -36.049705505371094 -266.9941711425781 C -36.049705505371094 -283.05195811202367 -23.032300578112892 -296.0693664550781 -6.974517822265625 -296.0693664550781 C 9.083264933581638 -296.0693664550781 22.100669860839844 -283.05195811202367 22.100669860839844 -266.9941711425781 z"/>
+</g> <!-- drawing style -->
+</g> <!-- transform -->
+<g transform="matrix(3.807481607136742, 0, 0, 3.807481607136742, 659.6705026428207, 597.3155952535244)">
+<text fill-opacity="1" font-style="normal" font-family="Helvetica" font-weight="normal" stroke="none" fill="#000000" font-size="20" x="0" y="0">10</text>
+</g> <!-- transform -->
+<g transform="matrix(1, 0, 0, 1, 704, 64)">
+<clipPath id="clip1">
+  <path d="M 0 0 L 0 54 L 96 54 L 96 0 z"/>
+</clipPath>
+<g clip-path="url(#clip1)">
+<g transform="matrix(1, 0, 0, 1, 0, 40)">
+<text fill-opacity="1" font-style="normal" font-family="Arial" font-weight="bold" stroke="none" fill="#000000" font-size="46.602779388427734" x="0" y="0">cmo</text>
+</g> <!-- transform -->
+</g> <!-- clip1 -->
+</g> <!-- transform -->
+<g transform="matrix(1, 0, 0, 1, 738, 399)">
+<clipPath id="clip2">
+  <path d="M 0 0 L 0 54 L 192 54 L 192 0 z"/>
+</clipPath>
+<g clip-path="url(#clip2)">
+<g transform="matrix(1, 0, 0, 1, 0, 40)">
+<text fill-opacity="1" font-style="normal" font-family="Arial" font-weight="bold" stroke="none" fill="#000000" font-size="46.602779388427734" x="0" y="0">cmo, fed</text>
+</g> <!-- transform -->
+</g> <!-- clip2 -->
+</g> <!-- transform -->
+</g> <!-- default stroke -->
+</svg> <!-- bounding box -->

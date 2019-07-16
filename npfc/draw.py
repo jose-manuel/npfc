@@ -212,12 +212,14 @@ def highlight_mol(mol: Mol, colormap: 'ColorMap', img_size: Tuple[int] = (300, 3
     """
     Draw an Image of a molecule with highlighted atoms and bonds according to a colormap.
 
+    .. image:: _images/draw_highlight.svg
+
     :param mol: the molecule to highlight
     :param colormap: the colormap to use for highlighting the molecule
     :param img_size: the size of the resulting Image
     :param debug: display atom indices on the structure
     :param svg: use SVG format instead of PNG
-    :return: a PNG Image of the highlighted molecule
+    :return: an Image of the highlighted molecule
     """
     if debug:
         mol = Mol(mol)
@@ -250,7 +252,7 @@ def highlight_mols(mols: List[Mol],
     :param max_mols_per_row: the maximum number of molecules displayed per row
     :param debug: display atom indices on the structure
     :param svg: use SVG format instead of PNG
-    :return: a PNG Image of the highlighted molecule
+    :return: an Image of the highlighted molecules
     """
     atom_lists = []
     colormaps_a = []

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.fragment &mdash; npfc 0.3.5-2-g93a7072 documentation</title>
+  <title>npfc.fragment &mdash; npfc 0.3.5-3-g1c78e51 documentation</title>
   
 
   
@@ -56,7 +56,7 @@
             
             
               <div class="version">
-                0.3.5-2-g93a7072
+                0.3.5-3-g1c78e51
               </div>
             
           
@@ -155,7 +155,7 @@
 <span></span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Module fragment</span>
 <span class="sd">===============</span>
-<span class="sd">This modules contains two classes:</span>
+<span class="sd">This modules contains two classes: AHAH</span>
 
 <span class="sd">    - Matcher for substructure search</span>
 <span class="sd">    - Classifier for classifying fragment combinations</span>
@@ -166,7 +166,6 @@
 <span class="kn">import</span> <span class="nn">itertools</span>
 <span class="c1"># data handling</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
-<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">Counter</span>
 <span class="c1"># chemoinformatics</span>
 <span class="kn">from</span> <span class="nn">rdkit.Chem</span> <span class="k">import</span> <span class="n">Mol</span>
 <span class="kn">from</span> <span class="nn">rdkit.Chem</span> <span class="k">import</span> <span class="n">AllChem</span>
@@ -295,10 +294,17 @@
         <span class="sd">&quot;&quot;&quot;Classify a fragment combination found in a molecule as a dictionary</span>
 <span class="sd">        with category, type and subtype values.</span>
 
+<span class="sd">        Following algorithm is applied for classifying fragment combinations:</span>
+
+<span class="sd">        .. image:: _images/fragment_tree.png</span>
+
+
+<span class="sd">        Fragment 1: red; Fragment 2: green; Fused Atoms: yellow.</span>
+
 <span class="sd">        Possible classifications are:</span>
 
 <span class="sd">        - fusion</span>
-<span class="sd">            - spiro fsp)</span>
+<span class="sd">            - spiro (fsp)</span>
 <span class="sd">            - edge (fed)</span>
 <span class="sd">            - bridged (fbr)</span>
 <span class="sd">            - other (fot)</span>
@@ -746,15 +752,35 @@
         <span class="sd">&quot;&quot;&quot;This method process a fragment combinations computed with classify_fragment_combinations</span>
 <span class="sd">        and return a new DataFrame with a fragment map for each molecule.</span>
 
-<span class="sd">        This fragment map is a single line string representation of the fragment connectivity</span>
-<span class="sd">        within a molecule and follows following syntax:</span>
+<span class="sd">        |pic1| |pic2|</span>
 
-<span class="sd">            &gt;&gt;&gt; f1:0[cmo]f2:0-f1:0[fed]f3:0-f2:0[cmo]f3:0</span>
+<span class="sd">        .. |pic1| image:: _images/map_ex1_mol.svg</span>
+<span class="sd">           :width: 43%</span>
 
-<span class="sd">        with a fragment id being composed of 2 parts seperated by &quot;:&quot;:</span>
-<span class="sd">            - f1: the fragment type</span>
-<span class="sd">            - 0: the occurrence number of the fragment type in this molecule</span>
+<span class="sd">        .. |pic2| image:: _images/map_ex1_graph.svg</span>
+<span class="sd">           :width: 56%</span>
 
+<span class="sd">        Each highlighted fragment of the molecule consists of a node of the graph.</span>
+<span class="sd">        Fragment Combinations are used as edges for displaying fragment interactions and are annotated</span>
+<span class="sd">        with the idm as well as the category of the combination.</span>
+
+<span class="sd">        A str representation is also computed:</span>
+<span class="sd">            frag1[cmo]frag2-frag2[fed]frag3</span>
+
+<span class="sd">        Two objects are computed and stored as b64 strings:</span>
+<span class="sd">            - colormap: a custom object with 3 informations regarding highlight colors (RGB values):</span>
+<span class="sd">                - fragments: the color attributed to each fragment</span>
+<span class="sd">                - atoms: the color attributed to each atom</span>
+<span class="sd">                - bonds: the color attributed to each bond</span>
+<span class="sd">            - graph: a nx object used comparing fragment connectivity among molecules.</span>
+
+<span class="sd">        Molecules can be filtered using thresholds.</span>
+
+<span class="sd">        :param df_fcc: a Dataframe with pairwise fragment combinations</span>
+<span class="sd">        :param min_frags: a threshold for the minimum number of fragments allowed per fragment map</span>
+<span class="sd">        :param max_frags: a threshold for the maximum number of fragments allowed per fragment map</span>
+<span class="sd">        :param max_overlaps: a threshold for the maximum number of overlap combinations found in the molecule</span>
+<span class="sd">        :return: a DataFrame representing fragment maps</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># split by overlaps</span>
 

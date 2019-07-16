@@ -1,7 +1,7 @@
 """
 Module fragment
 ===============
-This modules contains two classes:
+This modules contains two classes: AHAH
 
     - Matcher for substructure search
     - Classifier for classifying fragment combinations
@@ -12,7 +12,6 @@ import logging
 import itertools
 # data handling
 from collections import OrderedDict
-from collections import Counter
 # chemoinformatics
 from rdkit.Chem import Mol
 from rdkit.Chem import AllChem
@@ -141,10 +140,17 @@ class CombinationClassifier:
         """Classify a fragment combination found in a molecule as a dictionary
         with category, type and subtype values.
 
+        Following algorithm is applied for classifying fragment combinations:
+
+        .. image:: _images/fragment_tree.png
+
+
+        Fragment 1: red; Fragment 2: green; Fused Atoms: yellow.
+
         Possible classifications are:
 
         - fusion
-            - spiro fsp)
+            - spiro (fsp)
             - edge (fed)
             - bridged (fbr)
             - other (fot)
@@ -592,15 +598,35 @@ class CombinationClassifier:
         """This method process a fragment combinations computed with classify_fragment_combinations
         and return a new DataFrame with a fragment map for each molecule.
 
-        This fragment map is a single line string representation of the fragment connectivity
-        within a molecule and follows following syntax:
+        |pic1| |pic2|
 
-            >>> f1:0[cmo]f2:0-f1:0[fed]f3:0-f2:0[cmo]f3:0
+        .. |pic1| image:: _images/map_ex1_mol.svg
+           :width: 43%
 
-        with a fragment id being composed of 2 parts seperated by ":":
-            - f1: the fragment type
-            - 0: the occurrence number of the fragment type in this molecule
+        .. |pic2| image:: _images/map_ex1_graph.svg
+           :width: 56%
 
+        Each highlighted fragment of the molecule consists of a node of the graph.
+        Fragment Combinations are used as edges for displaying fragment interactions and are annotated
+        with the idm as well as the category of the combination.
+
+        A str representation is also computed:
+            frag1[cmo]frag2-frag2[fed]frag3
+
+        Two objects are computed and stored as b64 strings:
+            - colormap: a custom object with 3 informations regarding highlight colors (RGB values):
+                - fragments: the color attributed to each fragment
+                - atoms: the color attributed to each atom
+                - bonds: the color attributed to each bond
+            - graph: a nx object used comparing fragment connectivity among molecules.
+
+        Molecules can be filtered using thresholds.
+
+        :param df_fcc: a Dataframe with pairwise fragment combinations
+        :param min_frags: a threshold for the minimum number of fragments allowed per fragment map
+        :param max_frags: a threshold for the maximum number of fragments allowed per fragment map
+        :param max_overlaps: a threshold for the maximum number of overlap combinations found in the molecule
+        :return: a DataFrame representing fragment maps
         """
         # split by overlaps
 
