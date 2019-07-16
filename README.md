@@ -103,6 +103,8 @@ https://protips.readthedocs.io/git-tag-version.html
 https://github.com/agronholm/sphinx-autodoc-typehints
 https://docs.python.org/3/library/typing.html
 https://stackoverflow.com/questions/45957615/check-a-variable-against-union-type-at-runtime-in-python-3-6
+https://stackoverflow.com/questions/25866102/how-do-we-embed-images-in-sphinx-docs
+https://stackoverflow.com/questions/22149669/how-can-i-place-images-side-by-side-in-restructured-text
 
 ### Useful links
 
