@@ -20,7 +20,7 @@ from rdkit.Chem.MolStandardize.tautomer import TautomerCanonicalizer
 import pytest
 from npfc.standardize import Standardizer
 from npfc.standardize import FullUncharger
-from npfc.standardize import DuplicateFilter
+from npfc.duplicate import DuplicateFilter
 from npfc import load
 # configure logging
 lg = RDLogger.logger()
@@ -38,6 +38,11 @@ warnings.simplefilter(action='ignore', category=pd.errors.PerformanceWarning)
 def input_files_dupl():
     p = Path('tests/tmp')
     return [str(f) for f in list(p.glob('test_save_dupl_00[1-4].csv.gz'))]
+
+
+@pytest.fixture
+def ref_file():
+    return 'tests/tmp/test_dupl_ref.hdf'
 
 
 @pytest.fixture
@@ -207,36 +212,6 @@ def test_std_remove_stereochemistry(mols):
     assert stereo_doublebond == []  # ideally it should be set to Chem.rdchem.BondStereo.STEREOANY, but whatever obscure reason it is set to STEREONONE...
 
 
-def test_remove_dupl(standardizer, input_files_dupl):
-    """Remove duplicates accross chunks using a syn file"""
-    standardizer.protocol = {'tasks': []}  # remove duplicates only
-    ref_file = 'tests/tmp/test_dupl_ref.hdf'
-    # without ref file
-    passed = 0
-    filtered = 0
-    error = 0
-    for f in input_files_dupl:
-        df = load.file(f)
-        df_passed, df_filtered, df_error = standardizer.run_df(df)
-        passed += len(df_passed.index)
-        filtered += len(df_filtered.index)
-        error += len(df_error.index)
-    assert passed == 6 and filtered == 1 and error == 0
-    # with ref_file
-    passed = 0
-    filtered = 0
-    error = 0
-    standardizer.ref_file = ref_file
-    for f in input_files_dupl:
-        df = load.file(f)
-        df_passed, df_filtered, df_error = standardizer.run_df(df)
-        passed += len(df_passed.index)
-        filtered += len(df_filtered.index)
-        error += len(df_error.index)
-
-    assert passed == 4 and filtered == 3 and error == 0
-
-
 def test_run_protocol(standardizer, mols, mols_bad):
     """Run default standardization protocol."""
     # initiate a global df_mols
@@ -265,6 +240,45 @@ def test_standardizer_timeout(mols_timeout, standardizer):
     assert isinstance(mol, Mol) is True
     assert status == 'filtered'
     assert task == 'timeout'
+
+
+def test_init_ref(ref_file):
+    """Make sure ref file is computed during this test."""
+    p = Path(ref_file)
+    if p.exists():
+        p.unlink()
+    assert p.exists() is False
+
+
+def test_remove_dupl(standardizer, input_files_dupl):
+    """Test the DuplicateFilter class from context of Standardizer"""
+    standardizer.protocol = {'tasks': []}  # remove duplicates only
+    ref_file = 'tests/tmp/test_dupl_ref.hdf'
+    # without ref file
+    passed = 0
+    filtered = 0
+    error = 0
+    for f in input_files_dupl:
+        df = load.file(f)
+        df_passed, df_filtered, df_error = standardizer.run_df(df)
+        passed += len(df_passed.index)
+        filtered += len(df_filtered.index)
+        error += len(df_error.index)
+    assert passed == 6 and filtered == 1 and error == 0
+
+    # with ref_file
+    passed = 0
+    filtered = 0
+    error = 0
+    standardizer.ref_file = ref_file
+    for f in input_files_dupl:
+        df = load.file(f)
+        df_passed, df_filtered, df_error = standardizer.run_df(df)
+        passed += len(df_passed.index)
+        filtered += len(df_filtered.index)
+        error += len(df_error.index)
+
+    assert passed == 4 and filtered == 3 and error == 0
 
 
 def save_mols(mols):

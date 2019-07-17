@@ -9,8 +9,6 @@ import warnings
 import filecmp
 # data handling
 from collections import OrderedDict
-import pickle
-import base64
 import pandas as pd
 # chemoinformatics
 from rdkit import Chem
@@ -79,7 +77,9 @@ def test_highlight_mol(df_map, ref_file_highlight_mol):
     # check colormap
     row = df_map.iloc[0]
     colormap = row["colormap"]
+    # colors attributed to each fragment
     assert colormap.fragments == OrderedDict([('1141', (1.0, 0.6, 0.6)), ('678', (0.2, 1.0, 0.2))])
+    # colors attributed to each atom. Fused atom colors are blended together
     assert colormap.atoms == {2: (1.0, 0.6, 0.6),
                               3: (1.0, 0.6, 0.6),
                               4: (1.0, 0.6, 0.6),
@@ -101,6 +101,7 @@ def test_highlight_mol(df_map, ref_file_highlight_mol):
                               30: (1.0, 0.6, 0.6),
                               31: (1.0, 0.6, 0.6),
                               }
+    # colors attributed to each bond. Bonds between fused atoms are blended together
     assert colormap.bonds == {2: (1.0, 0.6, 0.6),
                               3: (1.0, 0.6, 0.6),
                               4: (1.0, 0.6, 0.6),
