@@ -35,4 +35,4 @@ Indices and tables
 Package Architecture
 ====================
 
-.. image:: _images/npfc_diagram.svg
+.. image:: _images/classes_npfc.svg
