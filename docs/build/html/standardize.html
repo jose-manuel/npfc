@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Module standardize &mdash; npfc 0.3.5-5-gaef1612 documentation</title>
+  <title>Module standardize &mdash; npfc 0.3.5-6-g74c9716 documentation</title>
   
 
   
@@ -58,7 +58,7 @@
             
             
               <div class="version">
-                0.3.5-5-gaef1612
+                0.3.5-6-g74c9716
               </div>
             
           
@@ -348,40 +348,6 @@ To achieve this, a scoring function is assigned to each depiction to retrieve th
 <p class="last">For now structures are deglycosylated before being standardized using a KIME workflow. This is far from being ideal, at the node itself contains bugs and its execution is relatively slow.</p>
 </div>
 <p>Create a Standardizer object.</p>
-<dl class="method">
-<dt id="npfc.standardize.Standardizer.compute_2D">
-<code class="descname">compute_2D</code><span class="sig-paren">(</span><em>mol</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#Standardizer.compute_2D"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.Standardizer.compute_2D" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the “best” 2D depiction of a molecule according the methods in METHODS_2D.
-Currently four methods are available:</p>
-<blockquote>
-<div><ul class="simple">
-<li>CoordGen</li>
-<li>rdDepictor</li>
-<li>Avalon</li>
-<li>Input</li>
-</ul>
-</div></blockquote>
-<p>A perfect score of 0 means the depiction is good enough (no overalapping atom/bonds)
-and it is not worth computing other depictions. When no perfect score is reached,
-the depiction with lowest score is retrieved. In case of tie, the first method applied
-is preferred.</p>
-<p>The method used for depicting the molecule is stored as molecule property: “_2D”.</p>
-<p>This process could run much faster if input coordinates are reliable but just needed some tweakings
-(i.e. macrocycles). For now I prefer to use CoordGen, instead. We’ll see how it computational-time-wise.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>mol</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Mol</span></code>) – the input molecule</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><code class="xref py py-class docutils literal notranslate"><span class="pre">Mol</span></code></td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the molecule with 2D coordinates</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
 <dl class="method">
 <dt id="npfc.standardize.Standardizer.keep_best">
 <code class="descname">keep_best</code><span class="sig-paren">(</span><em>mol</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#Standardizer.keep_best"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.Standardizer.keep_best" title="Permalink to this definition">¶</a></dt>

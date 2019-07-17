@@ -49,9 +49,9 @@ def df_map():
 @pytest.fixture
 def mols_2D():
     return {
-            "simple": Chem.MolFromSmiles("CC[C@@]1(O)CC(=O)OCC2=C1C=C3N(Cc4cc5c(F)cccc5nc34)C2=O"),  # CHEMBL306721
+            "simple": Chem.MolFromSmiles("C1CCCCCNc2cc[n+](Cc3ccc(Cc4ccc(C[n+]5ccc(NCCCC1)c6ccccc56)cc4)cc3)c7ccccc27"),  # CHEMBL446445
             "medium": Chem.MolFromSmiles("CC1(C)O[C@@H]2[C@]3(CCC[C@@H]4[C@H]5CO[C@H]6C=C(CO)[C@@]2(O)[C@@]34[C@@H]56)O1"),  # CHEMBL1269998
-            "hard": Chem.MolFromSmiles("C[C@]12CC[C@@H]3OC(=O)[C@@]45C[C@@H](C[C@@H](O)[C@H]4[C@]36CO[C@H](OC1)[C@H]26)C7=C5O[C@@]8(CC7)[C@@H]9C[C@@H](O)[C@H]%10[C@@]%11%12CO[C@@H](O)[C@@H]%11C(C)(C)[C@@H](O)C[C@@H]%12OC(=O)[C@]%10(C9)C8=O"),
+            "hard": Chem.MolFromSmiles("C[C@]12CC[C@@H]3OC(=O)[C@@]45C[C@@H](C[C@@H](O)[C@H]4[C@]36CO[C@H](OC1)[C@H]26)C7=C5O[C@@]8(CC7)[C@@H]9C[C@@H](O)[C@H]%10[C@@]%11%12CO[C@@H](O)[C@@H]%11C(C)(C)[C@@H](O)C[C@@H]%12OC(=O)[C@]%10(C9)C8=O"),  # CHEMBL1079125
             }
 
 

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.fragment &mdash; npfc 0.3.5-5-gaef1612 documentation</title>
+  <title>npfc.fragment &mdash; npfc 0.3.5-6-g74c9716 documentation</title>
   
 
   
@@ -56,7 +56,7 @@
             
             
               <div class="version">
-                0.3.5-5-gaef1612
+                0.3.5-6-g74c9716
               </div>
             
           
@@ -219,10 +219,8 @@
         <span class="n">d</span><span class="p">[</span><span class="s1">&#39;mol&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># encode the molecule here so we don&#39;t have to combine multiple files when trying to have a look at the results</span>
         <span class="n">d</span><span class="p">[</span><span class="s1">&#39;mol_frag&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># strucutre of the fragment</span>
         <span class="c1"># begin</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">df_mols</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">df_mols</span><span class="o">.</span><span class="n">index</span><span class="p">)):</span>
             <span class="n">rowm</span> <span class="o">=</span> <span class="n">df_mols</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
-            <span class="nb">print</span><span class="p">(</span><span class="n">rowm</span><span class="p">)</span>
             <span class="n">mol</span> <span class="o">=</span> <span class="n">Mol</span><span class="p">(</span><span class="n">rowm</span><span class="p">[</span><span class="n">col_mol_mols</span><span class="p">])</span>
             <span class="n">hac</span> <span class="o">=</span> <span class="n">rowm</span><span class="p">[</span><span class="n">col_mol_mols</span><span class="p">]</span><span class="o">.</span><span class="n">GetNumAtoms</span><span class="p">()</span>  <span class="c1"># ### check if not already available in df</span>
             <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">df_frags</span><span class="o">.</span><span class="n">index</span><span class="p">)):</span>
