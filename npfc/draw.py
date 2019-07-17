@@ -364,7 +364,7 @@ def rescale(mol: Mol, f: float = 1.4):
     Chem.TransformMol(mol, tm)
 
 
-def compute_2D(mol: Mol, methods=["CoordGen", "rdDepictor", "Avalon"], consider_input=False) -> Mol:
+def compute_2D(mol: Mol, methods: List[str] = ["CoordGen", "rdDepictor", "Avalon"], consider_input: bool = False) -> Mol:
     """
     Returns the "best" 2D depiction of a molecule according the methods in METHODS_2D.
     Currently four methods are available:
@@ -381,15 +381,32 @@ def compute_2D(mol: Mol, methods=["CoordGen", "rdDepictor", "Avalon"], consider_
 
     The method used for depicting the molecule is stored as molecule property: "_2D".
 
-    This process could run much faster if input coordinates are reliable but just needed some tweakings
-    (i.e. macrocycles). For now I prefer to use CoordGen, instead. We'll see how it computational-time-wise.
-
     For CoordGen, 2D representations are automatically rescaled with a factor of 1.4.
+
+    Examples of 2D coordinates computed with listed methods (source: SDF from ChEMBL)
+
+    - Simple case
+
+    .. image:: _images/draw_simple.png
+
+    Most of molecules including macrocycles are usually better rendered with CoordGen.
+
+    - Medium case
+
+    .. image:: _images/draw_medium.png
+
+    In same cases, Avalon performs better than CoordGen.
+
+    - Complex Case
+
+    .. image:: _images/draw_hard.png
+
+    For some molecules, none of the methods yield a "perfect score". The depiction with the lowest score is thus selected.
 
     :param mol: the input molecule
     :param methods: a list of methods to apply. Currently supported: CoordGen, rdDepictor, Avalon.
     :param consider_input: consider the input coordinates (if any), for determining the best 2D representation
-    :return: the molecule with 2D coordinates
+    :return: the molecule with 2D coordinates and a new "_2D" property with the information of which depictor was selected.
     """
 
     # methods
