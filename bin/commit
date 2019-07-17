@@ -108,7 +108,7 @@ fi
 
 echo -e "\nRegenerating the docs...\n"
 pyreverse -my -A -o svg -p npfc npfc/
-mv packages_npfc.svg docs/_images/npfc_diagram.svg
+mv classes_npfc.svg docs/_images/npfc_diagram.svg
 cd docs
 make html
 cd ..

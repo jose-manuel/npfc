@@ -165,7 +165,7 @@ From the project root folder, type:
 
 (npfc) gally@m18047-lin:~/Projects/NPFC/src$ pyreverse -my -A -o svg -p npfc npfc/
 
-This creates a file named packages_npfc.svg.
+This creates a file named classes_npfc.svg.
 
 
 ## Manage package version
