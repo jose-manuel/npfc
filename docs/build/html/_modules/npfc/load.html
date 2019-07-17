@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.load &mdash; npfc 0.3.5-13-g50128cd documentation</title>
+  <title>npfc.load &mdash; npfc 0.3.5-14-ga5c9c05 documentation</title>
   
 
   
@@ -56,7 +56,7 @@
             
             
               <div class="version">
-                0.3.5-13-g50128cd
+                0.3.5-14-ga5c9c05
               </div>
             
           
@@ -164,15 +164,15 @@
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">gzip</span>
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="k">import</span> <span class="n">Path</span>
-<span class="kn">import</span> <span class="nn">base64</span>
 <span class="c1"># data science</span>
 <span class="kn">import</span> <span class="nn">psycopg2</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">pandas</span> <span class="k">import</span> <span class="n">DataFrame</span>
 <span class="c1"># chemoinformatics</span>
 <span class="kn">from</span> <span class="nn">rdkit</span> <span class="k">import</span> <span class="n">Chem</span>
-<span class="kn">from</span> <span class="nn">rdkit.Chem</span> <span class="k">import</span> <span class="n">Mol</span>
 <span class="c1"># docs</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">List</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">Union</span>
 <span class="c1"># dev</span>
 <span class="kn">from</span> <span class="nn">npfc</span> <span class="k">import</span> <span class="n">utils</span>
 
@@ -188,19 +188,6 @@
 <span class="c1"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #</span>
 
 
-<div class="viewcode-block" id="decode_mol_base64"><a class="viewcode-back" href="../../load.html#npfc.load.decode_mol_base64">[docs]</a><span class="k">def</span> <span class="nf">decode_mol_base64</span><span class="p">(</span><span class="n">string</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Mol</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Convert a string to a RDKit Mol object.</span>
-
-<span class="sd">    :param string: a string with a Mol object in bytes with a base64 string representation</span>
-<span class="sd">    :return: a Mol object upon success, None otherwise</span>
-
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">Chem</span><span class="o">.</span><span class="n">Mol</span><span class="p">(</span><span class="n">base64</span><span class="o">.</span><span class="n">b64decode</span><span class="p">(</span><span class="n">string</span><span class="p">))</span>
-    <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
-        <span class="k">return</span> <span class="kc">None</span></div>
-
-
 <div class="viewcode-block" id="pgsql"><a class="viewcode-back" href="../../load.html#npfc.load.pgsql">[docs]</a><span class="k">def</span> <span class="nf">pgsql</span><span class="p">(</span><span class="n">dbname</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
           <span class="n">user</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
           <span class="n">psql</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -209,7 +196,7 @@
           <span class="n">mol_format</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
           <span class="n">col_mol</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;mol&#39;</span><span class="p">,</span>
           <span class="n">col_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;idm&#39;</span><span class="p">,</span>
-          <span class="n">keep_db_cols</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+          <span class="n">keep_db_cols</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Load molecules from a PGSQL query.</span>
 <span class="sd">    The col_mol will is parsed by RDKit depending on the mol_format argument.</span>
 <span class="sd">    If no mol_format is specified, then the column is returned untouched.</span>
@@ -235,7 +222,7 @@
     <span class="c1"># execute query</span>
     <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">psql</span><span class="p">)</span>
     <span class="c1"># generate DataFrame</span>
-    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">cur</span><span class="o">.</span><span class="n">fetchall</span><span class="p">())</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">DataFrame</span><span class="p">(</span><span class="n">cur</span><span class="o">.</span><span class="n">fetchall</span><span class="p">())</span>
     <span class="c1"># apply table column names to DataFrame</span>
     <span class="n">df</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cur</span><span class="o">.</span><span class="n">description</span><span class="p">]</span>
     <span class="c1"># check for columns</span>
@@ -254,7 +241,7 @@
     <span class="k">return</span> <span class="n">df</span></div>
 
 
-<span class="k">def</span> <span class="nf">file</span><span class="p">(</span><span class="n">input_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+<div class="viewcode-block" id="file"><a class="viewcode-back" href="../../load.html#npfc.load.file">[docs]</a><span class="k">def</span> <span class="nf">file</span><span class="p">(</span><span class="n">input_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
          <span class="n">in_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;idm&#39;</span><span class="p">,</span>
          <span class="n">in_mol</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;mol&#39;</span><span class="p">,</span>
          <span class="n">in_sep</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;|&#39;</span><span class="p">,</span>
@@ -262,9 +249,21 @@
          <span class="n">out_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;idm&#39;</span><span class="p">,</span>
          <span class="n">out_mol</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;mol&#39;</span><span class="p">,</span>
          <span class="n">keep_props</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-         <span class="n">decode</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-         <span class="n">cols_list</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[],</span>
-         <span class="p">):</span>
+         <span class="n">decode</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+         <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Load a file into a DataFrame.</span>
+
+<span class="sd">    :param input_file: the input file to load</span>
+<span class="sd">    :param in_id: the column/property to use for molecule ids</span>
+<span class="sd">    :param in_mol: the column to use for molecules (irrerlevant for SDF)</span>
+<span class="sd">    :param in_sep: the column separator to use for parsing the input file (CSV)</span>
+<span class="sd">    :param mol_format: the input format for molecules</span>
+<span class="sd">    :param out_id: the column name used for storing molecule ids</span>
+<span class="sd">    :param out_mol: the column name used for storing molecules</span>
+<span class="sd">    :param keep_props: keep all properties found in the input file. If False, then only out_id and out_mol are kept.</span>
+<span class="sd">    :param decode: decode base64 strings into objects. It is not implemented yet, but later it would be possible to define just column names with objects to parse. The expected behavior would be: list -&gt; specific column names; True: all predefined columns; False: no decoding at all. Predefined columns are: mol, mol_frag, graph, colormap, aidxf, aidxf1, aidxf2, d_aidxs.</span>
+<span class="sd">    :return: a DataFrame</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># check arguments</span>
     <span class="n">utils</span><span class="o">.</span><span class="n">check_arg_input_file</span><span class="p">(</span><span class="n">input_file</span><span class="p">)</span>
     <span class="nb">format</span><span class="p">,</span> <span class="n">compression</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">get_file_format</span><span class="p">(</span><span class="n">input_file</span><span class="p">)</span>
@@ -306,9 +305,9 @@
     <span class="c1"># decode</span>
     <span class="k">if</span> <span class="n">decode</span><span class="p">:</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Decoding structures&quot;</span><span class="p">)</span>
-        <span class="n">df</span><span class="p">[</span><span class="n">in_mol</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">in_mol</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">decode_mol_base64</span><span class="p">)</span>
+        <span class="n">df</span><span class="p">[</span><span class="n">in_mol</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">in_mol</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">utils</span><span class="o">.</span><span class="n">decode_mol</span><span class="p">)</span>
 
-    <span class="k">return</span> <span class="n">df</span>
+    <span class="k">return</span> <span class="n">df</span></div>
 
 
 <span class="k">def</span> <span class="nf">_from_sdf</span><span class="p">(</span><span class="n">input_sdf</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">col_mol</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;mol&#39;</span><span class="p">,</span> <span class="n">compression</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
@@ -344,7 +343,7 @@
             <span class="n">row_idx</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
         <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
 
-    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">row_idx</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">DataFrame</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">row_idx</span><span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">_from_hdf</span><span class="p">(</span><span class="n">input_hdf</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>

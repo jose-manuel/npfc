@@ -47,7 +47,6 @@ def file(df: pd.DataFrame,
     :param encode_mols: convert rdkit.Chem.Mol objects to base64 string representation. For HDF format, pandas stops complaining about PerformanceWarning, for csv molecules do not need to parsed again.
     :param col_mol: if molecules need to be encoded, then the encoding is perfomed on this column.
     :return: the list of output files with their number of records
-
     """
     # check some arguments
     utils.check_arg_output_file(output_file)

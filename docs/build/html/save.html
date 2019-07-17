@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Module save &mdash; npfc 0.3.5-13-g50128cd documentation</title>
+  <title>Module save &mdash; npfc 0.3.5-14-ga5c9c05 documentation</title>
   
 
   
@@ -58,7 +58,7 @@
             
             
               <div class="version">
-                0.3.5-13-g50128cd
+                0.3.5-14-ga5c9c05
               </div>
             
           
@@ -159,24 +159,6 @@
 <h1>Module save<a class="headerlink" href="#module-save" title="Permalink to this headline">¶</a></h1>
 <p>A module containing the Saver class, used for storing DataFrames with molecules
 on disk.</p>
-<dl class="function">
-<dt id="npfc.save.encode_mol">
-<code class="descclassname">npfc.save.</code><code class="descname">encode_mol</code><span class="sig-paren">(</span><em>mol</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/save.html#encode_mol"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.save.encode_mol" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convert a molecule to binary and then represent this binary as base64 string.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>mol</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Mol</span></code>) – the input molecule</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">the molecule in base64</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
 <dl class="function">
 <dt id="npfc.save.file">
 <code class="descclassname">npfc.save.</code><code class="descname">file</code><span class="sig-paren">(</span><em>df</em>, <em>output_file</em>, <em>shuffle=False</em>, <em>random_seed=None</em>, <em>chunk_size=None</em>, <em>encode_mols=True</em>, <em>col_mol='mol'</em>, <em>col_id='idm'</em>, <em>sep='|'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/save.html#file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.save.file" title="Permalink to this definition">¶</a></dt>

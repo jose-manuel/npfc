@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.utils &mdash; npfc 0.3.5-13-g50128cd documentation</title>
+  <title>npfc.utils &mdash; npfc 0.3.5-14-ga5c9c05 documentation</title>
   
 
   
@@ -56,7 +56,7 @@
             
             
               <div class="version">
-                0.3.5-13-g50128cd
+                0.3.5-14-ga5c9c05
               </div>
             
           
@@ -162,9 +162,12 @@
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="k">import</span> <span class="n">Path</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">time</span>
-<span class="c1"># data science</span>
+<span class="c1"># data handling</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
+<span class="kn">import</span> <span class="nn">base64</span>
 <span class="kn">from</span> <span class="nn">pandas</span> <span class="k">import</span> <span class="n">HDFStore</span>
 <span class="c1"># docstrings</span>
+<span class="kn">from</span> <span class="nn">rdkit.Chem</span> <span class="k">import</span> <span class="n">Mol</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">Union</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">List</span>
 
@@ -347,6 +350,56 @@
     <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">numeric_level</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%(asctime)s</span><span class="s1"> -- </span><span class="si">%(levelname)s</span><span class="s1"> -- </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">)</span>
     <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">logger</span>
+
+
+<div class="viewcode-block" id="encode_object"><a class="viewcode-back" href="../../utils.html#npfc.utils.encode_object">[docs]</a><span class="k">def</span> <span class="nf">encode_object</span><span class="p">(</span><span class="n">element</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Convert an object to a base64 string.</span>
+
+<span class="sd">    :param element: an object to encode</span>
+<span class="sd">    :return: an base64 string upon success, None otherwise</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64encode</span><span class="p">(</span><span class="n">pickle</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">element</span><span class="p">))</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="decode_object"><a class="viewcode-back" href="../../utils.html#npfc.utils.decode_object">[docs]</a><span class="k">def</span> <span class="nf">decode_object</span><span class="p">(</span><span class="n">string</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Convert a base64 string to an object.</span>
+
+<span class="sd">    :param string: a base64 string encoding an object</span>
+<span class="sd">    :return: an object upon success, None otherwise</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">pickle</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">base64</span><span class="o">.</span><span class="n">b64decode</span><span class="p">(</span><span class="n">string</span><span class="p">))</span>
+    <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="encode_mol"><a class="viewcode-back" href="../../utils.html#npfc.utils.encode_mol">[docs]</a><span class="k">def</span> <span class="nf">encode_mol</span><span class="p">(</span><span class="n">mol</span><span class="p">:</span> <span class="n">Mol</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Convert a molecule to a base64 string.</span>
+
+<span class="sd">    :param mol: the input molecule</span>
+<span class="sd">    :return: the molecule in base64</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64encode</span><span class="p">(</span><span class="n">mol</span><span class="o">.</span><span class="n">ToBinary</span><span class="p">())</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="decode_mol"><a class="viewcode-back" href="../../utils.html#npfc.utils.decode_mol">[docs]</a><span class="k">def</span> <span class="nf">decode_mol</span><span class="p">(</span><span class="n">string</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Mol</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Convert a string to a RDKit Mol object.</span>
+
+<span class="sd">    :param string: a string with a Mol object in bytes with a base64 string representation</span>
+<span class="sd">    :return: a Mol object upon success, None otherwise</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">Mol</span><span class="p">(</span><span class="n">base64</span><span class="o">.</span><span class="n">b64decode</span><span class="p">(</span><span class="n">string</span><span class="p">))</span>
+    <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
 
 <span class="c1"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ CLASSES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #</span>
 

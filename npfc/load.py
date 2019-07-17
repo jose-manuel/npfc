@@ -10,15 +10,15 @@ on disk.
 import logging
 import gzip
 from pathlib import Path
-import base64
 # data science
 import psycopg2
 import pandas as pd
+from pandas import DataFrame
 # chemoinformatics
 from rdkit import Chem
-from rdkit.Chem import Mol
 # docs
 from typing import List
+from typing import Union
 # dev
 from npfc import utils
 
@@ -42,7 +42,7 @@ def pgsql(dbname: str,
           mol_format: str = None,
           col_mol: str = 'mol',
           col_id: str = 'idm',
-          keep_db_cols: bool = False) -> pd.DataFrame:
+          keep_db_cols: bool = False) -> DataFrame:
     """Load molecules from a PGSQL query.
     The col_mol will is parsed by RDKit depending on the mol_format argument.
     If no mol_format is specified, then the column is returned untouched.
@@ -68,7 +68,7 @@ def pgsql(dbname: str,
     # execute query
     cur.execute(psql)
     # generate DataFrame
-    df = pd.DataFrame(cur.fetchall())
+    df = DataFrame(cur.fetchall())
     # apply table column names to DataFrame
     df.columns = [c[0] for c in cur.description]
     # check for columns
@@ -95,9 +95,21 @@ def file(input_file: str,
          out_id: str = 'idm',
          out_mol: str = 'mol',
          keep_props: bool = True,
-         decode: bool = True,
-         cols_list: List[str] = [],
-         ):
+         decode: Union[bool, List[str]] = True,
+         ) -> DataFrame:
+    """Load a file into a DataFrame.
+
+    :param input_file: the input file to load
+    :param in_id: the column/property to use for molecule ids
+    :param in_mol: the column to use for molecules (irrerlevant for SDF)
+    :param in_sep: the column separator to use for parsing the input file (CSV)
+    :param mol_format: the input format for molecules
+    :param out_id: the column name used for storing molecule ids
+    :param out_mol: the column name used for storing molecules
+    :param keep_props: keep all properties found in the input file. If False, then only out_id and out_mol are kept.
+    :param decode: decode base64 strings into objects. It is not implemented yet, but later it would be possible to define just column names with objects to parse. The expected behavior would be: list -> specific column names; True: all predefined columns; False: no decoding at all. Predefined columns are: mol, mol_frag, graph, colormap, aidxf, aidxf1, aidxf2, d_aidxs.
+    :return: a DataFrame
+    """
     # check arguments
     utils.check_arg_input_file(input_file)
     format, compression = utils.get_file_format(input_file)
@@ -177,7 +189,7 @@ def _from_sdf(input_sdf: str, col_mol: str = 'mol', compression: str = None):
             row_idx.append(i)
         i += 1
 
-    return pd.DataFrame(rows, index=row_idx)
+    return DataFrame(rows, index=row_idx)
 
 
 def _from_hdf(input_hdf: str):
