@@ -171,13 +171,13 @@ def main():
     d4 = datetime.now()
     # encode mols
     logger.info(f"ENCODING MOLS")
-    df_aidxf['mol'] = df_aidxf['mol'].map(save.encode_mol)
+    df_aidxf['mol'] = df_aidxf['mol'].map(utils.encode_mol)
     # encode frags
     logger.info(f"ENCODING FRAGS")
-    df_aidxf['mol_frag'] = df_aidxf['mol_frag'].map(save.encode_mol)
+    df_aidxf['mol_frag'] = df_aidxf['mol_frag'].map(utils.encode_mol)
     # encode aidxf
     logger.info(f"ENCODING FRAGMENT ATOM INDICES")
-    df_aidxf['aidxf'] = df_aidxf['aidxf'].map(lambda x: json.dumps(list(x)))
+    df_aidxf['aidxf'] = df_aidxf['aidxf'].map(utils.encode_object)
     # write output
     outputs = save.file(df_aidxf, args.output, encode_mols=False)  # two mol cols to encode, more explicit this way
     logger.info(f"SAVED {outputs[0][1]} RECORDS AT {outputs[0][0]}")

@@ -98,7 +98,7 @@ def main():
     logging.info(f"FOUND {len(df_sub.index)} SUBSTRUCTURE MATCHES")
 
     # extract sets from strings (will likely fail with hdf input!!!)
-    df_sub['aidxf'] = df_sub['aidxf'].map(lambda x: frozenset(json.loads(x)))
+    df_sub['aidxf'] = df_sub['aidxf'].map(utils.decode_object)
 
     # run fcc
     logger.info(f"CLASSIFYING FRAGMENT COMBINATIONS")
@@ -129,8 +129,8 @@ def main():
 
     # save clean results
     logger.info(f"ENCODING ATOM INDICES")
-    df_fcc['aidxf1'] = df_fcc['aidxf1'].map(lambda x: json.dumps(list(x)))
-    df_fcc['aidxf2'] = df_fcc['aidxf2'].map(lambda x: json.dumps(list(x)))
+    df_fcc['aidxf1'] = df_fcc['aidxf1'].map(utils.encode_object)
+    df_fcc['aidxf2'] = df_fcc['aidxf2'].map(utils.encode_object)
     logger.info(f"SAVING CLEAN RESULTS AT '{args.output_fcc}'")
     d6 = datetime.now()
     save.file(df_fcc, args.output_fcc)

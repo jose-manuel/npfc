@@ -412,7 +412,7 @@ def plot_result_map(WD: str, output_csv: str, file_frags: str):
     logger.info(f"MAP -- SAVED RESULTS AT '{output_csv_counts_sub}'")
 
     # molecule coverage by fragments
-    df_map["colormap"] = df_map["colormap"].map(lambda x: pickle.loads(base64.b64decode(x)))
+    df_map["colormap"] = df_map["colormap"].map(utils.decode_object)
     df_map["aidxs"] = df_map["colormap"].map(lambda x: [k for k in x.atoms.keys()])
     groups_mol_map = df_map[['idm', 'hac_mol', 'aidxs']].groupby("idm")
     num_tot_mol_fcc_molcov = len(groups_mol_map)

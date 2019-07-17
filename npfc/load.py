@@ -34,19 +34,6 @@ CONVERTERS = {'molblock': lambda x: Chem.MolFromMolBlock(x),
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 
-def decode_mol_base64(string: str) -> Mol:
-    """Convert a string to a RDKit Mol object.
-
-    :param string: a string with a Mol object in bytes with a base64 string representation
-    :return: a Mol object upon success, None otherwise
-
-    """
-    try:
-        return Chem.Mol(base64.b64decode(string))
-    except TypeError:
-        return None
-
-
 def pgsql(dbname: str,
           user: str,
           psql: str,
@@ -152,7 +139,7 @@ def file(input_file: str,
     # decode
     if decode:
         logging.debug(f"Decoding structures")
-        df[in_mol] = df[in_mol].map(decode_mol_base64)
+        df[in_mol] = df[in_mol].map(utils.decode_mol)
 
     return df
 

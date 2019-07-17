@@ -143,7 +143,7 @@ def main():
     df_map.drop("Unnamed: 0", axis=1, inplace=True)
     logging.info(f"FOUND {len(df_map.index)} FRAGMENT MAPS")
     logging.info("DESERIALIZING GRAPHS")
-    df_map['graph'] = df_map['graph'].map(lambda x: pickle.loads(base64.b64decode(x)))
+    df_map['graph'] = df_map['graph'].map(utils.decode_object)
 
     # load map_refs
     logging.info("LOADING ALL REFERENCE FRAGMENT MAPS")
@@ -152,7 +152,7 @@ def main():
     df_map_ref.drop("Unnamed: 0", axis=1, inplace=True)
     logging.info(f"FOUND {len(df_map_ref.index)} REFERENCE FRAGMENT MAPS")
     logging.info("DESERIALIZING GRAPHS")
-    df_map_ref['graph'] = df_map_ref['graph'].map(lambda x: pickle.loads(base64.b64decode(x)))
+    df_map_ref['graph'] = df_map_ref['graph'].map(utils.decode_object)
     df_map_ref["edges_ref"] = df_map_ref["graph"].map(lambda x: x.edges(data="abbrev"))
 
     # mapping fragment combinations
@@ -186,7 +186,7 @@ def main():
     logger.info("SAVING PNP AND NON PNP LISTS")
 
     logger.info(f"ENCODING GRAPHS")
-    df_map['graph'] = df_map['graph'].map(lambda x: base64.b64encode(pickle.dumps(x)).decode("utf-8"))
+    df_map['graph'] = df_map['graph'].map(utils.encode_object)
     logger.info(f"SAVING MAP RESULTS AT '{args.output_map}'")
     save.file(df_map, args.output_map, encode_mols=False)
 

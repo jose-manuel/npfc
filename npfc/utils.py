@@ -8,9 +8,12 @@ import logging
 from pathlib import Path
 import os
 import time
-# data science
+# data handling
+import pickle
+import base64
 from pandas import HDFStore
 # docstrings
+from rdkit.Chem import Mol
 from typing import Union
 from typing import List
 
@@ -193,6 +196,56 @@ def _configure_logger(log_level: str) -> logging:
     logging.basicConfig(level=numeric_level, format='%(asctime)s -- %(levelname)s -- %(message)s')
     logger = logging.getLogger(__name__)
     return logger
+
+
+def encode_object(element: object) -> str:
+    """Convert an object to a base64 string.
+
+    :param element: an object to encode
+    :return: an base64 string upon success, None otherwise
+    """
+    try:
+        return base64.b64encode(pickle.dumps(element)).decode("utf-8")
+    except TypeError:
+        return None
+
+
+def decode_object(string: str) -> object:
+    """Convert a base64 string to an object.
+
+    :param string: a base64 string encoding an object
+    :return: an object upon success, None otherwise
+    """
+    try:
+        return pickle.loads(base64.b64decode(string))
+    except TypeError:
+        return None
+
+
+def encode_mol(mol: Mol) -> str:
+    """Convert a molecule to a base64 string.
+
+    :param mol: the input molecule
+    :return: the molecule in base64
+    """
+    try:
+        return base64.b64encode(mol.ToBinary()).decode("utf-8")
+    except AttributeError:
+        return None
+
+
+def decode_mol(string: str) -> Mol:
+    """Convert a string to a RDKit Mol object.
+
+    :param string: a string with a Mol object in bytes with a base64 string representation
+    :return: a Mol object upon success, None otherwise
+
+    """
+    try:
+        return Mol(base64.b64decode(string))
+    except TypeError:
+        return None
+
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ CLASSES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 

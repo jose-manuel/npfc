@@ -17,7 +17,7 @@ from rdkit import Chem
 from rdkit import RDLogger
 # tests
 import pytest
-from npfc.load import decode_mol_base64
+from npfc import utils
 from npfc import draw
 # configure logging
 lg = RDLogger.logger()
@@ -39,9 +39,9 @@ def ref_file_highlight_mol():
 @pytest.fixture
 def df_map():
     df_map = pd.read_csv("tests/test_case_chembl_2_map.csv.gz", compression="gzip", sep="|")
-    df_map["mol"] = df_map["mol"].map(decode_mol_base64)
-    df_map["graph"] = df_map["graph"].map(lambda x: pickle.loads(base64.b64decode(x)))
-    df_map["colormap"] = df_map["colormap"].map(lambda x: pickle.loads(base64.b64decode(x)))
+    df_map["mol"] = df_map["mol"].map(utils.decode_mol)
+    df_map["graph"] = df_map["graph"].map(utils.decode_object)
+    df_map["colormap"] = df_map["colormap"].map(utils.decode_object)
 
     return df_map
 

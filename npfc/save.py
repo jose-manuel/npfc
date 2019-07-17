@@ -27,18 +27,6 @@ from npfc import utils
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 
-def encode_mol(mol: Mol) -> str:
-    """Convert a molecule to binary and then represent this binary as base64 string.
-
-    :param mol: the input molecule
-    :return: the molecule in base64
-    """
-    try:
-        return base64.b64encode(mol.ToBinary()).decode()
-    except AttributeError:
-        return None
-
-
 def file(df: pd.DataFrame,
          output_file: str,
          shuffle: bool = False,
@@ -83,7 +71,7 @@ def file(df: pd.DataFrame,
     if len(df.index) == 0:
         logging.warning("DataFrame is empty, skip molecule encoding.")
     elif encode_mols and ext_output_file[0] != '.sdf':
-        df[col_mol] = df[col_mol].map(encode_mol)
+        df[col_mol] = df[col_mol].map(utils.encode_mol)
     # chunking
     if chunk_size is None:
         # single output

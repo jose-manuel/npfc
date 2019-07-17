@@ -47,9 +47,9 @@ def test_02_fcc_chembl_small():
     # assert Path("tests/tmp/local_workflow/data/chembl_small_001_map_crms.csv.gz").exists()
 
 
-def test_03_fcc_zinc_small():
-    """Run the pipeline for executing the FCC protocol on a small dataset from the ChEMBL, using synth subsetting"""
-    smk_file = pkg_resources.resource_filename('npfc', 'data/fcc_zinc_small.smk')
-    subprocess.run("snakemake -j 4 -s " + smk_file, shell=True, check=True)
-    # assert Path("tests/tmp/local_workflow/local_workflow.png").exists()
-    # assert Path("tests/tmp/local_workflow/data/chembl_small_001_map_crms.csv.gz").exists()
+# def test_03_fcc_zinc_small():
+#     """Run the pipeline for executing the FCC protocol on a small dataset from the ChEMBL, using synth subsetting"""
+#     smk_file = pkg_resources.resource_filename('npfc', 'data/fcc_zinc_small.smk')
+#     subprocess.run("snakemake -j 4 -s " + smk_file, shell=True, check=True)
+#     # assert Path("tests/tmp/local_workflow/local_workflow.png").exists()
+#     # assert Path("tests/tmp/local_workflow/data/chembl_small_001_map_crms.csv.gz").exists()

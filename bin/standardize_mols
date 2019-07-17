@@ -25,6 +25,7 @@ from npfc import load
 from npfc import save
 from npfc import utils
 from npfc import standardize
+from npfc import draw
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
@@ -259,7 +260,7 @@ def main():
     d6 = datetime.now()
     if args.compute_2D:
         logger.info(f"COMPUTING 2D COORDINATES")
-        df_passed[args.out_mol] = df_passed[args.out_mol].map(s.compute_2D)
+        df_passed[args.out_mol] = df_passed[args.out_mol].map(draw.compute_2D)
 
     d7 = datetime.now()
     logger.info(f"SAVING OUTPUTS")

@@ -7,14 +7,13 @@ Tests for the npfc.fcc module.
 # standard
 import logging
 # data handling
-import pickle
-import base64
 import pandas as pd
 # chemoinformatics
 from rdkit import Chem
 # tests
 import pytest
 from npfc import fragment
+from npfc import utils
 # debug
 # logging.basicConfig(level=logging.DEBUG)
 
@@ -367,9 +366,9 @@ def test_case_chembl_2(fcc, fm, df_case_chembl_2):
     logging.debug(f"\nFragment map for chembl_1:\n{df_map}\n")
     assert list(df_map['map_str'] == ["678:1[fbr]1141:0"])
     # export this df_map for further processing in draw tests
-    df_map["mol"] = df_map["mol"].map(lambda x: base64.b64encode(x.ToBinary()).decode())
-    df_map["colormap"] = df_map["colormap"].map(lambda x: base64.b64encode(pickle.dumps(x)).decode())
-    df_map["graph"] = df_map["graph"].map(lambda x: base64.b64encode(pickle.dumps(x)).decode())
+    df_map["mol"] = df_map["mol"].map(utils.encode_mol)
+    df_map["colormap"] = df_map["colormap"].map(utils.encode_object)
+    df_map["graph"] = df_map["graph"].map(utils.encode_object)
     df_map.to_csv("tests/test_case_chembl_2_map.csv.gz", compression="gzip", sep="|")
 
 

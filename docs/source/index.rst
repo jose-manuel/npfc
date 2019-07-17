@@ -35,8 +35,10 @@ Indices and tables
 Package Architecture
 ====================
 
+Module interactions:
+
 .. image:: _images/packages_npfc.svg
 
-And in more details:
+class hierarchy:
 
 .. image:: _images/classes_npfc.svg

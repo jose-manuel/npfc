@@ -12,7 +12,6 @@ from math import sqrt
 # data handling
 import json
 import base64
-import pickle
 import numpy as np
 from collections import OrderedDict
 from itertools import chain
@@ -41,6 +40,8 @@ from typing import List
 from typing import Tuple
 from typing import Dict
 from pandas import Series
+# dev
+from npfc import utils
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ GLOBALS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
@@ -307,7 +308,7 @@ def fc_graph(fc_graph: Graph, colormap_nodes: List[Tuple[float]] = None) -> Figu
     :return: a matplotlib Figure object
     """
     if isinstance(fc_graph, base64.bytes_types):
-        fc_graph = pickle.loads(base64.b64decode(fc_graph))
+        fc_graph = utils.decode_object(fc_graph)
 
     if colormap_nodes is None:
         # define a 2D list instead of a single tuple to avoid matplotlib warning
