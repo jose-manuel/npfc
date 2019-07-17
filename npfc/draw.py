@@ -221,6 +221,7 @@ def highlight_mol(mol: Mol, colormap: 'ColorMap', img_size: Tuple[int] = (300, 3
     Draw an Image of a molecule with highlighted atoms and bonds according to a colormap.
 
     .. image:: _images/draw_highlight.svg
+        :align: center
 
     :param mol: the molecule to highlight
     :param colormap: the colormap to use for highlighting the molecule
@@ -389,18 +390,21 @@ def compute_2D(mol: Mol, methods: List[str] = ["CoordGen", "rdDepictor", "Avalon
     - Simple case
 
     .. image:: _images/draw_simple.png
+        :align: center
 
     Most of molecules including macrocycles are usually better rendered with CoordGen.
 
     - Medium case
 
     .. image:: _images/draw_medium.png
+        :align: center
 
     In same cases, Avalon performs better than CoordGen.
 
     - Complex Case
 
     .. image:: _images/draw_hard.png
+        :align: center
 
     For some molecules, none of the methods yield a "perfect score". The depiction with the lowest score is thus selected.
 

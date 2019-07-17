@@ -38,7 +38,10 @@ Package Architecture
 Module interactions:
 
 .. image:: _images/packages_npfc.svg
+    :align: center
+
 
 class hierarchy:
 
 .. image:: _images/classes_npfc.svg
+    :align: center
