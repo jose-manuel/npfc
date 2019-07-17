@@ -159,6 +159,15 @@ Go to src/docs directory and type:
 make html
 Then open the file docs/build/index.rst with firefox and enjoy!
 
+## Generating the class hierarchy diagram
+
+From the project root folder, type:
+
+(npfc) gally@m18047-lin:~/Projects/NPFC/src$ pyreverse -my -A -o svg -p npfc npfc/
+
+This creates a file named packages_npfc.svg.
+
+
 ## Manage package version
 
 Use the command commit found in bin folder. If commits were pushed without any

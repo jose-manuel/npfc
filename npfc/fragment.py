@@ -65,10 +65,8 @@ class Matcher:
         d['mol'] = []  # encode the molecule here so we don't have to combine multiple files when trying to have a look at the results
         d['mol_frag'] = []  # strucutre of the fragment
         # begin
-        print(df_mols)
         for i in range(len(df_mols.index)):
             rowm = df_mols.iloc[i]
-            print(rowm)
             mol = Mol(rowm[col_mol_mols])
             hac = rowm[col_mol_mols].GetNumAtoms()  # ### check if not already available in df
             for j in range(len(df_frags.index)):

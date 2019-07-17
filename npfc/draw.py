@@ -13,14 +13,21 @@ from math import sqrt
 import json
 import base64
 import pickle
+import numpy as np
 from collections import OrderedDict
 from itertools import chain
 from collections import Counter
 # chemoinformatics
+from rdkit.Chem import AllChem as Chem
 from rdkit.Chem import Mol
 from rdkit.Chem import Atom
 from rdkit.Chem import Bond
 from rdkit.Chem import Draw
+# 2D depiction of molecules
+from rdkit.Chem import rdDepictor
+from rdkit.Chem import rdCoordGen
+from rdkit.Avalon import pyAvalonTools as pyAv
+from pdbeccdutils.core.depictions import DepictionValidator
 # graph
 import networkx as nx
 # docs
@@ -344,6 +351,92 @@ def fc_graph_from_series(row: Series, colormap_nodes_name: str = None) -> Figure
     return fc_graph(row["fc_graph"], colormap_nodes=colormap_nodes)
 
 
+def rescale(mol: Mol, f: float = 1.4):
+    """Rescale the coordinates of a Mol with a factor f.
+
+    :param mol: a Mol which is modified in place.
+    :param f: the factor for rescaling coordinates
+    """
+    tm = np.zeros((4, 4), np.double)
+    for i in range(3):
+        tm[i, i] = f
+    tm[3, 3] = 1.0
+    Chem.TransformMol(mol, tm)
+
+
+def compute_2D(mol: Mol, methods=["CoordGen", "rdDepictor", "Avalon"], consider_input=False) -> Mol:
+    """
+    Returns the "best" 2D depiction of a molecule according the methods in METHODS_2D.
+    Currently four methods are available:
+
+        - CoordGen
+        - rdDepictor
+        - Avalon
+        - Input
+
+    A perfect score of 0 means the depiction is good enough (no overalapping atom/bonds)
+    and it is not worth computing other depictions. When no perfect score is reached,
+    the depiction with lowest score is retrieved. In case of tie, the first method applied
+    is preferred.
+
+    The method used for depicting the molecule is stored as molecule property: "_2D".
+
+    This process could run much faster if input coordinates are reliable but just needed some tweakings
+    (i.e. macrocycles). For now I prefer to use CoordGen, instead. We'll see how it computational-time-wise.
+
+    For CoordGen, 2D representations are automatically rescaled with a factor of 1.4.
+
+    :param mol: the input molecule
+    :param methods: a list of methods to apply. Currently supported: CoordGen, rdDepictor, Avalon.
+    :param consider_input: consider the input coordinates (if any), for determining the best 2D representation
+    :return: the molecule with 2D coordinates
+    """
+
+    # methods
+    METHODS = {'CoordGen': lambda x: rdCoordGen.AddCoords(x),
+               'rdDepictor': lambda x: rdDepictor.Compute2DCoords(x),
+               'Avalon': lambda x: pyAv.Generate2DCoords(x),
+               }
+
+    depictions = OrderedDict()
+
+    for method in methods:
+        # copy the input mol so input coordinates are not modified
+        depiction_mol = Chem.Mol(mol)
+        # compute the depiction in place
+        METHODS[method](depiction_mol)
+        # coordgen creates very small 2D representations, so let's rescale them
+        if method == "CoordGen":
+            rescale(depiction_mol)
+        # score the depiction
+        dv = DepictionValidator(depiction_mol)
+        depiction_score = dv.depiction_score()
+        # exit if perfect score, record depiction for selection otherwise
+        if depiction_score == 0:
+            depiction_mol.SetProp("_2D", method)
+            return depiction_mol
+        else:
+            depictions[method] = (depiction_score, depiction_mol)
+
+    # no perfect score was reached until now, so test input coordinates if any
+    if consider_input and mol.GetNumConformers() > 0:
+        method = "Input"
+        dv = DepictionValidator(mol)
+        depiction_score = dv.depiction_score()
+        if depiction_score == 0:
+            mol.SetProp("_2D", method)
+            return mol
+        else:
+            depictions[method] = (depiction_score, mol)
+
+    # retrieve best depiction possible
+    best_method = min(depictions, key=lambda k: depictions[k][0])
+    best_depiction_mol = depictions[best_method][1]
+    best_depiction_mol.SetProp("_2D", best_method)
+
+    return best_depiction_mol
+
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ CLASSES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 
@@ -424,68 +517,4 @@ class ColorMap:
         colormap_b.update(bidxs_white)
 
         # return results as tuple
-        # print(f"colormap_f : {colormap_f}")
         return (colormap_f, colormap_a, colormap_b)
-
-    # def _compute_colormap(self, mol: Mol, d_aidxs: Dict, colors):
-    #     """
-    #     Compute a colormap for highlighting a molecule given a dictionary of fragments {fid: [aidxs]} and specified RGB colors.
-    #
-    #     The following rules are applied for consistant highilighting:
-    #
-    #              - only one color is attributed per fragment
-    #              - in case there are more fragments than colors, a same color can be used for several fragments
-    #              - when 2 fragments of different colors overlap, their colors are blended on overlapping atoms/bonds
-    #              - when 2 fragments of same colors overlap, a 15% darker shade is used on overlapping atoms/bonds, so these can be distinguished
-    #
-    #     :param mol: the molecule to highlight
-    #     :param d_aidxs: a dictionary of fragments atom indices
-    #     :param colors: a color palette
-    #     """
-    #     # extract all fids and sort them by alphabetical order for reproducible coloring
-    #     fids = list(d_aidxs.keys())
-    #     fids.sort()
-    #     # get corresponding values
-    #     l_aidxs = [d_aidxs[fid] for fid in fids]
-    #     colors_k = list(colors.keys())  # colors is a OrderedDict, so no need for resorting colors
-    #     colormap_a = {}  # atoms
-    #     colormap_b = {}  # bonds
-    #     colormap_f = OrderedDict()  # fragments are colored and stored in order
-    #     for i, (fid, aidxs) in enumerate(zip(fids, l_aidxs)):
-    #         # pick a color
-    #         color = colors[colors_k[i % len(colors_k)]]
-    #         colormap_f[fid] = color
-    #         # highlight the corresponding fragment
-    #         set_atoms_color(mol, aidxs, color)
-    #         bidxs = get_bidxs(mol, aidxs)
-    #         set_bonds_color(mol, bidxs, color)
-    #         # colormaps for the current fragment, might not be the same as input if atom/bond was already colored
-    #         colormap_a_curr = get_atoms_color(mol, aidxs)
-    #         colormap_b_curr = get_bonds_color(mol, bidxs)
-    #         # colormaps for the whole molecule
-    #         colormap_a.update(colormap_a_curr)
-    #         colormap_b.update(colormap_b_curr)
-    #         # display detailed results in case of debugging
-    #         # if logging.getLogger().level == logging.DEBUG:
-    #         #     padding = 30
-    #         #     logging.debug(f"Highlighting the molecule #{i}:")
-    #         #     print("=" * padding + "\n" + "highlightAtomLists".center(padding) + "\n" + "=" * padding)
-    #         #     print([a for a in list(colormap_a.keys())])
-    #         #     print("=" * padding + "\n" + "highlightAtomColors".center(padding) + "\n" + "=" * padding)
-    #         #     [print(f"{k}: {v}") for k, v in colormap_a.items()]
-    #         #     print("=" * padding + "\n" + "highlightBondColors".center(padding) + "\n" + "=" * padding)
-    #         #     [print(f"{k}: {v}") for k, v in colormap_b.items()]
-    #
-    #     # highlight bonds not colored as white, since we get sometimes the RDKit default highlight otherwise
-    #     # this might not be the best idea ever, but I could not find any hidden property on the mol, atoms or bonds
-    #     # responsible for this default for behavior. To compensate, I tried to make it as fast as possible,
-    #     # hence the cryptic writing below.
-    #     # Also I do not update the _color and _num_colors properties, so further color blending should not be an issue
-    #     bidxs_white = {bidx: (1, 1, 1) for bidx in set([b.GetIdx() for b in mol.GetBonds()]) - set(list(colormap_b.keys()))}
-    #     #                      white                            all bidx of the mol          -        all colored bidx
-    #     # update colormap with white bond indices
-    #     logging.debug(f"")
-    #     colormap_b.update(bidxs_white)
-    #
-    #     # return results as tuple
-    #     return (colormap_f, colormap_a, colormap_b)
