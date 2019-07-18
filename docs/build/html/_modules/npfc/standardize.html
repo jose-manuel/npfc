@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.standardize &mdash; npfc 0.3.5-16-geb6fdff documentation</title>
+  <title>npfc.standardize &mdash; npfc 0.3.6 documentation</title>
   
 
   
@@ -56,7 +56,7 @@
             
             
               <div class="version">
-                0.3.5-16-geb6fdff
+                0.3.6
               </div>
             
           
@@ -82,12 +82,13 @@
             
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../utils.html">Module utils</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../load.html">Module load</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../save.html">Module save</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../filter.html">Module filter</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../standardize.html">Module standardize</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../duplicate.html">Module duplicate</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../fragment.html">Module fragment</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../utils.html">Module utils</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../draw.html">Module draw</a></li>
 </ul>
 
@@ -178,11 +179,11 @@
 <span class="kn">from</span> <span class="nn">rdkit.Chem.MolStandardize.charge</span> <span class="k">import</span> <span class="n">Uncharger</span>
 <span class="kn">from</span> <span class="nn">rdkit.Chem.MolStandardize.normalize</span> <span class="k">import</span> <span class="n">Normalizer</span>
 <span class="kn">from</span> <span class="nn">rdkit.Chem.MolStandardize.tautomer</span> <span class="k">import</span> <span class="n">TautomerCanonicalizer</span>
-
 <span class="c1"># dev library</span>
 <span class="kn">from</span> <span class="nn">npfc</span> <span class="k">import</span> <span class="n">utils</span>
 <span class="kn">from</span> <span class="nn">npfc.filter</span> <span class="k">import</span> <span class="n">Filter</span>
 <span class="kn">from</span> <span class="nn">npfc</span> <span class="k">import</span> <span class="n">draw</span>
+<span class="kn">from</span> <span class="nn">npfc.duplicate</span> <span class="k">import</span> <span class="n">DuplicateFilter</span>
 
 <span class="c1"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ GLOBALS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #</span>
 
@@ -245,164 +246,6 @@
                 <span class="n">atom</span><span class="o">.</span><span class="n">SetNumExplicitHs</span><span class="p">(</span><span class="n">atom</span><span class="o">.</span><span class="n">GetNumExplicitHs</span><span class="p">()</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
                 <span class="n">atom</span><span class="o">.</span><span class="n">SetFormalCharge</span><span class="p">(</span><span class="n">atom</span><span class="o">.</span><span class="n">GetFormalCharge</span><span class="p">()</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">mol</span></div></div>
-
-
-<div class="viewcode-block" id="DuplicateFilter"><a class="viewcode-back" href="../../standardize.html#npfc.standardize.DuplicateFilter">[docs]</a><span class="k">class</span> <span class="nc">DuplicateFilter</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;A class used for filtering duplicate molecules in on or several DataFrame(s).&quot;&quot;&quot;</span>
-
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">on</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;inchikey&#39;</span><span class="p">,</span>
-                 <span class="n">ref_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-                 <span class="n">col_mol</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;mol&#39;</span><span class="p">,</span>
-                 <span class="n">col_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;idm&#39;</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Create an instance of DuplicateFilter with following parameters:</span>
-
-<span class="sd">        :param on: The property to use for identifying duplicate molecules.</span>
-<span class="sd">        :param ref_file: The path to the reference file used to store synonyms.</span>
-<span class="sd">        :param col_mol: The DataFrame column name where molecules are stored.</span>
-<span class="sd">        :param col_id: The DataFrame column name where molecule identifiers are stored.</span>
-
-<span class="sd">        .. note:: For now, only the &#39;inchikey&#39; property works for the &#39;on&#39; parameter. Moreover InchIKey are computed wether provided or not.</span>
-
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_on</span> <span class="o">=</span> <span class="n">on</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_col_mol</span> <span class="o">=</span> <span class="n">col_mol</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_col_id</span> <span class="o">=</span> <span class="n">col_id</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_col_id_synonyms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">col_id</span> <span class="o">+</span> <span class="s2">&quot;_synonyms&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_ref_file</span> <span class="o">=</span> <span class="n">ref_file</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Initialized a new DuplicateFilter object&quot;</span><span class="p">)</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">col_id</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_col_id</span>
-
-    <span class="nd">@col_id</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">col_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Error! col_id cannot be &#39;</span><span class="si">{value}</span><span class="s2">&#39;.&quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_col_id</span> <span class="o">=</span> <span class="n">value</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">col_mol</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_col_mol</span>
-
-    <span class="nd">@col_mol</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">col_mol</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Error! col_mol cannot be &#39;</span><span class="si">{value}</span><span class="s2">&#39;.&quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_col_mol</span> <span class="o">=</span> <span class="n">value</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">ref_file</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ref_file</span>
-
-    <span class="nd">@ref_file</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">ref_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Error! Either None or a str are expected for ref_file, not &#39;</span><span class="si">{value}</span><span class="s2">&#39; ({type(value)}).&quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_ref_file</span> <span class="o">=</span> <span class="n">value</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">on</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on</span>
-
-    <span class="nd">@on</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">on</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">value</span> <span class="o">!=</span> <span class="s1">&#39;inchikey&#39;</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;for now argument &#39;on&#39; only accepts &#39;inchikey&#39; as value, not &#39;</span><span class="si">{value}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_on</span> <span class="o">=</span> <span class="n">value</span>
-
-<div class="viewcode-block" id="DuplicateFilter.find_synonyms"><a class="viewcode-back" href="../../standardize.html#npfc.standardize.DuplicateFilter.find_synonyms">[docs]</a>    <span class="k">def</span> <span class="nf">find_synonyms</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Find synonyms within a DataFrame.</span>
-
-<span class="sd">        The Synonyms DataFrame follows the follow syntax:</span>
-
-<span class="sd">        - rowid: The InChIKey of the molecule (&#39;inchikey&#39;).</span>
-<span class="sd">        - idm_synonyms: The list of all molecule ids sharing the same InChIKey.</span>
-<span class="sd">        - idm: The id of the molecule that was kept (first element of idm_synonyms).</span>
-
-<span class="sd">        :param df: The input DataFrame.</span>
-<span class="sd">        :return: The output DataFrame containg synonyms for identifying duplicate molecules.</span>
-
-<span class="sd">        .. warning:: make sure there is no duplicate idm before using this function, as the final filtering of duplicates is performed with a whitelist based on idm.</span>
-
-<span class="sd">        .. todo:: optimize code (table format for reference file, numpy for setting up lists when grouping?)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>  <span class="c1"># this certainly removes the pandas warnings but is it the right way of doing this?</span>
-        <span class="c1"># check on col_mol</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">col_mol</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Error! No column </span><span class="si">{self.col_mol}</span><span class="s2"> found for col_mol parameter.&quot;</span><span class="p">)</span>
-        <span class="c1"># check on on</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">on</span> <span class="o">!=</span> <span class="s1">&#39;inchikey&#39;</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Error! Unauthorized value for on parameter (</span><span class="si">{self.on}</span><span class="s2">).&quot;</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">on</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Column </span><span class="si">{self.on}</span><span class="s2"> not found, so computing it.&quot;</span><span class="p">)</span>
-            <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="bp">self</span><span class="o">.</span><span class="n">on</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="bp">self</span><span class="o">.</span><span class="n">col_mol</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">rdinchi</span><span class="o">.</span><span class="n">MolToInchiKey</span><span class="p">)</span>
-        <span class="c1"># init</span>
-        <span class="n">df</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">on</span><span class="p">]</span>
-        <span class="n">df</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">on</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="c1"># define synonyms in current dataframe</span>
-        <span class="n">df_synonyms</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">on</span><span class="p">)[</span><span class="bp">self</span><span class="o">.</span><span class="n">col_id</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="nb">list</span><span class="p">))</span>
-        <span class="n">df_synonyms</span><span class="o">.</span><span class="n">rename</span><span class="p">({</span><span class="bp">self</span><span class="o">.</span><span class="n">col_id</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_col_id_synonyms</span><span class="p">},</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="n">df_synonyms</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">col_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_synonyms</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_col_id_synonyms</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-
-        <span class="c1"># df_synonyms[self.col_id] = df_synonyms[self._col_id_synonyms].map(lambda x: x[0])</span>
-        <span class="c1"># use information stored in ref file as well, if provided</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ref_file</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">key</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ref_file</span><span class="p">)</span><span class="o">.</span><span class="n">stem</span>
-            <span class="c1"># init ref file if does not exist already</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ref_file</span><span class="p">)</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">init_ref_file</span><span class="p">()</span>
-            <span class="c1"># open it with a lock as we&#39;ll need to update it at the end</span>
-            <span class="k">with</span> <span class="n">utils</span><span class="o">.</span><span class="n">SafeHDF5Store</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ref_file</span><span class="p">)</span> <span class="k">as</span> <span class="n">store</span><span class="p">:</span>
-                <span class="n">df_ref</span> <span class="o">=</span> <span class="n">store</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
-                <span class="n">df_ref</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">df_ref</span><span class="p">,</span> <span class="n">df_synonyms</span><span class="p">])</span>
-                <span class="n">df_ref</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">df_ref</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">on</span><span class="p">)[</span><span class="bp">self</span><span class="o">.</span><span class="n">_col_id_synonyms</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="nb">list</span><span class="p">))</span>
-                <span class="n">df_ref</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_col_id_synonyms</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_ref</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_col_id_synonyms</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">chain</span><span class="o">.</span><span class="n">from_iterable</span><span class="p">(</span><span class="n">x</span><span class="p">)))</span>
-                <span class="n">df_ref</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">col_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_ref</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_col_id_synonyms</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-                <span class="n">df_ref</span><span class="o">.</span><span class="n">to_hdf</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ref_file</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">key</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">df_ref</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">df_synonyms</span></div>
-
-<div class="viewcode-block" id="DuplicateFilter.init_ref_file"><a class="viewcode-back" href="../../standardize.html#npfc.standardize.DuplicateFilter.init_ref_file">[docs]</a>    <span class="k">def</span> <span class="nf">init_ref_file</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Initiate an empty reference hdf for identifying duplicates.</span>
-
-<span class="sd">        :return: True if the reference file could be initialized, False otherwise.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="c1"># delete file if it already exists</span>
-            <span class="k">if</span> <span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ref_file</span><span class="p">)</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
-                <span class="n">Path</span><span class="o">.</span><span class="n">unlink</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ref_file</span><span class="p">)</span>
-            <span class="c1"># init</span>
-            <span class="n">key</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ref_file</span><span class="p">)</span><span class="o">.</span><span class="n">stem</span>
-            <span class="c1"># create a new ref file</span>
-            <span class="n">df_ref</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="bp">self</span><span class="o">.</span><span class="n">on</span><span class="p">:</span> <span class="p">[],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_col_id_synonyms</span><span class="p">:</span> <span class="p">[],</span> <span class="bp">self</span><span class="o">.</span><span class="n">col_id</span><span class="p">:</span> <span class="p">[]})</span>
-            <span class="n">df_ref</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">df_ref</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">on</span><span class="p">]</span>
-            <span class="n">df_ref</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">on</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-            <span class="n">df_ref</span><span class="o">.</span><span class="n">to_hdf</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ref_file</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">key</span><span class="p">)</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Created new ref_file at &#39;</span><span class="si">{self.ref_file}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
-            <span class="k">return</span> <span class="kc">True</span>
-        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>  <span class="c1"># certainly not the only kind of error but PEP8 is against using just plain except.</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">critical</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Could not create a new ref_file at &#39;</span><span class="si">{self.ref_file}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
-            <span class="k">return</span> <span class="kc">False</span></div>
-
-<div class="viewcode-block" id="DuplicateFilter.mark_dupl"><a class="viewcode-back" href="../../standardize.html#npfc.standardize.DuplicateFilter.mark_dupl">[docs]</a>    <span class="k">def</span> <span class="nf">mark_dupl</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Mark duplicate entries found in df or in ref. Designed to work from</span>
-<span class="sd">        within Standardizer.run only as it updates columns &#39;status&#39; and &#39;task&#39; to</span>
-<span class="sd">        respectively &#39;filtered&#39; and &#39;filter_duplicates&#39;. Might still be useful if exposed.</span>
-
-<span class="sd">        Moreover, update the reference file (if specified) by using a lock (from utils module) so that</span>
-<span class="sd">        no other processes can modify it at the same time. This enables a safe duplicate</span>
-<span class="sd">        molecules filtering accross chunks without having to gather everything in a single file.</span>
-
-<span class="sd">        :param df: the input DataFrame</span>
-<span class="sd">        :return: the output DataFrame</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># any molecule whose id is not in df_synonyms[col_id] is a duplicate of another</span>
-        <span class="n">df_synonyms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">find_synonyms</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
-        <span class="c1"># df = df.copy()  # supress warnings, but might significantly slow down the process..?</span>
-        <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="o">~</span><span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="bp">self</span><span class="o">.</span><span class="n">col_id</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">df_synonyms</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="bp">self</span><span class="o">.</span><span class="n">col_id</span><span class="p">]),</span> <span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">,</span> <span class="s1">&#39;task&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;filtered&#39;</span><span class="p">,</span> <span class="s1">&#39;filter_dupl&#39;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">df</span></div></div>
 
 
 <div class="viewcode-block" id="Standardizer"><a class="viewcode-back" href="../../standardize.html#npfc.standardize.Standardizer">[docs]</a><span class="k">class</span> <span class="nc">Standardizer</span><span class="p">(</span><span class="n">Filter</span><span class="p">):</span>

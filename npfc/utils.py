@@ -22,7 +22,7 @@ from typing import List
 # allowed suffixes
 EXTS_INPUT = [['.sdf'], ['.sdf', '.gz'],
               ['.csv'], ['.csv', '.gz'],
-              ['.hdf']]
+              ['.hdf', '.feather']]
 
 EXTS_CONFIG = [['.json']]
 
@@ -69,6 +69,8 @@ def get_file_format(input_file: str) -> tuple:
         return ('CSV', compression)
     elif suffixes[0] in ('.hdf', 'hf5'):
         return ('HDF', compression)
+    elif suffixes[0] == ".feather":
+        return ('FEATHER', compression)
 
 
 def check_arg_bool(value: bool) -> bool:
