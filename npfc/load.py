@@ -121,6 +121,8 @@ def file(input_file: str,
         decode = False
     elif format == 'HDF':
         df = _from_hdf(input_file)
+    elif format == "FEATHER":
+        df = pd.read_feather(input_file)
     else:  # has to be CSV
         df = _from_csv(input_file, in_sep=in_sep, compression=compression)
 
@@ -151,7 +153,14 @@ def file(input_file: str,
     # decode
     if decode:
         logging.debug(f"Decoding structures")
-        df[in_mol] = df[in_mol].map(utils.decode_mol)
+        # mols
+        for col in ('mol', 'mol_frag'):
+            if col in df.columns:
+                df[col] = df[col].map(utils.decode_mol)
+        # other objects
+        for col in ('graph', 'colormap', 'aidxf', 'aidxf1', 'aidxf2', 'd_aidxs'):
+            if col in df.columns:
+                df[col] = df[col].map(utils.decode_object)
 
     return df
 

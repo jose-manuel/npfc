@@ -6,18 +6,100 @@ This modules is used to identify duplicate molecules within and accross multiple
 
 # standard
 import logging
+from time import sleep
 from pathlib import Path
+from filelock import FileLock
 # data handling
 from itertools import chain
 import pandas as pd
 from pandas import DataFrame
 # chemoinformatics
+from rdkit.Chem import MolToSmiles
+from rdkit.Chem.rdinchi import MolToInchiKey
 from rdkit.Chem import rdinchi
 # dev
 from npfc import utils
+from npfc import load
+from npfc import save
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ CLASSES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+# def init_ref_file(ref_file, group_on, col_id):
+#     """Initiate an empty reference hdf for identifying duplicates.
+#
+#     :param ref_file: name of the reference file. Format will be deduced from extension.
+#     :param group_on: property to use for indexing data
+#     :param col_id: property to use for labelling data
+#     :return: True if the reference file could be initialized, False otherwise.
+#     """
+#     try:
+#         # delete file if it already exists
+#         if Path(ref_file).is_file():
+#             Path.unlink(ref_file)
+#         # init
+#         # create a new ref file
+#         df_ref = pd.DataFrame({group_on: [], col_id: []})
+#         df_ref.set_index(group_on, inplace=True)
+#         save.file(df_ref)
+#         logging.debug(f"Created new ref_file at '{ref_file}'")
+#         return True
+#     except ValueError:  # certainly not the only kind of error but PEP8 is against using just plain except.
+#         logging.critical(f"Could not create a new ref_file at '{ref_file}'")
+#         return False
+#
+#
+# def filter_duplicates(df: DataFrame, group_on: str = "inchikey", col_id: str = "idm", col_mol: str = "mol", ref_file: str = None):
+#
+#     # avoid pandas warnings
+#     df = df.copy()  # ### this certainly is the worst way of doing this!
+#
+#     # check on col_id
+#     if col_id not in df.columns:
+#         raise ValueError(f"Error! No column {col_id} found for identifying molecules.")
+#
+#     # check on col_mol in case group_on is not present (needed for computing it!)
+#     if group_on not in df.columns and col_mol not in df.columns:
+#         raise ValueError(f"Error! No column {group_on} or {col_mol} found for grouping molecules.")
+#
+#     # check on group_on
+#     if group_on not in ('inchikey', 'smiles'):
+#         raise ValueError(f"Error! Unauthorized value for on parameter ({group_on}).")
+#     # compute it if not present
+#     elif group_on not in df.columns:
+#         logging.warning(f"Column {group_on} not found, so computing it.")
+#         if group_on == 'inchikey':
+#             df.loc[:, group_on] = df.loc[:, col_mol].map(MolToInchiKey)
+#         else:
+#             df.loc[:, group_on] = df.loc[:, col_mol].map(MolToSmiles)
+#
+#     # get df ready
+#     df.set_index(group_on)
+#
+#     # load reference file
+#     if ref_file:
+#
+#         # define a lock file
+#         lock_file = ref_file + ".lock"
+#
+#         # if the lock file exists, wait for it to be removed by its current job
+#         while Path(lock_file).exists():
+#             sleep(1)
+#
+#         # lock is not here, we can create one
+#         lock = FileLock(lock_file)
+#
+#         # work with lock on, it will be automatically lifted when work is done
+#         with lock:
+#
+#             # load references
+#             df_ref = load.file(ref_file)
+#             df_ref.set_index(group_on)
+#
+#             # identify duplicate compounds
+
+
+
 
 
 class DuplicateFilter:

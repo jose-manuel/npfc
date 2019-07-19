@@ -92,15 +92,8 @@ def main():
     # load fcc
     logging.info("LOADING FRAGMENT COMBINATIONS")
     d1 = datetime.now()
-    df_fcc = load.file(args.input_fcc,
-                       keep_props=True,
-                       )
+    df_fcc = load.file(args.input_fcc)
     logging.info(f"FOUND {len(df_fcc.index)} FRAGMENT COMBINATIONS")
-
-    # extract sets from strings (will likely fail with hdf input!!!)
-    logging.info(f"DECODING ATOM INDICES")
-    df_fcc['aidxf1'] = df_fcc['aidxf1'].map(utils.decode_object)
-    df_fcc['aidxf2'] = df_fcc['aidxf2'].map(utils.decode_object)
 
     # mapping fragment combinations
     logger.info(f"MAPPING REMAINING FRAGMENT COMBINATIONS")
@@ -110,15 +103,9 @@ def main():
     logger.info(f"COMPUTED {len(df_map.index)} FRAGMENT COMBINATION NETWORKS")
 
     # save map results
-    logger.info(f"ENCODING FRAGMENT ATOM INDICES")
-    df_map['d_aidxs'] = df_map['d_aidxs'].map(utils.encode_object)
-    logger.info(f"ENCODING GRAPHS")
-    df_map['graph'] = df_map['graph'].map(utils.encode_object)
-    logger.info(f"ENCODING COLORMAPS")
-    df_map['colormap'] = df_map['colormap'].map(utils.encode_object)
     logger.info(f"SAVING MAP RESULTS AT '{args.output_map}'")
     d3 = datetime.now()
-    save.file(df_map, args.output_map, encode_mols=True)
+    save.file(df_map, args.output_map, encode=True)
 
     # end
     d4 = datetime.now()

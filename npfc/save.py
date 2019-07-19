@@ -32,7 +32,7 @@ def file(df: pd.DataFrame,
          shuffle: bool = False,
          random_seed: int = None,
          chunk_size: int = None,
-         encode_mols: bool = True,
+         encode: bool = True,
          col_mol: str = 'mol',
          col_id: str = 'idm',
          sep: str = '|'):
@@ -44,14 +44,14 @@ def file(df: pd.DataFrame,
     :param shuffle: randomize records
     :param random_seed: a number for reproducing the shuffling
     :param chunk_size: the maximum number of records per chunk. If this value is unset, no chunking is performed, otherwise each chunk filename gets appended with a suffix: file_XXX.ext.
-    :param encode_mols: convert rdkit.Chem.Mol objects to base64 string representation. For HDF format, pandas stops complaining about PerformanceWarning, for csv molecules do not need to parsed again.
+    :param encode: encode RDKit Mol objects and other objects in predefined columns as base64 strings.
     :param col_mol: if molecules need to be encoded, then the encoding is perfomed on this column.
     :return: the list of output files with their number of records
     """
     # check some arguments
     utils.check_arg_output_file(output_file)
     utils.check_arg_bool(shuffle)
-    utils.check_arg_bool(encode_mols)
+    utils.check_arg_bool(encode)
 
     # init
     path_output_file = Path(output_file)
@@ -59,18 +59,31 @@ def file(df: pd.DataFrame,
     output_dir = path_output_file.resolve().parent
     output_files = []
     # for sdf, molecules cannot be encoded
-    if ext_output_file[0] == '.sdf' and encode_mols:
-        logging.warning(f"Format is SDF, so molecules are not encoded.")
+    if ext_output_file[0] == '.sdf' and encode:
+        logging.warning(f"Format is SDF, so column '{col_mol}' is not encoded.")
     # avoid pandas warnings
     df = df.copy()
     # shuffle
     if shuffle:
         df = df.sample(frac=1, random_state=random_seed)
-    # encode molecules
+    # encode predefined data
+    # if nothing to encode, just don't
     if len(df.index) == 0:
-        logging.warning("DataFrame is empty, skip molecule encoding.")
-    elif encode_mols and ext_output_file[0] != '.sdf':
-        df[col_mol] = df[col_mol].map(utils.encode_mol)
+        logging.warning("DataFrame is empty, skip encoding.")
+    # in case there is stuff to encode, encode it:
+    elif encode:
+        # for SDF files, RDKit Mol objects to use for MolBlocks should not be encoded
+        if ext_output_file[0] != '.sdf':
+            df[col_mol] = df[col_mol].map(utils.encode_mol)
+        # other RDKit Mol objects can be though
+        for col in ("mol", "mol_frag"):
+            if col in df.columns and col != col_mol:
+                df[col] = df[col].map(utils.encode_mol)
+        # encode other predefined objects
+        for col in ('graph', 'colormap', 'aidxf', 'aidxf1', 'aidxf2', 'd_aidxs'):
+            if col in df.columns:
+                df[col] = df[col].map(utils.encode_object)
+
     # chunking
     if chunk_size is None:
         # single output

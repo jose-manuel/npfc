@@ -109,8 +109,7 @@ def main():
 
     # parse map files
     logging.info("PARSING INPUT MAPS")
-    df_map = pd.concat([pd.read_csv(x, sep="|", compression=map_compression) for x in chunks_map])
-    df_map["graph"] = df_map["graph"].map(lambda x: pickle.loads(base64.b64decode(x)))
+    df_map = pd.concat([load.file(x) for x in chunks_map])
 
     # compute the nfn edges
 

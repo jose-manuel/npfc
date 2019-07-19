@@ -42,7 +42,7 @@ Module interactions:
     :align: center
 
 
-class hierarchy:
+Class hierarchy:
 
 .. image:: _images/classes_npfc.svg
     :align: center

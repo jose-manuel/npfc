@@ -53,8 +53,8 @@ def main():
     parser.add_argument('-n', '--nrecords', type=int, default=None, help="Maximum number of records within a chunk. None means no chunking.")
     parser.add_argument('-s', '--shuffle', type=bool, default=False, help="Shuffle records.")
     parser.add_argument('-k', '--keep_props', type=bool, default=False, help="Keep all properties found in the source, in addition to molid and mol columns.")
-    parser.add_argument('-e', '--encode_mols', type=bool, default=True, help="Encode molecules into base64 strings.")
-    parser.add_argument('-d', '--decode_mols', type=bool, default=True, help="Decode molecules into base64 strings.")
+    parser.add_argument('-e', '--encode', type=bool, default=True, help="Encode objects into base64 strings.")
+    parser.add_argument('-d', '--decode', type=bool, default=True, help="Decode objects into base64 strings.")
     parser.add_argument('--in_id', type=str, default='idm', help="Identifier column in the source file.")
     parser.add_argument('--in_mol', type=str, default='mol', help="Molecule column in the source file.")
     parser.add_argument('--in_sep', type=str, default='|', help="Separator to use in case the input file is a csv.")
@@ -99,8 +99,8 @@ def main():
     logging.info("NRECORDS".ljust(pad) + f"{args.nrecords}")
     logging.info("SHUFFLE".ljust(pad) + f"{args.shuffle}")
     logging.info("KEEP_PROPS".ljust(pad) + f"{args.keep_props}")
-    logging.info("ENCODE_MOLS".ljust(pad) + f"{args.encode_mols}")
-    logging.info("DECODE_MOLS".ljust(pad) + f"{args.decode_mols}")
+    logging.info("ENCODE".ljust(pad) + f"{args.encode}")
+    logging.info("DECODE".ljust(pad) + f"{args.decode}")
     logging.info("IN_ID".ljust(pad) + f"{args.in_id}")
     logging.info("IN_MOL".ljust(pad) + f"{args.in_mol}")
     logging.info("IN_FORMAT".ljust(pad) + f"{in_format}")
@@ -123,7 +123,7 @@ def main():
                         in_mol=args.in_mol,
                         out_mol=args.out_mol,
                         keep_props=args.keep_props,
-                        decode=args.decode_mols,
+                        decode=args.decode,
                         in_sep=args.in_sep
                         )
     # filter out failed molecules
@@ -142,7 +142,7 @@ def main():
                               col_id=args.out_id,
                               chunk_size=args.nrecords,
                               shuffle=args.shuffle,
-                              encode_mols=args.encode_mols,
+                              encode=args.encode,
                               random_seed=args.random_seed,
                               sep=args.out_sep,
                               )

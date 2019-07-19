@@ -13,13 +13,12 @@ from datetime import datetime
 import logging
 import pandas as pd
 import argparse
-import base64
-import pickle
 from pathlib import Path
 # chemoinformatics
 import rdkit
 # dev
 import npfc
+from npfc import load
 from npfc import save
 from npfc import utils
 # disable SettingWithCopyWarning warnings
@@ -139,20 +138,18 @@ def main():
     # load map
     logging.info("LOADING FRAGMENT MAPS")
     d1 = datetime.now()
-    df_map = pd.read_csv(args.input_map, sep="|", compression="gzip")
-    df_map.drop("Unnamed: 0", axis=1, inplace=True)
+    df_map = load.file(args.input_map, decode=True)
+    print(df_map.head(1))
+    # df_map.drop("Unnamed: 0", axis=1, inplace=True)
     logging.info(f"FOUND {len(df_map.index)} FRAGMENT MAPS")
-    logging.info("DESERIALIZING GRAPHS")
-    df_map['graph'] = df_map['graph'].map(utils.decode_object)
 
     # load map_refs
     logging.info("LOADING ALL REFERENCE FRAGMENT MAPS")
     d2 = datetime.now()
-    df_map_ref = pd.concat([pd.read_csv(x, sep="|", compression="gzip") for x in ref_files])
-    df_map_ref.drop("Unnamed: 0", axis=1, inplace=True)
+    df_map_ref = pd.concat([load.file(x) for x in ref_files])
+    # df_map_ref.drop("Unnamed: 0", axis=1, inplace=True)
     logging.info(f"FOUND {len(df_map_ref.index)} REFERENCE FRAGMENT MAPS")
-    logging.info("DESERIALIZING GRAPHS")
-    df_map_ref['graph'] = df_map_ref['graph'].map(utils.decode_object)
+    logging.info(f"EXTRACTING EDGES FROM FRAGMENT MAPS")
     df_map_ref["edges_ref"] = df_map_ref["graph"].map(lambda x: x.edges(data="abbrev"))
 
     # mapping fragment combinations
@@ -183,12 +180,8 @@ def main():
     # saving results
     logger.info("SAVING RESULTS")
     d5 = datetime.now()
-    logger.info("SAVING PNP AND NON PNP LISTS")
-
-    logger.info(f"ENCODING GRAPHS")
-    df_map['graph'] = df_map['graph'].map(utils.encode_object)
-    logger.info(f"SAVING MAP RESULTS AT '{args.output_map}'")
-    save.file(df_map, args.output_map, encode_mols=False)
+    logger.info(f"SAVING PNP RESULTS AT '{args.output_map}'")
+    save.file(df_map, args.output_map, encode=True)
 
     # end
     d6 = datetime.now()

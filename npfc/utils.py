@@ -22,7 +22,7 @@ from typing import List
 # allowed suffixes
 EXTS_INPUT = [['.sdf'], ['.sdf', '.gz'],
               ['.csv'], ['.csv', '.gz'],
-              ['.hdf', '.feather']]
+              ['.hdf'], ['.feather']]
 
 EXTS_CONFIG = [['.json']]
 
