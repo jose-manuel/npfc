@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.save &mdash; npfc 0.3.6-1-ga8b1c5a documentation</title>
+  <title>npfc.save &mdash; npfc 0.3.6-2-g95f12d7 documentation</title>
   
 
   
@@ -56,7 +56,7 @@
             
             
               <div class="version">
-                0.3.6-1-ga8b1c5a
+                0.3.6-2-g95f12d7
               </div>
             
           
@@ -187,7 +187,7 @@
          <span class="n">shuffle</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
          <span class="n">random_seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
          <span class="n">chunk_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-         <span class="n">encode_mols</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+         <span class="n">encode</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
          <span class="n">col_mol</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;mol&#39;</span><span class="p">,</span>
          <span class="n">col_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;idm&#39;</span><span class="p">,</span>
          <span class="n">sep</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;|&#39;</span><span class="p">):</span>
@@ -199,14 +199,14 @@
 <span class="sd">    :param shuffle: randomize records</span>
 <span class="sd">    :param random_seed: a number for reproducing the shuffling</span>
 <span class="sd">    :param chunk_size: the maximum number of records per chunk. If this value is unset, no chunking is performed, otherwise each chunk filename gets appended with a suffix: file_XXX.ext.</span>
-<span class="sd">    :param encode_mols: convert rdkit.Chem.Mol objects to base64 string representation. For HDF format, pandas stops complaining about PerformanceWarning, for csv molecules do not need to parsed again.</span>
+<span class="sd">    :param encode: encode RDKit Mol objects and other objects in predefined columns as base64 strings.</span>
 <span class="sd">    :param col_mol: if molecules need to be encoded, then the encoding is perfomed on this column.</span>
 <span class="sd">    :return: the list of output files with their number of records</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># check some arguments</span>
     <span class="n">utils</span><span class="o">.</span><span class="n">check_arg_output_file</span><span class="p">(</span><span class="n">output_file</span><span class="p">)</span>
     <span class="n">utils</span><span class="o">.</span><span class="n">check_arg_bool</span><span class="p">(</span><span class="n">shuffle</span><span class="p">)</span>
-    <span class="n">utils</span><span class="o">.</span><span class="n">check_arg_bool</span><span class="p">(</span><span class="n">encode_mols</span><span class="p">)</span>
+    <span class="n">utils</span><span class="o">.</span><span class="n">check_arg_bool</span><span class="p">(</span><span class="n">encode</span><span class="p">)</span>
 
     <span class="c1"># init</span>
     <span class="n">path_output_file</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">output_file</span><span class="p">)</span>
@@ -214,18 +214,31 @@
     <span class="n">output_dir</span> <span class="o">=</span> <span class="n">path_output_file</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="o">.</span><span class="n">parent</span>
     <span class="n">output_files</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="c1"># for sdf, molecules cannot be encoded</span>
-    <span class="k">if</span> <span class="n">ext_output_file</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;.sdf&#39;</span> <span class="ow">and</span> <span class="n">encode_mols</span><span class="p">:</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Format is SDF, so molecules are not encoded.&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">ext_output_file</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;.sdf&#39;</span> <span class="ow">and</span> <span class="n">encode</span><span class="p">:</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Format is SDF, so column &#39;</span><span class="si">{col_mol}</span><span class="s2">&#39; is not encoded.&quot;</span><span class="p">)</span>
     <span class="c1"># avoid pandas warnings</span>
     <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
     <span class="c1"># shuffle</span>
     <span class="k">if</span> <span class="n">shuffle</span><span class="p">:</span>
         <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">frac</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="n">random_seed</span><span class="p">)</span>
-    <span class="c1"># encode molecules</span>
+    <span class="c1"># encode predefined data</span>
+    <span class="c1"># if nothing to encode, just don&#39;t</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;DataFrame is empty, skip molecule encoding.&quot;</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">encode_mols</span> <span class="ow">and</span> <span class="n">ext_output_file</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;.sdf&#39;</span><span class="p">:</span>
-        <span class="n">df</span><span class="p">[</span><span class="n">col_mol</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">col_mol</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">utils</span><span class="o">.</span><span class="n">encode_mol</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;DataFrame is empty, skip encoding.&quot;</span><span class="p">)</span>
+    <span class="c1"># in case there is stuff to encode, encode it:</span>
+    <span class="k">elif</span> <span class="n">encode</span><span class="p">:</span>
+        <span class="c1"># for SDF files, RDKit Mol objects to use for MolBlocks should not be encoded</span>
+        <span class="k">if</span> <span class="n">ext_output_file</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;.sdf&#39;</span><span class="p">:</span>
+            <span class="n">df</span><span class="p">[</span><span class="n">col_mol</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">col_mol</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">utils</span><span class="o">.</span><span class="n">encode_mol</span><span class="p">)</span>
+        <span class="c1"># other RDKit Mol objects can be though</span>
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;mol&quot;</span><span class="p">,</span> <span class="s2">&quot;mol_frag&quot;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span> <span class="ow">and</span> <span class="n">col</span> <span class="o">!=</span> <span class="n">col_mol</span><span class="p">:</span>
+                <span class="n">df</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">utils</span><span class="o">.</span><span class="n">encode_mol</span><span class="p">)</span>
+        <span class="c1"># encode other predefined objects</span>
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;graph&#39;</span><span class="p">,</span> <span class="s1">&#39;colormap&#39;</span><span class="p">,</span> <span class="s1">&#39;aidxf&#39;</span><span class="p">,</span> <span class="s1">&#39;aidxf1&#39;</span><span class="p">,</span> <span class="s1">&#39;aidxf2&#39;</span><span class="p">,</span> <span class="s1">&#39;d_aidxs&#39;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+                <span class="n">df</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">utils</span><span class="o">.</span><span class="n">encode_object</span><span class="p">)</span>
+
     <span class="c1"># chunking</span>
     <span class="k">if</span> <span class="n">chunk_size</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="c1"># single output</span>

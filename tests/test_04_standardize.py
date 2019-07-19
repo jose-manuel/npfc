@@ -20,8 +20,6 @@ from rdkit.Chem.MolStandardize.tautomer import TautomerCanonicalizer
 import pytest
 from npfc.standardize import Standardizer
 from npfc.standardize import FullUncharger
-from npfc.duplicate import DuplicateFilter
-from npfc import load
 # configure logging
 lg = RDLogger.logger()
 lg.setLevel(RDLogger.CRITICAL)
@@ -40,9 +38,9 @@ def input_files_dupl():
     return [str(f) for f in list(p.glob('test_save_dupl_00[1-4].csv.gz'))]
 
 
-@pytest.fixture
-def ref_file():
-    return 'tests/tmp/test_dupl_ref.hdf'
+# @pytest.fixture
+# def ref_file():
+#     return 'tests/tmp/test_dupl_ref.hdf'
 
 
 @pytest.fixture
@@ -54,10 +52,10 @@ def standardizer():
 def full_uncharger():
     return FullUncharger()
 
-
-@pytest.fixture
-def duplicate_filter():
-    return DuplicateFilter()
+#
+# @pytest.fixture
+# def duplicate_filter():
+#     return DuplicateFilter()
 
 
 @pytest.fixture
@@ -228,9 +226,9 @@ def test_run_protocol(standardizer, mols, mols_bad):
     assert len(df_mols.index) == 24
     # run default protocol
     df_passed, df_filtered, df_error = standardizer.run_df(df_mols)
-    assert len(df_passed.index) == 12
+    assert len(df_passed.index) == 15
     assert len(df_error.index) == 3
-    assert len(df_filtered.index) == 9
+    assert len(df_filtered.index) == 6  # duplicates are not found
 
 
 @pytest.mark.skip  # skip this test to avoid 10s waiting time
@@ -242,47 +240,40 @@ def test_standardizer_timeout(mols_timeout, standardizer):
     assert task == 'timeout'
 
 
-def test_init_ref(ref_file):
-    """Make sure ref file is computed during this test."""
-    p = Path(ref_file)
-    if p.exists():
-        p.unlink()
-    assert p.exists() is False
+# def test_init_ref(ref_file):
+#     """Make sure ref file is computed during this test."""
+#     p = Path(ref_file)
+#     if p.exists():
+#         p.unlink()
+#     assert p.exists() is False
 
 
-def test_remove_dupl(standardizer, input_files_dupl):
-    """Test the DuplicateFilter class from context of Standardizer"""
-    standardizer.protocol = {'tasks': []}  # remove duplicates only
-    ref_file = 'tests/tmp/test_dupl_ref.hdf'
-    # without ref file
-    passed = 0
-    filtered = 0
-    error = 0
-    for f in input_files_dupl:
-        df = load.file(f)
-        df_passed, df_filtered, df_error = standardizer.run_df(df)
-        passed += len(df_passed.index)
-        filtered += len(df_filtered.index)
-        error += len(df_error.index)
-    assert passed == 6 and filtered == 1 and error == 0
-
-    # with ref_file
-    passed = 0
-    filtered = 0
-    error = 0
-    standardizer.ref_file = ref_file
-    for f in input_files_dupl:
-        df = load.file(f)
-        df_passed, df_filtered, df_error = standardizer.run_df(df)
-        passed += len(df_passed.index)
-        filtered += len(df_filtered.index)
-        error += len(df_error.index)
-
-    assert passed == 4 and filtered == 3 and error == 0
-
-
-def save_mols(mols):
-    """Export the molecules to a SDF for testing the npfc pipeline."""
-    from rdkit.Chem import PandasTools
-    mols['idm'] = f"MOL{str()}"
-    PandasTools.WriteSDF(mols, "tests/tmp/example_mols.sdf")
+# def test_remove_dupl(standardizer, input_files_dupl):
+#     """Test the DuplicateFilter class from context of Standardizer"""
+#     standardizer.protocol = {'tasks': []}  # remove duplicates only
+#     ref_file = 'tests/tmp/test_dupl_ref.hdf'
+#     # without ref file
+#     passed = 0
+#     filtered = 0
+#     error = 0
+#     for f in input_files_dupl:
+#         df = load.file(f)
+#         df_passed, df_filtered, df_error = standardizer.run_df(df)
+#         passed += len(df_passed.index)
+#         filtered += len(df_filtered.index)
+#         error += len(df_error.index)
+#     assert passed == 6 and filtered == 1 and error == 0
+#
+#     # with ref_file
+#     passed = 0
+#     filtered = 0
+#     error = 0
+#     standardizer.ref_file = ref_file
+#     for f in input_files_dupl:
+#         df = load.file(f)
+#         df_passed, df_filtered, df_error = standardizer.run_df(df)
+#         passed += len(df_passed.index)
+#         filtered += len(df_filtered.index)
+#         error += len(df_error.index)
+#
+#     assert passed == 4 and filtered == 3 and error == 0

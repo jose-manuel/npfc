@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Module save &mdash; npfc 0.3.6-1-ga8b1c5a documentation</title>
+  <title>Module save &mdash; npfc 0.3.6-2-g95f12d7 documentation</title>
   
 
   
@@ -58,7 +58,7 @@
             
             
               <div class="version">
-                0.3.6-1-ga8b1c5a
+                0.3.6-2-g95f12d7
               </div>
             
           
@@ -162,7 +162,7 @@
 on disk.</p>
 <dl class="function">
 <dt id="npfc.save.file">
-<code class="descclassname">npfc.save.</code><code class="descname">file</code><span class="sig-paren">(</span><em>df</em>, <em>output_file</em>, <em>shuffle=False</em>, <em>random_seed=None</em>, <em>chunk_size=None</em>, <em>encode_mols=True</em>, <em>col_mol='mol'</em>, <em>col_id='idm'</em>, <em>sep='|'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/save.html#file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.save.file" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">npfc.save.</code><code class="descname">file</code><span class="sig-paren">(</span><em>df</em>, <em>output_file</em>, <em>shuffle=False</em>, <em>random_seed=None</em>, <em>chunk_size=None</em>, <em>encode=True</em>, <em>col_mol='mol'</em>, <em>col_id='idm'</em>, <em>sep='|'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/save.html#file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.save.file" title="Permalink to this definition">¶</a></dt>
 <dd><p>A method for saving DataFrames with molecules to different file types.
 This is handy way of using the Saver class without having to keep a Saver object.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -175,7 +175,7 @@ This is handy way of using the Saver class without having to keep a Saver object
 <li><strong>shuffle</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>) – randomize records</li>
 <li><strong>random_seed</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.7)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>]) – a number for reproducing the shuffling</li>
 <li><strong>chunk_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.7)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>]) – the maximum number of records per chunk. If this value is unset, no chunking is performed, otherwise each chunk filename gets appended with a suffix: file_XXX.ext.</li>
-<li><strong>encode_mols</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>) – convert rdkit.Chem.Mol objects to base64 string representation. For HDF format, pandas stops complaining about PerformanceWarning, for csv molecules do not need to parsed again.</li>
+<li><strong>encode</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>) – encode RDKit Mol objects and other objects in predefined columns as base64 strings.</li>
 <li><strong>col_mol</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – if molecules need to be encoded, then the encoding is perfomed on this column.</li>
 </ul>
 </td>

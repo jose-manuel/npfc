@@ -14,7 +14,6 @@ from datetime import datetime
 import logging
 import argparse
 # data handling
-import json
 import pandas as pd
 # chemoinformatics
 import rdkit

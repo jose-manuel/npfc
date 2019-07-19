@@ -12,8 +12,8 @@ import pandas as pd
 from rdkit import RDLogger
 # tests
 import pytest
-from npfc.duplicate import DuplicateFilter
 from npfc import load
+from npfc import duplicate
 # configure logging
 lg = RDLogger.logger()
 lg.setLevel(RDLogger.CRITICAL)
@@ -40,37 +40,42 @@ def ref_file():
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ TESTS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 
-def test_init_ref(ref_file):
-    """Make sure ref file is computed during this test."""
-    p = Path(ref_file)
-    if p.exists():
-        p.unlink()
-    assert p.exists() is False
-
-
-def test_remove_dupl(input_files_dupl, ref_file):
-    """Remove duplicates accross chunks using a syn file"""
+def test_remove_dupl_wo_ref_file(input_files_dupl):
+    """Remove duplicates found in chunks individually without using a reference file."""
 
     # without a ref file: checks perfomed only intra chunks
     passed = 0
     filtered = 0
-    duplicate_filter = DuplicateFilter(ref_file=None)
+    total = 0
     for f in input_files_dupl:
         df = load.file(f)
-        df = duplicate_filter.mark_dupl(df)
-        passed += len(df[df["status"] == "passed"])
-        filtered += len(df[df["status"] == "filtered"])
+        total_curr = len(df.index)
+        df = duplicate.filter_duplicates(df, ref_file=None)
+        passed_curr = len(df.index)
+        passed += passed_curr
+        filtered += total_curr - passed_curr
+        total += total_curr
 
     assert passed == 6 and filtered == 1
 
-    # with a ref file: checks performed intra and inter chunks
+
+def test_remove_dupl_w_ref_file(input_files_dupl, ref_file):
+    # make sure there is no previous ref file existing
+    p = Path(ref_file)
+    if p.exists():
+        p.unlink()
+    assert p.exists() is False
+    # without a ref file: checks perfomed only intra chunks
     passed = 0
     filtered = 0
-    duplicate_filter = DuplicateFilter(ref_file=ref_file)
+    total = 0
     for f in input_files_dupl:
         df = load.file(f)
-        df = duplicate_filter.mark_dupl(df)
-        passed += len(df[df["status"] == "passed"])
-        filtered += len(df[df["status"] == "filtered"])
+        total_curr = len(df.index)
+        df = duplicate.filter_duplicates(df, ref_file=ref_file)
+        passed_curr = len(df.index)
+        passed += passed_curr
+        filtered += total_curr - passed_curr
+        total += total_curr
 
     assert passed == 4 and filtered == 3

@@ -10,13 +10,11 @@ on disk.
 import logging
 import gzip
 import shutil
-import base64
 from pathlib import Path
 # data science
 import pandas as pd
 from pandas import DataFrame
 # chemoinformatics
-from rdkit.Chem import Mol
 from rdkit.Chem import PandasTools
 # docs
 from typing import List
@@ -73,7 +71,7 @@ def file(df: pd.DataFrame,
     # in case there is stuff to encode, encode it:
     elif encode:
         # for SDF files, RDKit Mol objects to use for MolBlocks should not be encoded
-        if ext_output_file[0] != '.sdf':
+        if ext_output_file[0] != '.sdf' and col_mol in df.columns:
             df[col_mol] = df[col_mol].map(utils.encode_mol)
         # other RDKit Mol objects can be though
         for col in ("mol", "mol_frag"):

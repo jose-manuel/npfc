@@ -90,7 +90,7 @@ def pgsql(dbname: str,
 def file(input_file: str,
          in_id: str = 'idm',
          in_mol: str = 'mol',
-         in_sep: str = '|',
+         csv_sep: str = '|',
          mol_format: str = 'rdkit',
          out_id: str = 'idm',
          out_mol: str = 'mol',
@@ -102,7 +102,7 @@ def file(input_file: str,
     :param input_file: the input file to load
     :param in_id: the column/property to use for molecule ids
     :param in_mol: the column to use for molecules (irrerlevant for SDF)
-    :param in_sep: the column separator to use for parsing the input file (CSV)
+    :param csv_sep: the column separator to use for parsing the input file (CSV)
     :param mol_format: the input format for molecules
     :param out_id: the column name used for storing molecule ids
     :param out_mol: the column name used for storing molecules
@@ -124,7 +124,7 @@ def file(input_file: str,
     elif format == "FEATHER":
         df = pd.read_feather(input_file)
     else:  # has to be CSV
-        df = _from_csv(input_file, in_sep=in_sep, compression=compression)
+        df = _from_csv(input_file, csv_sep=csv_sep, compression=compression)
 
     # process data
 
@@ -137,7 +137,7 @@ def file(input_file: str,
     # out_mol
     if out_mol is None and in_mol is not None:
         out_mol = in_mol
-    elif out_mol != in_mol:
+    elif out_mol != in_mol and in_mol in df.columns:
         df.rename({in_mol: out_mol}, axis=1, inplace=True)
 
     # keep_props
@@ -148,7 +148,8 @@ def file(input_file: str,
         df.drop([c for c in df.columns if c not in (out_id, out_mol)], axis=1, inplace=True)
 
     # mol_format
-    df[out_mol] = df[out_mol].map(CONVERTERS[mol_format])
+    if out_mol in df.columns:
+        df[out_mol] = df[out_mol].map(CONVERTERS[mol_format])
 
     # decode
     if decode:
@@ -205,14 +206,14 @@ def _from_hdf(input_hdf: str):
     return pd.read_hdf(input_hdf, key=Path(input_hdf).stem)
 
 
-def _from_csv(input_csv: str, in_sep: str = '|', compression: str = None):
+def _from_csv(input_csv: str, csv_sep: str = '|', compression: str = None):
     if compression is None:
         try:
-            return pd.read_csv(input_csv, sep=in_sep, index_col='Unnamed: 0')  # define rowidx with rowids, if any
+            return pd.read_csv(input_csv, sep=csv_sep, index_col='Unnamed: 0')  # define rowidx with rowids, if any
         except KeyError:
-            return pd.read_csv(input_csv, sep=in_sep)
+            return pd.read_csv(input_csv, sep=csv_sep)
     elif compression == 'gzip':
         try:
-            return pd.read_csv(input_csv, sep=in_sep, index_col='Unnamed: 0', compression=compression)  # define rowidx with rowids, if any
+            return pd.read_csv(input_csv, sep=csv_sep, index_col='Unnamed: 0', compression=compression)  # define rowidx with rowids, if any
         except (ValueError, KeyError):
-            return pd.read_csv(input_csv, sep=in_sep, compression=compression)
+            return pd.read_csv(input_csv, sep=csv_sep, compression=compression)

@@ -8,11 +8,8 @@ This modules is used to standardize molecules and molecular DataFrames.
 import logging
 import timeout_decorator
 import copy
-from pathlib import Path
 # data handling
 import json
-from itertools import chain
-import pandas as pd
 from pandas import DataFrame
 # chemoinformatics
 from rdkit.Chem import AllChem as Chem
@@ -27,8 +24,6 @@ from rdkit.Chem.MolStandardize.tautomer import TautomerCanonicalizer
 # dev library
 from npfc import utils
 from npfc.filter import Filter
-from npfc import draw
-from npfc.duplicate import DuplicateFilter
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ GLOBALS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
@@ -513,22 +508,23 @@ class Standardizer(Filter):
         # compute InChiKeys
         # df.reset_index(drop=True, inplace=True)
         df.loc[:, 'inchikey'] = df.loc[:, self.col_mol].map(rdinchi.MolToInchiKey)
-        # filter duplicates
-        if self.filter_duplicates:
-            dupl_filter = DuplicateFilter(on=self.on, col_mol=self.col_mol, col_id=self.col_id, ref_file=self.ref_file)
-            df = dupl_filter.mark_dupl(df)
-            # clean up for postprocess
-            df.set_index("idm", inplace=True)
-            # separate dupl from the rest
-            df_filtered = pd.concat([df_filtered, df[df['status'] == 'filtered'][[c for c in df.columns if c != 'inchikey']]], join='inner')  # drop inchikey col as the info is stored in ref_file anyway
-            df = df[df['status'] == 'passed']
+        # # filter duplicates
+        # if self.filter_duplicates:
+        #     dupl_filter = DuplicateFilter(on=self.on, col_mol=self.col_mol, col_id=self.col_id, ref_file=self.ref_file)
+        #     df = dupl_filter.mark_dupl(df)
+        #
+        #     # clean up for postprocess
+        #     df.set_index("idm", inplace=True)
+        #     # separate dupl from the rest
+        #     df_filtered = pd.concat([df_filtered, df[df['status'] == 'filtered'][[c for c in df.columns if c != 'inchikey']]], join='inner')  # drop inchikey col as the info is stored in ref_file anyway
+        #     df = df[df['status'] == 'passed']
 
-        # compute 2D depictions
-        if self.compute_2D:
-            # compute coordinates
-            df['mol'] = df['mol'].map(draw.compute_2D)
-            # retrieve info of which method was retained
-            df['_2D'] = df['mol'].map(lambda x: x.GetProp("_2D"))  # ### uninteresting?
+        # # compute 2D depictions
+        # if self.compute_2D:
+        #     # compute coordinates
+        #     df['mol'] = df['mol'].map(draw.compute_2D)
+        #     # retrieve info of which method was retained
+        #     df['_2D'] = df['mol'].map(lambda x: x.GetProp("_2D"))  # ### uninteresting?
 
         # tuple of dataframes
         return (df, df_filtered, df_error)
