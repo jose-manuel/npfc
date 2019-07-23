@@ -33,7 +33,7 @@ def file(df: pd.DataFrame,
          encode: bool = True,
          col_mol: str = 'mol',
          col_id: str = 'idm',
-         sep: str = '|'):
+         csv_sep: str = '|'):
     """A method for saving DataFrames with molecules to different file types.
     This is handy way of using the Saver class without having to keep a Saver object.
 
@@ -44,6 +44,7 @@ def file(df: pd.DataFrame,
     :param chunk_size: the maximum number of records per chunk. If this value is unset, no chunking is performed, otherwise each chunk filename gets appended with a suffix: file_XXX.ext.
     :param encode: encode RDKit Mol objects and other objects in predefined columns as base64 strings.
     :param col_mol: if molecules need to be encoded, then the encoding is perfomed on this column.
+    :param csv_sep: separator to use in case of csv output
     :return: the list of output files with their number of records
     """
     # check some arguments
@@ -85,7 +86,7 @@ def file(df: pd.DataFrame,
     # chunking
     if chunk_size is None:
         # single output
-        _save(df=df, output_file=output_file, col_mol=col_mol, col_id=col_id, suffixes=ext_output_file, key=path_output_file.stem.split('.')[0], sep=sep)
+        _save(df=df, output_file=output_file, col_mol=col_mol, col_id=col_id, suffixes=ext_output_file, key=path_output_file.stem.split('.')[0], csv_sep=csv_sep)
         output_files.append([output_file, len(df.index)])
     else:
         # chunks
@@ -94,7 +95,7 @@ def file(df: pd.DataFrame,
         for start in range(0, len(df.index), chunk_size):
             end = start + chunk_size
             output_chunk = str(output_dir) + "/" + path_output_file.stem.split('.')[0] + "_" + str(j).zfill(3) + ''.join(ext_output_file)  # stem returns file.csv for file.csv.gz
-            _save(df=df.iloc[start:end], output_file=output_chunk, col_mol=col_mol, col_id=col_id, suffixes=ext_output_file, key=path_output_file.stem.split('.')[0], sep=sep)
+            _save(df=df.iloc[start:end], output_file=output_chunk, col_mol=col_mol, col_id=col_id, suffixes=ext_output_file, key=path_output_file.stem.split('.')[0], sep=csv_sep)
             output_files.append([output_chunk, len(df.iloc[start:end].index)])
             j += 1
         logging.debug(f"{len(output_files)} chunks were created")
@@ -108,14 +109,14 @@ def _save(df: DataFrame,
           col_id: str,
           suffixes: List[str],
           key: str,
-          sep: str):
+          csv_sep: str):
     """Helper function for the save method.
     Does the actual export to the output file and picks a format based on provided infos.
 
     :param df: the input DataFrame
     :param suffixes: the suffixes of the output file
     :param key: the key for a HDF file
-    :param sep: the separator for a CSV file
+    :param csv_sep: the separator for a CSV file
     """
     # infer from pandas.to_csv does not work as expected (no compression!)
     # so I need to specify the compression type manually.
@@ -123,9 +124,9 @@ def _save(df: DataFrame,
     format, compression = utils.get_file_format(output_file)
     if format == 'CSV':
         if compression == 'gzip':
-            df.to_csv(output_file, sep=sep, compression=compression)
+            df.to_csv(output_file, sep=csv_sep, compression=compression)
         else:
-            df.to_csv(output_file, sep=sep)
+            df.to_csv(output_file, sep=csv_sep)
     elif format == 'HDF':
         df.to_hdf(output_file, key=key)
     elif format == 'SDF':
@@ -144,6 +145,8 @@ def _save(df: DataFrame,
                 Path(output_file_base).unlink()
         else:
             PandasTools.WriteSDF(df, output_file, molColName=col_mol, idName=col_id, properties=list(df.columns))
+    elif format == 'FEATHER':
+        df.to_feather(output_file)
     else:
         raise ValueError(f"Error! Cannot save DataFrame to unexpected format '{suffixes[0]}'.")
     logging.debug(f"Saved {len(df.index)} records at '{output_file}'.")

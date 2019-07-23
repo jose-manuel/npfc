@@ -17,25 +17,6 @@ from npfc import utils
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ TESTS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 
-def test_shs_init():
-    """Test if a SafeHDF5Store object can be instanciated and the lock is used."""
-    store = 'tests/tmp/store.hdf'
-    # remove an eventual lock from previous run
-    path_lock = Path(store + '.lock')
-    if path_lock.is_file():
-        path_lock.unlink()
-    # open a store object using with allows for automatic exit. If exit is not performed,
-    # then core dumps due to stack overflows can happen. This can be prevented by deleting
-    # the lock file manually.
-    with utils.SafeHDF5Store(store) as STORE:
-        # instance of SafeHDF5Store
-        assert isinstance(STORE, utils.SafeHDF5Store) is True
-        # lock created
-        assert path_lock.is_file() is True
-    # lock removed
-    assert path_lock.is_file() is False
-
-
 def test_check_arg_bool():
     """Test the parsing of arguments that should be bool only."""
     # should pass

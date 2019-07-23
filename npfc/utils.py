@@ -6,12 +6,9 @@ Module utils
 # standard
 import logging
 from pathlib import Path
-import os
-import time
 # data handling
 import pickle
 import base64
-from pandas import HDFStore
 # docstrings
 from rdkit.Chem import Mol
 from typing import Union
@@ -22,7 +19,7 @@ from typing import List
 # allowed suffixes
 EXTS_INPUT = [['.sdf'], ['.sdf', '.gz'],
               ['.csv'], ['.csv', '.gz'],
-              ['.hdf'], ['.feather']]
+              ['.hdf']]  # , ['.feather']]  # tests with feather work but not in production, dig into that later
 
 EXTS_CONFIG = [['.json']]
 
@@ -62,7 +59,8 @@ def get_file_format(input_file: str) -> tuple:
             raise ValueError(f"Error! Unexpected value for compression suffix: '{compression}'.")
     else:
         compression = None
-    #
+
+    # return format and compression
     if suffixes[0] in ('.sdf', '.mol', '.sd'):
         return ('SDF', compression)
     elif suffixes[0] == '.csv':
@@ -247,32 +245,3 @@ def decode_mol(string: str) -> Mol:
         return Mol(base64.b64decode(string))
     except TypeError:
         return None
-
-
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ CLASSES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
-
-
-class SafeHDF5Store(HDFStore):
-    """Implement safe HDFStore by obtaining file lock. Multiple writes will queue if lock is not obtained.
-
-    Copied from https://stackoverflow.com/questions/41231678/obtaining-a-exclusive-lock-when-writing-to-an-hdf5-file.
-    """
-
-    def __init__(self, *args, **kwargs):
-        """Initialize and obtain file lock."""
-        interval = kwargs.pop('probe_interval', 1)
-        self._lock = "%s.lock" % args[0]
-        while True:
-            try:
-                self._flock = os.open(self._lock, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
-                break
-            except (IOError, OSError):
-                time.sleep(interval)
-
-        HDFStore.__init__(self, *args, **kwargs)
-
-    def __exit__(self, *args, **kwargs):
-        """Exit and remove file lock."""
-        HDFStore.__exit__(self, *args, **kwargs)
-        os.close(self._flock)
-        os.remove(self._lock)

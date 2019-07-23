@@ -1,0 +1,179 @@
+#!/usr/bin/env python
+
+"""
+Script filter_dupl_mols
+==========================
+This script is used for filtering out duplicated molecules.
+"""
+
+# standard
+import sys
+import warnings
+from pathlib import Path
+from datetime import datetime
+import logging
+import argparse
+# data
+import pandas as pd
+# chemoinformatics
+import rdkit
+from rdkit import RDLogger
+# dev
+import npfc
+from npfc import load
+from npfc import save
+from npfc import duplicate
+from npfc import utils
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
+def main():
+
+    # init
+    d0 = datetime.now()
+    description = """Script used for loading molecules from SDF, CSV or HDF files, convert them into RDKit objects and export them into CSV or HDF files.
+    Molecules that failed the RDKit conversion have None for structure but their properties, if any, remain.
+
+    It uses the installed npfc libary in your favorite env manager.
+
+    Examples:
+
+        >>> # Convert a SDF into a HDF using molecule titles as molecule id
+        >>> load_mols file_in.sdf file_out.hdf --src_id _Name
+        >>> # Chunk a CSV file into SDF files of 100 randomly ordered records while keeping all properties
+        >>> load_mols file_in.csv file_out.sdf -n 100 -k True -s True --src_id prop1 --src_mol mol --out_id _Name
+    """
+
+    # parameters CLI
+
+    parser = argparse.ArgumentParser(description=description, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument('input_mols', type=str, default=None, help="Input file.")
+    parser.add_argument('output_mols', type=str, default=None, help="Output file.")
+    parser.add_argument('-g', '--group-on', type=str, default='inchikey', help="The column to use for grouping molecules. Currently two possible values: 'inchikey' or 'smiles'. If these columns are not present in the DataFrame, they are computed using the 'mol' column.")
+    parser.add_argument('--recompute-group', type=bool, default=False, help="Force the computation of the grouping column even if it is found in the input DataFrame.")
+    parser.add_argument('-r', '--ref-file', type=str, default=None, help="A reference HDF file (.hdf) where kept molecules are recorded. Useful for filtering duplicate molecules accross chunks. In case of parallel processing, a lock system prevents simultaneous reading/writing. The reference file is in table format and append mode.")
+    parser.add_argument('-c', '--clear', type=bool, default=False, help="Clear the defined reference file if it already exists.")
+    parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
+
+    args = parser.parse_args()
+
+    # logging
+
+    logger = utils._configure_logger(args.log)
+    logger.info("RUNNING FILTER_DUPL_MOLS")
+    warnings.filterwarnings('ignore', category=pd.io.pytables.PerformanceWarning)  # if None is returned instead of a molecule, do not complain about mixed types
+    pad = 40
+    lg = RDLogger.logger()
+    lg.setLevel(RDLogger.CRITICAL)
+
+    # parse arguments
+
+    # check on args values not already checked by argparse
+    utils.check_arg_input_file(args.input_mols)
+    utils.check_arg_output_file(args.output_mols)
+    utils.check_arg_output_file(args.ref_file)
+
+    if args.clear:
+        if args.ref_file is None:
+            logging.warning("WARNING! NO REFERENCE FILE IS DEFINED FOR CLEARING")
+        else:
+            p = Path(args.ref_file)
+            if p.exists():
+                logging.info(f"CLEARING EXISTING REF_FILE AT '{args.ref_file}'")
+            else:
+                logging.warning(f"REF_FILE COULD NOT BE FOUND AT '{args.ref_file}', SO NOTHING TO CLEAR")
+
+    # IO infos
+    in_format, in_compression = utils.get_file_format(args.input_mols)
+    out_format, out_compression = utils.get_file_format(args.output_mols)
+    out_format, out_compression = utils.get_file_format(args.ref_file)
+    if out_format != "HDF":
+        raise ValueError("ERROR! output_mols file needs to be a HDF file (.hdf).")
+
+    # hard-coded variables
+    csv_sep = "|"
+    in_id = "idm"
+    in_mol = "mol"
+    out_id = "idm"
+    out_mol = "mol"
+    encode = True
+    decode = True
+
+    # display infos
+
+    # versions
+    logger.info("LIBRARY VERSIONS:")
+    logger.info("rdkit".ljust(pad) + f"{rdkit.__version__}")
+    logger.info("pandas".ljust(pad) + f"{pd.__version__}")
+    logger.info("npfc".ljust(pad) + f"{npfc.__version__}")
+    # arguments
+    # replace many vars with defined names for simplifying the whole pipeline, these variables might be added back when the structure of npfc does not change anymore
+    logger.info("ARGUMENTS:")
+    logging.info("INPUT_MOLS".ljust(pad) + f"{args.input_mols}")
+    logging.info("IN_ID".ljust(pad) + f"{in_id}")
+    logging.info("IN_MOL".ljust(pad) + f"{in_mol}")
+    logging.info("IN_FORMAT".ljust(pad) + f"{in_format}")
+    logging.info("IN_COMPRESSION".ljust(pad) + f"{in_compression}")
+    logging.info("DECODE".ljust(pad) + f"{decode}")
+    logging.info("OUTPUT_MOLS".ljust(pad) + f"{args.output_mols}")
+    logging.info("OUT_ID".ljust(pad) + f"{out_id}")
+    logging.info("OUT_MOL".ljust(pad) + f"{out_mol}")
+    logging.info("OUT_FORMAT".ljust(pad) + f"{out_format}")
+    logging.info("OUT_COMPRESSION".ljust(pad) + f"{out_compression}")
+    logging.info("ENCODE".ljust(pad) + f"{encode}")
+    logging.info("CSV_SEP".ljust(pad) + f"{csv_sep}")
+    logging.info("GROUP_ON".ljust(pad) + f"{args.group_on}")
+    logging.info("RECOMPUTE_GROUP".ljust(pad) + f"{args.recompute_group}")
+    logging.info("REF_FILE".ljust(pad) + f"{args.ref_file}")
+    logging.info("LOG".ljust(pad) + f"{args.log}")
+
+    # begin
+    logging.info("BEGIN")
+
+    # load mols
+    d1 = datetime.now()
+    logging.info("LOADING MOLECULES")
+    df_mols = load.file(args.input_mols, csv_sep=csv_sep)
+    num_mols = len(df_mols)
+    num_failed = df_mols['mol'].isna().sum()
+    logging.info(f"LOADED {num_mols} RECORDS WITH {num_failed} FAILURE(S)")
+
+    # filter out duplicate molecules
+    d2 = datetime.now()
+    logger.info(f"FILTERING DUPLICATE MOLECULES")
+    # recomputing group_on column
+    if args.recompute_group:
+        if args.group_on in df_mols.columns:
+            logging.info(f"RECOMPUTING GROUP_ON COLUMN ('{args.group_on}')")
+            df_mols.drop(args.group_on, axis=1, inplace=True)
+        else:
+            logging.warning(f"GROUP_ON COLUMN ('{args.group_on}') WAS NOT FOUND IN DATAFRAME, NO NEED FOR RECOMPUTING IT")
+    # filtering duplicate molecules
+    df_mols = duplicate.filter_duplicates(df_mols, group_on=args.group_on, ref_file=args.ref_file)
+    logging.info(f"REMAINING MOLECULES: {len(df_mols.index)}/{num_mols}")
+
+    # save results
+    d3 = datetime.now()
+    logger.info(f"SAVING OUTPUTS")
+    save.file(df_mols, output_file=args.output_mols, csv_sep=csv_sep)
+    d4 = datetime.now()
+
+    # end
+
+    logging.info("SUMMARY")
+    logger.info("COMPUTATIONAL TIME: CONFIGURING JOB".ljust(pad * 2) + f"{d1-d0}")
+    logger.info("COMPUTATIONAL TIME: LOADING MOLECULES".ljust(pad * 2) + f"{d2-d1}")
+    logger.info("COMPUTATIONAL TIME: COMPUTING 2D".ljust(pad * 2) + f"{d3-d2}")
+    logger.info("COMPUTATIONAL TIME: SAVING OUTPUTS".ljust(pad * 2) + f"{d4-d3}")
+    logger.info("COMPUTATIONAL TIME: TOTAL".ljust(pad * 2) + f"{d4-d0}")
+    logging.info("END")
+    sys.exit(0)
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ MAIN ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
+if __name__ == '__main__':
+    main()

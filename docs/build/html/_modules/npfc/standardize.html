@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.standardize &mdash; npfc 0.3.6-2-g95f12d7 documentation</title>
+  <title>npfc.standardize &mdash; npfc 0.3.7 documentation</title>
   
 
   
@@ -56,7 +56,7 @@
             
             
               <div class="version">
-                0.3.6-2-g95f12d7
+                0.3.7
               </div>
             
           
@@ -163,11 +163,8 @@
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">timeout_decorator</span>
 <span class="kn">import</span> <span class="nn">copy</span>
-<span class="kn">from</span> <span class="nn">pathlib</span> <span class="k">import</span> <span class="n">Path</span>
 <span class="c1"># data handling</span>
 <span class="kn">import</span> <span class="nn">json</span>
-<span class="kn">from</span> <span class="nn">itertools</span> <span class="k">import</span> <span class="n">chain</span>
-<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 <span class="kn">from</span> <span class="nn">pandas</span> <span class="k">import</span> <span class="n">DataFrame</span>
 <span class="c1"># chemoinformatics</span>
 <span class="kn">from</span> <span class="nn">rdkit.Chem</span> <span class="k">import</span> <span class="n">AllChem</span> <span class="k">as</span> <span class="n">Chem</span>
@@ -182,8 +179,6 @@
 <span class="c1"># dev library</span>
 <span class="kn">from</span> <span class="nn">npfc</span> <span class="k">import</span> <span class="n">utils</span>
 <span class="kn">from</span> <span class="nn">npfc.filter</span> <span class="k">import</span> <span class="n">Filter</span>
-<span class="kn">from</span> <span class="nn">npfc</span> <span class="k">import</span> <span class="n">draw</span>
-<span class="kn">from</span> <span class="nn">npfc.duplicate</span> <span class="k">import</span> <span class="n">DuplicateFilter</span>
 
 <span class="c1"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ GLOBALS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #</span>
 
@@ -668,22 +663,23 @@
         <span class="c1"># compute InChiKeys</span>
         <span class="c1"># df.reset_index(drop=True, inplace=True)</span>
         <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s1">&#39;inchikey&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="bp">self</span><span class="o">.</span><span class="n">col_mol</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">rdinchi</span><span class="o">.</span><span class="n">MolToInchiKey</span><span class="p">)</span>
-        <span class="c1"># filter duplicates</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter_duplicates</span><span class="p">:</span>
-            <span class="n">dupl_filter</span> <span class="o">=</span> <span class="n">DuplicateFilter</span><span class="p">(</span><span class="n">on</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">on</span><span class="p">,</span> <span class="n">col_mol</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">col_mol</span><span class="p">,</span> <span class="n">col_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">col_id</span><span class="p">,</span> <span class="n">ref_file</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ref_file</span><span class="p">)</span>
-            <span class="n">df</span> <span class="o">=</span> <span class="n">dupl_filter</span><span class="o">.</span><span class="n">mark_dupl</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
-            <span class="c1"># clean up for postprocess</span>
-            <span class="n">df</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s2">&quot;idm&quot;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-            <span class="c1"># separate dupl from the rest</span>
-            <span class="n">df_filtered</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">df_filtered</span><span class="p">,</span> <span class="n">df</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;filtered&#39;</span><span class="p">][[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="n">c</span> <span class="o">!=</span> <span class="s1">&#39;inchikey&#39;</span><span class="p">]]],</span> <span class="n">join</span><span class="o">=</span><span class="s1">&#39;inner&#39;</span><span class="p">)</span>  <span class="c1"># drop inchikey col as the info is stored in ref_file anyway</span>
-            <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;passed&#39;</span><span class="p">]</span>
+        <span class="c1"># # filter duplicates</span>
+        <span class="c1"># if self.filter_duplicates:</span>
+        <span class="c1">#     dupl_filter = DuplicateFilter(on=self.on, col_mol=self.col_mol, col_id=self.col_id, ref_file=self.ref_file)</span>
+        <span class="c1">#     df = dupl_filter.mark_dupl(df)</span>
+        <span class="c1">#</span>
+        <span class="c1">#     # clean up for postprocess</span>
+        <span class="c1">#     df.set_index(&quot;idm&quot;, inplace=True)</span>
+        <span class="c1">#     # separate dupl from the rest</span>
+        <span class="c1">#     df_filtered = pd.concat([df_filtered, df[df[&#39;status&#39;] == &#39;filtered&#39;][[c for c in df.columns if c != &#39;inchikey&#39;]]], join=&#39;inner&#39;)  # drop inchikey col as the info is stored in ref_file anyway</span>
+        <span class="c1">#     df = df[df[&#39;status&#39;] == &#39;passed&#39;]</span>
 
-        <span class="c1"># compute 2D depictions</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_2D</span><span class="p">:</span>
-            <span class="c1"># compute coordinates</span>
-            <span class="n">df</span><span class="p">[</span><span class="s1">&#39;mol&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;mol&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">draw</span><span class="o">.</span><span class="n">compute_2D</span><span class="p">)</span>
-            <span class="c1"># retrieve info of which method was retained</span>
-            <span class="n">df</span><span class="p">[</span><span class="s1">&#39;_2D&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;mol&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">GetProp</span><span class="p">(</span><span class="s2">&quot;_2D&quot;</span><span class="p">))</span>  <span class="c1"># ### uninteresting?</span>
+        <span class="c1"># # compute 2D depictions</span>
+        <span class="c1"># if self.compute_2D:</span>
+        <span class="c1">#     # compute coordinates</span>
+        <span class="c1">#     df[&#39;mol&#39;] = df[&#39;mol&#39;].map(draw.compute_2D)</span>
+        <span class="c1">#     # retrieve info of which method was retained</span>
+        <span class="c1">#     df[&#39;_2D&#39;] = df[&#39;mol&#39;].map(lambda x: x.GetProp(&quot;_2D&quot;))  # ### uninteresting?</span>
 
         <span class="c1"># tuple of dataframes</span>
         <span class="k">return</span> <span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">df_filtered</span><span class="p">,</span> <span class="n">df_error</span><span class="p">)</span></div></div>

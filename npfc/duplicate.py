@@ -17,7 +17,7 @@ from rdkit.Chem import MolToSmiles
 from rdkit.Chem.rdinchi import MolToInchiKey
 # dev
 from npfc import load
-from npfc import save
+# from npfc import save  # use of df.to_hdf with append and table modes for now
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ CLASSES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
@@ -32,13 +32,14 @@ def init_ref_file(ref_file, group_on, col_id):
     """
     try:
         # delete file if it already exists
-        if Path(ref_file).is_file():
-            Path.unlink(ref_file)
+        p = Path(ref_file)
+        if p.is_file():
+            p.unlink()
         # init
         # create a new ref file
         df_ref = pd.DataFrame({group_on: [], col_id: []})
         # df_ref.set_index(group_on, inplace=True)
-        save.file(df_ref, ref_file)
+        df_ref.to_hdf(ref_file, key=p.stem, table=True)
         logging.debug(f"Created new ref_file at '{ref_file}'")
         return True
     except ValueError:  # certainly not the only kind of error but PEP8 is against using just plain except.
@@ -47,7 +48,18 @@ def init_ref_file(ref_file, group_on, col_id):
 
 
 def filter_duplicates(df: DataFrame, group_on: str = "inchikey", col_id: str = "idm", col_mol: str = "mol", ref_file: str = None):
+    """Filter out duplicate molecules from a DataFrame.
 
+    The comparison is performed by grouping entries on a column (inchikey or smiles) and the first entry of a group is kept.
+    If no reference file is defined, then duplicates are removed independently for each input chunk.
+    If a reference file is defined, then all passing entries of a chunk at a time are recorded in it so that further chunks molecules
+    can be grouped with all previously recorded molecules.
+
+    .. note:: the more chunks there are, the larger the reference file grows. For ChEMBL, I got something around 16Go (1.8M molecules) and for ZINC >100Go (14M molecules). To improve IO performances, I switched to append mode and table format, so the file does not to be rewritten entirely for every chunk.
+
+    .. warning:: the feather format looks very promising for very fast IO times, but it does not allow for anything below simple variable types or customized row indices. For now I don't use it because there would be much testing to do. This could be addressed in a further release of npfc.
+
+    """
     # avoid pandas warnings
     df = df.copy()  # ### this certainly is the worst way of doing this!
 
@@ -95,8 +107,10 @@ def filter_duplicates(df: DataFrame, group_on: str = "inchikey", col_id: str = "
         with lock:
 
             # load references
-            if not Path(ref_file).exists():
+            p = Path(ref_file)
+            if not p.exists():
                 init_ref_file(ref_file, group_on, col_id)
+                logging.debug(f"Initialized new reference file at '{ref_file}'")
             df_ref = load.file(ref_file, out_mol=None)
 
             # use group_on as index for faster comparison
@@ -112,8 +126,9 @@ def filter_duplicates(df: DataFrame, group_on: str = "inchikey", col_id: str = "
             # record new references
             df_ref = pd.concat([df_ref, df_u.drop([c for c in df_u.columns if c not in (group_on, col_id)], axis=1)], axis=0, join='inner')  # no need to align both dataframes as they should always have the columns in the same order
 
-            # overwrite reference file  ### might be worth to look into using pandas with table mode for appending new data, for now feathers works just fine
-            save.file(df_ref, ref_file)
+            # df_ref.index = range(len(df.index))  # error
+            # update reference file
+            df_ref.to_hdf(ref_file, key=p.stem, table=True, mode='a')
 
         # once lock is lifted, we can delete the lock file
         Path(lock_file).unlink()

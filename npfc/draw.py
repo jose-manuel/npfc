@@ -366,7 +366,7 @@ def rescale(mol: Mol, f: float = 1.4):
     Chem.TransformMol(mol, tm)
 
 
-def compute_2D(mol: Mol, methods: List[str] = ["CoordGen", "rdDepictor", "Avalon"], consider_input: bool = False) -> Mol:
+def compute_2D(mol: Mol, methods: List[str] = ["CoordGen", "rdDepictor", "Avalon"], consider_input: bool = True) -> Mol:
     """
     Returns the "best" 2D depiction of a molecule according the methods in METHODS_2D.
     Currently four methods are available:
@@ -418,6 +418,7 @@ def compute_2D(mol: Mol, methods: List[str] = ["CoordGen", "rdDepictor", "Avalon
     METHODS = {'CoordGen': lambda x: rdCoordGen.AddCoords(x),
                'rdDepictor': lambda x: rdDepictor.Compute2DCoords(x),
                'Avalon': lambda x: pyAv.Generate2DCoords(x),
+               'Input': lambda x: x,
                }
 
     depictions = OrderedDict()
@@ -450,6 +451,8 @@ def compute_2D(mol: Mol, methods: List[str] = ["CoordGen", "rdDepictor", "Avalon
             return mol
         else:
             depictions[method] = (depiction_score, mol)
+    elif consider_input and mol.GetNumConformers() == 0:
+        logging.warning("No input coordinates to use for Input method, so skipping it!")
 
     # retrieve best depiction possible
     best_method = min(depictions, key=lambda k: depictions[k][0])

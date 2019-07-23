@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Module load &mdash; npfc 0.3.6-2-g95f12d7 documentation</title>
+  <title>Module load &mdash; npfc 0.3.7 documentation</title>
   
 
   
@@ -58,7 +58,7 @@
             
             
               <div class="version">
-                0.3.6-2-g95f12d7
+                0.3.7
               </div>
             
           
@@ -162,7 +162,7 @@
 on disk.</p>
 <dl class="function">
 <dt id="npfc.load.file">
-<code class="descclassname">npfc.load.</code><code class="descname">file</code><span class="sig-paren">(</span><em>input_file</em>, <em>in_id='idm'</em>, <em>in_mol='mol'</em>, <em>in_sep='|'</em>, <em>mol_format='rdkit'</em>, <em>out_id='idm'</em>, <em>out_mol='mol'</em>, <em>keep_props=True</em>, <em>decode=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/load.html#file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.load.file" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">npfc.load.</code><code class="descname">file</code><span class="sig-paren">(</span><em>input_file</em>, <em>in_id='idm'</em>, <em>in_mol='mol'</em>, <em>csv_sep='|'</em>, <em>mol_format='rdkit'</em>, <em>out_id='idm'</em>, <em>out_mol='mol'</em>, <em>keep_props=True</em>, <em>decode=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/load.html#file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.load.file" title="Permalink to this definition">¶</a></dt>
 <dd><p>Load a file into a DataFrame.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -172,7 +172,7 @@ on disk.</p>
 <li><strong>input_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the input file to load</li>
 <li><strong>in_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the column/property to use for molecule ids</li>
 <li><strong>in_mol</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the column to use for molecules (irrerlevant for SDF)</li>
-<li><strong>in_sep</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the column separator to use for parsing the input file (CSV)</li>
+<li><strong>csv_sep</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the column separator to use for parsing the input file (CSV)</li>
 <li><strong>mol_format</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the input format for molecules</li>
 <li><strong>out_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the column name used for storing molecule ids</li>
 <li><strong>out_mol</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the column name used for storing molecules</li>

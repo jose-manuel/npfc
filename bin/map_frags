@@ -13,9 +13,6 @@ from datetime import datetime
 import logging
 import pandas as pd
 import argparse
-import json
-import base64
-import pickle
 # chemoinformatics
 import rdkit
 # dev

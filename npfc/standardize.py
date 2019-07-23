@@ -472,6 +472,8 @@ class Standardizer(Filter):
         """Execute the standardization protocol on a molecule.
         Molecule that exceed the timeout value are filtered with a task='timeout'.
 
+        As a final step of the protocol, InChiKeys ('inchikey') are computed for identifying molecules.
+
         :param mol: the input molecule
         :return: a tuple containing the molecule, its status and the further task name it reached
         """
@@ -505,26 +507,9 @@ class Standardizer(Filter):
         df_filtered = df[df['status'] == 'filtered']
         df = df[df['status'] == 'passed']
         df = df.copy()  # only way I found to suppress pandas warnings in a "clean" way
-        # compute InChiKeys
-        # df.reset_index(drop=True, inplace=True)
-        df.loc[:, 'inchikey'] = df.loc[:, self.col_mol].map(rdinchi.MolToInchiKey)
-        # # filter duplicates
-        # if self.filter_duplicates:
-        #     dupl_filter = DuplicateFilter(on=self.on, col_mol=self.col_mol, col_id=self.col_id, ref_file=self.ref_file)
-        #     df = dupl_filter.mark_dupl(df)
-        #
-        #     # clean up for postprocess
-        #     df.set_index("idm", inplace=True)
-        #     # separate dupl from the rest
-        #     df_filtered = pd.concat([df_filtered, df[df['status'] == 'filtered'][[c for c in df.columns if c != 'inchikey']]], join='inner')  # drop inchikey col as the info is stored in ref_file anyway
-        #     df = df[df['status'] == 'passed']
 
-        # # compute 2D depictions
-        # if self.compute_2D:
-        #     # compute coordinates
-        #     df['mol'] = df['mol'].map(draw.compute_2D)
-        #     # retrieve info of which method was retained
-        #     df['_2D'] = df['mol'].map(lambda x: x.GetProp("_2D"))  # ### uninteresting?
+        # compute InChiKeys
+        df.loc[:, 'inchikey'] = df.loc[:, self.col_mol].map(rdinchi.MolToInchiKey)
 
         # tuple of dataframes
         return (df, df_filtered, df_error)

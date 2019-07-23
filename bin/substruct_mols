@@ -135,7 +135,7 @@ def main():
                         in_mol=args.mmol,
                         out_mol=args.mmol,
                         keep_props=False,
-                        in_sep=args.msep,
+                        csv_sep=args.msep,
                         decode=args.mdecode,
                         )
     df_mols.index = df_mols[args.mid]
@@ -151,7 +151,7 @@ def main():
                          in_mol=args.fmol,
                          out_mol=args.fmol,
                          keep_props=False,
-                         in_sep=args.fsep,
+                         csv_sep=args.fsep,
                          decode=args.fdecode,
                          )
     df_frags.index = df_frags[args.fid]

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.load &mdash; npfc 0.3.6-2-g95f12d7 documentation</title>
+  <title>npfc.load &mdash; npfc 0.3.7 documentation</title>
   
 
   
@@ -56,7 +56,7 @@
             
             
               <div class="version">
-                0.3.6-2-g95f12d7
+                0.3.7
               </div>
             
           
@@ -245,7 +245,7 @@
 <div class="viewcode-block" id="file"><a class="viewcode-back" href="../../load.html#npfc.load.file">[docs]</a><span class="k">def</span> <span class="nf">file</span><span class="p">(</span><span class="n">input_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
          <span class="n">in_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;idm&#39;</span><span class="p">,</span>
          <span class="n">in_mol</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;mol&#39;</span><span class="p">,</span>
-         <span class="n">in_sep</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;|&#39;</span><span class="p">,</span>
+         <span class="n">csv_sep</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;|&#39;</span><span class="p">,</span>
          <span class="n">mol_format</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;rdkit&#39;</span><span class="p">,</span>
          <span class="n">out_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;idm&#39;</span><span class="p">,</span>
          <span class="n">out_mol</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;mol&#39;</span><span class="p">,</span>
@@ -257,7 +257,7 @@
 <span class="sd">    :param input_file: the input file to load</span>
 <span class="sd">    :param in_id: the column/property to use for molecule ids</span>
 <span class="sd">    :param in_mol: the column to use for molecules (irrerlevant for SDF)</span>
-<span class="sd">    :param in_sep: the column separator to use for parsing the input file (CSV)</span>
+<span class="sd">    :param csv_sep: the column separator to use for parsing the input file (CSV)</span>
 <span class="sd">    :param mol_format: the input format for molecules</span>
 <span class="sd">    :param out_id: the column name used for storing molecule ids</span>
 <span class="sd">    :param out_mol: the column name used for storing molecules</span>
@@ -279,7 +279,7 @@
     <span class="k">elif</span> <span class="nb">format</span> <span class="o">==</span> <span class="s2">&quot;FEATHER&quot;</span><span class="p">:</span>
         <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_feather</span><span class="p">(</span><span class="n">input_file</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>  <span class="c1"># has to be CSV</span>
-        <span class="n">df</span> <span class="o">=</span> <span class="n">_from_csv</span><span class="p">(</span><span class="n">input_file</span><span class="p">,</span> <span class="n">in_sep</span><span class="o">=</span><span class="n">in_sep</span><span class="p">,</span> <span class="n">compression</span><span class="o">=</span><span class="n">compression</span><span class="p">)</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">_from_csv</span><span class="p">(</span><span class="n">input_file</span><span class="p">,</span> <span class="n">csv_sep</span><span class="o">=</span><span class="n">csv_sep</span><span class="p">,</span> <span class="n">compression</span><span class="o">=</span><span class="n">compression</span><span class="p">)</span>
 
     <span class="c1"># process data</span>
 
@@ -292,7 +292,7 @@
     <span class="c1"># out_mol</span>
     <span class="k">if</span> <span class="n">out_mol</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">in_mol</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">out_mol</span> <span class="o">=</span> <span class="n">in_mol</span>
-    <span class="k">elif</span> <span class="n">out_mol</span> <span class="o">!=</span> <span class="n">in_mol</span><span class="p">:</span>
+    <span class="k">elif</span> <span class="n">out_mol</span> <span class="o">!=</span> <span class="n">in_mol</span> <span class="ow">and</span> <span class="n">in_mol</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
         <span class="n">df</span><span class="o">.</span><span class="n">rename</span><span class="p">({</span><span class="n">in_mol</span><span class="p">:</span> <span class="n">out_mol</span><span class="p">},</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="c1"># keep_props</span>
@@ -303,7 +303,8 @@
         <span class="n">df</span><span class="o">.</span><span class="n">drop</span><span class="p">([</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="n">c</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="n">out_id</span><span class="p">,</span> <span class="n">out_mol</span><span class="p">)],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="c1"># mol_format</span>
-    <span class="n">df</span><span class="p">[</span><span class="n">out_mol</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">out_mol</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">CONVERTERS</span><span class="p">[</span><span class="n">mol_format</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">out_mol</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+        <span class="n">df</span><span class="p">[</span><span class="n">out_mol</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">out_mol</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">CONVERTERS</span><span class="p">[</span><span class="n">mol_format</span><span class="p">])</span>
 
     <span class="c1"># decode</span>
     <span class="k">if</span> <span class="n">decode</span><span class="p">:</span>
@@ -360,17 +361,17 @@
     <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_hdf</span><span class="p">(</span><span class="n">input_hdf</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="n">input_hdf</span><span class="p">)</span><span class="o">.</span><span class="n">stem</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">_from_csv</span><span class="p">(</span><span class="n">input_csv</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">in_sep</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;|&#39;</span><span class="p">,</span> <span class="n">compression</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_from_csv</span><span class="p">(</span><span class="n">input_csv</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">csv_sep</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;|&#39;</span><span class="p">,</span> <span class="n">compression</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">compression</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">input_csv</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="n">in_sep</span><span class="p">,</span> <span class="n">index_col</span><span class="o">=</span><span class="s1">&#39;Unnamed: 0&#39;</span><span class="p">)</span>  <span class="c1"># define rowidx with rowids, if any</span>
+            <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">input_csv</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="n">csv_sep</span><span class="p">,</span> <span class="n">index_col</span><span class="o">=</span><span class="s1">&#39;Unnamed: 0&#39;</span><span class="p">)</span>  <span class="c1"># define rowidx with rowids, if any</span>
         <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">input_csv</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="n">in_sep</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">input_csv</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="n">csv_sep</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">compression</span> <span class="o">==</span> <span class="s1">&#39;gzip&#39;</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">input_csv</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="n">in_sep</span><span class="p">,</span> <span class="n">index_col</span><span class="o">=</span><span class="s1">&#39;Unnamed: 0&#39;</span><span class="p">,</span> <span class="n">compression</span><span class="o">=</span><span class="n">compression</span><span class="p">)</span>  <span class="c1"># define rowidx with rowids, if any</span>
+            <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">input_csv</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="n">csv_sep</span><span class="p">,</span> <span class="n">index_col</span><span class="o">=</span><span class="s1">&#39;Unnamed: 0&#39;</span><span class="p">,</span> <span class="n">compression</span><span class="o">=</span><span class="n">compression</span><span class="p">)</span>  <span class="c1"># define rowidx with rowids, if any</span>
         <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">KeyError</span><span class="p">):</span>
-            <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">input_csv</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="n">in_sep</span><span class="p">,</span> <span class="n">compression</span><span class="o">=</span><span class="n">compression</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">input_csv</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="n">csv_sep</span><span class="p">,</span> <span class="n">compression</span><span class="o">=</span><span class="n">compression</span><span class="p">)</span>
 </pre></div>
 
            </div>

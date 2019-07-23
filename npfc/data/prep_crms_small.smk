@@ -13,6 +13,8 @@ import pkg_resources
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ INITIALIZATION ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
 ROOT = "tests/tmp/"
 data_ori = "tests/data/scaffolds/"
 data_tgt = ROOT + "scaffolds/"
@@ -36,14 +38,55 @@ WD = data_tgt + "crms/data/"  # tests
 
 
 rule all:
-    input: WD + "3_murcko/data/crms_passed.csv.gz"
+    input: WD + "8_gen2d/data/crms_2d.csv.gz"
 
-rule MURCKO:
+rule GEN2D:
+    priority: 107
+    input: WD + "7_unims/data/crms_uni.csv.gz"
+    output: WD + "8_gen2d/data/crms_2d.csv.gz"
+    log: WD + "8_gen2d/log/crms_2d.log"
+    shell: "compute2D_mols {input} {output} 2>{log}"
+
+rule UNIMS:
+    priority: 106
+    input: WD + "6_stdms/data/crms_passed.csv.gz"
+    output: WD + "7_unims/data/crms_uni.csv.gz"
+    log: WD + "7_unims/log/crms_uni.log"
+    shell: "filter_dupl_mols {input} {output} -r " + WD + "7_unims/crms_ref.hdf 2>{log}"
+
+rule STDMS:
+    priority: 105
+    input: WD + "5_murcko/data/cr_murcko.csv.gz"
+    output:
+        WD + "6_stdms/data/crms_passed.csv.gz",
+        WD + "6_stdms/data/crms_filtered.csv.gz",
+        WD + "6_stdms/data/crms_error.csv.gz"
+    log: WD + "6_stdms/log/crms_std.log"
+    shell: "standardize_mols {input} " + WD + "6_stdms/data/crms.csv.gz 2>{log}"
+
+rule EMS:
+    priority: 104
+    input: WD + "4_uni/data/cr_uni.csv.gz"
+    output: WD + "5_murcko/data/cr_murcko.csv.gz"
+    log: WD + "5_murcko/log/cr_murcko.log"
+    shell: "murcko_mols {input} {output} 2>{log}"
+
+rule UNI:
+    priority: 103
+    input: WD + "3_std/data/cr_passed.csv.gz"
+    output: WD + "4_uni/data/cr_uni.csv.gz"
+    log: WD + "4_uni/log/cr_uni.log"
+    shell: "filter_dupl_mols {input} {output} -r " + WD + "4_uni/cr_ref.hdf 2>{log}"
+
+rule STD:
     priority: 102
     input: WD + "2_deglyco/data/cr_deglyco.sdf.gz"
-    output: WD + "3_murcko/data/crms_passed.csv.gz"
-    log: WD + "3_murcko/log/crms_murcko.log"
-    shell: "standardize_mols {input} -o $(echo {output} | rev | cut -d_ -f2- | rev).csv.gz -r " + WD + "3_murcko/data/crms_ref.hdf -m True --compute_2D True 2>{log}"
+    output:
+        WD + "3_std/data/cr_passed.csv.gz",
+        WD + "3_std/data/cr_filtered.csv.gz",
+        WD + "3_std/data/cr_error.csv.gz"
+    log: WD + "3_std/log/cr_std.log"
+    shell: "standardize_mols {input} " + WD + "3_std/data/cr.csv.gz 2>{log}"
 
 rule DGC:
     priority: 101

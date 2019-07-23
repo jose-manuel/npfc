@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.save &mdash; npfc 0.3.6-2-g95f12d7 documentation</title>
+  <title>npfc.save &mdash; npfc 0.3.7 documentation</title>
   
 
   
@@ -56,7 +56,7 @@
             
             
               <div class="version">
-                0.3.6-2-g95f12d7
+                0.3.7
               </div>
             
           
@@ -165,13 +165,11 @@
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">gzip</span>
 <span class="kn">import</span> <span class="nn">shutil</span>
-<span class="kn">import</span> <span class="nn">base64</span>
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="k">import</span> <span class="n">Path</span>
 <span class="c1"># data science</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 <span class="kn">from</span> <span class="nn">pandas</span> <span class="k">import</span> <span class="n">DataFrame</span>
 <span class="c1"># chemoinformatics</span>
-<span class="kn">from</span> <span class="nn">rdkit.Chem</span> <span class="k">import</span> <span class="n">Mol</span>
 <span class="kn">from</span> <span class="nn">rdkit.Chem</span> <span class="k">import</span> <span class="n">PandasTools</span>
 <span class="c1"># docs</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">List</span>
@@ -228,7 +226,7 @@
     <span class="c1"># in case there is stuff to encode, encode it:</span>
     <span class="k">elif</span> <span class="n">encode</span><span class="p">:</span>
         <span class="c1"># for SDF files, RDKit Mol objects to use for MolBlocks should not be encoded</span>
-        <span class="k">if</span> <span class="n">ext_output_file</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;.sdf&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">ext_output_file</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;.sdf&#39;</span> <span class="ow">and</span> <span class="n">col_mol</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
             <span class="n">df</span><span class="p">[</span><span class="n">col_mol</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">col_mol</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">utils</span><span class="o">.</span><span class="n">encode_mol</span><span class="p">)</span>
         <span class="c1"># other RDKit Mol objects can be though</span>
         <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;mol&quot;</span><span class="p">,</span> <span class="s2">&quot;mol_frag&quot;</span><span class="p">):</span>

@@ -124,7 +124,7 @@ def main():
                         out_mol=args.out_mol,
                         keep_props=args.keep_props,
                         decode=args.decode,
-                        in_sep=args.in_sep
+                        csv_sep=args.in_sep
                         )
     # filter out failed molecules
     d2 = datetime.now()
@@ -144,7 +144,7 @@ def main():
                               shuffle=args.shuffle,
                               encode=args.encode,
                               random_seed=args.random_seed,
-                              sep=args.out_sep,
+                              csv_sep=args.out_sep,
                               )
     # display results
     for output in outputs_files:
