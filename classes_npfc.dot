@@ -1,0 +1,14 @@
+digraph "classes_npfc" {
+charset="utf-8"
+rankdir=BT
+"0" [label="{npfc.draw.ColorMap|atoms\lbonds\lfragments : OrderedDict\l|}", shape="record"];
+"1" [label="{npfc.filter.Filter|descriptors : dict\l|filter_mol()\l}", shape="record"];
+"2" [label="{npfc.fragment.CombinationClassifier|\l|classify_fragment_combination()\lclassify_fragment_combinations()\lclean()\lget_rings_between_two_fragments()\lget_shortest_path_between_frags()\lmap_frags()\l}", shape="record"];
+"3" [label="{npfc.fragment.Matcher|\l|run()\l}", shape="record"];
+"4" [label="{npfc.standardize.FullUncharger|q_neg_1\lq_neg_2\lq_pos_1\lq_pos_2\l|full_uncharge()\l}", shape="record"];
+"5" [label="{npfc.standardize.Standardizer|canonicalizer : TautomerCanonicalizer\lcol_id\lcol_mol\lcompute_2D\lelements_medchem\lfilter_duplicates\lfull_uncharger\lmetal_disconnector : MetalDisconnector\lnormalizer : Normalizer\lon\lprotocol\lref_file\lsuffix\l|keep_best()\lremove_isotopes()\lrun()\lrun_df()\l}", shape="record"];
+"6" [label="{rdkit.Chem.MolStandardize.charge.Uncharger|\l|uncharge()\l}", shape="record"];
+"4" -> "6" [arrowhead="empty", arrowtail="none"];
+"5" -> "1" [arrowhead="empty", arrowtail="none"];
+"4" -> "5" [arrowhead="diamond", arrowtail="none", fontcolor="green", label="full_uncharger", style="solid"];
+}

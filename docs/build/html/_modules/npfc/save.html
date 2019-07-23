@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.save &mdash; npfc 0.3.7 documentation</title>
+  <title>npfc.save &mdash; npfc 0.3.8 documentation</title>
   
 
   
@@ -56,7 +56,7 @@
             
             
               <div class="version">
-                0.3.7
+                0.3.8
               </div>
             
           
@@ -188,7 +188,7 @@
          <span class="n">encode</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
          <span class="n">col_mol</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;mol&#39;</span><span class="p">,</span>
          <span class="n">col_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;idm&#39;</span><span class="p">,</span>
-         <span class="n">sep</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;|&#39;</span><span class="p">):</span>
+         <span class="n">csv_sep</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;|&#39;</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;A method for saving DataFrames with molecules to different file types.</span>
 <span class="sd">    This is handy way of using the Saver class without having to keep a Saver object.</span>
 
@@ -199,6 +199,7 @@
 <span class="sd">    :param chunk_size: the maximum number of records per chunk. If this value is unset, no chunking is performed, otherwise each chunk filename gets appended with a suffix: file_XXX.ext.</span>
 <span class="sd">    :param encode: encode RDKit Mol objects and other objects in predefined columns as base64 strings.</span>
 <span class="sd">    :param col_mol: if molecules need to be encoded, then the encoding is perfomed on this column.</span>
+<span class="sd">    :param csv_sep: separator to use in case of csv output</span>
 <span class="sd">    :return: the list of output files with their number of records</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># check some arguments</span>
@@ -240,7 +241,7 @@
     <span class="c1"># chunking</span>
     <span class="k">if</span> <span class="n">chunk_size</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="c1"># single output</span>
-        <span class="n">_save</span><span class="p">(</span><span class="n">df</span><span class="o">=</span><span class="n">df</span><span class="p">,</span> <span class="n">output_file</span><span class="o">=</span><span class="n">output_file</span><span class="p">,</span> <span class="n">col_mol</span><span class="o">=</span><span class="n">col_mol</span><span class="p">,</span> <span class="n">col_id</span><span class="o">=</span><span class="n">col_id</span><span class="p">,</span> <span class="n">suffixes</span><span class="o">=</span><span class="n">ext_output_file</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">path_output_file</span><span class="o">.</span><span class="n">stem</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="n">sep</span><span class="o">=</span><span class="n">sep</span><span class="p">)</span>
+        <span class="n">_save</span><span class="p">(</span><span class="n">df</span><span class="o">=</span><span class="n">df</span><span class="p">,</span> <span class="n">output_file</span><span class="o">=</span><span class="n">output_file</span><span class="p">,</span> <span class="n">col_mol</span><span class="o">=</span><span class="n">col_mol</span><span class="p">,</span> <span class="n">col_id</span><span class="o">=</span><span class="n">col_id</span><span class="p">,</span> <span class="n">suffixes</span><span class="o">=</span><span class="n">ext_output_file</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">path_output_file</span><span class="o">.</span><span class="n">stem</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="n">csv_sep</span><span class="o">=</span><span class="n">csv_sep</span><span class="p">)</span>
         <span class="n">output_files</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">output_file</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="p">)])</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="c1"># chunks</span>
@@ -249,7 +250,7 @@
         <span class="k">for</span> <span class="n">start</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="p">),</span> <span class="n">chunk_size</span><span class="p">):</span>
             <span class="n">end</span> <span class="o">=</span> <span class="n">start</span> <span class="o">+</span> <span class="n">chunk_size</span>
             <span class="n">output_chunk</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">output_dir</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span> <span class="o">+</span> <span class="n">path_output_file</span><span class="o">.</span><span class="n">stem</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">j</span><span class="p">)</span><span class="o">.</span><span class="n">zfill</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ext_output_file</span><span class="p">)</span>  <span class="c1"># stem returns file.csv for file.csv.gz</span>
-            <span class="n">_save</span><span class="p">(</span><span class="n">df</span><span class="o">=</span><span class="n">df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">],</span> <span class="n">output_file</span><span class="o">=</span><span class="n">output_chunk</span><span class="p">,</span> <span class="n">col_mol</span><span class="o">=</span><span class="n">col_mol</span><span class="p">,</span> <span class="n">col_id</span><span class="o">=</span><span class="n">col_id</span><span class="p">,</span> <span class="n">suffixes</span><span class="o">=</span><span class="n">ext_output_file</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">path_output_file</span><span class="o">.</span><span class="n">stem</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="n">sep</span><span class="o">=</span><span class="n">sep</span><span class="p">)</span>
+            <span class="n">_save</span><span class="p">(</span><span class="n">df</span><span class="o">=</span><span class="n">df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">],</span> <span class="n">output_file</span><span class="o">=</span><span class="n">output_chunk</span><span class="p">,</span> <span class="n">col_mol</span><span class="o">=</span><span class="n">col_mol</span><span class="p">,</span> <span class="n">col_id</span><span class="o">=</span><span class="n">col_id</span><span class="p">,</span> <span class="n">suffixes</span><span class="o">=</span><span class="n">ext_output_file</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">path_output_file</span><span class="o">.</span><span class="n">stem</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="n">sep</span><span class="o">=</span><span class="n">csv_sep</span><span class="p">)</span>
             <span class="n">output_files</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">output_chunk</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">)])</span>
             <span class="n">j</span> <span class="o">+=</span> <span class="mi">1</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;{len(output_files)} chunks were created&quot;</span><span class="p">)</span>
@@ -263,14 +264,14 @@
           <span class="n">col_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
           <span class="n">suffixes</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
           <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-          <span class="n">sep</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+          <span class="n">csv_sep</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Helper function for the save method.</span>
 <span class="sd">    Does the actual export to the output file and picks a format based on provided infos.</span>
 
 <span class="sd">    :param df: the input DataFrame</span>
 <span class="sd">    :param suffixes: the suffixes of the output file</span>
 <span class="sd">    :param key: the key for a HDF file</span>
-<span class="sd">    :param sep: the separator for a CSV file</span>
+<span class="sd">    :param csv_sep: the separator for a CSV file</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># infer from pandas.to_csv does not work as expected (no compression!)</span>
     <span class="c1"># so I need to specify the compression type manually.</span>
@@ -278,9 +279,9 @@
     <span class="nb">format</span><span class="p">,</span> <span class="n">compression</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">get_file_format</span><span class="p">(</span><span class="n">output_file</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">format</span> <span class="o">==</span> <span class="s1">&#39;CSV&#39;</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">compression</span> <span class="o">==</span> <span class="s1">&#39;gzip&#39;</span><span class="p">:</span>
-            <span class="n">df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">output_file</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="n">sep</span><span class="p">,</span> <span class="n">compression</span><span class="o">=</span><span class="n">compression</span><span class="p">)</span>
+            <span class="n">df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">output_file</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="n">csv_sep</span><span class="p">,</span> <span class="n">compression</span><span class="o">=</span><span class="n">compression</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">output_file</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="n">sep</span><span class="p">)</span>
+            <span class="n">df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">output_file</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="n">csv_sep</span><span class="p">)</span>
     <span class="k">elif</span> <span class="nb">format</span> <span class="o">==</span> <span class="s1">&#39;HDF&#39;</span><span class="p">:</span>
         <span class="n">df</span><span class="o">.</span><span class="n">to_hdf</span><span class="p">(</span><span class="n">output_file</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">key</span><span class="p">)</span>
     <span class="k">elif</span> <span class="nb">format</span> <span class="o">==</span> <span class="s1">&#39;SDF&#39;</span><span class="p">:</span>
@@ -299,6 +300,8 @@
                 <span class="n">Path</span><span class="p">(</span><span class="n">output_file_base</span><span class="p">)</span><span class="o">.</span><span class="n">unlink</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">PandasTools</span><span class="o">.</span><span class="n">WriteSDF</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">output_file</span><span class="p">,</span> <span class="n">molColName</span><span class="o">=</span><span class="n">col_mol</span><span class="p">,</span> <span class="n">idName</span><span class="o">=</span><span class="n">col_id</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">))</span>
+    <span class="k">elif</span> <span class="nb">format</span> <span class="o">==</span> <span class="s1">&#39;FEATHER&#39;</span><span class="p">:</span>
+        <span class="n">df</span><span class="o">.</span><span class="n">to_feather</span><span class="p">(</span><span class="n">output_file</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Error! Cannot save DataFrame to unexpected format &#39;</span><span class="si">{suffixes[0]}</span><span class="s2">&#39;.&quot;</span><span class="p">)</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Saved {len(df.index)} records at &#39;</span><span class="si">{output_file}</span><span class="s2">&#39;.&quot;</span><span class="p">)</span>

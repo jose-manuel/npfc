@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.standardize &mdash; npfc 0.3.7 documentation</title>
+  <title>npfc.standardize &mdash; npfc 0.3.8 documentation</title>
   
 
   
@@ -56,7 +56,7 @@
             
             
               <div class="version">
-                0.3.7
+                0.3.8
               </div>
             
           
@@ -627,6 +627,8 @@
         <span class="sd">&quot;&quot;&quot;Execute the standardization protocol on a molecule.</span>
 <span class="sd">        Molecule that exceed the timeout value are filtered with a task=&#39;timeout&#39;.</span>
 
+<span class="sd">        As a final step of the protocol, InChiKeys (&#39;inchikey&#39;) are computed for identifying molecules.</span>
+
 <span class="sd">        :param mol: the input molecule</span>
 <span class="sd">        :return: a tuple containing the molecule, its status and the further task name it reached</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -660,26 +662,9 @@
         <span class="n">df_filtered</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;filtered&#39;</span><span class="p">]</span>
         <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;passed&#39;</span><span class="p">]</span>
         <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>  <span class="c1"># only way I found to suppress pandas warnings in a &quot;clean&quot; way</span>
-        <span class="c1"># compute InChiKeys</span>
-        <span class="c1"># df.reset_index(drop=True, inplace=True)</span>
-        <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s1">&#39;inchikey&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="bp">self</span><span class="o">.</span><span class="n">col_mol</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">rdinchi</span><span class="o">.</span><span class="n">MolToInchiKey</span><span class="p">)</span>
-        <span class="c1"># # filter duplicates</span>
-        <span class="c1"># if self.filter_duplicates:</span>
-        <span class="c1">#     dupl_filter = DuplicateFilter(on=self.on, col_mol=self.col_mol, col_id=self.col_id, ref_file=self.ref_file)</span>
-        <span class="c1">#     df = dupl_filter.mark_dupl(df)</span>
-        <span class="c1">#</span>
-        <span class="c1">#     # clean up for postprocess</span>
-        <span class="c1">#     df.set_index(&quot;idm&quot;, inplace=True)</span>
-        <span class="c1">#     # separate dupl from the rest</span>
-        <span class="c1">#     df_filtered = pd.concat([df_filtered, df[df[&#39;status&#39;] == &#39;filtered&#39;][[c for c in df.columns if c != &#39;inchikey&#39;]]], join=&#39;inner&#39;)  # drop inchikey col as the info is stored in ref_file anyway</span>
-        <span class="c1">#     df = df[df[&#39;status&#39;] == &#39;passed&#39;]</span>
 
-        <span class="c1"># # compute 2D depictions</span>
-        <span class="c1"># if self.compute_2D:</span>
-        <span class="c1">#     # compute coordinates</span>
-        <span class="c1">#     df[&#39;mol&#39;] = df[&#39;mol&#39;].map(draw.compute_2D)</span>
-        <span class="c1">#     # retrieve info of which method was retained</span>
-        <span class="c1">#     df[&#39;_2D&#39;] = df[&#39;mol&#39;].map(lambda x: x.GetProp(&quot;_2D&quot;))  # ### uninteresting?</span>
+        <span class="c1"># compute InChiKeys</span>
+        <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s1">&#39;inchikey&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="bp">self</span><span class="o">.</span><span class="n">col_mol</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">rdinchi</span><span class="o">.</span><span class="n">MolToInchiKey</span><span class="p">)</span>
 
         <span class="c1"># tuple of dataframes</span>
         <span class="k">return</span> <span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">df_filtered</span><span class="p">,</span> <span class="n">df_error</span><span class="p">)</span></div></div>

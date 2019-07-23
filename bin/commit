@@ -8,7 +8,6 @@
 WD="/home/gally/Projects/NPFC/src"
 upgraded="false"
 install="false"
-regen_docs="false"
 send_to_gwdg="false"
 remote_compil_dir="/home/users/josemanuel.gally/npfc"
 
@@ -57,7 +56,6 @@ while getopts ":isd" opt; do #
     case $opt in
         i) install="true";;
         s) install="true"; send_to_gwdg="true";;
-        d) regen_docs="true";;
         \?) echo "Invalid option: -$OPTARG" >&2 ; exit 1;;
         :)  echo "Option -$OPTARG requires an argument." >&2 ; exit 1;;
     esac
@@ -106,9 +104,23 @@ if [[ $install = 'true' ]]; then
     cd ..
 fi
 
+#################################### DOCS ######################################
 echo -e "\nRegenerating the docs...\n"
-pyreverse -my -A -o svg -p npfc npfc/
-mv classes_npfc.svg packages_npfc.svg docs/source/_images/
+
+# pyreverse
+echo -e "Computing class and import hierarchy with pyreverse..."
+# 2 dot files: packages and classes
+pyreverse -my -A -p npfc npfc/
+# packages
+grep -v '\"0\"' packages_npfc.dot > packages_npfc.dot.tmp
+dot packages_npfc.dot.tmp -Tsvg > docs/source/_images/packages_npfc.svg
+rm packages_npfc.dot packages_npfc.dot.tmp
+# classes
+dot classes_npfc.dot -Tsvg > docs/source/_images/classes_npfc.svg
+rm classes_npfc.dot
+
+# sphinx
+echo -e "Creating the docs with sphinx..."
 cd docs
 make html
 cd ..
