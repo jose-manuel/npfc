@@ -8,7 +8,7 @@ This modules is used to identify duplicate molecules within and accross multiple
 import logging
 from time import sleep
 from pathlib import Path
-from filelock import FileLock
+from filelock import SoftFileLock
 # data handling
 import pandas as pd
 from pandas import DataFrame
@@ -21,6 +21,7 @@ from npfc import load
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ CLASSES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
 
 def init_ref_file(ref_file, group_on, col_id):
     """Initiate an empty reference file for identifying duplicates.
@@ -100,7 +101,7 @@ def filter_duplicates(df: DataFrame, group_on: str = "inchikey", col_id: str = "
             sleep(1)  # wait 1s before trying to acces the file again
 
         # lock is not here, we can create one
-        lock = FileLock(lock_file)
+        lock = SoftFileLock(lock_file)
         logging.debug(f"Set lock file at '{lock_file}'. Reference file will not be accessible for read/write until this lock is lifted.")
 
         # work with lock on, it will be automatically lifted when work is done

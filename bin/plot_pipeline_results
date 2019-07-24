@@ -19,7 +19,6 @@ from pathlib import Path
 from collections import OrderedDict
 # data handling
 import json
-import numpy as np
 import pandas as pd
 # chemoinformatics
 import rdkit
@@ -545,7 +544,6 @@ def plot_result_map(WD: str, output_csv: str, file_frags: str):
                   'cos', 'coe', 'cob', 'coo',
                   ]
     df_map["comb"] = df_map["comb"].map(lambda x: json.loads(x.replace("'", '"')))
-
 
     # # all combs found in all fragment maps  # misleading?
     # ds_comb = []

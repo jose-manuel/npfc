@@ -33,6 +33,8 @@ file_knwf = pkg_resources.resource_filename('npfc', 'data/deglyco_mols.knwf')
 # WD = "/scratch/josemanuel.gally/scaffolds/crms/data/"  # production on cluster
 WD = data_tgt + "crms/data/"  # tests
 
+# id to use for tracking molecules
+molid = "Cluster"
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ PIPELINE ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
@@ -100,4 +102,4 @@ rule LOAD:
     input: WD + "0_raw/data/cr.sdf.gz"
     output: WD + "1_load/data/cr.sdf.gz"
     log: WD + "1_load/log/cr_load.log"
-    shell: "load_mols {input} {output} --in_id Cluster 2>{log}"
+    shell: "load_mols {input} {output} --in_id " + molid + " 2>{log}"
