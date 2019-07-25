@@ -165,7 +165,7 @@ def main():
     logging.info("SUMMARY")
     logger.info("COMPUTATIONAL TIME: CONFIGURING JOB".ljust(pad * 2) + f"{d1-d0}")
     logger.info("COMPUTATIONAL TIME: LOADING MOLECULES".ljust(pad * 2) + f"{d2-d1}")
-    logger.info("COMPUTATIONAL TIME: COMPUTING 2D".ljust(pad * 2) + f"{d3-d2}")
+    logger.info("COMPUTATIONAL TIME: FILTERING DUPLICATES".ljust(pad * 2) + f"{d3-d2}")
     logger.info("COMPUTATIONAL TIME: SAVING OUTPUTS".ljust(pad * 2) + f"{d4-d3}")
     logger.info("COMPUTATIONAL TIME: TOTAL".ljust(pad * 2) + f"{d4-d0}")
     logging.info("END")

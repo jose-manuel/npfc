@@ -5,15 +5,11 @@ Tests for the duplicate module.
 """
 # standard
 from pathlib import Path
-import warnings
-# data science
-import pandas as pd
 # tests
 import pytest
 from npfc import load
 from npfc import duplicate
 # configure logging
-warnings.simplefilter(action='ignore', category=pd.errors.PerformanceWarning)
 # debug
 # import logging
 # logging.basicConfig(level=logging.DEBUG)
@@ -57,9 +53,10 @@ def test_remove_dupl_wo_ref_file(input_files_dupl):
         total += total_curr
 
     assert passed == 6 and filtered == 1
-
-
+#
+#
 def test_remove_dupl_w_ref_file_hdf(input_files_dupl, ref_file_hdf):
+
     # make sure there is no previous ref file existing
     p = Path(ref_file_hdf)
     if p.exists():

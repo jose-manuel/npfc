@@ -11,8 +11,8 @@ from rdkit.Chem import Mol
 import pytest
 from npfc import load
 # debug
-# import logging
-# logging.basicConfig(level=logging.DEBUG)
+import logging
+logging.basicConfig(level=logging.DEBUG)
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FIXTURES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 

@@ -10,10 +10,14 @@ on disk.
 import logging
 import gzip
 import shutil
+import os
+import time
 from pathlib import Path
+from random import random
 # data science
 import pandas as pd
 from pandas import DataFrame
+from pandas import HDFStore
 # chemoinformatics
 from rdkit.Chem import PandasTools
 # docs
@@ -150,3 +154,35 @@ def _save(df: DataFrame,
     else:
         raise ValueError(f"Error! Cannot save DataFrame to unexpected format '{suffixes[0]}'.")
     logging.debug(f"Saved {len(df.index)} records at '{output_file}'.")
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ CLASSES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
+class SafeHDF5Store(HDFStore):
+    """Implement safe HDFStore by obtaining file lock. Multiple writes will queue if lock is not obtained.
+
+    Edited after:
+    https://stackoverflow.com/questions/41231678/obtaining-a-exclusive-lock-when-writing-to-an-hdf5-file
+    """
+
+    def __init__(self, *args, **kwargs):
+        """Initialize and obtain file lock."""
+
+        interval = kwargs.pop('probe_interval', random())
+        self._lock = f"{args[0]}.lock"
+        while True:
+            try:
+                self._flock = os.open(self._lock, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+                break
+            except (IOError, OSError):
+                time.sleep(interval)
+
+        HDFStore.__init__(self, *args, **kwargs)
+
+    def __exit__(self, *args, **kwargs):
+        """Exit and remove file lock."""
+
+        HDFStore.__exit__(self, *args, **kwargs)
+        os.close(self._flock)
+        os.remove(self._lock)
