@@ -9,6 +9,8 @@ import logging
 from time import sleep
 from pathlib import Path
 from filelock import SoftFileLock
+from filelock import FileLock
+
 # data handling
 import pandas as pd
 from pandas import DataFrame
@@ -98,10 +100,12 @@ def filter_duplicates(df: DataFrame, group_on: str = "inchikey", col_id: str = "
         # if the lock file exists, wait for it to be removed by its current job
         while Path(lock_file).exists():
             logging.debug(f"Waiting for lock file to be lifted at '{lock_file}'")
-            sleep(1)  # wait 1s before trying to acces the file again
+            sleep(0.5)  # wait 1s before trying to acces the file again
 
         # lock is not here, we can create one
-        lock = SoftFileLock(lock_file)
+        # lock = SoftFileLock(lock_file)
+        lock = FileLock(lock_file)
+
         logging.debug(f"Set lock file at '{lock_file}'. Reference file will not be accessible for read/write until this lock is lifted.")
 
         # work with lock on, it will be automatically lifted when work is done

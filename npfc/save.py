@@ -95,7 +95,7 @@ def file(df: pd.DataFrame,
         for start in range(0, len(df.index), chunk_size):
             end = start + chunk_size
             output_chunk = str(output_dir) + "/" + path_output_file.stem.split('.')[0] + "_" + str(j).zfill(3) + ''.join(ext_output_file)  # stem returns file.csv for file.csv.gz
-            _save(df=df.iloc[start:end], output_file=output_chunk, col_mol=col_mol, col_id=col_id, suffixes=ext_output_file, key=path_output_file.stem.split('.')[0], sep=csv_sep)
+            _save(df=df.iloc[start:end], output_file=output_chunk, col_mol=col_mol, col_id=col_id, suffixes=ext_output_file, key=path_output_file.stem.split('.')[0], csv_sep=csv_sep)
             output_files.append([output_chunk, len(df.iloc[start:end].index)])
             j += 1
         logging.debug(f"{len(output_files)} chunks were created")
