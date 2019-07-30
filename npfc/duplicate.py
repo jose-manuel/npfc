@@ -84,6 +84,19 @@ def filter_duplicates(df: DataFrame, group_on: str = "inchikey", col_id: str = "
     df.set_index(group_on, inplace=True)
     df_u = df.loc[~df.index.duplicated(keep="first")]
 
+    # in case of debug only, record the list of all duplicates from the chunk
+    if logging.getLogger().level == logging.DEBUG:
+        if len(df_u.index) == len(df.index):
+            logging.debug("number of duplicate molecule found in current chunk: 0")
+        else:
+            df_dupl = df[~df[col_id].isin(df_u[col_id])]
+            logging.debug(f"number of duplicate molecule found in current chunk: {len(df_dupl.index)}")
+            # log what molecule "lost" to what other in same DataFrame: InChiKey, kept, filtered
+            logging.debug(f"HEADER:group_on|id_kept|id_filtered")
+            for i in range(len(df_dupl)):
+                row_dupl = df_dupl.iloc[i]
+                logging.debug(f"RESULT: {row_dupl.name}|{df_u.loc[row_dupl.name][col_id]}|{row_dupl[col_id]}")
+
     # load reference file
     if ref_file is not None:
         key = Path(ref_file).stem
@@ -92,7 +105,7 @@ def filter_duplicates(df: DataFrame, group_on: str = "inchikey", col_id: str = "
             init_ref_file(ref_file, group_on=group_on, col_id=col_id)
 
         # open it with a lock as we'll need to update it at the end
-        with save.SafeHDF5Store(ref_file, ) as store:
+        with save.SafeHDF5Store(ref_file) as store:
             try:
                 df_ref = store[key]
             except KeyError:
@@ -101,13 +114,28 @@ def filter_duplicates(df: DataFrame, group_on: str = "inchikey", col_id: str = "
             df_ref.set_index(group_on, inplace=True)
 
             # filter out already referenced compounds
-            df_u = df_u[~df_u.index.isin(df_ref.index)]
+            df_u2 = df_u[~df_u.index.isin(df_ref.index)]
 
             # reset indices (feather does not support strings as rowids...)
-            # df_ref.reset_index(inplace=True)
-            df_u.reset_index(inplace=True)
-            df_ref.reset_index(inplace=True)
+            df_u2.reset_index(inplace=True)
 
-            df_u.drop([c for c in df_u.columns if c not in (group_on, col_id)], axis=1).to_hdf(ref_file, key=key, mode="a", format="table", append=True)
+            df_u2.drop([c for c in df_u.columns if c not in (group_on, col_id)], axis=1).to_hdf(ref_file, key=key, mode="a", format="table", append=True)
+
+            # in case of debug only, record the list of all duplicates by using the ref file
+            if logging.getLogger().level == logging.DEBUG:
+                if len(df_u2.index) == len(df_u.index):
+                    logging.debug("Number of duplicate molecule found by using ref_file: 0")
+                else:
+                    df_dupl = df_u[~df_u[col_id].isin(df_u2[col_id])]
+                    logging.debug(f"Number of duplicate molecule found by using ref_file: {len(df_dupl.index)}")
+                    logging.debug(f"HEADER:group_on|id_kept|id_filtered")
+                    # log what molecule "lost" to what other in same DataFrame: InChiKey, kept, filtered
+                    for i in range(len(df_dupl)):
+                        row_dupl = df_dupl.iloc[i]
+                        logging.debug(f"RESULT:{row_dupl.name}|{df_ref.loc[row_dupl.name][col_id]}|{row_dupl[col_id]}")
+
+            # return updated output in case of ref file
+            df_u = df_u2
+            df_ref.reset_index(inplace=True)
 
     return df_u

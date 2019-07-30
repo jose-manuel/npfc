@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Module save &mdash; npfc 0.3.8-4-g0fab38f documentation</title>
+  <title>Module save &mdash; npfc 0.3.9 documentation</title>
   
 
   
@@ -58,7 +58,7 @@
             
             
               <div class="version">
-                0.3.8-4-g0fab38f
+                0.3.9
               </div>
             
           
@@ -160,6 +160,15 @@
 <h1>Module save<a class="headerlink" href="#module-save" title="Permalink to this headline">¶</a></h1>
 <p>A module containing the Saver class, used for storing DataFrames with molecules
 on disk.</p>
+<dl class="class">
+<dt id="npfc.save.SafeHDF5Store">
+<em class="property">class </em><code class="descclassname">npfc.save.</code><code class="descname">SafeHDF5Store</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/save.html#SafeHDF5Store"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.save.SafeHDF5Store" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implement safe HDFStore by obtaining file lock. Multiple writes will queue if lock is not obtained.</p>
+<p>Edited after:
+<a class="reference external" href="https://stackoverflow.com/questions/41231678/obtaining-a-exclusive-lock-when-writing-to-an-hdf5-file">https://stackoverflow.com/questions/41231678/obtaining-a-exclusive-lock-when-writing-to-an-hdf5-file</a></p>
+<p>Initialize and obtain file lock.</p>
+</dd></dl>
+
 <dl class="function">
 <dt id="npfc.save.file">
 <code class="descclassname">npfc.save.</code><code class="descname">file</code><span class="sig-paren">(</span><em>df</em>, <em>output_file</em>, <em>shuffle=False</em>, <em>random_seed=None</em>, <em>chunk_size=None</em>, <em>encode=True</em>, <em>col_mol='mol'</em>, <em>col_id='idm'</em>, <em>csv_sep='|'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/save.html#file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.save.file" title="Permalink to this definition">¶</a></dt>
@@ -187,6 +196,11 @@ This is handy way of using the Saver class without having to keep a Saver object
 </tbody>
 </table>
 </dd></dl>
+
+<dl class="function">
+<dt id="npfc.save.random">
+<code class="descclassname">npfc.save.</code><code class="descname">random</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; x in the interval [0, 1).<a class="headerlink" href="#npfc.save.random" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 </div>
 
