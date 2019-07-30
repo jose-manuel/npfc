@@ -54,7 +54,7 @@ rule UNIMS:
     input: WD + "6_stdms/data/crms_passed.csv.gz"
     output: WD + "7_unims/data/crms_uni.csv.gz"
     log: WD + "7_unims/log/crms_uni.log"
-    shell: "filter_dupl_mols {input} {output} -r " + WD + "7_unims/crms_ref.hdf 2>{log}"
+    shell: "filter_dupl_mols {input} {output} -r " + WD + "7_unims/crms_ref.hdf --log DEBUG 2>{log}"
 
 rule STDMS:
     priority: 105
@@ -78,7 +78,7 @@ rule UNI:
     input: WD + "3_std/data/cr_passed.csv.gz"
     output: WD + "4_uni/data/cr_uni.csv.gz"
     log: WD + "4_uni/log/cr_uni.log"
-    shell: "filter_dupl_mols {input} {output} -r " + WD + "4_uni/cr_ref.hdf 2>{log}"
+    shell: "filter_dupl_mols {input} {output} -r " + WD + "4_uni/cr_ref.hdf --log DEBUG 2>{log}"
 
 rule STD:
     priority: 102

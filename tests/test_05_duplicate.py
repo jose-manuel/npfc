@@ -11,8 +11,8 @@ from npfc import load
 from npfc import duplicate
 # configure logging
 # debug
-import logging
-logging.basicConfig(level=logging.DEBUG)
+# import logging
+# logging.basicConfig(level=logging.DEBUG)
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FIXTURES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
@@ -53,8 +53,8 @@ def test_remove_dupl_wo_ref_file(input_files_dupl):
         total += total_curr
 
     assert passed == 6 and filtered == 1
-#
-#
+
+
 def test_remove_dupl_w_ref_file_hdf(input_files_dupl, ref_file_hdf):
 
     # make sure there is no previous ref file existing

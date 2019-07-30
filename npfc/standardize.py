@@ -21,6 +21,9 @@ from rdkit.Chem.MolStandardize.metal import MetalDisconnector
 from rdkit.Chem.MolStandardize.charge import Uncharger
 from rdkit.Chem.MolStandardize.normalize import Normalizer
 from rdkit.Chem.MolStandardize.tautomer import TautomerCanonicalizer
+# log
+# lg = RDLogger.logger()
+# lg.setLevel(RDLogger.CRITICAL)
 # dev library
 from npfc import utils
 from npfc.filter import Filter

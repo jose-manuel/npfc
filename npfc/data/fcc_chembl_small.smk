@@ -117,7 +117,7 @@ rule UNI:
     input: WD + "4_std/data/chembl_{cid}_passed.csv.gz"
     output: WD + "5_uni/data/chembl_{cid}_uni.csv.gz"
     log: WD + "5_uni/log/chembl_{cid}_uni.log"
-    shell: "filter_dupl_mols {input} {output} -r " + WD + "5_uni/chembl_ref.hdf 2>{log}"
+    shell: "filter_dupl_mols {input} {output} -r " + WD + "5_uni/chembl_ref.hdf --log DEBUG 2>{log}"
 
 rule STD:
     priority: 7
