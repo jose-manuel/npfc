@@ -107,7 +107,7 @@ def file(input_file: str,
     :param out_id: the column name used for storing molecule ids
     :param out_mol: the column name used for storing molecules
     :param keep_props: keep all properties found in the input file. If False, then only out_id and out_mol are kept.
-    :param decode: decode base64 strings into objects. It is not implemented yet, but later it would be possible to define just column names with objects to parse. The expected behavior would be: list -> specific column names; True: all predefined columns; False: no decoding at all. Predefined columns are: mol, mol_frag, graph, colormap, aidxf, aidxf1, aidxf2, d_aidxs.
+    :param decode: decode base64 strings into objects. Columns with encoded objects are labelled with a leading '_'. For molecules, reserved names are 'mol' and 'mol_frag'.
     :return: a DataFrame
     """
     # check arguments
@@ -154,13 +154,13 @@ def file(input_file: str,
     # decode
     if decode:
         logging.debug(f"Decoding structures")
-        # mols
+        # faster way for mols
         for col in ('mol', 'mol_frag'):
             if col in df.columns:
                 df[col] = df[col].map(utils.decode_mol)
-        # other objects
-        for col in ('graph', 'colormap', 'aidxf', 'aidxf1', 'aidxf2', 'd_aidxs'):
-            if col in df.columns:
+        # other objects are labelled with leading '_'
+        for col in df.columns:
+            if col.startswith('_'):
                 df[col] = df[col].map(utils.decode_object)
 
     return df

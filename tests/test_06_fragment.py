@@ -190,7 +190,7 @@ def test_fcc_run_substructure_match(fcc, fm, df_mol_fusion_spiro, df_frags):
     assert list(df_aidxf.index) == [0, 1]
     assert list(df_aidxf['idm']) == ["fsp"] * 2
     assert list(df_aidxf['idf']) == ['QA', 'QB']
-    assert list(df_aidxf['aidxf']) == [{0, 1, 2, 3, 4}, {2, 5, 6, 7, 8, 9}]
+    assert list(df_aidxf['_aidxf']) == [{0, 1, 2, 3, 4}, {2, 5, 6, 7, 8, 9}]
     assert list(df_aidxf['mol_perc']) == [50.0, 60.0]
     assert list(df_aidxf['mol'].map(Chem.MolToSmiles)) == ['C1COCC2(C1)CCNC2'] * 2
 
@@ -331,12 +331,12 @@ def test_case_repeated_frag(fcc, fm, df_case_repeated_frag):
     """Test to see how repeated fragments are represented only once."""
     df_aidxf = fm.run(df_case_repeated_frag[0], df_case_repeated_frag[1])
     df_fcc = fcc.classify_fragment_combinations(df_aidxf)
-    logging.debug(f"\nClean results for df_case_repeated_frag:\n{df_fcc}\n")
+    logging.debug(f"\nClean results for df_case_repeated_frag:\n{df_fcc.drop('mol', axis=1)}\n")
     assert list(df_fcc['abbrev'].values) == ['fed', 'cmo', 'cmo']
     df_map = fcc.map_frags(df_fcc)
     assert len(df_map.index) == 1
-    logging.debug(f"\nFragment map for df_case_repeated_frag:\n{df_map}\n")
-    g = df_map.iloc[0]["graph"]
+    logging.debug(f"\nFragment map for df_case_repeated_frag:\n{df_map.drop('mol', axis=1)}\n")
+    g = df_map.iloc[0]["_fmap"]
     assert list(g.edges(data=True)) == [('A', 'A', {'abbrev': 'fed', 'n_abbrev': 1, 'idm': 'REPEATEDFRAGS'}), ('A', 'B', {'abbrev': 'cmo', 'n_abbrev': 2, 'idm': 'REPEATEDFRAGS'})]
 
 
@@ -352,7 +352,7 @@ def test_case_chembl_1(fcc, fm, df_case_chembl_1):
     assert list(df_fcc['abbrev'].values) == ['cmo', 'ffo', 'cmo']
     df_map = fcc.map_frags(df_fcc)
     logging.debug(f"\nFragment map for chembl_1:\n{df_map}\n")
-    assert list(df_map['map_str'] == ["2:0[cmo]32:1", "32:1[cmo]320:3"])
+    assert list(df_map['fmap_str'] == ["2:0[cmo]32:1", "32:1[cmo]320:3"])
 
 
 def test_case_chembl_2(fcc, fm, df_case_chembl_2):
@@ -364,11 +364,11 @@ def test_case_chembl_2(fcc, fm, df_case_chembl_2):
     assert list(df_fcc['abbrev'].values) == ['fbr']
     df_map = fcc.map_frags(df_fcc)
     logging.debug(f"\nFragment map for chembl_1:\n{df_map}\n")
-    assert list(df_map['map_str'] == ["678:1[fbr]1141:0"])
+    assert list(df_map['fmap_str'] == ["678:1[fbr]1141:0"])
     # export this df_map for further processing in draw tests
     df_map["mol"] = df_map["mol"].map(utils.encode_mol)
-    df_map["colormap"] = df_map["colormap"].map(utils.encode_object)
-    df_map["graph"] = df_map["graph"].map(utils.encode_object)
+    df_map["_colormap"] = df_map["_colormap"].map(utils.encode_object)
+    df_map["_fmap"] = df_map["_fmap"].map(utils.encode_object)
     df_map.to_csv("tests/test_case_chembl_2_map.csv.gz", compression="gzip", sep="|")
 
 

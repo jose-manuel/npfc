@@ -444,8 +444,8 @@ def plot_result_map(WD: str, output_csv: str, file_frags: str):
     logger.info(f"MAP -- SAVED RESULTS AT '{output_csv_counts_sub}'")
 
     # molecule coverage by fragments
-    df_map["colormap"] = df_map["colormap"].map(utils.decode_object)
-    df_map["aidxs"] = df_map["colormap"].map(lambda x: [k for k in x.atoms.keys()])
+    df_map["_colormap"] = df_map["_colormap"].map(utils.decode_object)
+    df_map["aidxs"] = df_map["_colormap"].map(lambda x: [k for k in x.atoms.keys()])
     groups_mol_map = df_map[['idm', 'hac_mol', 'aidxs']].groupby("idm")
     num_tot_mol_fcc_molcov = len(groups_mol_map)
     logger.info(f"MAP -- FCC -- TOTAL NUMBER OF MOLS WHEN CHECKING COVERAGE PER MOLECULE: {num_tot_mol_fcc_molcov}")
@@ -489,8 +489,8 @@ def plot_result_map(WD: str, output_csv: str, file_frags: str):
     # total of fragments
     idf_counts_tot = df_idf_counts['Count'].sum()
     df_top10 = df_idf_counts.head(10)
-    df_top10["smiles"] = df_top10["mol"].map(Chem.MolToSmiles)
-    df_top10.drop(["mol", "idm"], axis=1, inplace=True)
+    df_top10["smiles"] = df_top10['mol'].map(Chem.MolToSmiles)
+    df_top10.drop(['mol', "idm"], axis=1, inplace=True)
     # percentage of the top 10
     df_top10['Perc'] = df_top10['Count'].map(lambda x: round(x / idf_counts_tot, 4) * 100)
     df_top10['Perc_cum'] = 100 * round(df_top10['Count'].cumsum() / idf_counts_tot, 4)
@@ -522,8 +522,8 @@ def plot_result_map(WD: str, output_csv: str, file_frags: str):
     df_idf_counts.index = range(len(df_idf_counts.index))
     idf_counts_tot = df_idf_counts['Count'].sum()
     df_top10 = df_idf_counts.head(10)
-    df_top10["smiles"] = df_top10["mol"].map(Chem.MolToSmiles)
-    df_top10.drop(["mol", "idm"], axis=1, inplace=True)
+    df_top10["smiles"] = df_top10['mol'].map(Chem.MolToSmiles)
+    df_top10.drop(['mol', "idm"], axis=1, inplace=True)
     # percentage of the top 10
     df_top10['Perc'] = df_top10['Count'].map(lambda x: round(x / idf_counts_tot, 4) * 100)
     df_top10['Perc_cum'] = 100 * round(df_top10['Count'].cumsum() / idf_counts_tot, 4)
@@ -629,7 +629,7 @@ def plot_result_pnp(WD: str, output_csv: str):
     # result
     df = pd.DataFrame({"PNP_fm": [num_pnp_fm], "Non-PNP_fm": [num_non_pnp_fm], "PNP_mol": [num_pnp_mol], "Non-PNP_mol": [num_non_pnp_mol]}).T.rename({0: "Count"}, axis=1)
     df['Category'] = df.index
-    df['Perc'] = [round(x/num_tot_mol, 3) * 100 if "_mol" in y else round(x/num_tot_fm, 3) * 100 for x, y in zip(df["Count"], df['Category'])]
+    df['Perc'] = [round(x/num_tot_mol, 3) * 100 if 'mol' in y else round(x/num_tot_fm, 3) * 100 for x, y in zip(df["Count"], df['Category'])]
     logger.info(f"RESULTS:\n\n{df}\n")
 
     # export to csv

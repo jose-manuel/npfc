@@ -150,7 +150,7 @@ def main():
     # df_map_ref.drop("Unnamed: 0", axis=1, inplace=True)
     logging.info(f"FOUND {len(df_map_ref.index)} REFERENCE FRAGMENT MAPS")
     logging.info(f"EXTRACTING EDGES FROM FRAGMENT MAPS")
-    df_map_ref["edges_ref"] = df_map_ref["graph"].map(lambda x: x.edges(data="abbrev"))
+    df_map_ref["edges_ref"] = df_map_ref["_fmap"].map(lambda x: x.edges(data="abbrev"))
 
     # mapping fragment combinations
     logger.info(f"ANNOTATING FRAGMENT MAPS")

@@ -60,7 +60,7 @@ class Matcher:
         d['idm'] = []
         d['idf'] = []
         d['idxf'] = []
-        d['aidxf'] = []
+        d['_aidxf'] = []
         d['mol_perc'] = []  # proportion of the molecule the substructure represents
         d['mol'] = []  # encode the molecule here so we don't have to combine multiple files when trying to have a look at the results
         d['mol_frag'] = []  # strucutre of the fragment
@@ -76,7 +76,7 @@ class Matcher:
                 for i, m in enumerate(matches):
                     d['idm'].append(rowm.name)
                     d['idf'].append(rowq.name)
-                    d['aidxf'].append(frozenset(m))  # frozenset so we can use intersection, etc. and still remove dupl. easily
+                    d['_aidxf'].append(frozenset(m))  # frozenset so we can use intersection, etc. and still remove dupl. easily
                     d['idxf'].append(str(i))
                     d['mol_perc'].append(round(len(m)/hac, 2) * 100)
                     d['mol'].append(rowm[col_mol_mols])
@@ -409,7 +409,7 @@ class CombinationClassifier:
         ds_fcc = []
         logging.debug(df_aidxf.columns)
         # labelling idxf
-        df_aidxf['aidxf_str'] = df_aidxf['aidxf'].map(str)  # sets are an unhashable type...
+        df_aidxf['aidxf_str'] = df_aidxf['_aidxf'].map(str)  # sets are an unhashable type...
 
         # logging.info(f"\n\ndf_aidxf['idxf']:\n {df_aidxf['idxf']}")  # !!! think about what I really want here. For now I just know I don't want this behavior
 
@@ -420,12 +420,12 @@ class CombinationClassifier:
             # mol = df_mols[df_mols['idm'] == gid]['mol'].iloc[0]
             for i in range(len(g)):
                 row_f1 = g.iloc[i]
-                aidxf1 = row_f1['aidxf']
+                aidxf1 = row_f1['_aidxf']
                 idf1 = row_f1['idf']
                 idxf1 = row_f1['idxf']
                 for j in range(i+1, len(g)):
                     row_f2 = g.iloc[j]
-                    aidxf2 = row_f2['aidxf']
+                    aidxf2 = row_f2['_aidxf']
                     idf2 = row_f2['idf']
                     idxf2 = row_f2['idxf']
                     logging.debug("="*80)
@@ -441,13 +441,13 @@ class CombinationClassifier:
                     d_fcc['idf2'] = idf2
                     d_fcc['idxf2'] = idxf2
                     d_fcc['fid2'] = str(idf2) + ":" + str(idxf2)
-                    d_fcc['aidxf1'] = aidxf1
-                    d_fcc['aidxf2'] = aidxf2
+                    d_fcc['_aidxf1'] = aidxf1
+                    d_fcc['_aidxf2'] = aidxf2
                     d_fcc['hac'] = hac
                     ds_fcc.append(d_fcc)
         logging.debug("="*80)
         # dataframe with columns in given order
-        df_fcc = DataFrame(ds_fcc, columns=['idm', 'idf1', 'idxf1', 'fid1', 'idf2', 'idxf2', 'fid2', 'abbrev', 'category', 'type', 'subtype', 'aidxf1', 'aidxf2', 'hac', 'mol'])
+        df_fcc = DataFrame(ds_fcc, columns=['idm', 'idf1', 'idxf1', 'fid1', 'idf2', 'idxf2', 'fid2', 'abbrev', 'category', 'type', 'subtype', '_aidxf1', '_aidxf2', 'hac', 'mol'])
         # clean results from false positives
         if clean:
             return self.clean(df_fcc)
@@ -490,7 +490,7 @@ class CombinationClassifier:
                 # for each molecule, look at what fids we should remove
                 for rowid, row in g[g['abbrev'] == 'ffs'].iterrows():
                     # combination ifs ffs, so remove either fid1 or fid2 depending on hac
-                    if len(row['aidxf1']) > len(row['aidxf2']):
+                    if len(row['_aidxf1']) > len(row['_aidxf2']):
                         fid_to_remove.add(row['fid2'])
                     else:
                         fid_to_remove.add(row['fid1'])
@@ -653,14 +653,14 @@ class CombinationClassifier:
                     row = df_fcc_clean.iloc[j]
                     # idf1
                     if row["idf1"] not in d_aidxs.keys():
-                        d_aidxs[row["idf1"]] = [row["aidxf1"]]
-                    elif row["aidxf1"] not in d_aidxs[row["idf1"]]:
-                        d_aidxs[row["idf1"]].append(row["aidxf1"])
+                        d_aidxs[row["idf1"]] = [row["_aidxf1"]]
+                    elif row["_aidxf1"] not in d_aidxs[row["idf1"]]:
+                        d_aidxs[row["idf1"]].append(row["_aidxf1"])
                     # idf2
                     if row["idf2"] not in d_aidxs.keys():
-                        d_aidxs[row["idf2"]] = [row["aidxf2"]]
-                    elif row["aidxf2"] not in d_aidxs[row["idf2"]]:
-                        d_aidxs[row["idf2"]].append(row["aidxf2"])
+                        d_aidxs[row["idf2"]] = [row["_aidxf2"]]
+                    elif row["_aidxf2"] not in d_aidxs[row["idf2"]]:
+                        d_aidxs[row["idf2"]].append(row["_aidxf2"])
 
                 # sort d_aidxs for reproducible colormaps
                 d_aidxs = OrderedDict(sorted(d_aidxs.items()))
@@ -711,7 +711,7 @@ class CombinationClassifier:
                 ncomb = len(comb)
                 comb_u = list(set(comb))
                 ncomb_u = len(comb_u)
-                ds_map.append({'idm': gid, 'fmid': str(i+1).zfill(3), 'nfrags': nfrags, 'nfrags_u': nfrags_u, 'ncomb': ncomb, 'ncomb_u': ncomb_u, 'hac_mol': hac_mol, 'hac_frags': hac_frags, 'perc_mol_cov_frags': perc_mol_cov_frags, 'frags': frags, 'frags_u': frags_u, 'comb': comb, 'comb_u': comb_u, 'map_str': frag_map_str, 'd_aidxs': d_aidxs, 'colormap': colormap, 'graph': graph, 'mol': mol})
+                ds_map.append({'idm': gid, 'fmid': str(i+1).zfill(3), 'nfrags': nfrags, 'nfrags_u': nfrags_u, 'ncomb': ncomb, 'ncomb_u': ncomb_u, 'hac_mol': hac_mol, 'hac_frags': hac_frags, 'perc_mol_cov_frags': perc_mol_cov_frags, 'frags': frags, 'frags_u': frags_u, 'comb': comb, 'comb_u': comb_u, 'fmap_str': frag_map_str, '_d_aidxs': d_aidxs, '_colormap': colormap, '_fmap': graph, 'mol': mol})
 
         # df_map
-        return DataFrame(ds_map, columns=['idm', 'fmid', 'nfrags', 'nfrags_u', 'ncomb', 'ncomb_u', 'hac_mol', 'hac_frags', 'perc_mol_cov_frags', 'frags', 'frags_u', 'comb', 'comb_u', 'map_str', 'd_aidxs', 'colormap', 'graph', 'mol'])
+        return DataFrame(ds_map, columns=['idm', 'fmid', 'nfrags', 'nfrags_u', 'ncomb', 'ncomb_u', 'hac_mol', 'hac_frags', 'perc_mol_cov_frags', 'frags', 'frags_u', 'comb', 'comb_u', 'fmap_str', '_d_aidxs', '_colormap', '_fmap', 'mol'])

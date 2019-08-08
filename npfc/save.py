@@ -78,13 +78,13 @@ def file(df: pd.DataFrame,
         # for SDF files, RDKit Mol objects to use for MolBlocks should not be encoded
         if ext_output_file[0] != '.sdf' and col_mol in df.columns:
             df[col_mol] = df[col_mol].map(utils.encode_mol)
-        # other RDKit Mol objects can be though
+        # other RDKit Mol objects can be encoded though
         for col in ("mol", "mol_frag"):
             if col in df.columns and col != col_mol:
                 df[col] = df[col].map(utils.encode_mol)
-        # encode other predefined objects
-        for col in ('graph', 'colormap', 'aidxf', 'aidxf1', 'aidxf2', 'd_aidxs'):
-            if col in df.columns:
+        # other objects are labelled with leading '_'
+        for col in df.columns:
+            if col.startswith('_'):
                 df[col] = df[col].map(utils.encode_object)
 
     # chunking

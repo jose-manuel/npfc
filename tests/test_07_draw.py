@@ -38,8 +38,8 @@ def ref_file_highlight_mol():
 def df_map():
     df_map = pd.read_csv("tests/test_case_chembl_2_map.csv.gz", compression="gzip", sep="|")
     df_map["mol"] = df_map["mol"].map(utils.decode_mol)
-    df_map["graph"] = df_map["graph"].map(utils.decode_object)
-    df_map["colormap"] = df_map["colormap"].map(utils.decode_object)
+    df_map["_fmap"] = df_map["_fmap"].map(utils.decode_object)
+    df_map["_colormap"] = df_map["_colormap"].map(utils.decode_object)
 
     return df_map
 
@@ -76,7 +76,7 @@ def test_highlight_mol(df_map, ref_file_highlight_mol):
     assert Path(ref_file_highlight_mol).exists() is True
     # check colormap
     row = df_map.iloc[0]
-    colormap = row["colormap"]
+    colormap = row["_colormap"]
     # colors attributed to each fragment
     assert colormap.fragments == OrderedDict([('1141', (1.0, 0.6, 0.6)), ('678', (0.2, 1.0, 0.2))])
     # colors attributed to each atom. Fused atom colors are blended together

@@ -43,8 +43,8 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Split a SDF into hdf chunks', formatter_class=argparse.ArgumentDefaultsHelpFormatter)    # (1)
     parser.add_argument('-i', '--input_hdf', type=str, default=None, help="File name of the input HDF.")
-    parser.add_argument('-m', '--mol_col', type=str, default=None, help="Molecule column.")
-    parser.add_argument('-d', '--decode_mols', type=bool, default=False, help="Decode molecule column to check that everything is fine.")
+    parser.add_argument('--col_mol', type=str, default='mol', help="Molecule column.")
+    parser.add_argument('--decode', type=bool, default=False, help="Decode encoded data (molecules, fragment maps, colormaps, etc.")
     parser.add_argument('-n', '--nrecords', type=int, default=10, help="Number of records to display.")
 
     args = parser.parse_args()
@@ -94,14 +94,9 @@ if __name__ == '__main__':
     # load
     d0 = datetime.datetime.now()
     logging.info("LOADING INPUT_HDF")
-    if args.mol_col is not None:
-        df = load.file(args.input_hdf, decode=args.decode_mols, in_mol=args.col_mol, out_mol=args.col_mol)
-        num_failed = df[args.col_mol].isna().sum()
-        logging.info(f"LOADED {len(df)} RECORDS WITH {num_failed} FAILURE(S)")
-    else:
-        input_hdf_path = Path(args.input_hdf)
-        df = pd.read_hdf(args.input_hdf, key=input_hdf_path.stem.split('.')[0])
-
+    df = load.file(args.input_hdf, decode=args.decode, in_mol=args.col_mol, out_mol=args.col_mol)
+    num_failed = df[args.col_mol].isna().sum()
+    logging.info(f"LOADED {len(df)} RECORDS WITH {num_failed} FAILURE(S)")
     logging.info("DESCRIBING INPUT_HDF:")
     logging.info(f"COLUMNS\n\n{df.dtypes}\n")
     logging.info(f"DISPLAYING THE {args.nrecords} FIRST RECORD(S):\n")
