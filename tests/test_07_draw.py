@@ -17,13 +17,17 @@ from rdkit import RDLogger
 import pytest
 from npfc import utils
 from npfc import draw
-# configure logging
+# debug
+import logging
+logging.basicConfig(level=logging.INFO)
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ LOGGING ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
 lg = RDLogger.logger()
 lg.setLevel(RDLogger.CRITICAL)
 warnings.simplefilter(action='ignore', category=pd.errors.PerformanceWarning)
-# debug
-# import logging
-# logging.basicConfig(level=logging.DEBUG)
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FIXTURES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
@@ -36,7 +40,7 @@ def ref_file_highlight_mol():
 
 @pytest.fixture
 def df_map():
-    df_map = pd.read_csv("tests/test_case_chembl_2_map.csv.gz", compression="gzip", sep="|")
+    df_map = pd.read_csv("tests/tmp/test_case_chembl_2_map.csv.gz", compression="gzip", sep="|")
     df_map["mol"] = df_map["mol"].map(utils.decode_mol)
     df_map["_fmap"] = df_map["_fmap"].map(utils.decode_object)
     df_map["_colormap"] = df_map["_colormap"].map(utils.decode_object)

@@ -8,65 +8,115 @@ for a local run of the npfc workflow.
 import subprocess
 from pathlib import Path
 import pkg_resources
+import shutil
 # debug
-# import logging
-# logging.basicConfig(level=logging.DEBUG)
+import logging
+logging.basicConfig(level=logging.WARNING)
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ TESTS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 
 def test_00_init_folder():
-    """Removes all files in tmp worklow output folder."""
-    p = Path('tests/tmp/local_workflow')
-    p.mkdir(parents=True, exist_ok=True)
-    for f in [x for x in p.iterdir() if x.is_file()]:
-        f.unlink()
+    """Reset the folder where outputs are computed to its initial state."""
+
+    data_ori = "tests/data/"
+    data_tgt = "tests/tmp/"
+    # delete any previous jobs from workflows
+    for subdir in Path(data_tgt).glob("*"):
+        if subdir.is_dir():
+            shutil.rmtree(subdir)
+    # copy reference subdirectories for reseting the workflows folder to their initial state
+    for subdir in Path(data_ori).glob("*"):
+        if subdir.is_dir():
+            shutil.copytree(str(subdir), f"{data_tgt}/{subdir.stem}")
 
 
-def test_01a_prep_crms_small_tasktree():
-    """Compute the task tree for the prep_crms_small pipeline."""
-    smk_file = pkg_resources.resource_filename('npfc', 'data/prep_crms_small.smk')
-    smk_svg = "tests/tmp/prep_crms_small.svg"
-    subprocess.run(f"snakemake -s {smk_file} --dag | dot -Tsvg > {smk_svg}", shell=True, check=True)
+def test_01_fragments():
+    """Create the tasktree and run the pipeline for preparing fragments on a small dataset."""
+    smk_file = pkg_resources.resource_filename('npfc', 'data/fragments.smk')
+    smk_svg = "tests/tmp/scaffolds/fragments.svg"
+    output_files = ["tests/tmp/scaffolds/crms/data/08_gen2D/data/crms_gen2D.csv.gz"]
+    prefix = 'crms'
+    molid = 'Cluster'
+    WD = 'tests/tmp/scaffolds/crms/data/'
+    input_file = 'tests/tmp/scaffolds/crms/data/00_raw/data/cr.sdf.gz'
+
+    # task tree
+    subprocess.run(f"snakemake -j 4 -s {smk_file}  \
+                   --config  prefix='{prefix}' molid='{molid}' WD='{WD}' input_file='{input_file}' \
+                   --dag | dot -Tsvg > {smk_svg}",
+                   shell=True, check=True)
     assert Path(smk_svg).exists()
 
-
-def test_01b_prep_crms_small():
-    """Run the pipeline for preparing fragments (crms) on a small dataset."""
-    smk_file = pkg_resources.resource_filename('npfc', 'data/prep_crms_small.smk')
-    output_files = ["tests/tmp/scaffolds/crms/data/8_gen2d/data/crms_2d.csv.gz"]
-    subprocess.run("snakemake -s " + smk_file, shell=True, check=True)
+    # run protocol
+    subprocess.run(f"snakemake -j 4 -s {smk_file}  \
+                   --config  prefix='{prefix}' molid='{molid}' WD='{WD}' input_file='{input_file}'",
+                   shell=True, check=True)
     assert all([Path(f).exists() for f in output_files])
 
 
-def test_02a_fcc_dnp_small_tasktree():
-    """Compute the task tree for the fcc_dnp_small pipeline."""
-    smk_file = pkg_resources.resource_filename('npfc', 'data/fcc_dnp_small.smk')
-    smk_svg = "tests/tmp/fcc_dnp_small.svg"
-    subprocess.run(f"snakemake -s {smk_file} --dag | dot -Tsvg > {smk_svg}", shell=True, check=True)
+
+def test_02_natural():
+    """Create the tasktree and run the pipeline for executing the FCC protocol on a small dataset from the DNP."""
+    smk_file = pkg_resources.resource_filename('npfc', 'data/natural.smk')
+    smk_svg = "tests/tmp/dnp/natural.svg"
+    output_files = [f"tests/tmp/dnp/data/09_fmap/data/dnp_{str(cid+1).zfill(3)}_fmap.csv.gz" for cid in range(3)]
+    prefix = 'dnp'
+    molid = 'UKEY'
+    WD = 'tests/tmp/dnp/data/'
+    input_file = 'tests/tmp/dnp/data/00_raw/data/dnp.sdf.gz'
+    frags_file = 'tests/tmp/scaffolds/crms/data/08_gen2D/data/crms_gen2D.csv.gz'
+    chunksize = 100
+
+    # task tree
+    subprocess.run(f"snakemake -j 4 -s {smk_file}  \
+                   --config  prefix='{prefix}' molid='{molid}' chunksize={chunksize} \
+                   WD='{WD}' input_file='{input_file}' frags_file={frags_file} \
+                   --dag | dot -Tsvg > {smk_svg}",
+                   shell=True, check=True)
     assert Path(smk_svg).exists()
 
-
-def test_02b_fcc_dnp_small():
-    """Run the pipeline for executing the FCC protocol on a small dataset from the DNP."""
-    smk_file = pkg_resources.resource_filename('npfc', 'data/fcc_dnp_small.smk')
-    output_files = [f"tests/tmp/dnp/data/9_map/data/dnp_00{i+1}_map.csv.gz" for i in range(3)]
-    subprocess.run("snakemake -j 4 -s " + smk_file, shell=True, check=True)
+    # run protocol
+    subprocess.run(f"snakemake -j 4 -s {smk_file}  \
+                   --config  prefix='{prefix}' molid='{molid}' chunksize={chunksize} \
+                   WD='{WD}' input_file='{input_file}' frags_file={frags_file} \
+                   2>&1 | grep -v INFO:",
+                   shell=True, check=True)
+    # I have a bug with snakemake when one rule runs a subprocess.
+    # All log outputs are doubled, one in the usual green and one in white that starts with 'INFO:'.
+    # The best comporomise I found is to filter out these extra INFO lines from the stderr stream,
+    # but it cancels the snakemake color scheme.
     assert all([Path(f).exists() for f in output_files])
 
 
-def test_03a_fcc_chembl_small_tasktree():
-    """Compute the task tree for the fcc_chembl_small pipeline."""
-    smk_file = pkg_resources.resource_filename('npfc', 'data/fcc_chembl_small.smk')
-    smk_svg = "tests/tmp/fcc_chembl_small.svg"
-    subprocess.run(f"snakemake -s {smk_file} --dag | dot -Tsvg > {smk_svg}", shell=True, check=True)
-    assert Path(smk_svg).exists()
+def test_03_synthetic():
+    """Create the tasktree and run the pipeline for executing the FCC protocol on a small dataset from the DNP."""
+    smk_file = pkg_resources.resource_filename('npfc', 'data/synthetic.smk')
+    smk_svg = "tests/tmp/chembl/synthetic.svg"
+    output_files = [f"tests/tmp/chembl/data/11_pnp/data/chembl_{str(cid+1).zfill(3)}_pnp.csv.gz" for cid in range(3)]
+    prefix = 'chembl'
+    molid = 'chembl_id'
+    chunksize = 100
+    WD = 'tests/tmp/chembl/data/'
+    input_file = 'tests/tmp/chembl/data/00_raw/data/chembl.sdf.gz'
+    frags_file = 'tests/tmp/scaffolds/crms/data/08_gen2D/data/crms_gen2D.csv.gz'
+    natref_uni_reffile = 'tests/tmp/dnp/data/05_uni/dnp_ref.hdf'
+    natref_fmap_dir = 'tests/tmp/dnp/data/09_fmap/data/'
 
+    # task tree
+    subprocess.run(f"snakemake -j 4 -s {smk_file}  \
+                   --config  prefix='{prefix}' molid='{molid}' chunksize={chunksize} \
+                   WD='{WD}' input_file='{input_file}' frags_file={frags_file} \
+                   natref_uni_reffile='{natref_uni_reffile}' natref_fmap_dir='{natref_fmap_dir}' \
+                   --dag | dot -Tsvg > {smk_svg}",
+                   shell=True, check=True)
 
-def test_03b_fcc_chembl_small():
-    """Run the pipeline for executing the FCC protocol on a small dataset from the ChEMBL, using synth subsetting."""
-    smk_file = pkg_resources.resource_filename('npfc', 'data/fcc_chembl_small.smk')
-    output_files = [f"tests/tmp/chembl/data/11_pnp/data/chembl_00{i+1}_pnp.csv.gz" for i in range(3)]
-    subprocess.run("snakemake -j 4 -s " + smk_file, shell=True, check=True)
+    # # run protocol
+    subprocess.run(f"snakemake -j 4 -s {smk_file}  \
+                   --config  prefix='{prefix}' molid='{molid}' chunksize={chunksize} \
+                   WD='{WD}' input_file='{input_file}' frags_file={frags_file} \
+                   natref_uni_reffile='{natref_uni_reffile}' natref_fmap_dir='{natref_fmap_dir}' \
+                   2>&1 | grep -v INFO:",
+                   shell=True, check=True)
     assert all([Path(f).exists() for f in output_files])

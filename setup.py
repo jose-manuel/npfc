@@ -8,7 +8,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="npfc",
-    version='0.3.9-1-gef4c245',
+    version='0.3.9-2-gedb4ac8',
     author="Stephane Bourg, Jose-Manuel Gally",
     author_email="stephane.bourg@crns.fr",
     description="A package for classifying fragment combinations in molecules",
@@ -29,20 +29,21 @@ setuptools.setup(
     ],
     scripts=[
              'bin/chunk_sdf',
-             'bin/load_mols',
-             'bin/deglyco_mols',
-             'bin/standardize_mols',
-             'bin/filter_dupl_mols',
-             'bin/murcko_mols',
-             'bin/subset_mols',
-             'bin/substruct_mols',
-             'bin/classify_frags',
-             'bin/map_frags',
-             'bin/annotate_pnp',
-             'bin/compute2D_mols',
-             'bin/plot_pipeline_results',
+             'bin/mols_deglyco',
+             'bin/mols_extract_murcko',
+             'bin/mols_filter_dupl',
+             'bin/mols_gen2D',
+             'bin/mols_load',
+             'bin/mols_standardize',
+             'bin/mols_subset',
+             'bin/mols_substruct',
+             'bin/fc_annotate_act',
+             'bin/fc_classify',
+             'bin/fc_map',
+             'bin/fmaps_annotate_pnp',
+             'bin/results_analyze',
              'bin/peek_hdf',
              ],
-    # package_data={'npfc': ['data/deglyco_mols.knwf']},  # key: package name, value: list of data files
+    # package_data={'npfc': ['data/mols_deglyco.knwf']},  # key: package name, value: list of data files
     include_package_data=True,
 )

@@ -60,11 +60,11 @@ function chunk_sdf {
         if [ $gunzip_version = '1.5' ]
         then
             echo "compres_input is true"
-            gunzip $input_sdf
+            gunzip -f $input_sdf
             compress_input="true"
         else
             echo "compres_input is false"
-            gunzip -k $input_sdf  # available only with gzip 1.6, cluster version is 1.5
+            gunzip -fk $input_sdf  # available only with gzip 1.6, cluster version is 1.5
             compress_input="false"
 
         fi

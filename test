@@ -1,0 +1,76 @@
+============================= test session starts ==============================
+platform linux -- Python 3.6.6, pytest-4.6.2, py-1.8.0, pluggy-0.12.0 -- /home/gally/Software/anaconda3/envs/npfc/bin/python
+cachedir: .pytest_cache
+rootdir: /home/gally/Projects/NPFC/src, inifile: pytest.ini
+plugins: icdiff-0.0.4, doctestplus-0.3.0, remotedata-0.3.1, arraydiff-0.3, openfiles-0.4.0
+collecting ... collected 53 items
+
+tests/test_00_save.py::test_init PASSED
+tests/test_00_save.py::test_save_compressed PASSED
+tests/test_00_save.py::test_save_simple PASSED
+tests/test_00_save.py::test_save_chunks PASSED
+tests/test_00_save.py::test_save_func_dupl PASSED
+tests/test_01_utils.py::test_check_arg_bool PASSED
+tests/test_01_utils.py::test_check_arg_positive_number PASSED
+tests/test_01_utils.py::test_check_arg_input_file PASSED
+tests/test_01_utils.py::test_arg_output_file PASSED
+tests/test_01_utils.py::test_arg_config_file PASSED
+tests/test_02_load.py::test_file_sdf PASSED
+tests/test_02_load.py::test_file_sdf_gz PASSED
+tests/test_02_load.py::test_file_hdf PASSED
+tests/test_02_load.py::test_file_csv PASSED
+tests/test_02_load.py::test_file_csv_gz PASSED
+tests/test_02_load.py::test_count_sdf count is 5
+PASSED
+tests/test_03_filter.py::test_filter PASSED
+tests/test_04_standardize.py::test_fu_full_uncharge PASSED
+tests/test_04_standardize.py::test_std_disconnect_metal PASSED
+tests/test_04_standardize.py::test_std_init PASSED
+tests/test_04_standardize.py::test_std_keep_best PASSED
+tests/test_04_standardize.py::test_std_normalize PASSED
+tests/test_04_standardize.py::test_std_canonicalize PASSED
+tests/test_04_standardize.py::test_std_remove_stereochemistry PASSED
+tests/test_04_standardize.py::test_run_protocol PASSED
+tests/test_04_standardize.py::test_standardizer_timeout SKIPPED
+tests/test_05_duplicate.py::test_remove_dupl_wo_ref_file PASSED
+tests/test_05_duplicate.py::test_remove_dupl_w_ref_file_hdf PASSED
+tests/test_06_fragment.py::test_fcc_run_substructure_match PASSED
+tests/test_06_fragment.py::test_fcc_fusion_spiro PASSED
+tests/test_06_fragment.py::test_fcc_fusion_edge PASSED
+tests/test_06_fragment.py::test_fcc_fusion_bridged PASSED
+tests/test_06_fragment.py::test_fcc_fusion_other SKIPPED
+tests/test_06_fragment.py::test_fcc_connection_monopodal PASSED
+tests/test_06_fragment.py::test_fcc_connection_bipodal_spiro PASSED
+tests/test_06_fragment.py::test_fcc_connection_bipodal_edge PASSED
+tests/test_06_fragment.py::test_fcc_connection_bipodal_bridged PASSED
+tests/test_06_fragment.py::test_fcc_connection_tripodal_spiro PASSED
+tests/test_06_fragment.py::test_fcc_connection_tripodal_edge PASSED
+tests/test_06_fragment.py::test_fcc_connection_tripodal_bridged PASSED
+tests/test_06_fragment.py::test_fcc_connection_other_spiro PASSED
+tests/test_06_fragment.py::test_fcc_connection_other_edge SKIPPED
+tests/test_06_fragment.py::test_fcc_connection_other_bridged PASSED
+tests/test_06_fragment.py::test_fcc_fusion_false_positive_substructure PASSED
+tests/test_06_fragment.py::test_fcc_connection_false_positive_cutoff PASSED
+tests/test_06_fragment.py::test_case_repeated_frag PASSED
+tests/test_06_fragment.py::test_case_chembl_1 PASSED
+tests/test_06_fragment.py::test_case_chembl_2 PASSED
+tests/test_06_fragment.py::test_case_dnp_1 PASSED
+tests/test_07_draw.py::test_compute_2D PASSED
+tests/test_07_draw.py::test_highlight_mol PASSED
+tests/test_08_local_workflow.py::test_00_init_folder PASSED
+tests/test_08_local_workflow.py::test_01b_fragments FAILED
+
+=================================== FAILURES ===================================
+______________________________ test_01b_fragments ______________________________
+
+    def test_01b_fragments():
+        """Run the pipeline for preparing fragments on a small dataset."""
+        smk_file = pkg_resources.resource_filename('npfc', 'data/fragments.smk')
+        output_files = ["tests/tmp/scaffolds/crms/data/8_gen2D/data/crms_gen2D.csv.gz"]
+        subprocess.run(f"snakemake -j 4 -s {smk_file}  --config  prefix='crms' molid='Cluster' WD='tests/tmp/scaffolds/crms/data/' input_file='tests/tmp/scaffolds/crms/data/0_raw/data/cr.sdf.gz'", shell=True, check=True)
+>       assert all([Path(f).exists() for f in output_files])
+E       assert False
+E        +  where False = all([False])
+
+tests/test_08_local_workflow.py:47: AssertionError
+=============== 1 failed, 49 passed, 3 skipped in 22.83 seconds ================

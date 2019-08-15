@@ -1,0 +1,181 @@
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 4
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	1	CHUNK
+	3	DGC
+	3	FCC
+	3	FMAP
+	3	GEN2D
+	3	LOAD
+	3	STD
+	3	SUB
+	3	UNI
+	1	all
+	26
+
+[Wed Aug 14 17:15:35 2019]
+rule CHUNK:
+    input: tests/tmp/dnp/data/0_raw/data/dnp.sdf
+    output: tests/tmp/dnp/data/1_input/data/dnp_001.sdf.gz, tests/tmp/dnp/data/1_input/data/dnp_002.sdf.gz, tests/tmp/dnp/data/1_input/data/dnp_003.sdf.gz
+    log: tests/tmp/dnp/data/1_input/log/dnp_chunk.log
+    jobid: 25
+    priority: 19
+
+[Wed Aug 14 17:15:35 2019]
+Finished job 25.
+1 of 26 steps (4%) done
+
+[Wed Aug 14 17:15:35 2019]
+rule LOAD:
+    input: tests/tmp/dnp/data/1_input/data/dnp_002.sdf.gz
+    output: tests/tmp/dnp/data/2_load/data/dnp_002.sdf.gz
+    log: tests/tmp/dnp/data/2_load/log/dnp_002_load.log
+    jobid: 23
+    wildcards: WD=tests/tmp/dnp/data, prefix=dnp, cid=002
+    priority: 18
+
+
+[Wed Aug 14 17:15:35 2019]
+rule LOAD:
+    input: tests/tmp/dnp/data/1_input/data/dnp_003.sdf.gz
+    output: tests/tmp/dnp/data/2_load/data/dnp_003.sdf.gz
+    log: tests/tmp/dnp/data/2_load/log/dnp_003_load.log
+    jobid: 24
+    wildcards: WD=tests/tmp/dnp/data, prefix=dnp, cid=003
+    priority: 18
+
+
+[Wed Aug 14 17:15:35 2019]
+rule LOAD:
+    input: tests/tmp/dnp/data/1_input/data/dnp_001.sdf.gz
+    output: tests/tmp/dnp/data/2_load/data/dnp_001.sdf.gz
+    log: tests/tmp/dnp/data/2_load/log/dnp_001_load.log
+    jobid: 22
+    wildcards: WD=tests/tmp/dnp/data, prefix=dnp, cid=001
+    priority: 18
+
+[Wed Aug 14 17:15:35 2019]
+Finished job 24.
+2 of 26 steps (8%) done
+
+[Wed Aug 14 17:15:35 2019]
+rule DGC:
+    input: tests/tmp/dnp/data/2_load/data/dnp_003.sdf.gz
+    output: tests/tmp/dnp/data/3_deglyco/data/dnp_003_deglyco.sdf.gz
+    log: tests/tmp/dnp/data/3_deglyco/log/dnp_003_deglyco_knwf.log
+    jobid: 21
+    wildcards: WD=tests/tmp/dnp/data, prefix=dnp, cid=003
+    priority: 17
+
+[Wed Aug 14 17:15:35 2019]
+Finished job 22.
+3 of 26 steps (12%) done
+
+[Wed Aug 14 17:15:35 2019]
+rule DGC:
+    input: tests/tmp/dnp/data/2_load/data/dnp_001.sdf.gz
+    output: tests/tmp/dnp/data/3_deglyco/data/dnp_001_deglyco.sdf.gz
+    log: tests/tmp/dnp/data/3_deglyco/log/dnp_001_deglyco_knwf.log
+    jobid: 19
+    wildcards: WD=tests/tmp/dnp/data, prefix=dnp, cid=001
+    priority: 17
+
+[Wed Aug 14 17:15:35 2019]
+Finished job 23.
+4 of 26 steps (15%) done
+
+[Wed Aug 14 17:15:35 2019]
+rule DGC:
+    input: tests/tmp/dnp/data/2_load/data/dnp_002.sdf.gz
+    output: tests/tmp/dnp/data/3_deglyco/data/dnp_002_deglyco.sdf.gz
+    log: tests/tmp/dnp/data/3_deglyco/log/dnp_002_deglyco_knwf.log
+    jobid: 20
+    wildcards: WD=tests/tmp/dnp/data, prefix=dnp, cid=002
+    priority: 17
+
+[Wed Aug 14 17:15:50 2019]
+Finished job 19.
+5 of 26 steps (19%) done
+
+[Wed Aug 14 17:15:50 2019]
+rule STD:
+    input: tests/tmp/dnp/data/3_deglyco/data/dnp_001_deglyco.sdf.gz
+    output: tests/tmp/dnp/data/4_std/data/dnp_001_passed.csv.gz, tests/tmp/dnp/data/4_std/data/dnp_001_filtered.csv.gz, tests/tmp/dnp/data/4_std/data/dnp_001_error.csv.gz
+    log: tests/tmp/dnp/data/4_std/log/dnp_001_std.log
+    jobid: 16
+    wildcards: WD=tests/tmp/dnp/data, prefix=dnp, cid=001
+    priority: 16
+
+[Wed Aug 14 17:15:51 2019]
+Finished job 21.
+6 of 26 steps (23%) done
+
+[Wed Aug 14 17:15:51 2019]
+rule STD:
+    input: tests/tmp/dnp/data/3_deglyco/data/dnp_003_deglyco.sdf.gz
+    output: tests/tmp/dnp/data/4_std/data/dnp_003_passed.csv.gz, tests/tmp/dnp/data/4_std/data/dnp_003_filtered.csv.gz, tests/tmp/dnp/data/4_std/data/dnp_003_error.csv.gz
+    log: tests/tmp/dnp/data/4_std/log/dnp_003_std.log
+    jobid: 18
+    wildcards: WD=tests/tmp/dnp/data, prefix=dnp, cid=003
+    priority: 16
+
+[Wed Aug 14 17:15:51 2019]
+Finished job 20.
+7 of 26 steps (27%) done
+
+[Wed Aug 14 17:15:51 2019]
+rule STD:
+    input: tests/tmp/dnp/data/3_deglyco/data/dnp_002_deglyco.sdf.gz
+    output: tests/tmp/dnp/data/4_std/data/dnp_002_passed.csv.gz, tests/tmp/dnp/data/4_std/data/dnp_002_filtered.csv.gz, tests/tmp/dnp/data/4_std/data/dnp_002_error.csv.gz
+    log: tests/tmp/dnp/data/4_std/log/dnp_002_std.log
+    jobid: 17
+    wildcards: WD=tests/tmp/dnp/data, prefix=dnp, cid=002
+    priority: 16
+
+[Wed Aug 14 17:15:55 2019]
+Finished job 18.
+8 of 26 steps (31%) done
+
+[Wed Aug 14 17:15:55 2019]
+rule UNI:
+    input: tests/tmp/dnp/data/4_std/data/dnp_003_passed.csv.gz
+    output: tests/tmp/dnp/data/5_uni/data/dnp_003_uni.csv.gz
+    log: tests/tmp/dnp/data/5_uni/log/dnp_003_uni.log
+    jobid: 15
+    wildcards: WD=tests/tmp/dnp/data, prefix=dnp, cid=003
+    priority: 15
+
+[Wed Aug 14 17:15:55 2019]
+Finished job 15.
+9 of 26 steps (35%) done
+
+[Wed Aug 14 17:15:55 2019]
+rule GEN2D:
+    input: tests/tmp/dnp/data/5_uni/data/dnp_003_uni.csv.gz
+    output: tests/tmp/dnp/data/6_gen2D/data/dnp_003_gen2D.csv.gz
+    log: tests/tmp/dnp/data/6_gen2D/log/dnp_003_gen2D.log
+    jobid: 12
+    wildcards: WD=tests/tmp/dnp/data, prefix=dnp, cid=003
+    priority: 14
+
+[Wed Aug 14 17:15:56 2019]
+Error in rule GEN2D:
+    jobid: 12
+    output: tests/tmp/dnp/data/6_gen2D/data/dnp_003_gen2D.csv.gz
+    log: tests/tmp/dnp/data/6_gen2D/log/dnp_003_gen2D.log (check log file(s) for error message)
+    shell:
+        mols_gen2D tests/tmp/dnp/data/5_uni/data/dnp_003_uni.csv.gz tests/tmp/dnp/data/6_gen2D/data/dnp_003_gen2D.csv.gz 2>tests/tmp/dnp/data/6_gen2D/log/dnp_003_gen2D.log
+        (exited with non-zero exit code)
+
+[Wed Aug 14 17:16:08 2019]
+Finished job 17.
+10 of 26 steps (38%) done
+[Wed Aug 14 17:16:24 2019]
+Finished job 16.
+11 of 26 steps (42%) done
+Shutting down, this might take some time.
+Exiting because a job execution failed. Look above for error message
+Complete log: /home/gally/Projects/NPFC/src/.snakemake/log/2019-08-14T171534.369266.snakemake.log

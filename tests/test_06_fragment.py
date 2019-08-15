@@ -4,8 +4,6 @@ tests.test_fcc
 Tests for the npfc.fcc module.
 """
 
-# standard
-import logging
 # data handling
 import pandas as pd
 # chemoinformatics
@@ -15,7 +13,8 @@ import pytest
 from npfc import fragment
 from npfc import utils
 # debug
-# logging.basicConfig(level=logging.DEBUG)
+import logging
+logging.basicConfig(level=logging.INFO)
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FIXTURES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
@@ -369,7 +368,8 @@ def test_case_chembl_2(fcc, fm, df_case_chembl_2):
     df_map["mol"] = df_map["mol"].map(utils.encode_mol)
     df_map["_colormap"] = df_map["_colormap"].map(utils.encode_object)
     df_map["_fmap"] = df_map["_fmap"].map(utils.encode_object)
-    df_map.to_csv("tests/test_case_chembl_2_map.csv.gz", compression="gzip", sep="|")
+    # export for testing the draw module
+    df_map.to_csv("tests/tmp/test_case_chembl_2_map.csv.gz", compression="gzip", sep="|")
 
 
 def test_case_dnp_1(fcc, fm, df_case_dnp_1):

@@ -10,6 +10,7 @@ on disk.
 import logging
 import gzip
 from pathlib import Path
+import subprocess
 # data science
 import psycopg2
 import pandas as pd
@@ -217,3 +218,45 @@ def _from_csv(input_csv: str, csv_sep: str = '|', compression: str = None):
             return pd.read_csv(input_csv, sep=csv_sep, index_col='Unnamed: 0', compression=compression)  # define rowidx with rowids, if any
         except (ValueError, KeyError):
             return pd.read_csv(input_csv, sep=csv_sep, compression=compression)
+
+
+def count_mols(input_file: str, keep_uncompressed: bool = False):
+    """Count the number of molecules found in a text file.
+    In case the file is compressed (gzip), it is uncompressed first. The resulting
+    uncompressed file can be kept for further use.
+
+    :param input_file: the input file
+    :param keep_uncompressed: if the input file is compressed (gzip), do not remove the uncompressed file when finished
+    """
+
+    utils.check_arg_input_file(input_file)
+    format, compression = utils.get_file_format(input_file)
+    logging.debug(f"Format: {format}, compression: {compression}")
+
+    # in case of compressed file, uncompress it
+    if compression == 'gzip':
+        uncompressed_file = input_file.split('.gz')[0]
+        with open(uncompressed_file, 'wb') as uncompressed, gzip.open(input_file, 'rb') as compressed:
+            bindata = compressed.read()
+            uncompressed.write(bindata)
+        input_file = uncompressed_file
+
+    # count mols
+    if format == 'SDF':
+        # look for the '$$$$' pattern in the SDF file
+        result = subprocess.check_output(f"grep -c '$$$$' {input_file}", shell=True).decode('utf-8').strip()
+    elif format == 'HDF':
+        # get the size of the dataframe
+        result = len(file(input_file, decode=False).index)
+    else:
+        # any text-based file with 1 molecule per row (csv, smiles, inchi, etc.)
+        result = subprocess.check_output(f"wc -l {input_file}", shell=True).decode('utf-8').split()[0].strip()
+
+    # read count
+    count = int(result)
+
+    # remove uncompressed file
+    if compression and not keep_uncompressed:
+        Path(uncompressed_file).unlink()
+
+    return count
