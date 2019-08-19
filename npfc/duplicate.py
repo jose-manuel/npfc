@@ -112,6 +112,7 @@ def filter_duplicates(df: DataFrame, group_on: str = "inchikey", col_id: str = "
                 df_ref = pd.DataFrame({group_on: [], col_id: []})
             # use group_on as index for faster comparison
             df_ref.set_index(group_on, inplace=True)
+            logging.debug(f"Number of entries in ref: {len(df_ref.index)}")
 
             # filter out already referenced compounds
             df_u2 = df_u[~df_u.index.isin(df_ref.index)]

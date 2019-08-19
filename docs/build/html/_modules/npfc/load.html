@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.load &mdash; npfc 0.3.9-3-g8a14533 documentation</title>
+  <title>npfc.load &mdash; npfc 0.4.0 documentation</title>
   
 
   
@@ -56,7 +56,7 @@
             
             
               <div class="version">
-                0.3.9-3-g8a14533
+                0.4.0
               </div>
             
           
@@ -165,6 +165,7 @@
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">gzip</span>
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="k">import</span> <span class="n">Path</span>
+<span class="kn">import</span> <span class="nn">subprocess</span>
 <span class="c1"># data science</span>
 <span class="kn">import</span> <span class="nn">psycopg2</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
@@ -372,6 +373,48 @@
             <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">input_csv</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="n">csv_sep</span><span class="p">,</span> <span class="n">index_col</span><span class="o">=</span><span class="s1">&#39;Unnamed: 0&#39;</span><span class="p">,</span> <span class="n">compression</span><span class="o">=</span><span class="n">compression</span><span class="p">)</span>  <span class="c1"># define rowidx with rowids, if any</span>
         <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">KeyError</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">input_csv</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="n">csv_sep</span><span class="p">,</span> <span class="n">compression</span><span class="o">=</span><span class="n">compression</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="count_mols"><a class="viewcode-back" href="../../load.html#npfc.load.count_mols">[docs]</a><span class="k">def</span> <span class="nf">count_mols</span><span class="p">(</span><span class="n">input_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">keep_uncompressed</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Count the number of molecules found in a text file.</span>
+<span class="sd">    In case the file is compressed (gzip), it is uncompressed first. The resulting</span>
+<span class="sd">    uncompressed file can be kept for further use.</span>
+
+<span class="sd">    :param input_file: the input file</span>
+<span class="sd">    :param keep_uncompressed: if the input file is compressed (gzip), do not remove the uncompressed file when finished</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">utils</span><span class="o">.</span><span class="n">check_arg_input_file</span><span class="p">(</span><span class="n">input_file</span><span class="p">)</span>
+    <span class="nb">format</span><span class="p">,</span> <span class="n">compression</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">get_file_format</span><span class="p">(</span><span class="n">input_file</span><span class="p">)</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Format: </span><span class="si">{format}</span><span class="s2">, compression: </span><span class="si">{compression}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># in case of compressed file, uncompress it</span>
+    <span class="k">if</span> <span class="n">compression</span> <span class="o">==</span> <span class="s1">&#39;gzip&#39;</span><span class="p">:</span>
+        <span class="n">uncompressed_file</span> <span class="o">=</span> <span class="n">input_file</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.gz&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">uncompressed_file</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">uncompressed</span><span class="p">,</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">input_file</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">compressed</span><span class="p">:</span>
+            <span class="n">bindata</span> <span class="o">=</span> <span class="n">compressed</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+            <span class="n">uncompressed</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">bindata</span><span class="p">)</span>
+        <span class="n">input_file</span> <span class="o">=</span> <span class="n">uncompressed_file</span>
+
+    <span class="c1"># count mols</span>
+    <span class="k">if</span> <span class="nb">format</span> <span class="o">==</span> <span class="s1">&#39;SDF&#39;</span><span class="p">:</span>
+        <span class="c1"># look for the &#39;$$$$&#39; pattern in the SDF file</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">check_output</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;grep -c &#39;$$$$&#39; </span><span class="si">{input_file}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="nb">format</span> <span class="o">==</span> <span class="s1">&#39;HDF&#39;</span><span class="p">:</span>
+        <span class="c1"># get the size of the dataframe</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">file</span><span class="p">(</span><span class="n">input_file</span><span class="p">,</span> <span class="n">decode</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># any text-based file with 1 molecule per row (csv, smiles, inchi, etc.)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">check_output</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;wc -l </span><span class="si">{input_file}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+
+    <span class="c1"># read count</span>
+    <span class="n">count</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+
+    <span class="c1"># remove uncompressed file</span>
+    <span class="k">if</span> <span class="n">compression</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">keep_uncompressed</span><span class="p">:</span>
+        <span class="n">Path</span><span class="p">(</span><span class="n">uncompressed_file</span><span class="p">)</span><span class="o">.</span><span class="n">unlink</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">count</span></div>
 </pre></div>
 
            </div>

@@ -35,88 +35,77 @@ def test_00_init_folder():
 def test_01_fragments():
     """Create the tasktree and run the pipeline for preparing fragments on a small dataset."""
     smk_file = pkg_resources.resource_filename('npfc', 'data/fragments.smk')
-    smk_svg = "tests/tmp/scaffolds/fragments.svg"
-    output_files = ["tests/tmp/scaffolds/crms/data/08_gen2D/data/crms_gen2D.csv.gz"]
+    smk_svg = "tests/tmp/fragments/fragments.svg"
+    output_files = ["tests/tmp/fragments/crms/data/08_gen2D/data/crms_gen2D.csv.gz"]
     prefix = 'crms'
     molid = 'Cluster'
-    WD = 'tests/tmp/scaffolds/crms/data/'
-    input_file = 'tests/tmp/scaffolds/crms/data/00_raw/data/cr.sdf.gz'
+    WD = 'tests/tmp/fragments/crms/data/'
+    input_file = 'tests/tmp/fragments/crms/data/00_raw/data/cr.sdf.gz'
 
-    # task tree
-    subprocess.run(f"snakemake -j 4 -s {smk_file}  \
-                   --config  prefix='{prefix}' molid='{molid}' WD='{WD}' input_file='{input_file}' \
-                   --dag | dot -Tsvg > {smk_svg}",
-                   shell=True, check=True)
+    command_base = f"snakemake -j 4 -s {smk_file}  \
+                   --config  prefix='{prefix}' molid='{molid}' WD='{WD}' input_file='{input_file}'"
+    # compute task tree svg
+    command_svg = command_base + f" --dag | dot -Tsvg > {smk_svg}"
+    subprocess.run(command_svg, shell=True, check=True)
     assert Path(smk_svg).exists()
-
     # run protocol
-    subprocess.run(f"snakemake -j 4 -s {smk_file}  \
-                   --config  prefix='{prefix}' molid='{molid}' WD='{WD}' input_file='{input_file}'",
-                   shell=True, check=True)
+    command_run = command_base  # no need for filtering stdout with fragments
+    subprocess.run(command_run, shell=True, check=True)
     assert all([Path(f).exists() for f in output_files])
-
 
 
 def test_02_natural():
     """Create the tasktree and run the pipeline for executing the FCC protocol on a small dataset from the DNP."""
     smk_file = pkg_resources.resource_filename('npfc', 'data/natural.smk')
-    smk_svg = "tests/tmp/dnp/natural.svg"
-    output_files = [f"tests/tmp/dnp/data/09_fmap/data/dnp_{str(cid+1).zfill(3)}_fmap.csv.gz" for cid in range(3)]
+    smk_svg = "tests/tmp/natural/natural.svg"
+    output_files = [f"tests/tmp/natural/dnp/data/09_fmap/data/dnp_{str(cid+1).zfill(3)}_fmap.csv.gz" for cid in range(3)]
     prefix = 'dnp'
     molid = 'UKEY'
-    WD = 'tests/tmp/dnp/data/'
-    input_file = 'tests/tmp/dnp/data/00_raw/data/dnp.sdf.gz'
-    frags_file = 'tests/tmp/scaffolds/crms/data/08_gen2D/data/crms_gen2D.csv.gz'
+    WD = 'tests/tmp/natural/dnp/data/'
+    input_file = 'tests/tmp/natural/dnp/data/00_raw/data/dnp.sdf.gz'
+    frags_file = 'tests/tmp/fragments/crms/data/08_gen2D/data/crms_gen2D.csv.gz'
     chunksize = 100
-
-    # task tree
-    subprocess.run(f"snakemake -j 4 -s {smk_file}  \
+    command_base = f"snakemake -j 4 -s {smk_file}  \
                    --config  prefix='{prefix}' molid='{molid}' chunksize={chunksize} \
-                   WD='{WD}' input_file='{input_file}' frags_file={frags_file} \
-                   --dag | dot -Tsvg > {smk_svg}",
-                   shell=True, check=True)
+                   WD='{WD}' input_file='{input_file}' frags_file={frags_file}"
+    # compute task tree svg
+    command_svg = command_base + f" --dag | dot -Tsvg > {smk_svg}"
+    subprocess.run(command_svg, shell=True, check=True)
     assert Path(smk_svg).exists()
-
     # run protocol
-    subprocess.run(f"snakemake -j 4 -s {smk_file}  \
-                   --config  prefix='{prefix}' molid='{molid}' chunksize={chunksize} \
-                   WD='{WD}' input_file='{input_file}' frags_file={frags_file} \
-                   2>&1 | grep -v INFO:",
-                   shell=True, check=True)
+    command_run = command_base + f" 2>&1 | grep -v INFO:"
     # I have a bug with snakemake when one rule runs a subprocess.
     # All log outputs are doubled, one in the usual green and one in white that starts with 'INFO:'.
     # The best comporomise I found is to filter out these extra INFO lines from the stderr stream,
     # but it cancels the snakemake color scheme.
+    subprocess.run(command_run, shell=True, check=True)
     assert all([Path(f).exists() for f in output_files])
 
 
 def test_03_synthetic():
     """Create the tasktree and run the pipeline for executing the FCC protocol on a small dataset from the DNP."""
+    # init
     smk_file = pkg_resources.resource_filename('npfc', 'data/synthetic.smk')
-    smk_svg = "tests/tmp/chembl/synthetic.svg"
-    output_files = [f"tests/tmp/chembl/data/11_pnp/data/chembl_{str(cid+1).zfill(3)}_pnp.csv.gz" for cid in range(3)]
+    smk_svg = "tests/tmp/synthetic/synthetic.svg"
+    output_files = [f"tests/tmp/synthetic/chembl/data/12_pnp/data/chembl_{str(cid+1).zfill(3)}_pnp.csv.gz" for cid in range(3)]
     prefix = 'chembl'
     molid = 'chembl_id'
     chunksize = 100
-    WD = 'tests/tmp/chembl/data/'
-    input_file = 'tests/tmp/chembl/data/00_raw/data/chembl.sdf.gz'
-    frags_file = 'tests/tmp/scaffolds/crms/data/08_gen2D/data/crms_gen2D.csv.gz'
-    natref_uni_reffile = 'tests/tmp/dnp/data/05_uni/dnp_ref.hdf'
-    natref_fmap_dir = 'tests/tmp/dnp/data/09_fmap/data/'
-
-    # task tree
-    subprocess.run(f"snakemake -j 4 -s {smk_file}  \
+    WD = 'tests/tmp/synthetic/chembl/data/'
+    input_file = 'tests/tmp/synthetic/chembl/data/00_raw/data/chembl.sdf.gz'
+    frags_file = 'tests/tmp/fragments/crms/data/08_gen2D/data/crms_gen2D.csv.gz'
+    natref_uni_reffile = 'tests/tmp/natural/dnp/data/05_uni/dnp_ref.hdf'
+    natref_fmap_dir = 'tests/tmp/natural/dnp/data/09_fmap/data/'
+    act_file = 'tests/data/synthetic/chembl/data/00_raw/data/chembl_act_raw.csv.gz'
+    command_base = f"snakemake -k -j 4 -s {smk_file}  \
                    --config  prefix='{prefix}' molid='{molid}' chunksize={chunksize} \
                    WD='{WD}' input_file='{input_file}' frags_file={frags_file} \
-                   natref_uni_reffile='{natref_uni_reffile}' natref_fmap_dir='{natref_fmap_dir}' \
-                   --dag | dot -Tsvg > {smk_svg}",
-                   shell=True, check=True)
-
-    # # run protocol
-    subprocess.run(f"snakemake -j 4 -s {smk_file}  \
-                   --config  prefix='{prefix}' molid='{molid}' chunksize={chunksize} \
-                   WD='{WD}' input_file='{input_file}' frags_file={frags_file} \
-                   natref_uni_reffile='{natref_uni_reffile}' natref_fmap_dir='{natref_fmap_dir}' \
-                   2>&1 | grep -v INFO:",
-                   shell=True, check=True)
+                   natref_uni_reffile='{natref_uni_reffile}' natref_fmap_dir='{natref_fmap_dir}' act_file='{act_file}'"
+    # compute task tree svg
+    command_svg = command_base + f" --dag | dot -Tsvg > {smk_svg}"
+    subprocess.run(command_svg, shell=True, check=True)
+    assert Path(smk_svg).exists()
+    # run protocol
+    command_run = command_base + f" 2>&1 | grep -v INFO:"
+    subprocess.run(command_run, shell=True, check=True)
     assert all([Path(f).exists() for f in output_files])

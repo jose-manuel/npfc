@@ -55,12 +55,12 @@ def annotate_fc_with_act(df_fcc: DataFrame,
     dfs = []
     for gid, g in df_fcc.groupby(group_on):
         df = g.merge(df_act, how='left', on=merge_on).fillna(0)
-        df['active'] = df['active'].sum()
-        tot = df['tot'].sum()
-        df['tot'] = tot
+        df['n_active'] = df['n_active'].sum()
+        tot = df['n_tot'].sum()
+        df['n_tot'] = tot
 
         if tot > 0:
-            df['success_rate'] = (df['active'] / df['tot']) * 100
+            df['success_rate'] = (df['n_active'] / df['n_tot']) * 100
         else:
             df['success_rate'] = -1
         dfs.append(df)

@@ -124,9 +124,12 @@ def main():
     p_dir_log_uni = Path(args.dir_log_uni)
     df_syn = pd.concat([pd.read_csv(x, sep="@", header=None) for x in p_dir_log_uni.glob("*.log")])
     df_syn = df_syn[df_syn[0].str.contains("RESULT")]  # each log contains a list of RESULT lines with inchikey|idm_kept|idm_filtered
-    df_syn["inchikey"], df_syn["idm_kept"], df_syn["idm_filtered"] = zip(*df_syn[0].map(lambda x: x.split(":")[-1].strip().split("|")))
-    df_syn.drop(0, axis=1, inplace=True)
-    df_syn.reset_index(inplace=True, drop=True)
+    if len(df_syn.index) > 0:
+        df_syn["inchikey"], df_syn["idm_kept"], df_syn["idm_filtered"] = zip(*df_syn[0].map(lambda x: x.split(":")[-1].strip().split("|")))
+        df_syn.drop(0, axis=1, inplace=True)
+        df_syn.reset_index(inplace=True, drop=True)
+    else:
+        df_syn = pd.DataFrame({'inchikey': [], 'idm_kept': [], 'idm_filtered': []})
     logger.info(f"NUMBER OF IDM IN LOG FILES: {len(df_syn.index)}")
 
     # kept entries

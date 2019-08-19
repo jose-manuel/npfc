@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Module load &mdash; npfc 0.3.9-3-g8a14533 documentation</title>
+  <title>Module load &mdash; npfc 0.4.0 documentation</title>
   
 
   
@@ -58,7 +58,7 @@
             
             
               <div class="version">
-                0.3.9-3-g8a14533
+                0.4.0
               </div>
             
           
@@ -160,6 +160,26 @@
 <h1>Module load<a class="headerlink" href="#module-load" title="Permalink to this headline">¶</a></h1>
 <p>A module containing the Loader class, used for storing DataFrames with molecules
 on disk.</p>
+<dl class="function">
+<dt id="npfc.load.count_mols">
+<code class="descclassname">npfc.load.</code><code class="descname">count_mols</code><span class="sig-paren">(</span><em>input_file</em>, <em>keep_uncompressed=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/load.html#count_mols"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.load.count_mols" title="Permalink to this definition">¶</a></dt>
+<dd><p>Count the number of molecules found in a text file.
+In case the file is compressed (gzip), it is uncompressed first. The resulting
+uncompressed file can be kept for further use.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>input_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the input file</li>
+<li><strong>keep_uncompressed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>) – if the input file is compressed (gzip), do not remove the uncompressed file when finished</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 <dl class="function">
 <dt id="npfc.load.file">
 <code class="descclassname">npfc.load.</code><code class="descname">file</code><span class="sig-paren">(</span><em>input_file</em>, <em>in_id='idm'</em>, <em>in_mol='mol'</em>, <em>csv_sep='|'</em>, <em>mol_format='rdkit'</em>, <em>out_id='idm'</em>, <em>out_mol='mol'</em>, <em>keep_props=True</em>, <em>decode=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/load.html#file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.load.file" title="Permalink to this definition">¶</a></dt>
