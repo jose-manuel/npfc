@@ -1,0 +1,9 @@
+{
+                    "prefix": "dnp",
+                    "molid": "UKEY",
+                    "WD": "tests/tmp/natural/dnp/data/",
+                    "input_file": "tests/tmp/natural/dnp/data/00_raw/data/dnp.sdf.gz",
+                    "frags_file": "tests/tmp/fragments/crms/data/08_gen2D/data/crms_gen2D.csv.gz",
+                    "chunksize": 100
+} 
+

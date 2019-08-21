@@ -1,0 +1,155 @@
+#!/usr/bin/env python
+
+"""
+Script run_npfc
+==========================
+This script is used for running the NPFC protocols.
+"""
+
+# standard
+from pathlib import Path
+import json
+import warnings
+import sys
+import subprocess
+from datetime import datetime
+import logging
+import pandas as pd
+import argparse
+import pkg_resources
+# chemoinformatics
+import rdkit
+# dev
+import npfc
+from npfc import utils
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+def main():
+
+    # init
+    ds = []
+    ds.append(('START', datetime.now()))
+    description = """This script is used for running the NPFC protocols.
+
+    It uses the installed npfc libary in your favorite env manager.
+
+
+    """
+    # parameters CLI
+    parser = argparse.ArgumentParser(description=description, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument('protocol', type=str, default=None, help="Protocol to apply. If this is not a file, then a lookup for matching the string with known protocols is performed. Possible values are: fragments/natural/synthetic. Sevral protocols can be defined by separating them with ',' (no space or ',' allowed in protocol names). Protocols are executed in the specified order.")
+    parser.add_argument('-c', '--config', type=str, default=None, help="JSON configuration file for running the protocol. This is a different file than the JSON file used for configuring snakemake execution on clusters. If several protocols are defined, configurations files have to be defined in the same order, separated with ',' (no space or ',' allowed in configuration file names).")
+    parser.add_argument('-e', '--env', type=str, default='local', help="Environment for running the protocol. By default locally, but it can also be run on cluster schedulers (clem/gwdg1).")
+    parser.add_argument('--draw', type=bool, default=False, help="Do not run the protocol, just draw its task tree. Output SVG file is located at {WD}/{prefix}_tree.svg. WARNING! Since some workflows depend on others (natural depends on fragments and synthetic depends on both fragments and natural), it is recommended to run required workflows before attempting to compute the task tree.")
+    parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
+    args = parser.parse_args()
+
+    # logging
+    logger = utils._configure_logger(args.log)
+    pad = 40
+    warnings.filterwarnings('ignore', category=pd.io.pytables.PerformanceWarning)  # if None is returned instead of a molecule, do not complain about mixed types
+    logger.info("RUNNING NPFC PROTOCOL(S)")
+
+    # parse arguments
+    errors = []
+    # protocol
+    protocols = [p.strip() for p in args.protocol.split(',')]
+    for p in protocols:
+        if p not in ('fragments', 'natural', 'synthetic') and not Path(p).exists():
+            errors.append(f"ERROR! UNKNOWN PROTOCOL ({p})!")  # error if file does not exist or if protocol is not recorded as package data
+    # config
+    if args.config is not None:
+        config_files = [c.strip() for c in args.config.split(',')]
+        for i, c in enumerate(config_files):
+            if not Path(c).exists():
+                errors.append(f"ERROR! CONFIG FILES FOR PROTOCOL '{protocols[i]}' COULD NOT BE FOUND AT '{c}'!")
+        if len(protocols) != len(config_files):
+            errors.append(f"ERROR! NOT SAME AMOUNT OF PROTOCOLS ({len(protocols)}) AND CONFIGURATION FILES ({len(config_files)})!")
+    # env
+    if args.env not in ('local', 'gwdg1', 'clem'):
+        errors.append(f"ERROR! UNKNOWN ENV ({args.env})!")
+    # exit on error(s)
+    n_errors = len(errors)
+    if n_errors > 0:
+        logger.error(f"{n_errors} ERROR(S) FOUND DURING ARGUMENT PARSING:\n" + '\n'.join(errors) + "\n")
+        sys.exit(1)
+
+    # display general infos
+    logger.info("LIBRARY VERSIONS".center(pad))
+    logger.info("rdkit".ljust(pad) + f"{rdkit.__version__}")
+    logger.info("pandas".ljust(pad) + f"{pd.__version__}")
+    logger.info("npfc".ljust(pad) + f"{npfc.__version__}")
+    logger.info("ARGUMENTS".center(pad))
+    logging.info("PROTOCOL".ljust(pad) + f"{args.protocol}")
+    logging.info("CONFIG".ljust(pad) + f"{args.config}")
+    logging.info("ENV".ljust(pad) + f"{args.env}")
+    logging.info("DRAW".ljust(pad) + f"{args.draw}")
+
+    # begin
+    ds.append(('CONFIGURE', datetime.now()))
+    logging.info("BEGIN")
+
+    # iterate over each protocol
+    for i, (p, c) in enumerate(zip(protocols, config_files)):
+        # parse configuration
+        with open(c, 'r') as CONFIG:
+            config = json.load(CONFIG)
+            logger.info(f"PROTOCOL#{i} - {p}".center(pad))
+        # automatically retrieve all variables and append them to command string using key=value
+        if Path(p).exists():
+            smk_file = p
+        else:
+            try:
+                smk_file = pkg_resources.resource_filename('npfc', f"data/{p}.smk")
+            except ValueError:   # ### no tested
+                logger.error(f"ERROR! PROTOCOL '{p}' COULD NOT BE FOUND EITHER IN STORED PROTOCOLS OR AT LOCATED FILE!")
+        # configure current smk command
+        smk_command = f"snakemake -s {smk_file} "
+        # determine environment
+        if args.env == 'local':
+            smk_command += '-j 4 '
+        elif args.env == 'clem':
+            config_cluster = pkg_resources.resource_filename('npfc', f"data/cluster_clem.json")
+            smk_command += '-j 100 --cluster-config ' + config_cluster + ' --cluster "sbatch -A {cluster.account} -p {cluster.partition} -n {cluster.n}  -t {cluster.time} --oversubscribe '
+        elif args.env == 'gwdg1':
+            pass  # maybe there is no need at all for using bsub as gwdg1 scheduler was being replaced with slurm
+        # arguments
+        smk_command += "--config "
+        for k, v in config.items():
+            logger.info(f"OPT {k}".ljust(pad) + f"{v}")
+            smk_command += f"{k}='{v}' "
+        smk_command = smk_command[:-1]
+        # refine smk_command
+        if args.draw:
+            # for just drawing the task tree
+            WD = config['WD']
+            if WD.endswith('/'):
+                WD = WD[:-1]
+            svg = WD + f"/{config['prefix']}.svg"
+            smk_command += f" --dag | dot -Tsvg > {svg}"
+            logger.info(f"DRAWING TASK TREE AT '{svg}'")
+        else:
+            # for running the protocol
+            smk_command += f" 2>&1 | grep -v 'INFO:' | grep -v 'WARNING:'"
+        # run protocol
+        subprocess.run(smk_command, shell=True, check=True)
+        ds.append((f"PROTOCOL#{i} '{p}'", datetime.now()))
+
+    # end
+    ds.append((f"END", datetime.now()))
+    logging.info("SUMMARY")
+    for i in range(len(ds) - 1):
+        if ds[i+1] != 'END':
+            logger.info(f"COMPUTATIONAL TIME: {ds[i+1][0]}".ljust(pad * 2) + f"{ds[i+1][1] - ds[i][1]}")
+    logger.info("COMPUTATIONAL TIME: TOTAL".ljust(pad * 2) + f"{ds[-1][1] - ds[0][1]}")
+    logging.info("END")
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ MAIN ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
+if __name__ == '__main__':
+    main()
+    sys.exit(0)

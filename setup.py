@@ -43,6 +43,7 @@ setuptools.setup(
              'bin/fc_map',
              'bin/fmaps_annotate_pnp',
              'bin/results_analyze',
+             'bin/run_npfc',
              'bin/peek_hdf',
              ],
     # package_data={'npfc': ['data/mols_deglyco.knwf']},  # key: package name, value: list of data files
