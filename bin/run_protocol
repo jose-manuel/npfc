@@ -67,6 +67,13 @@ def main():
                 errors.append(f"ERROR! CONFIG FILES FOR PROTOCOL '{protocols[i]}' COULD NOT BE FOUND AT '{c}'!")
         if len(protocols) != len(config_files):
             errors.append(f"ERROR! NOT SAME AMOUNT OF PROTOCOLS ({len(protocols)}) AND CONFIGURATION FILES ({len(config_files)})!")
+    else:
+        config_files = []
+        try:
+            for p in protocols:
+                config_files.append(pkg_resources.resource_filename('npfc', f"data/{p}.json"))
+        except ValueError:
+            errors.append(f"ERROR! UNKOWN DEFAULT CONFIG FILE FOR PROTOCOL '{p}'!")
     # env
     if args.env not in ('local', 'gwdg1', 'clem'):
         errors.append(f"ERROR! UNKNOWN ENV ({args.env})!")
@@ -98,7 +105,7 @@ def main():
             config = json.load(CONFIG)
             logger.info(f"PROTOCOL#{i} - {p}".center(pad))
         # automatically retrieve all variables and append them to command string using key=value
-        if Path(p).exists():
+        if Path(p).is_file():
             smk_file = p
         else:
             try:
@@ -132,7 +139,8 @@ def main():
             logger.info(f"DRAWING TASK TREE AT '{svg}'")
         else:
             # for running the protocol
-            smk_command += f" 2>&1 | grep -v 'INFO:' | grep -v 'WARNING:'"
+            pass
+            # smk_command += f" 2>&1 | grep -v 'INFO:' | grep -v 'WARNING:'"  #####
         # run protocol
         subprocess.run(smk_command, shell=True, check=True)
         ds.append((f"PROTOCOL#{i} '{p}'", datetime.now()))
