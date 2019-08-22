@@ -35,11 +35,12 @@ function exitcodes {
 
 function usage {
     echo -e "\nUsage is:"
-    echo -e "\nrun_deglyco -s <INPUT_SDF> -i <INPUT_ID> -o <OUTPUT_DIR> [-w <KNWF_FILE>]\n"
+    echo -e "\nrun_deglyco -s <INPUT_SDF> -i <INPUT_ID> -o <OUTPUT_DIR> [-w <KNWF_FILE>] [-k <KNIME_EXEC]\n"
     echo -e "with <INPUT_SDF> the SDF with the molecules to deglycosylate"
     echo -e "with <INPUT_ID> the id to use for molecules in the SDF"
     echo -e "with <OUTPUT_DIR> the output root directory, where subfolders data and log are computed"
-    echo -e "with <KNWF_FILE> the KNIME file to run"
+    echo -e "with <KNWF_FILE> the KNIME workflow file to run"
+    echo -e "with <KNIME_EXEC> the KNIME executable to use"
     echo -e "\n"
     exitcodes
 }
@@ -74,7 +75,7 @@ fi
 
 # parse arguments
 echo ""
-while getopts "s:i:o:w:h" opt; do #
+while getopts "s:i:o:w:k:h" opt; do #
     case $opt in
         s) input_sdf=$(realpath $OPTARG);;
         i) input_id=$OPTARG;;
@@ -133,7 +134,7 @@ else
     fi
 fi
 # knime_exec
-if [ -z ${knime_exec+x} ]
+if [ -z ${knime_exec+x} ] || [ $knime_exec = '' ]
 then
     echo "knime_exec is unset! Looking in user PATH..."
     knime_exec=$(which knime)

@@ -19,7 +19,7 @@ WD = config['WD']
 molid = config['molid']
 prefix = config['prefix']
 input_file = config['input_file']
-
+knimeexec = config['knimeexec']
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ INITIALIZATION ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 

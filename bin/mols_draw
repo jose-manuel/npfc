@@ -1,0 +1,126 @@
+#!/usr/bin/env python
+
+"""
+Script mols_draw
+==========================
+This script is used for generating drawings of molecules.
+"""
+
+# standard
+import warnings
+import sys
+from datetime import datetime
+import logging
+import pandas as pd
+import argparse
+import re
+# chemoinformatics
+import rdkit
+# dev
+import npfc
+from npfc import load
+from npfc import save
+from npfc import utils
+from npfc import fragment
+# disable SettingWithCopyWarning warnings
+pd.options.mode.chained_assignment = None  # default='warn'
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
+def main():
+
+    # init
+    d0 = datetime.now()
+    description = """Script used for mapping fragment combinations.
+
+    It uses the installed npfc libary in your favorite env manager.
+
+    Example:
+
+        >>> map_frags file_fcc.csv.gz file_map.csv.gz
+
+    """
+
+    # parameters CLI
+    parser = argparse.ArgumentParser(description=description, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument('input-file', type=str, default=None, help="Input file. Molecules to display are in column 'mol'. If a _colormap column is also avaialble, molecules are highlighted.")
+    parser.add_argument('output-svg', type=str, default=None, help="Output file. In case there is more than one file to produce (i.e. nmols < total) a suffix (_001) is added to each file. For sampling, the grouped column value is appended instead (_cmo).")
+    parser.add_argument('-n', '--nmols', type=int, default=9, help="Maximum number of molecules to display per image.")
+    parser.add_argument('-l', '--legend', type=str, default=None, help="Property to use for labelling molecules (i.e. idm).")
+    parser.add_argument('-s', '--size', type=str, default='(400,400)', help="Size allocated for each subimage.")
+    parser.add_argument('--sample', type=str, default=None, help="Property to use for sampling the input file. This will result in different files with corresponding suffixes.")
+    parser.add_argument('--highlight', type=bool, default=True, help="Highlight fragments if a _colormap column is present in the input file.")
+    parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
+    args = parser.parse_args()
+
+    # logging
+    logger = utils._configure_logger(args.log)
+    logger.info("RUNNING FRAGMENT MAPPING")
+    warnings.filterwarnings('ignore', category=pd.io.pytables.PerformanceWarning)  # if None is returned instead of a molecule, do not complain about mixed types
+    pad = 40
+
+    # parse arguments
+    utils.check_arg_input_file(args.input_file)
+    utils.check_arg_output_file(args.output_svg)
+    utils.check_arg_positive_number(args.nmols)
+    # size
+    pattern = re.compile(r'\([0-9]+,[0-9]+\)')
+    size = args.size.replace(' ', '')
+    if not pattern.match(size):
+        raise ValueError(f"ERROR! EXPECTED SYNTAX '(xxx,xxx)' FOR SIZE ARGUMENT BUT GOT '({size})' INSTEAD!")
+
+    input_format, input_compression = utils.get_file_format(args.input_file)
+
+    # display infos
+    logger.info("LIBRARY VERSIONS:")
+    logger.info("rdkit".ljust(pad) + f"{rdkit.__version__}")
+    logger.info("pandas".ljust(pad) + f"{pd.__version__}")
+    logger.info("npfc".ljust(pad) + f"{npfc.__version__}")
+    logger.info("ARGUMENTS:")
+    logging.info("INPUT_FCC".ljust(pad) + f"{args.output_svg}")
+    logging.info("FCC_FORMAT".ljust(pad) + f"{input_format}")
+    logging.info("FCC_COMPRESSION".ljust(pad) + f"{input_compression}")
+    logging.info("OUTPUT_SVG".ljust(pad) + f"{args.output_map}")
+    logging.info("NMOLS".ljust(pad) + f"{args.nmols}")
+    logging.info("LEGEND".ljust(pad) + f"{args.legend}")
+    logging.info("SIZE".ljust(pad) + f"{size}")
+    logging.info("SAMPLE".ljust(pad) + f"{args.sample}")
+    logging.info("HIGHLIGHT".ljust(pad) + f"{args.highlight}")
+    logging.info("LOG".ljust(pad) + f"{args.log}")
+
+    # begin
+    ds = []
+    logging.info("BEGIN")
+    ds.append('START', datetime.now())
+
+    # load input_file
+    logging.info("LOADING INPUT FILE")
+    d1 = datetime.now()
+    df = load.file(args.input_file)
+    if 'mol' not in df.columns:
+        logger.error(f"ERROR! COLUMN 'mol' NOT FOUND IN INPUT FILE, ABORTING!")
+        sys.exit(1)
+    logging.info(f"FOUND {len(df.index)} MOLECULES")
+    if args.highlight and '_colormap' in df.columns:
+        logger.info(f"FOUND COLUMN '_colormap' IN INPUT FILE, MOLECULES WILL BE HIGHLIGHTED")
+
+    ds.append('LOADING INPUT FILE', datetime.now())
+
+    # compute images
+    logger.info(f"GENERATING DRAWINGS")
+
+
+    # end
+    d4 = datetime.now()
+    logging.info("SUMMARY")
+    logger.info("COMPUTATIONAL TIME: CONFIGURING JOB".ljust(pad * 2) + f"{d1-d0}")
+    logging.info("END")
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ MAIN ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
+if __name__ == '__main__':
+    main()
+    sys.exit(0)

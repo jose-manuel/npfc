@@ -38,15 +38,16 @@ file_knwf = pkg_resources.resource_filename('npfc', 'data/mols_deglyco.knwf')
 if WD.endswith('/'):
     WD = WD[:-1]
 
-# for counting mols, need to process the unzipped file
-input_file_uncompressed = input_file.split('.gz')[0]
-
-# count mols + uncompress input file
-num_mols = load.count_mols(input_file, keep_uncompressed=True)
-
-# determine the number of chunks to generate
-num_chunks = ceil(num_mols / chunksize)
-
+# # for counting mols, need to process the unzipped file
+# input_file_uncompressed = input_file.split('.gz')[0]
+#
+# # count mols + uncompress input file
+# num_mols = load.count_mols(input_file, keep_uncompressed=True)
+#
+# # determine the number of chunks to generate
+# num_chunks = ceil(num_mols / chunksize)
+input_file_uncompressed = config['input_file_uncompressed']
+num_chunks = config['num_chunks']
 # define chunk_ids for wildcard expansionWcx7g5!Qu
 chunk_ids = [str(i+1).zfill(3) for i in range(num_chunks)]
 
