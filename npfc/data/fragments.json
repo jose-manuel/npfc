@@ -1,7 +1,7 @@
 {
                     "prefix": "crms",
                     "molid": "Cluster",
-                    "WD": "fragments/crms/data/",
+                    "WD": "fragments/crms/",
                     "input_file": "fragments/crms/data/00_raw/data/cr.sdf.gz"
 } 
 

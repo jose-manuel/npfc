@@ -14,8 +14,6 @@ import pkg_resources
 from math import ceil
 from npfc import load
 from npfc import utils
-import logging
-logging.basicConfig(level=logging.WARNING)
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ARGUMENTS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
@@ -30,9 +28,9 @@ input_file = config['input_file']
 frags_file = config['frags_file']  # fragment file to use for substructure search
 chunksize = config['chunksize']  # maximum number of molecules per chunk
 # specific to synthetic
-natref_uni_reffile = config['natref_uni_reffile']  # ref file for duplicate removal from natural dataset so we can define a synthetic dataset
+natref = config['natref']
+# for activity
 act_file_raw = config['act_file']  # raw file with activity for annotating fmaps. For now only works with the ChEMBL
-natref_fmap_dir = config['natref_fmap_dir']  # fmaps from natural dataset so that we can identify PNPs
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ INITIALIZATION ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
@@ -44,33 +42,25 @@ file_knwf = pkg_resources.resource_filename('npfc', 'data/mols_deglyco.knwf')
 # remove trailing / from WD for consistency
 if WD.endswith('/'):
     WD = WD[:-1]
+WD += '/data'
+if natref.endswith('/'):
+    natref = natref[:-1]
 
-# # for counting mols, need to process the unzipped file
-# input_file_uncompressed = input_file.split('.gz')[0]
-#
-# # count mols + uncompress input file
-# num_mols = load.count_mols(input_file, keep_uncompressed=True)
-#
-# # determine the number of chunks to generate
-# num_chunks = ceil(num_mols / chunksize)
+natref_uni_reffile = f"{config['natref']}/data/05_uni/dnp_ref.hdf"
+natref_fmap_dir = f"{config['natref']}/data/09_fmap/data/"
+natref_fmap_files = [str(x) for x in Path(natref_fmap_dir).glob('*')]
 
-input_file_uncompressed = config['input_file_uncompressed']
+
 num_chunks = config['num_chunks']
 # define chunk_ids for wildcard expansionWcx7g5!Qu
 chunk_ids = [str(i+1).zfill(3) for i in range(num_chunks)]
-
-# expected outputs at key points of the pipeline
-INPUT_OUT = [f"{WD}/01_chunk/data/{prefix}_{cid}.sdf.gz" for cid in chunk_ids]  # chunk_sdf
-UNI_OUT = [f"{WD}/05_uni/data/{prefix}_{cid}_uni.csv.gz" for cid in chunk_ids]  # chunk_sdf
-PNP_OUT = [f"{WD}/12_pnp/data/{prefix}_{cid}_pnp.csv.gz" for cid in chunk_ids]  # annotate_pnp
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ PIPELINE ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 
 rule all:
-    input:
-        PNP_OUT  # final output of the pipeline
+    input: expand(WD + '/12_pnp/data/' + prefix + '_{cid}_pnp.csv.gz', cid=chunk_ids)
 
 rule PNP:
     priority: 0
@@ -99,7 +89,7 @@ rule ACT_PREP:
     priority: 3
     input:
         act_file_raw,  # input file
-        UNI_OUT  # wait until all chunks are processed
+        expand(WD + '/05_uni/data/' + prefix + '_{cid}_uni.csv.gz', cid=chunk_ids)
     output: "{WD}/10_act/{prefix}_act_prep.csv.gz"
     log: "{WD}/10_act/{prefix}_act_prep.log"
     shell: "act_preprocess {input[0]} {output} {WD}/05_uni/{prefix}_ref.hdf {WD}/05_uni/log >{log} 2>&1"
@@ -129,10 +119,12 @@ rule GEN2D:
 
 rule SYNTH:
     priority: 7
-    input:  "{WD}/05_uni/data/{prefix}_{cid}_uni.csv.gz"
+    input:
+        mols = "{WD}/05_uni/data/{prefix}_{cid}_uni.csv.gz",
+        ref = natref + "/data/05_uni/dnp_ref.hdf"
     output: "{WD}/06_synth/data/{prefix}_{cid}_synth.csv.gz"
     log: "{WD}/06_synth/log/{prefix}_{cid}_sub.log"
-    shell: "mols_subset {input} {natref_uni_reffile} {output} >{log} 2>&1"
+    shell: "mols_subset {input.mols} {input.ref} {output} >{log} 2>&1"
 
 rule UNI:
     priority: 8
@@ -167,7 +159,7 @@ rule LOAD:
 
 rule CHUNK:
     priority: 12
-    input: input_file_uncompressed
-    output: INPUT_OUT
+    input: input_file
+    output: expand(WD + '/01_chunk/data/' + prefix + '_{cid}.sdf.gz', cid=chunk_ids)
     log: WD + "/01_chunk/log/" + prefix + "_chunk.log"
-    shell: "chunk_sdf -i {input} -n {chunksize} -o {WD}/01_chunk/data/ >{log} 2>&1; rm {input_file_uncompressed}"
+    shell: "chunk_sdf -i {input} -n {chunksize} -o {WD}/01_chunk/data/ >{log} 2>&1"

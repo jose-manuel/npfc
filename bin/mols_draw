@@ -14,16 +14,18 @@ import logging
 import pandas as pd
 import argparse
 import re
+from PIL import Image
+from PIL import ImageOps
+from PIL import ImageDraw
+import numpy as np
 # chemoinformatics
 import rdkit
+from rdkit.Chem import Draw
 # dev
 import npfc
 from npfc import load
-from npfc import save
 from npfc import utils
-from npfc import fragment
-# disable SettingWithCopyWarning warnings
-pd.options.mode.chained_assignment = None  # default='warn'
+
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
@@ -31,26 +33,23 @@ pd.options.mode.chained_assignment = None  # default='warn'
 def main():
 
     # init
-    d0 = datetime.now()
-    description = """Script used for mapping fragment combinations.
+    description = """Script used drawing individual SVG files for each molecule.
 
     It uses the installed npfc libary in your favorite env manager.
 
     Example:
 
-        >>> map_frags file_fcc.csv.gz file_map.csv.gz
+        >>> mols_draw input_file.csv.gz output_dir
 
     """
-
+    ds = [('START', datetime.now())]
     # parameters CLI
     parser = argparse.ArgumentParser(description=description, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('input-file', type=str, default=None, help="Input file. Molecules to display are in column 'mol'. If a _colormap column is also avaialble, molecules are highlighted.")
-    parser.add_argument('output-svg', type=str, default=None, help="Output file. In case there is more than one file to produce (i.e. nmols < total) a suffix (_001) is added to each file. For sampling, the grouped column value is appended instead (_cmo).")
-    parser.add_argument('-n', '--nmols', type=int, default=9, help="Maximum number of molecules to display per image.")
-    parser.add_argument('-l', '--legend', type=str, default=None, help="Property to use for labelling molecules (i.e. idm).")
+    parser.add_argument('input_file', type=str, default=None, help="Input file. Molecules to display are in column 'mol'. If a _colormap column is also avaialble, molecules are highlighted.")
+    parser.add_argument('output_dir', type=str, default=None, help="Output directory where to save SVG files.")
     parser.add_argument('-s', '--size', type=str, default='(400,400)', help="Size allocated for each subimage.")
-    parser.add_argument('--sample', type=str, default=None, help="Property to use for sampling the input file. This will result in different files with corresponding suffixes.")
-    parser.add_argument('--highlight', type=bool, default=True, help="Highlight fragments if a _colormap column is present in the input file.")
+    parser.add_argument('-f', '--format', type=str, default='PNG', help="Either PNG or SVG. PNG only is supported with Cytoscape.")
+    parser.add_argument('-r', '--round', type=bool, default=True, help="For PNG only, round the image so it becomes circular.")
     parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
     args = parser.parse_args()
 
@@ -62,15 +61,25 @@ def main():
 
     # parse arguments
     utils.check_arg_input_file(args.input_file)
-    utils.check_arg_output_file(args.output_svg)
-    utils.check_arg_positive_number(args.nmols)
+    utils.check_arg_output_dir(args.output_dir)
+
     # size
     pattern = re.compile(r'\([0-9]+,[0-9]+\)')
     size = args.size.replace(' ', '')
     if not pattern.match(size):
         raise ValueError(f"ERROR! EXPECTED SYNTAX '(xxx,xxx)' FOR SIZE ARGUMENT BUT GOT '({size})' INSTEAD!")
-
+    size = size.replace('(', '').replace(')', '')
     input_format, input_compression = utils.get_file_format(args.input_file)
+    size = tuple([int(x) for x in size.split(',')])
+
+    # format
+    format = args.format.upper()
+    if format not in ('PNG', 'SVG'):
+        raise ValueError(f"ERROR! EXPECTED FORMAT IS EITHER SVG OR PNG BUT GOT '({format})' INSTEAD!")
+    if format == 'PNG':
+        use_svg = False
+    else:
+        use_svg = True
 
     # display infos
     logger.info("LIBRARY VERSIONS:")
@@ -78,43 +87,76 @@ def main():
     logger.info("pandas".ljust(pad) + f"{pd.__version__}")
     logger.info("npfc".ljust(pad) + f"{npfc.__version__}")
     logger.info("ARGUMENTS:")
-    logging.info("INPUT_FCC".ljust(pad) + f"{args.output_svg}")
-    logging.info("FCC_FORMAT".ljust(pad) + f"{input_format}")
-    logging.info("FCC_COMPRESSION".ljust(pad) + f"{input_compression}")
-    logging.info("OUTPUT_SVG".ljust(pad) + f"{args.output_map}")
-    logging.info("NMOLS".ljust(pad) + f"{args.nmols}")
-    logging.info("LEGEND".ljust(pad) + f"{args.legend}")
+    logging.info("INPUT_FILE".ljust(pad) + f"{args.input_file}")
+    logging.info("INPUT_FORMAT".ljust(pad) + f"{input_format}")
+    logging.info("INPUT_COMPRESSION".ljust(pad) + f"{input_compression}")
+    logging.info("OUTPUT_DIR".ljust(pad) + f"{args.output_dir}")
     logging.info("SIZE".ljust(pad) + f"{size}")
-    logging.info("SAMPLE".ljust(pad) + f"{args.sample}")
-    logging.info("HIGHLIGHT".ljust(pad) + f"{args.highlight}")
+    logging.info("FORMAT".ljust(pad) + f"{format}")
+    if format == 'PNG':
+        logging.info("ROUND".ljust(pad) + f"{args.round}")
     logging.info("LOG".ljust(pad) + f"{args.log}")
 
     # begin
-    ds = []
     logging.info("BEGIN")
-    ds.append('START', datetime.now())
+    ds.append(('START', datetime.now()))
 
     # load input_file
     logging.info("LOADING INPUT FILE")
-    d1 = datetime.now()
     df = load.file(args.input_file)
     if 'mol' not in df.columns:
         logger.error(f"ERROR! COLUMN 'mol' NOT FOUND IN INPUT FILE, ABORTING!")
         sys.exit(1)
-    logging.info(f"FOUND {len(df.index)} MOLECULES")
-    if args.highlight and '_colormap' in df.columns:
-        logger.info(f"FOUND COLUMN '_colormap' IN INPUT FILE, MOLECULES WILL BE HIGHLIGHTED")
-
-    ds.append('LOADING INPUT FILE', datetime.now())
+    nentries = len(df.index)
+    df = df.groupby('idm').first().reset_index()
+    logging.info(f"FOUND {nentries:,d} MOLS IN {len(df.index):,d} ENTRIES")
+    ds.append(('LOADING INPUT FILE', datetime.now()))
 
     # compute images
     logger.info(f"GENERATING DRAWINGS")
+    for i in range(len(df.index)):
+        row = df.iloc[i]
+        img = Draw.MolsToGridImage([row['mol']],
+                                   molsPerRow=1,
+                                   subImgSize=size,
+                                   useSVG=use_svg,
+                                   )
+        if format == 'SVG':
+            output_svg = f"{args.output_dir}/{row['idm']}.svg"
+            with open(output_svg, "w") as FILE:
+                FILE.write(img)
+        else:
+            output_png = f"{args.output_dir}/{row['idm']}.png"
+            if args.round:
+                # following procedure described at: https://stackoverflow.com/questions/51486297/cropping-an-image-in-a-circular-way-using-python
+                img = img.convert("RGB")
+                npImage = np.array(img)
+                h, w = img.size
 
+                # Create same size alpha layer with circle
+                alpha = Image.new('L', img.size, 0)
+                draw = ImageDraw.Draw(alpha)
+                draw.pieslice([0, 0, h, w], 0, 360, fill=255)
+
+                # Convert alpha Image to numpy array
+                npAlpha = np.array(alpha)
+
+                # Add alpha layer to RGB
+                npImage = np.dstack((npImage, npAlpha))
+
+                # Save with alpha
+                img = Image.fromarray(npImage)
+
+            img.save(output_png)
+    ds.append(('GENERATING DRAWINGS', datetime.now()))
 
     # end
-    d4 = datetime.now()
+    ds.append((f"END", datetime.now()))
     logging.info("SUMMARY")
-    logger.info("COMPUTATIONAL TIME: CONFIGURING JOB".ljust(pad * 2) + f"{d1-d0}")
+    for i in range(len(ds) - 1):
+        if ds[i+1] != 'END':
+            logger.info(f"COMPUTATIONAL TIME: {ds[i+1][0]}".ljust(pad * 2) + f"{ds[i+1][1] - ds[i][1]}")
+    logger.info("COMPUTATIONAL TIME: TOTAL".ljust(pad * 2) + f"{ds[-1][1] - ds[0][1]}")
     logging.info("END")
 
 

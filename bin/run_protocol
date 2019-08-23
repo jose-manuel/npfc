@@ -45,7 +45,6 @@ def main():
     parser.add_argument('-c', '--config', type=str, default=None, help="JSON configuration file for running the protocol. This is a different file than the JSON file used for configuring snakemake execution on clusters. If several protocols are defined, configurations files have to be defined in the same order, separated with ',' (no space or ',' allowed in configuration file names).")
     parser.add_argument('-e', '--env', type=str, default='local', help="Environment for running the protocol. By default locally, but it can also be run on cluster schedulers (clem/gwdg1).")
     parser.add_argument('--chunksize', type=int, default=5000, help="Overwrite config file chunksize property.")
-    parser.add_argument('--draw', type=bool, default=False, help="Do not run the protocol, just draw its task tree. Output SVG file is located at {WD}/{prefix}_tree.svg. WARNING! Since some workflows depend on others (natural depends on fragments and synthetic depends on both fragments and natural), it is recommended to run required workflows before attempting to compute the task tree.")
     parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
     args = parser.parse_args()
 
@@ -98,7 +97,6 @@ def main():
     logging.info("PROTOCOL".ljust(pad) + f"{args.protocol}")
     logging.info("CONFIG".ljust(pad) + f"{args.config}")
     logging.info("ENV".ljust(pad) + f"{args.env}")
-    logging.info("DRAW".ljust(pad) + f"{args.draw}")
 
     # begin
     ds.append(('CONFIGURE', datetime.now()))
@@ -141,11 +139,12 @@ def main():
             input_file_uncompressed = config['input_file'].split('.gz')[0]
             # count mols + uncompress input file
             num_mols = load.count_mols(config['input_file'], keep_uncompressed=True)
+            # uncompressed input file works not in smk file (makes the whole pipeline to overwrite any output) so just discard it. The archive will be unziped again.
+            Path(input_file_uncompressed).unlink()
             # determine the number of chunks to generate
             num_chunks = ceil(num_mols / config['chunksize'])
-            config['input_file_uncompressed'] = input_file_uncompressed
             config['num_chunks'] = num_chunks
-            logger.info(f"NUMBER OF CHUNKS:".ljust(pad) + f"{num_mols:,d}/{config['chunksize']:,d}={num_chunks:,d}")
+            logger.info(f"NUMBER OF CHUNKS:".ljust(pad) + f"{num_mols:,d} / {config['chunksize']:,d} = {num_chunks:,d}")
         # add arguments to the smk command
         smk_command += "--config "
         for k, v in config.items():
@@ -153,21 +152,20 @@ def main():
             smk_command += f"{k}='{v}' "
         smk_command = smk_command[:-1]
 
-        # refine smk_command
-        if args.draw:
-            # for just drawing the task tree
-            WD = config['WD']
-            if WD.endswith('/'):
-                WD = WD[:-1]
-            svg = WD + f"/{config['prefix']}.svg"
-            smk_command += f" --dag | dot -Tsvg > {svg}"
-            logger.info(f"DRAWING TASK TREE AT '{svg}'")
-        else:
-            # for running the protocol
-            smk_command += f" 2>&1 | grep -v 'INFO:' | grep -v 'WARNING:'"
+        # draw the protocol task tree
+        WD = config['WD']
+        if WD.endswith('/'):
+            WD = WD[:-1]
+        svg = WD + f"/{config['prefix']}_tasktree.svg"
+        smk_command_svg = smk_command + f" --dag | dot -Tsvg > {svg}"
+        logger.info(f"DRAWING TASK TREE AT '{svg}'")
+        subprocess.run(smk_command_svg, shell=True, check=True)
+
         # run protocol
+        logger.info(f"BEGIN OF SNAKEMAKE PROTOCOL '{p}'")
         subprocess.run(smk_command, shell=True, check=True)
         ds.append((f"PROTOCOL#{i} '{p}'", datetime.now()))
+        logger.info(f"END OF SNAKEMAKE PROTOCOL '{p}'")
 
     # end
     ds.append((f"END", datetime.now()))
