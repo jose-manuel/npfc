@@ -154,14 +154,15 @@ def file(input_file: str,
 
     # decode
     if decode:
-        logging.debug(f"Decoding structures")
         # faster way for mols
         for col in ('mol', 'mol_frag'):
             if col in df.columns:
+                logging.debug(f"Decoding column='{col}'")
                 df[col] = df[col].map(utils.decode_mol)
         # other objects are labelled with leading '_'
         for col in df.columns:
-            if col.startswith('_'):
+            if col.startswith('_') and col != '_Name':
+                logging.debug(f"Decoding column='{col}'")
                 df[col] = df[col].map(utils.decode_object)
 
     return df
@@ -209,15 +210,9 @@ def _from_hdf(input_hdf: str):
 
 def _from_csv(input_csv: str, csv_sep: str = '|', compression: str = None):
     if compression is None:
-        try:
-            return pd.read_csv(input_csv, sep=csv_sep, index_col='Unnamed: 0')  # define rowidx with rowids, if any
-        except KeyError:
-            return pd.read_csv(input_csv, sep=csv_sep)
+        return pd.read_csv(input_csv, sep=csv_sep)
     elif compression == 'gzip':
-        try:
-            return pd.read_csv(input_csv, sep=csv_sep, index_col='Unnamed: 0', compression=compression)  # define rowidx with rowids, if any
-        except (ValueError, KeyError):
-            return pd.read_csv(input_csv, sep=csv_sep, compression=compression)
+        return pd.read_csv(input_csv, sep=csv_sep, compression=compression)
 
 
 def count_mols(input_file: str, keep_uncompressed: bool = False):

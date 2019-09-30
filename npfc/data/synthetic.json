@@ -3,7 +3,7 @@
                     "molid": "chembl_id",
                     "WD": "synthetic/chembl/",
                     "input_file": "synthetic/chembl/data/00_raw/data/chembl.sdf.gz",
-                    "frags_file": "fragments/crms/data/08_gen2D/data/crms_gen2D.csv.gz",
+                    "frags_file": "fragments/crms/data/07_gen2D/data/crms_gen2D.csv.gz",
                     "chunksize": 5000,
                     "natref": "natural/dnp/",
                     "act_file": "synthetic/chembl/data/00_raw/data/chembl_act_raw.csv.gz"

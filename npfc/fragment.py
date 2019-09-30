@@ -522,6 +522,11 @@ class CombinationClassifier:
         # entries with an overlap
         overlaps = g[g['abbrev'] == 'ffo']
         noverlaps = len(overlaps.index)
+        overlaps_vals = list(set(list(overlaps['fid1'].values) + list(overlaps['fid2'].values)))
+        logging.debug(f"Overlaps:\n{overlaps}\n")
+        # entries without an overlap
+        g = g[g['abbrev'] != 'ffo']
+
         if noverlaps > 0:  # the code below could certainly be improved, but this case should not happen too often
             logging.debug(f"Number of overlaps found for molecule {gid}: {noverlaps}")
             # filter out molecules with too many overlaps
@@ -529,24 +534,33 @@ class CombinationClassifier:
                 logging.debug(f"Too many overlap combinations ({noverlaps}), discarding molecule '{gid}'")
                 # return empty DataFrameas well as the number of overlaps found
                 return (DataFrame(columns=g.columns), noverlaps)
-            # remove overlaps from the current group
-            g = g[g['abbrev'] != 'ffo']
+
+
+            logging.debug(f"Combinations that are not ffo:\n{g}\n")
             # get fragment ids of the common parts of alternative paths
-            common = g[(~g['fid1'].isin(overlaps['fid1'])) & (~g['fid2'].isin(overlaps['fid2']))]
+            logging.debug(f"initial common:\n{g}\n")
+            common = g[~g['fid1'].isin(overlaps_vals)]
+            logging.debug(f"intermediary common:\n{common}\n")
+            common = common[~common['fid2'].isin(overlaps_vals)]
+            # common = g[(~g['fid1'].isin(overlaps['fid1'])) & (~g['fid2'].isin(overlaps['fid2']))]
+            logging.debug(f"Common fragment combinations between all overlaps:\n{common}\n")
             common_combinations = set()
             for i in range(len(common.index)):
                 row = common.iloc[i]
                 common_combinations.add(row['fid1'])
                 common_combinations.add(row['fid2'])
             common_combinations = list(common_combinations)
+            logging.debug(f"common_combinations before product: {common_combinations}")
+
             # get the fragment ids of the variant parts of alternative paths
             alt_combinations = []
             for i in range(len(overlaps)):
                 row = overlaps.iloc[i]
                 alt_combinations.append([row['fid1'], row['fid2']])
+            logging.debug(f"alt_combinations before product: {alt_combinations}")
             # get all possible paths
             alt_combinations = [list(x) + common_combinations for x in list(itertools.product(*alt_combinations))]
-
+            logging.debug(f"Alternative fragment combinations:\n{alt_combinations}\n")
             dfs_fcc_clean = []
             for alt in alt_combinations:
                 df_alt = g[(g['fid1'].isin(alt)) | (g['fid2'].isin(alt))]
@@ -556,10 +570,12 @@ class CombinationClassifier:
                 for df_fcc_clean in dfs_fcc_clean:
                     if df_alt.equals(df_fcc_clean):
                         to_add = False
+                logging.debug(f"df_alt:\n{df_alt}\nto_add:{to_add}")
                 if to_add:
                     dfs_fcc_clean.append(df_alt)
         else:
             dfs_fcc_clean = [g]
+        logging.debug(f"dfs_fcc_clean:\n{dfs_fcc_clean}\n")
 
         return (dfs_fcc_clean, noverlaps)
 
@@ -640,7 +656,6 @@ class CombinationClassifier:
 
             # compute fragment connectivity graph objects so we can split up disconnected subgraphs
             dfs_fcc_ready = self._split_unconnected(dfs_fcc_clean)
-
             # compute the entries of the df_map
             for i, df_fcc_clean in enumerate(dfs_fcc_ready):
 
@@ -664,7 +679,6 @@ class CombinationClassifier:
 
                 # sort d_aidxs for reproducible colormaps
                 d_aidxs = OrderedDict(sorted(d_aidxs.items()))
-
                 # count fragment occurrences (non-unique)
                 frags = list(set([x for x in df_fcc_clean['fid1'].map(str).values] + [x for x in df_fcc_clean['fid2'].map(str).values]))
                 nfrags = len(frags)

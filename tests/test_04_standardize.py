@@ -22,7 +22,7 @@ from npfc.standardize import Standardizer
 from npfc.standardize import FullUncharger
 # debug
 import logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.ERROR)
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ LOGGING ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #

@@ -70,7 +70,7 @@ cd $WD
 git add $WD
 
 # run commitizen prompt
-git cz
+npx git-cz
 
 # display current git tag
 echo -e "\nCurrent version is: '$curr_version'\n"

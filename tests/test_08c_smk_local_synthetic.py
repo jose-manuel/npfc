@@ -1,17 +1,16 @@
 """
-tests.test_06_local_workflow
+tests.test_08c_smk_local_synthetic
 ~~~~~~~~~~
 Functional test to make sure all step input/outputs are compatible
 for a local run of the npfc workflow.
+
+This requires that the test_08a_smk_local_fragments and test_08b_smk_local_natural
+completed successfully so their outputs can be used.
 """
 # standard library
 import subprocess
-from math import ceil
 from pathlib import Path
 import shutil
-import pkg_resources
-# dev
-from npfc import load
 # debug
 import logging
 logging.basicConfig(level=logging.WARNING)
@@ -20,11 +19,11 @@ logging.basicConfig(level=logging.WARNING)
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ TESTS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 
-def test_00_init_folder():
+def test_init():
     """Reset the folder where outputs are computed to its initial state."""
 
-    data_ori = "tests/data/"
-    data_tgt = "tests/tmp/"
+    data_ori = "tests/data/synthetic"
+    data_tgt = "tests/tmp/synthetic"
     # delete any previous jobs from workflows
     for subdir in Path(data_tgt).glob("*"):
         if subdir.is_dir():
@@ -35,31 +34,7 @@ def test_00_init_folder():
             shutil.copytree(str(subdir), f"{data_tgt}/{subdir.stem}")
 
 
-def test_01_fragments():
-    """Run the 'fragments' protocol applied to the cr dataset."""
-
-    output_files = ["tests/tmp/fragments/crms/data/08_gen2D/data/crms_gen2D.csv.gz"]
-    output_svg = 'tests/tmp/fragments/crms/crms_tasktree.svg'
-    # run protocol
-    command_smk = 'run_protocol fragments --chunksize 100'
-    subprocess.run(command_smk, shell=True, check=True, cwd='tests/tmp')
-    assert Path(output_svg).exists()
-    assert all([Path(f).exists() for f in output_files])
-
-
-def test_02_natural():
-    """Run the 'natural' protocol applied to a subset of the DNP."""
-
-    output_files = [f"tests/tmp/natural/dnp/data/09_fmap/data/dnp_{str(cid+1).zfill(3)}_fmap.csv.gz" for cid in range(3)]
-    output_svg = 'tests/tmp/natural/dnp/dnp_tasktree.svg'
-    # run protocol
-    command_smk = 'run_protocol natural --chunksize 100'
-    subprocess.run(command_smk, shell=True, check=True, cwd='tests/tmp')
-    assert Path(output_svg).exists()
-    assert all([Path(f).exists() for f in output_files])
-
-
-def test_03_synthetic():
+def test_run():
     """Run the 'synthetic' protocol applied to a subset of the ChEMBL."""
 
     output_files = [f"tests/tmp/synthetic/chembl/data/12_pnp/data/chembl_{str(cid+1).zfill(3)}_pnp.csv.gz" for cid in range(3)]

@@ -50,7 +50,7 @@ def main():
     parser = argparse.ArgumentParser(description=description, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('input_mols', type=str, default=None, help="Input file.")
     parser.add_argument('output_mols', type=str, default=None, help="Output file.")
-    parser.add_argument('-m', '--methods', type=str, default="CoordGen,rdDepictor,Avalon,Input", help="Methods for computing 2D coordinates. Methods are applied in displayed order. If a depiction yields a 'perfect' score (0), then other following methods are not applied. If no perfect score is reached, the depiction with best (lowest) score is selected.")
+    parser.add_argument('-m', '--methods', type=str, default="CoordGen,rdDepictor,Avalon", help="Methods for computing 2D coordinates. Methods are applied in displayed order. If a depiction yields a 'perfect' score (0), then other following methods are not applied. If no perfect score is reached, the depiction with best (lowest) score is selected.")
     parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
 
     args = parser.parse_args()

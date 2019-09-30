@@ -233,13 +233,20 @@ def highlight_mol(mol: Mol, colormap: 'ColorMap', img_size: Tuple[int] = (300, 3
     if debug:
         mol = Mol(mol)
         [mol.GetAtomWithIdx(idx).SetProp('molAtomMapNumber', str(mol.GetAtomWithIdx(idx).GetIdx())) for idx in range(mol.GetNumAtoms())]
-
+    if colormap is None:
+        highlightAtomList = []
+        highlightAtomColors = {}
+        highlightBondColors = {}
+    else:
+        highlightAtomList = [int(x) for x in list(colormap.atoms.keys())]
+        highlightAtomColors = colormap.atoms
+        highlightBondColors = colormap.bonds
     return Draw.MolsToGridImage([mol],
                                 molsPerRow=1,
                                 subImgSize=img_size,
-                                highlightAtomLists=[[int(x) for x in list(colormap.atoms.keys())]],
-                                highlightAtomColors=[colormap.atoms],
-                                highlightBondColors=[colormap.bonds],
+                                highlightAtomLists=[highlightAtomList],
+                                highlightAtomColors=[highlightAtomColors],
+                                highlightBondColors=[highlightBondColors],
                                 useSVG=svg,
                                 )
 
@@ -366,14 +373,14 @@ def rescale(mol: Mol, f: float = 1.4):
     Chem.TransformMol(mol, tm)
 
 
-def compute_2D(mol: Mol, methods: List[str] = ["CoordGen", "rdDepictor", "Avalon"], consider_input: bool = True) -> Mol:
+def compute_2D(mol: Mol, methods: List[str] = ["CoordGen", "rdDepictor"], consider_input: bool = True) -> Mol:
     """
     Returns the "best" 2D depiction of a molecule according the methods in METHODS_2D.
     Currently four methods are available:
 
         - CoordGen
         - rdDepictor
-        - Avalon
+        - Avalon  (currently disabled because of RunTimeError when used with RDKit 2019.03.4, BOOST 1_70 and pdbeccdutils 5.1)
         - Input
 
     A perfect score of 0 means the depiction is good enough (no overalapping atom/bonds)
@@ -425,34 +432,35 @@ def compute_2D(mol: Mol, methods: List[str] = ["CoordGen", "rdDepictor", "Avalon
 
     for method in methods:
         # copy the input mol so input coordinates are not modified
-        depiction_mol = Chem.Mol(mol)
-        # compute the depiction in place
+        depiction_mol = Mol(mol)
+        # compute the depiction (in place)
         METHODS[method](depiction_mol)
         # coordgen creates very small 2D representations, so let's rescale them
         if method == "CoordGen":
             rescale(depiction_mol)
         # score the depiction
         dv = DepictionValidator(depiction_mol)
+        [a.SetProp('name', str(a.GetIdx())) for a in dv.mol.GetAtoms()]  # bug fix for version 5+,add name property to atoms
         depiction_score = dv.depiction_score()
+
         # exit if perfect score, record depiction for selection otherwise
         if depiction_score == 0:
             depiction_mol.SetProp("_2D", method)
             return depiction_mol
-        else:
-            depictions[method] = (depiction_score, depiction_mol)
+        depictions[method] = (depiction_score, depiction_mol)
 
     # no perfect score was reached until now, so test input coordinates if any
     if consider_input and mol.GetNumConformers() > 0:
         method = "Input"
         dv = DepictionValidator(mol)
+        [a.SetProp('name', str(a.GetIdx())) for a in dv.mol.GetAtoms()]  # bug fix for version 5+,add name property to atoms
         depiction_score = dv.depiction_score()
         if depiction_score == 0:
             mol.SetProp("_2D", method)
             return mol
-        else:
-            depictions[method] = (depiction_score, mol)
+        depictions[method] = (depiction_score, mol)
     elif consider_input and mol.GetNumConformers() == 0:
-        logging.warning("No input coordinates to use for Input method, so skipping it!")
+        logging.debug("No input coordinates to use for Input method, so skipping it!")
 
     # retrieve best depiction possible
     best_method = min(depictions, key=lambda k: depictions[k][0])
@@ -538,7 +546,7 @@ class ColorMap:
         bidxs_white = {bidx: (1, 1, 1) for bidx in set([b.GetIdx() for b in mol.GetBonds()]) - set(list(colormap_b.keys()))}
         #                      white                            all bidx of the mol          -        all colored bidx
         # update colormap with white bond indices
-        logging.debug(f"Highlighting out-of-fragment-bonds in white")
+        logging.debug('Highlighting out-of-fragment-bonds in white')
         colormap_b.update(bidxs_white)
 
         # return results as tuple

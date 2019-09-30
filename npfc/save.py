@@ -11,6 +11,7 @@ import logging
 import gzip
 import shutil
 import os
+import numpy as np
 import time
 from pathlib import Path
 from random import random
@@ -19,7 +20,8 @@ import pandas as pd
 from pandas import DataFrame
 from pandas import HDFStore
 # chemoinformatics
-from rdkit.Chem import PandasTools
+from rdkit import Chem
+from rdkit.Chem import SDWriter
 # docs
 from typing import List
 # dev
@@ -84,7 +86,7 @@ def file(df: pd.DataFrame,
                 df[col] = df[col].map(utils.encode_mol)
         # other objects are labelled with leading '_'
         for col in df.columns:
-            if col.startswith('_'):
+            if col.startswith('_') and col != '_Name':
                 df[col] = df[col].map(utils.encode_object)
 
     # chunking
@@ -125,22 +127,22 @@ def _save(df: DataFrame,
     # infer from pandas.to_csv does not work as expected (no compression!)
     # so I need to specify the compression type manually.
     utils.check_arg_output_file(output_file)
-    format, compression = utils.get_file_format(output_file)
-    if format == 'CSV':
-        if compression == 'gzip':
-            df.to_csv(output_file, sep=csv_sep, compression=compression)
+    out_format, out_compression = utils.get_file_format(output_file)
+    if out_format == 'CSV':
+        if out_compression == 'gzip':
+            df.to_csv(output_file, sep=csv_sep, compression=out_compression, index=False)
         else:
-            df.to_csv(output_file, sep=csv_sep)
-    elif format == 'HDF':
+            df.to_csv(output_file, sep=csv_sep, index=False)
+    elif out_format == 'HDF':
         df.to_hdf(output_file, key=key)
-    elif format == 'SDF':
+    elif out_format == 'SDF':
         # write the uncompressed file
-        if compression == 'gzip':
+        if out_compression == 'gzip':
             # init
             output_file_base = '.'.join(output_file.split('.')[:-1])
             logging.debug(f"Output_file_base: {output_file_base}")
             # write the file uncompressed
-            PandasTools.WriteSDF(df, output_file_base, molColName=col_mol, idName=col_id, properties=list(df.columns))
+            write_sdf(df, output_file_base, molColName=col_mol, idName=col_id, properties=list(df.columns))
             # compress the file
             with open(output_file_base, 'rb') as OUTPUT:
                 with gzip.open(output_file, 'wb') as ARCHIVE:
@@ -148,12 +150,71 @@ def _save(df: DataFrame,
                 # delete the uncompressed file as it is only a byproduct
                 Path(output_file_base).unlink()
         else:
-            PandasTools.WriteSDF(df, output_file, molColName=col_mol, idName=col_id, properties=list(df.columns))
-    elif format == 'FEATHER':
+            write_sdf(df, output_file, molColName=col_mol, idName=col_id, properties=list(df.columns))
+    elif out_format == 'FEATHER':
         df.to_feather(output_file)
     else:
         raise ValueError(f"Error! Cannot save DataFrame to unexpected format '{suffixes[0]}'.")
     logging.debug(f"Saved {len(df.index)} records at '{output_file}'.")
+
+
+def write_sdf(df, out, molColName='ROMol', idName=None, properties=None, allNumeric=False):
+    """
+    Redefinition of PandasTools.WriteSDF because RDKit 2019.03.1 is incompatible with Pandas 25.1.
+
+    Write an SD file for the molecules in the dataframe. Dataframe columns can be exported as
+    SDF tags if specified in the "properties" list. "properties=list(df.columns)" would export
+    all columns.
+    The "allNumeric" flag allows to automatically include all numeric columns in the output.
+    User has to make sure that correct data type is assigned to column.
+    "idName" can be used to select a column to serve as molecule title. It can be set to
+    "RowID" to use the dataframe row key as title.
+    """
+    close = None
+    if isinstance(out, str):
+        if out.lower()[-3:] == ".gz":
+            out = gzip.open(out, "wt")
+            close = out.close
+
+    writer = SDWriter(out)
+    if properties is None:
+        properties = []
+    else:
+        properties = list(properties)
+    if allNumeric:
+        properties.extend([
+          dt for dt in df.dtypes.keys()
+          if (np.issubdtype(df.dtypes[dt], np.floating) or np.issubdtype(df.dtypes[dt], np.integer))
+        ])
+
+    if molColName in properties:
+        properties.remove(molColName)
+    if idName in properties:
+        properties.remove(idName)
+    writer.SetProps(properties)
+    for row in df.iterrows():
+        # make a local copy I can modify
+        mol = Chem.Mol(row[1][molColName])
+
+        if idName is not None:
+            if idName == 'RowID':
+                mol.SetProp('_Name', str(row[0]))
+            else:
+                mol.SetProp('_Name', str(row[1][idName]))
+        for p in properties:
+            cell_value = row[1][p]
+            # Make sure float does not get formatted in E notation
+            if np.issubdtype(type(cell_value), np.floating):
+                s = '{:f}'.format(cell_value).rstrip("0")  # "f" will show 7.0 as 7.00000
+                if s[-1] == ".":
+                    s += "0"  # put the "0" back on if it's something like "7."
+                mol.SetProp(p, s)
+            else:
+                mol.SetProp(p, str(cell_value))
+        writer.write(mol)
+    writer.close()
+    if close is not None:
+        close()
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ CLASSES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #

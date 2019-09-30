@@ -17,6 +17,7 @@ import pandas as pd
 # chemoinformatics
 import rdkit
 from rdkit import RDLogger
+from rdkit import Chem
 from rdkit.Chem.Scaffolds import MurckoScaffold
 # dev
 import npfc
@@ -112,6 +113,8 @@ def main():
     d2 = datetime.now()
     logger.info(f"EXTRACTING MURCKO SCAFFOLDS")
     df_mols['mol'] = df_mols['mol'].map(MurckoScaffold.GetScaffoldForMol)
+    logger.info(f"CONVERTING TO/FROM SMILES")
+    df_mols['mol'] = df_mols['mol'].map(lambda x: Chem.MolFromSmiles(Chem.MolToSmiles(x)))
 
     # save results
     d3 = datetime.now()
