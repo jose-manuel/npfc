@@ -164,12 +164,22 @@ then
     echo -e "\nOne or several errors were found with arguments. Aborting script execution."
     exit 2
 fi
+
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ MAIN ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
+# start
+START_TIME=$SECONDS
 
 # display config
 config
 
 # run the workflow
 run_workflow $knime_exec $workflow_file $input_sdf $input_id $output_dir
+
+# end
+ELAPSED_TIME=$(($SECONDS - $START_TIME))
+echo -e "COMPUTATIONAL TIME: TOTAL $ELAPSED_TIME SECONDS"
+
+
 exit 0
