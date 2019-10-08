@@ -130,7 +130,7 @@ def main():
             smk_command += '-j 100 --cluster-config ' + config_cluster + ' --cluster "sbatch -A {cluster.account} -p {cluster.partition} -n {cluster.n}  -t {cluster.time} --oversubscribe" '
         elif args.env == 'gwdg1':
             pass  # maybe there is no need at all for using bsub as gwdg1 scheduler was being replaced with slurm
-            config_cluster = pkg_resources.resource_filename('npfc', f"data/cluster_clem.json")
+            config_cluster = pkg_resources.resource_filename('npfc', f"data/cluster_gwdg1.json")
             smk_command += '-j 400 --cluster-config ' + config_cluster + ' --cluster "sbatch -A {cluster.account} -p {cluster.partition} -n {cluster.n}  -t {cluster.time} --oversubscribe" '
 
         # arguments
