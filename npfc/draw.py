@@ -499,7 +499,7 @@ class ColorMap:
             pass
         num_bond_colors = len(bond_colors)
 
-        return str(f"num_frags={num_frags}, num_atom_colors={num_atom_colors}, num_bond_colors={num_bond_colors}")
+        return str(f"ColorMap(nf={num_frags}, nac={num_atom_colors}, nbc={num_bond_colors})")
 
     def _compute_colormap(self, mol: Mol, d_aidxs: Dict, colors):
         """

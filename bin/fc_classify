@@ -21,7 +21,7 @@ import npfc
 from npfc import load
 from npfc import save
 from npfc import utils
-from npfc import fragment
+from npfc import fragment_combination
 # disable SettingWithCopyWarning warnings
 pd.options.mode.chained_assignment = None  # default='warn'
 
@@ -99,10 +99,9 @@ def main():
     # run fcc
     logger.info(f"CLASSIFYING FRAGMENT COMBINATIONS")
     d2 = datetime.now()
-    c = fragment.CombinationClassifier()
     if not args.keep_raw:
         d3 = datetime.now()
-        df_fcc = c.classify_fragment_combinations(df_sub)
+        df_fcc = fragment_combination.classify_df(df_sub)
         logger.info(f"FOUND {len(df_fcc.index)} COMBINATIONS")
         d5 = datetime.now()
     else:

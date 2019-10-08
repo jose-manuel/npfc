@@ -20,7 +20,7 @@ import npfc
 from npfc import load
 from npfc import save
 from npfc import utils
-from npfc import fragment
+from npfc import fragment_map
 # disable SettingWithCopyWarning warnings
 pd.options.mode.chained_assignment = None  # default='warn'
 
@@ -95,8 +95,7 @@ def main():
     # mapping fragment combinations
     logger.info(f"MAPPING REMAINING FRAGMENT COMBINATIONS")
     d2 = datetime.now()
-    c = fragment.CombinationClassifier()
-    df_map = c.map_frags(df_fcc, min_frags=args.min_frags, max_frags=args.max_frags, max_overlaps=args.max_overlaps)
+    df_map = fragment_map.generate(df_fcc, min_frags=args.min_frags, max_frags=args.max_frags, max_overlaps=args.max_overlaps)
     logger.info(f"COMPUTED {len(df_map.index)} FRAGMENT COMBINATION NETWORKS")
 
     # save map results

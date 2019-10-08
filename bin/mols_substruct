@@ -161,8 +161,7 @@ def main():
     # substructure search
     logger.info(f"SUBSTRUCTURE SEARCH")
     d3 = datetime.now()
-    m = fragment.Matcher()
-    df_aidxf = m.run(df_mols, df_frags)
+    df_aidxf = fragment.find(df_mols, df_frags)
     logger.info(f"FOUND {len(df_aidxf.index)} HITS")
 
     # save results

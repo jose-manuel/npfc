@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Module load &mdash; npfc 0.4.2 documentation</title>
+  <title>Module load &mdash; npfc 0.4.3 documentation</title>
   
 
   
@@ -17,34 +17,36 @@
   
 
   
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
 
-  
-  
     
 
   
-
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Module save" href="save.html" />
     <link rel="prev" title="Module utils" href="utils.html" /> 
-
-  
-  <script src="_static/js/modernizr.min.js"></script>
-
 </head>
 
 <body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
-
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
+        <div class="wy-side-nav-search" >
           
 
           
@@ -58,7 +60,7 @@
             
             
               <div class="version">
-                0.4.2
+                0.4.3
               </div>
             
           
@@ -162,87 +164,75 @@
 on disk.</p>
 <dl class="function">
 <dt id="npfc.load.count_mols">
-<code class="descclassname">npfc.load.</code><code class="descname">count_mols</code><span class="sig-paren">(</span><em>input_file</em>, <em>keep_uncompressed=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/load.html#count_mols"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.load.count_mols" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">npfc.load.</code><code class="sig-name descname">count_mols</code><span class="sig-paren">(</span><em class="sig-param">input_file</em>, <em class="sig-param">keep_uncompressed=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/load.html#count_mols"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.load.count_mols" title="Permalink to this definition">¶</a></dt>
 <dd><p>Count the number of molecules found in a text file.
 In case the file is compressed (gzip), it is uncompressed first. The resulting
 uncompressed file can be kept for further use.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>input_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the input file</li>
-<li><strong>keep_uncompressed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>) – if the input file is compressed (gzip), do not remove the uncompressed file when finished</li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>input_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the input file</p></li>
+<li><p><strong>keep_uncompressed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>) – if the input file is compressed (gzip), do not remove the uncompressed file when finished</p></li>
 </ul>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
 <dt id="npfc.load.file">
-<code class="descclassname">npfc.load.</code><code class="descname">file</code><span class="sig-paren">(</span><em>input_file</em>, <em>in_id='idm'</em>, <em>in_mol='mol'</em>, <em>csv_sep='|'</em>, <em>mol_format='rdkit'</em>, <em>out_id='idm'</em>, <em>out_mol='mol'</em>, <em>keep_props=True</em>, <em>decode=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/load.html#file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.load.file" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">npfc.load.</code><code class="sig-name descname">file</code><span class="sig-paren">(</span><em class="sig-param">input_file</em>, <em class="sig-param">in_id='idm'</em>, <em class="sig-param">in_mol='mol'</em>, <em class="sig-param">csv_sep='|'</em>, <em class="sig-param">mol_format='rdkit'</em>, <em class="sig-param">out_id='idm'</em>, <em class="sig-param">out_mol='mol'</em>, <em class="sig-param">keep_props=True</em>, <em class="sig-param">decode=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/load.html#file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.load.file" title="Permalink to this definition">¶</a></dt>
 <dd><p>Load a file into a DataFrame.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>input_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the input file to load</li>
-<li><strong>in_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the column/property to use for molecule ids</li>
-<li><strong>in_mol</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the column to use for molecules (irrerlevant for SDF)</li>
-<li><strong>csv_sep</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the column separator to use for parsing the input file (CSV)</li>
-<li><strong>mol_format</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the input format for molecules</li>
-<li><strong>out_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the column name used for storing molecule ids</li>
-<li><strong>out_mol</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the column name used for storing molecules</li>
-<li><strong>keep_props</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>) – keep all properties found in the input file. If False, then only out_id and out_mol are kept.</li>
-<li><strong>decode</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Union" title="(in Python v3.7)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]]) – decode base64 strings into objects. Columns with encoded objects are labelled with a leading ‘_’. For molecules, reserved names are ‘mol’ and ‘mol_frag’.</li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>input_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the input file to load</p></li>
+<li><p><strong>in_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the column/property to use for molecule ids</p></li>
+<li><p><strong>in_mol</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the column to use for molecules (irrerlevant for SDF)</p></li>
+<li><p><strong>csv_sep</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the column separator to use for parsing the input file (CSV)</p></li>
+<li><p><strong>mol_format</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the input format for molecules</p></li>
+<li><p><strong>out_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the column name used for storing molecule ids</p></li>
+<li><p><strong>out_mol</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the column name used for storing molecules</p></li>
+<li><p><strong>keep_props</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>) – keep all properties found in the input file. If False, then only out_id and out_mol are kept.</p></li>
+<li><p><strong>decode</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Union" title="(in Python v3.7)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]]) – decode base64 strings into objects. Columns with encoded objects are labelled with a leading ‘_’. For molecules, reserved names are ‘mol’ and ‘mol_frag’.</p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a DataFrame</p>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>a DataFrame</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
 <dt id="npfc.load.pgsql">
-<code class="descclassname">npfc.load.</code><code class="descname">pgsql</code><span class="sig-paren">(</span><em>dbname</em>, <em>user</em>, <em>psql</em>, <em>src_id</em>, <em>src_mol</em>, <em>mol_format=None</em>, <em>col_mol='mol'</em>, <em>col_id='idm'</em>, <em>keep_db_cols=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/load.html#pgsql"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.load.pgsql" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">npfc.load.</code><code class="sig-name descname">pgsql</code><span class="sig-paren">(</span><em class="sig-param">dbname</em>, <em class="sig-param">user</em>, <em class="sig-param">psql</em>, <em class="sig-param">src_id</em>, <em class="sig-param">src_mol</em>, <em class="sig-param">mol_format=None</em>, <em class="sig-param">col_mol='mol'</em>, <em class="sig-param">col_id='idm'</em>, <em class="sig-param">keep_db_cols=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/load.html#pgsql"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.load.pgsql" title="Permalink to this definition">¶</a></dt>
 <dd><p>Load molecules from a PGSQL query.
 The col_mol will is parsed by RDKit depending on the mol_format argument.
 If no mol_format is specified, then the column is returned untouched.</p>
 <div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">For this function to work, you need to be able to log into the target database without prompt. Tested only with ChEMBL24 with default ports.</p>
+<p class="admonition-title">Note</p>
+<p>For this function to work, you need to be able to log into the target database without prompt. Tested only with ChEMBL24 with default ports.</p>
 </div>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>dbname</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the input postgres database name</li>
-<li><strong>user</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the user name for logging into database</li>
-<li><strong>pgsql</strong> – the posgresql statement to execute</li>
-<li><strong>mol_format</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.7)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]) – the molecular format to use to parse the molecules. If none is specified then no parsing is performed. Currently only molblock and smiles are allowed</li>
-<li><strong>col_mol</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the column with the molecules to parse</li>
-<li><strong>keep_db_cols</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>) – keep src_id and src_mol columns in output DataFrame. This does not impact any other column extracted from the psql query</li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dbname</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the input postgres database name</p></li>
+<li><p><strong>user</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the user name for logging into database</p></li>
+<li><p><strong>pgsql</strong> – the posgresql statement to execute</p></li>
+<li><p><strong>mol_format</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.7)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]) – the molecular format to use to parse the molecules. If none is specified then no parsing is performed. Currently only molblock and smiles are allowed</p></li>
+<li><p><strong>col_mol</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the column with the molecules to parse</p></li>
+<li><p><strong>keep_db_cols</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>) – keep src_id and src_mol columns in output DataFrame. This does not impact any other column extracted from the psql query</p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><p class="first"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a DataFrame with Mol objects</p>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>a DataFrame with Mol objects</p>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
@@ -258,7 +248,7 @@ If no mol_format is specified, then the column is returned untouched.</p>
         <a href="save.html" class="btn btn-neutral float-right" title="Module save" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="utils.html" class="btn btn-neutral" title="Module utils" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="utils.html" class="btn btn-neutral float-left" title="Module utils" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -284,26 +274,16 @@ If no mol_format is specified, then the column is returned untouched.</p>
   
 
 
-  
-
-    
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
-    
-
-  
-
-  <script type="text/javascript" src="_static/js/theme.js"></script>
-
   <script type="text/javascript">
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
+  </script>
+
+  
+  
+    
+   
 
 </body>
 </html>

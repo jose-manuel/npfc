@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.fragment &mdash; npfc 0.4.2 documentation</title>
+  <title>npfc.fragment &mdash; npfc 0.4.3 documentation</title>
   
 
   
@@ -17,32 +17,34 @@
   
 
   
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
-  
-  
     
 
   
-
   <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" /> 
-
-  
-  <script src="../../_static/js/modernizr.min.js"></script>
-
 </head>
 
 <body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
-
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
+        <div class="wy-side-nav-search" >
           
 
           
@@ -56,7 +58,7 @@
             
             
               <div class="version">
-                0.4.2
+                0.4.3
               </div>
             
           
@@ -677,6 +679,11 @@
         <span class="c1"># entries with an overlap</span>
         <span class="n">overlaps</span> <span class="o">=</span> <span class="n">g</span><span class="p">[</span><span class="n">g</span><span class="p">[</span><span class="s1">&#39;abbrev&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;ffo&#39;</span><span class="p">]</span>
         <span class="n">noverlaps</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">overlaps</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+        <span class="n">overlaps_vals</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">overlaps</span><span class="p">[</span><span class="s1">&#39;fid1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">overlaps</span><span class="p">[</span><span class="s1">&#39;fid2&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)))</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Overlaps:</span><span class="se">\n</span><span class="si">{overlaps}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="c1"># entries without an overlap</span>
+        <span class="n">g</span> <span class="o">=</span> <span class="n">g</span><span class="p">[</span><span class="n">g</span><span class="p">[</span><span class="s1">&#39;abbrev&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;ffo&#39;</span><span class="p">]</span>
+
         <span class="k">if</span> <span class="n">noverlaps</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>  <span class="c1"># the code below could certainly be improved, but this case should not happen too often</span>
             <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Number of overlaps found for molecule </span><span class="si">{gid}</span><span class="s2">: </span><span class="si">{noverlaps}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="c1"># filter out molecules with too many overlaps</span>
@@ -684,24 +691,33 @@
                 <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Too many overlap combinations (</span><span class="si">{noverlaps}</span><span class="s2">), discarding molecule &#39;</span><span class="si">{gid}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
                 <span class="c1"># return empty DataFrameas well as the number of overlaps found</span>
                 <span class="k">return</span> <span class="p">(</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="n">g</span><span class="o">.</span><span class="n">columns</span><span class="p">),</span> <span class="n">noverlaps</span><span class="p">)</span>
-            <span class="c1"># remove overlaps from the current group</span>
-            <span class="n">g</span> <span class="o">=</span> <span class="n">g</span><span class="p">[</span><span class="n">g</span><span class="p">[</span><span class="s1">&#39;abbrev&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;ffo&#39;</span><span class="p">]</span>
+
+
+            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Combinations that are not ffo:</span><span class="se">\n</span><span class="si">{g}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="c1"># get fragment ids of the common parts of alternative paths</span>
-            <span class="n">common</span> <span class="o">=</span> <span class="n">g</span><span class="p">[(</span><span class="o">~</span><span class="n">g</span><span class="p">[</span><span class="s1">&#39;fid1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">overlaps</span><span class="p">[</span><span class="s1">&#39;fid1&#39;</span><span class="p">]))</span> <span class="o">&amp;</span> <span class="p">(</span><span class="o">~</span><span class="n">g</span><span class="p">[</span><span class="s1">&#39;fid2&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">overlaps</span><span class="p">[</span><span class="s1">&#39;fid2&#39;</span><span class="p">]))]</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;initial common:</span><span class="se">\n</span><span class="si">{g}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">common</span> <span class="o">=</span> <span class="n">g</span><span class="p">[</span><span class="o">~</span><span class="n">g</span><span class="p">[</span><span class="s1">&#39;fid1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">overlaps_vals</span><span class="p">)]</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;intermediary common:</span><span class="se">\n</span><span class="si">{common}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">common</span> <span class="o">=</span> <span class="n">common</span><span class="p">[</span><span class="o">~</span><span class="n">common</span><span class="p">[</span><span class="s1">&#39;fid2&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">overlaps_vals</span><span class="p">)]</span>
+            <span class="c1"># common = g[(~g[&#39;fid1&#39;].isin(overlaps[&#39;fid1&#39;])) &amp; (~g[&#39;fid2&#39;].isin(overlaps[&#39;fid2&#39;]))]</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Common fragment combinations between all overlaps:</span><span class="se">\n</span><span class="si">{common}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="n">common_combinations</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
             <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">common</span><span class="o">.</span><span class="n">index</span><span class="p">)):</span>
                 <span class="n">row</span> <span class="o">=</span> <span class="n">common</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
                 <span class="n">common_combinations</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;fid1&#39;</span><span class="p">])</span>
                 <span class="n">common_combinations</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;fid2&#39;</span><span class="p">])</span>
             <span class="n">common_combinations</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">common_combinations</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;common_combinations before product: </span><span class="si">{common_combinations}</span><span class="s2">&quot;</span><span class="p">)</span>
+
             <span class="c1"># get the fragment ids of the variant parts of alternative paths</span>
             <span class="n">alt_combinations</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">overlaps</span><span class="p">)):</span>
                 <span class="n">row</span> <span class="o">=</span> <span class="n">overlaps</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
                 <span class="n">alt_combinations</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">row</span><span class="p">[</span><span class="s1">&#39;fid1&#39;</span><span class="p">],</span> <span class="n">row</span><span class="p">[</span><span class="s1">&#39;fid2&#39;</span><span class="p">]])</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;alt_combinations before product: </span><span class="si">{alt_combinations}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="c1"># get all possible paths</span>
             <span class="n">alt_combinations</span> <span class="o">=</span> <span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">+</span> <span class="n">common_combinations</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="o">*</span><span class="n">alt_combinations</span><span class="p">))]</span>
-
+            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Alternative fragment combinations:</span><span class="se">\n</span><span class="si">{alt_combinations}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="n">dfs_fcc_clean</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="k">for</span> <span class="n">alt</span> <span class="ow">in</span> <span class="n">alt_combinations</span><span class="p">:</span>
                 <span class="n">df_alt</span> <span class="o">=</span> <span class="n">g</span><span class="p">[(</span><span class="n">g</span><span class="p">[</span><span class="s1">&#39;fid1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">alt</span><span class="p">))</span> <span class="o">|</span> <span class="p">(</span><span class="n">g</span><span class="p">[</span><span class="s1">&#39;fid2&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">alt</span><span class="p">))]</span>
@@ -711,10 +727,12 @@
                 <span class="k">for</span> <span class="n">df_fcc_clean</span> <span class="ow">in</span> <span class="n">dfs_fcc_clean</span><span class="p">:</span>
                     <span class="k">if</span> <span class="n">df_alt</span><span class="o">.</span><span class="n">equals</span><span class="p">(</span><span class="n">df_fcc_clean</span><span class="p">):</span>
                         <span class="n">to_add</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;df_alt:</span><span class="se">\n</span><span class="si">{df_alt}</span><span class="se">\n</span><span class="s2">to_add:</span><span class="si">{to_add}</span><span class="s2">&quot;</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">to_add</span><span class="p">:</span>
                     <span class="n">dfs_fcc_clean</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">df_alt</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">dfs_fcc_clean</span> <span class="o">=</span> <span class="p">[</span><span class="n">g</span><span class="p">]</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;dfs_fcc_clean:</span><span class="se">\n</span><span class="si">{dfs_fcc_clean}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="p">(</span><span class="n">dfs_fcc_clean</span><span class="p">,</span> <span class="n">noverlaps</span><span class="p">)</span>
 
@@ -795,7 +813,6 @@
 
             <span class="c1"># compute fragment connectivity graph objects so we can split up disconnected subgraphs</span>
             <span class="n">dfs_fcc_ready</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_split_unconnected</span><span class="p">(</span><span class="n">dfs_fcc_clean</span><span class="p">)</span>
-
             <span class="c1"># compute the entries of the df_map</span>
             <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">df_fcc_clean</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">dfs_fcc_ready</span><span class="p">):</span>
 
@@ -819,7 +836,6 @@
 
                 <span class="c1"># sort d_aidxs for reproducible colormaps</span>
                 <span class="n">d_aidxs</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">d_aidxs</span><span class="o">.</span><span class="n">items</span><span class="p">()))</span>
-
                 <span class="c1"># count fragment occurrences (non-unique)</span>
                 <span class="n">frags</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">([</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">df_fcc_clean</span><span class="p">[</span><span class="s1">&#39;fid1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">df_fcc_clean</span><span class="p">[</span><span class="s1">&#39;fid2&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">]))</span>
                 <span class="n">nfrags</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">frags</span><span class="p">)</span>
@@ -901,26 +917,16 @@
   
 
 
-  
-
-    
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../../_static/jquery.js"></script>
-        <script type="text/javascript" src="../../_static/underscore.js"></script>
-        <script type="text/javascript" src="../../_static/doctools.js"></script>
-        <script type="text/javascript" src="../../_static/language_data.js"></script>
-    
-
-  
-
-  <script type="text/javascript" src="../../_static/js/theme.js"></script>
-
   <script type="text/javascript">
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
+  </script>
+
+  
+  
+    
+   
 
 </body>
 </html>
