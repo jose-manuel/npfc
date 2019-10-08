@@ -24,6 +24,8 @@ available. Please have a look and enjoy, any feedback is welcome!
    standardize
    duplicate
    fragment
+   fragment_combination
+   fragment_map
    draw
 
 Indices and tables

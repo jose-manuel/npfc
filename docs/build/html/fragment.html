@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Module fragment &mdash; npfc 0.4.3 documentation</title>
+  <title>Module fragment &mdash; npfc 0.5.0 documentation</title>
   
 
   
@@ -60,7 +60,7 @@
             
             
               <div class="version">
-                0.4.3
+                0.5.0
               </div>
             
           
@@ -160,270 +160,20 @@
             
   <span class="target" id="module-npfc.fragment"></span><div class="section" id="module-fragment">
 <h1>Module fragment<a class="headerlink" href="#module-fragment" title="Permalink to this headline">¶</a></h1>
-<p>This modules contains two classes: AHAH</p>
-<blockquote>
-<div><ul class="simple">
-<li><p>Matcher for substructure search</p></li>
-<li><p>Classifier for classifying fragment combinations</p></li>
-</ul>
-</div></blockquote>
-<dl class="class">
-<dt id="npfc.fragment.CombinationClassifier">
-<em class="property">class </em><code class="sig-prename descclassname">npfc.fragment.</code><code class="sig-name descname">CombinationClassifier</code><a class="reference internal" href="_modules/npfc/fragment.html#CombinationClassifier"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.fragment.CombinationClassifier" title="Permalink to this definition">¶</a></dt>
-<dd><p>A class useful for classifying fragment combinations.</p>
-<p>Create an instance of FragmentCombinationClassifier.</p>
-<dl class="method">
-<dt id="npfc.fragment.CombinationClassifier.classify_fragment_combination">
-<code class="sig-name descname">classify_fragment_combination</code><span class="sig-paren">(</span><em class="sig-param">mol</em>, <em class="sig-param">aidxf1</em>, <em class="sig-param">aidxf2</em>, <em class="sig-param">cutoff=3</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/fragment.html#CombinationClassifier.classify_fragment_combination"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.fragment.CombinationClassifier.classify_fragment_combination" title="Permalink to this definition">¶</a></dt>
-<dd><p>Classify a fragment combination found in a molecule as a dictionary
-with category, type and subtype values.</p>
-<p>Following algorithm is applied for classifying fragment combinations:</p>
-<img alt="_images/fragment_tree.png" src="_images/fragment_tree.png" />
-<p>Fragment 1: red; Fragment 2: green; Fused Atoms: yellow.</p>
-<p>Possible classifications are:</p>
-<ul class="simple">
-<li><dl class="simple">
-<dt>fusion</dt><dd><ul>
-<li><p>spiro (fsp)</p></li>
-<li><p>edge (fed)</p></li>
-<li><p>bridged (fbr)</p></li>
-<li><p>other (fot)</p></li>
-<li><dl class="simple">
-<dt>false_positive</dt><dd><ul>
-<li><p>substructure (ffs)</p></li>
-<li><p>overlap (ffo)</p></li>
-</ul>
-</dd>
-</dl>
-</li>
-</ul>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt>connection</dt><dd><ul>
-<li><p>monopodal (cmo)</p></li>
-<li><dl class="simple">
-<dt>bipodal</dt><dd><ul>
-<li><p>spiro (cbs)</p></li>
-<li><p>edge (cbe)</p></li>
-<li><p>bridged (cbb)</p></li>
-<li><p>other (cbo)</p></li>
-</ul>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt>tripodal</dt><dd><ul>
-<li><p>spiro (cts)</p></li>
-<li><p>edge (cte)</p></li>
-<li><p>bridged (ctb)</p></li>
-<li><p>other (cto)</p></li>
-</ul>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt>other</dt><dd><ul>
-<li><p>spiro (cos)</p></li>
-<li><p>edge (coe)</p></li>
-<li><p>bridged (cob)</p></li>
-</ul>
-</dd>
-</dl>
-</li>
-<li><dl class="simple">
-<dt>false_positive</dt><dd><ul>
-<li><p>cutoff (cfc)</p></li>
-</ul>
-</dd>
-</dl>
-</li>
-</ul>
-</dd>
-</dl>
-</li>
-</ul>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>mol</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Mol</span></code>) – the input molecule</p></li>
-<li><p><strong>aidxf1</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#set" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">set</span></code></a>) – the atom indices of the first fragment found in the molecule</p></li>
-<li><p><strong>aidxf2</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#set" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">set</span></code></a>) – the atom indices of the second fragment found in the molecule</p></li>
-</ul>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a></p>
-</dd>
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>the dictionary specifying fragment combination category, type and subtype</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="npfc.fragment.CombinationClassifier.classify_fragment_combinations">
-<code class="sig-name descname">classify_fragment_combinations</code><span class="sig-paren">(</span><em class="sig-param">df_aidxf</em>, <em class="sig-param">cutoff=3</em>, <em class="sig-param">clean=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/fragment.html#CombinationClassifier.classify_fragment_combinations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.fragment.CombinationClassifier.classify_fragment_combinations" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a DataFrame with all fragment combination categories for a given set of
-molecules and fragment atom indices obtained by substructure search.
-For more details about category, type and subtype, see doc in method classify_fragment_combination.</p>
-<p>The output DataFrame contains 8 columns decribing each fragment combination:</p>
-<ol class="arabic simple">
-<li><p>idm: the id of the molecule</p></li>
-<li><p>idf1: the id of fragment 1</p></li>
-<li><p>idf2: the id of fragment 2</p></li>
-<li><p>abbrev: a 3-letter code indicating category, type and subtype</p></li>
-<li><p>category</p></li>
-<li><p>type</p></li>
-<li><p>subtype</p></li>
-<li><p>aidxf1: the atom indices of fragment 1 found in the molecule</p></li>
-<li><p>aidxf2: the atom indices of fragment 2 found in the molecule</p></li>
-</ol>
-<p>Fragments with a number of intermediary atoms higher than defined cutoff
-are labelled as false positives.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>df_aidxf</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code>) – the input DataFrame with substructure matches</p></li>
-<li><p><strong>cutoff</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>) – the maximum number of intermediary atoms between 2 fragments</p></li>
-<li><p><strong>clean</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>) – remove false positives such as cfc or substructures from results by calling the clean method.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></p>
-</dd>
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>a DataFrame with all fragment combination classifications</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="npfc.fragment.CombinationClassifier.clean">
-<code class="sig-name descname">clean</code><span class="sig-paren">(</span><em class="sig-param">df_fcc</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/fragment.html#CombinationClassifier.clean"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.fragment.CombinationClassifier.clean" title="Permalink to this definition">¶</a></dt>
-<dd><p>Clean a df_fcc by removing false positives such as substructures and
-cutoff combinations.</p>
-<p>Overlaps are still kept for further processing.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>df_fcc</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code>) – a fcc DataFrame</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></p>
-</dd>
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>a cleaned fcc DataFrame</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="npfc.fragment.CombinationClassifier.get_rings_between_two_fragments">
-<code class="sig-name descname">get_rings_between_two_fragments</code><span class="sig-paren">(</span><em class="sig-param">mol</em>, <em class="sig-param">aidxf1</em>, <em class="sig-param">aidxf2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/fragment.html#CombinationClassifier.get_rings_between_two_fragments"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.fragment.CombinationClassifier.get_rings_between_two_fragments" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the atom indices of every ring that connects two fragments together, defined by atom indices.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>mol</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Mol</span></code>) – the input molecule</p></li>
-<li><p><strong>aidxf1</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#set" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">set</span></code></a>) – the atom indices of the first fragment found in the molecule</p></li>
-<li><p><strong>aidxf2</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#set" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">set</span></code></a>) – the atom indices of the second fragment found in the molecule</p></li>
-</ul>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a></p>
-</dd>
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>a list of intermediary rings between both fragments and defined by atom indices</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="npfc.fragment.CombinationClassifier.get_shortest_path_between_frags">
-<code class="sig-name descname">get_shortest_path_between_frags</code><span class="sig-paren">(</span><em class="sig-param">mol</em>, <em class="sig-param">aidxf1</em>, <em class="sig-param">aidxf2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/fragment.html#CombinationClassifier.get_shortest_path_between_frags"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.fragment.CombinationClassifier.get_shortest_path_between_frags" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the shortest path within a molecule between two fragments defined by atom indices.
-First and last atom indices are part of respectively fragment 1 and fragment 2, so they should not
-be considered when estimating the distance between fragments.</p>
-<p>(i.e. distance = len(shortest_path) - 2)</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>mol</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Mol</span></code>) – The input molecule.</p></li>
-<li><p><strong>aidxf1</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#set" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">set</span></code></a>) – the atom indices of the first fragment found in the molecule</p></li>
-<li><p><strong>aidxf2</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#set" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">set</span></code></a>) – the atom indices of the second fragment found in the molecule</p></li>
-</ul>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a></p>
-</dd>
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>the atom indices of the shortest path between both fragments. The first index is the attachment point from fragment 1 whereas the last index is the attachment point from fragment 2</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="npfc.fragment.CombinationClassifier.map_frags">
-<code class="sig-name descname">map_frags</code><span class="sig-paren">(</span><em class="sig-param">df_fcc</em>, <em class="sig-param">min_frags=2</em>, <em class="sig-param">max_frags=5</em>, <em class="sig-param">max_overlaps=5</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/fragment.html#CombinationClassifier.map_frags"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.fragment.CombinationClassifier.map_frags" title="Permalink to this definition">¶</a></dt>
-<dd><p>This method process a fragment combinations computed with classify_fragment_combinations
-and return a new DataFrame with a fragment map for each molecule.</p>
-<p><a class="reference internal" href="_images/map_ex1_mol.svg"><img alt="pic1" src="_images/map_ex1_mol.svg" width="43%" /></a> <a class="reference internal" href="_images/map_ex1_graph.svg"><img alt="pic2" src="_images/map_ex1_graph.svg" width="56%" /></a></p>
-<p>Each highlighted fragment of the molecule consists of a node of the graph.
-Fragment Combinations are used as edges for displaying fragment interactions and are annotated
-with the idm as well as the category of the combination.</p>
-<dl class="simple">
-<dt>A str representation is also computed:</dt><dd><p>frag1[cmo]frag2-frag2[fed]frag3</p>
-</dd>
-<dt>Two objects are computed and stored as b64 strings:</dt><dd><ul class="simple">
-<li><dl class="simple">
-<dt>colormap: a custom object with 3 informations regarding highlight colors (RGB values):</dt><dd><ul>
-<li><p>fragments: the color attributed to each fragment</p></li>
-<li><p>atoms: the color attributed to each atom</p></li>
-<li><p>bonds: the color attributed to each bond</p></li>
-</ul>
-</dd>
-</dl>
-</li>
-<li><p>graph: a nx object used comparing fragment connectivity among molecules.</p></li>
-</ul>
-</dd>
-</dl>
-<p>Molecules can be filtered using thresholds.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>df_fcc</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code>) – a Dataframe with pairwise fragment combinations</p></li>
-<li><p><strong>min_frags</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>) – a threshold for the minimum number of fragments allowed per fragment map</p></li>
-<li><p><strong>max_frags</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>) – a threshold for the maximum number of fragments allowed per fragment map</p></li>
-<li><p><strong>max_overlaps</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>) – a threshold for the maximum number of overlap combinations found in the molecule</p></li>
-</ul>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></p>
-</dd>
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>a DataFrame representing fragment maps</p>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="npfc.fragment.Matcher">
-<em class="property">class </em><code class="sig-prename descclassname">npfc.fragment.</code><code class="sig-name descname">Matcher</code><a class="reference internal" href="_modules/npfc/fragment.html#Matcher"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.fragment.Matcher" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create a Matcher object.</p>
-<dl class="method">
-<dt id="npfc.fragment.Matcher.run">
-<code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param">df_mols</em>, <em class="sig-param">df_frags</em>, <em class="sig-param">col_mol_mols='mol'</em>, <em class="sig-param">col_mol_frags='mol'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/fragment.html#Matcher.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.fragment.Matcher.run" title="Permalink to this definition">¶</a></dt>
+<p>This modules contains the function to run substructure searches.</p>
+<dl class="function">
+<dt id="npfc.fragment.find">
+<code class="sig-prename descclassname">npfc.fragment.</code><code class="sig-name descname">find</code><span class="sig-paren">(</span><em class="sig-param">df_mols</em>, <em class="sig-param">df_frags</em>, <em class="sig-param">col_mol_mols='mol'</em>, <em class="sig-param">col_mol_frags='mol'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/fragment.html#find"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.fragment.find" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a DataFrame recording every substructure (fragment) match in the
 input molecule DataFrame.</p>
-<p>A record is composed of 4 fields:</p>
+<p>A record is composed of 6 fields:</p>
 <ol class="arabic simple">
 <li><p>idm: the id of the molecule (rowid from df_mols)</p></li>
 <li><p>idf: the id of the fragment (rowid from df_frags)</p></li>
 <li><p>aidxf: the atom indices of the fragment found in the molecule</p></li>
 <li><p>mol_perc: the percentage of the molecule the fragment represents (based on hac)</p></li>
+<li><p>mol: the molecule</p></li>
+<li><p>mol_frag: the fragment</p></li>
 </ol>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -442,10 +192,8 @@ input molecule DataFrame.</p>
 </dl>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Rowids labelled idm are used for recording of combinations: mols =&gt; idm, frags =&gt; idf</p>
+<p>Rowids are used for recording the ids of substructure hits: mols =&gt; idm, frags =&gt; idf</p>
 </div>
-</dd></dl>
-
 </dd></dl>
 
 </div>
