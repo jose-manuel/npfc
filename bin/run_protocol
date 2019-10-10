@@ -44,6 +44,7 @@ def main():
     parser.add_argument('protocol', type=str, default=None, help="Protocol to apply. If this is not a file, then a lookup for matching the string with known protocols is performed. Possible values are: fragments/natural/synthetic. Sevral protocols can be defined by separating them with ',' (no space or ',' allowed in protocol names). Protocols are executed in the specified order.")
     parser.add_argument('-c', '--config', type=str, default=None, help="JSON configuration file for running the protocol. This is a different file than the JSON file used for configuring snakemake execution on clusters. If several protocols are defined, configurations files have to be defined in the same order, separated with ',' (no space or ',' allowed in configuration file names).")
     parser.add_argument('-e', '--env', type=str, default='local', help="Environment for running the protocol. By default locally, but it can also be run on cluster schedulers (clem/gwdg1).")
+    parser.add_argument('-j', '--jobs', type=str, default=6, help="Number of jobs that can be run simultaneously when workflow is run locally.")
     parser.add_argument('--chunksize', type=int, default=5000, help="Overwrite config file chunksize property.")
     parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
     args = parser.parse_args()
@@ -82,6 +83,10 @@ def main():
     # chunksize
     if args.chunksize < 1:
         errors.append(f"ERROR! UNSUITABLE VALUE FOR CHUNKSIZE ({args.chunksize})")
+    # jobs
+    if args.jobs < 1:
+        errors.append(f"ERROR! UNSUITABLE VALUE FOR JOBS ({args.jobs})")
+
     # exit on error(s)
     n_errors = len(errors)
     if n_errors > 0:
@@ -124,14 +129,14 @@ def main():
 
         # determine environment
         if args.env == 'local':
-            smk_command += '-j 4 '
+            smk_command += f"-j {args.jobs} "
         elif args.env == 'clem':
             config_cluster = pkg_resources.resource_filename('npfc', f"data/cluster_clem.json")
             smk_command += '-j 100 --cluster-config ' + config_cluster + ' --cluster "sbatch -A {cluster.account} -p {cluster.partition} -n {cluster.n}  -t {cluster.time} --oversubscribe" '
         elif args.env == 'gwdg1':
-            pass  # maybe there is no need at all for using bsub as gwdg1 scheduler was being replaced with slurm
+            smk_command = "sbatch -p medium " + smk_command
             config_cluster = pkg_resources.resource_filename('npfc', f"data/cluster_gwdg1.json")
-            smk_command += '-j 400 --cluster-config ' + config_cluster + ' --cluster "sbatch -A {cluster.account} -p {cluster.partition} -n {cluster.n}  -t {cluster.time} --oversubscribe" '
+            smk_command += '-j 400 --cluster-config ' + config_cluster + ' --cluster "sbatch -p medium -n {cluster.n}  -t {cluster.time} --oversubscribe" '
 
         # arguments
         # add specific arguments when chunks are needed
@@ -153,6 +158,8 @@ def main():
             logger.info(f"OPT {k}".ljust(pad) + f"{v}")
             smk_command += f"{k}='{v}' "
         smk_command = smk_command[:-1]
+
+        logging.debug(f"SMK COMMAND:\n{smk_command}\n")
 
         # draw the protocol task tree
         WD = config['WD']
