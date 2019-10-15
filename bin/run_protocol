@@ -150,7 +150,7 @@ def main():
 
         # arguments
         # add specific arguments when chunks are needed
-        if p in ('natural', 'synthetic'):e
+        if p in ('natural', 'synthetic'):
             # count mols for natural and synthetic
             # for counting mols, need to process the unzipped file
             input_file_uncompressed = config['input_file'].split('.gz')[0]
