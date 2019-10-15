@@ -42,6 +42,7 @@ def main():
     # parameters CLI
     parser = argparse.ArgumentParser(description=description, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('protocol', type=str, default=None, help="Protocol to apply. If this is not a file, then a lookup for matching the string with known protocols is performed. Possible values are: fragments/natural/synthetic. Sevral protocols can be defined by separating them with ',' (no space or ',' allowed in protocol names). Protocols are executed in the specified order.")
+    parser.add_argument('i', '--input_file', type=str, default=None, help="Default Input file (SDF) for all protocols to be run. Need to be specified either as argument or in protocol JSON file. If both are speicified, command line argument is used.")
     parser.add_argument('-c', '--config', type=str, default=None, help="JSON configuration file for running the protocol. This is a different file than the JSON file used for configuring snakemake execution on clusters. If several protocols are defined, configurations files have to be defined in the same order, separated with ',' (no space or ',' allowed in configuration file names).")
     parser.add_argument('-e', '--env', type=str, default='local', help="Environment for running the protocol. By default locally, but it can also be run on cluster schedulers (clem/gwdg1).")
     parser.add_argument('-j', '--jobs', type=str, default=6, help="Number of jobs that can be run simultaneously when workflow is run locally.")
@@ -77,6 +78,11 @@ def main():
                 config_files.append(pkg_resources.resource_filename('npfc', f"data/{p}.json"))
         except ValueError:
             errors.append(f"ERROR! UNKOWN DEFAULT CONFIG FILE FOR PROTOCOL '{p}'!")
+
+    # input_file
+    if args.input_file is not None:
+        utils.check_arg_input_file(args.input_file)
+
     # env
     if args.env not in ('local', 'gwdg1', 'clem'):
         errors.append(f"ERROR! UNKNOWN ENV ({args.env})!")
@@ -100,6 +106,8 @@ def main():
     logger.info("npfc".ljust(pad) + f"{npfc.__version__}")
     logger.info("ARGUMENTS".center(pad))
     logging.info("PROTOCOL".ljust(pad) + f"{args.protocol}")
+    if args.inpjut_file is not None:
+        logging.info("INPUT_FILE").ljust(pad) + f"{args.input_file}"
     logging.info("CONFIG".ljust(pad) + f"{args.config}")
     logging.info("ENV".ljust(pad) + f"{args.env}")
 
@@ -112,6 +120,8 @@ def main():
         # parse configuration
         with open(c, 'r') as CONFIG:
             config = json.load(CONFIG)
+            if args.input_file is not None:
+                config['input_file'] = args.input_file
             if args.chunksize is not None:
                 logger.info(f"MANUALLY SETTING CHUNKSIZE TO {args.chunksize}")
                 config['chunksize'] = args.chunksize
@@ -125,7 +135,7 @@ def main():
             except ValueError:   # ### no tested
                 logger.error(f"ERROR! PROTOCOL '{p}' COULD NOT BE FOUND EITHER IN STORED PROTOCOLS OR AT LOCATED FILE!")
         # configure current smk command
-        smk_command = f"snakemake -s {smk_file} "
+        smk_command = f"snakemake -k -s {smk_file} "
 
         # determine environment
         if args.env == 'local':
@@ -140,7 +150,7 @@ def main():
 
         # arguments
         # add specific arguments when chunks are needed
-        if p in ('natural', 'synthetic'):
+        if p in ('natural', 'synthetic'):e
             # count mols for natural and synthetic
             # for counting mols, need to process the unzipped file
             input_file_uncompressed = config['input_file'].split('.gz')[0]

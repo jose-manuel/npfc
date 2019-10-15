@@ -87,7 +87,7 @@ def plot_result_deglyco(WD: str, output_csv: str):
     WD = Path(WD)
 
     # iterate over the log files to count status
-    chunks = list(WD.glob("*[0-9][0-9][0-9]_deglyco.log"))
+    chunks = list(WD.glob("*[0-9][0-9][0-9]_deglyco.csv"))
     chunks.sort()
     logger.info(f"FOUND {len(chunks):,d} CHUNKS")
 
@@ -642,7 +642,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description="Compute all required files for analyzing FCC results", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('wd', type=str, default='./', help="Working directory from the job to analyse (root folder, where the smk file is)")
-    parser.add_argument('-f', '--frags', type=str, default='None', help="Fragment file used for substructure search")
+    parser.add_argument('-f', '--frags', type=str, default=None, help="Fragment file used for substructure search")
     parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
     args = parser.parse_args()
 
@@ -666,10 +666,12 @@ if __name__ == '__main__':
         utils.check_arg_input_file(args.frags)
 
     # define WD
-    if args.wd.endswith("/"):
-        wd = args.wd
-    else:
-        wd = args.wd + "/"
+    p_wd = Path(args.wd)
+    if not p_wd.exists():
+        raise ValueError(f"ERROR! WD COULD NOT BE FOUDN AT 'f{args.wd}'")
+    wd = str(p_wd.resolve())
+    if not wd.endswith("/"):
+        wd += "/"
     p = Path(wd + "figures")
     if not p.is_dir():
         logger.warning(f"WARNING! OUTPUT SUBFOLDER MISSING, SO CREATING IT AT: {wd + 'figures'}")
@@ -677,7 +679,7 @@ if __name__ == '__main__':
     else:
         logger.info(f"OUTPUT SUBFOLDER LOCATED AT: {wd + 'figures'}")
 
-    dataset = wd.split("/")[-2]
+    dataset = str(Path(wd).resolve(strict=True)).split('/')[-1]
     logger.info(f"DATASET='{dataset}'")
 
     # missing chunks
