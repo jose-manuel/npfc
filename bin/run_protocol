@@ -33,68 +33,143 @@ def main():
     # init
     ds = []
     ds.append(('START', datetime.now()))
-    description = """This script is used for running the NPFC protocols.
+    description = """This script is used for running a NPFC protocol, using Snakemake locally or in a cluster environment.
 
-    It uses the installed npfc libary in your favorite env manager.
+    3 protocols are setup by default: 'fragments', 'natural', 'synthetic'.
 
+    These keywords actually refer to hard-coded snakefiles addressing tasks of this project.
+
+    If you would like to run another snakefile, you just have to provide a file. On par with the snakefile, one needs to provide
+    a configuration file in JSON format with the expected parameters. Any parameter found in that file will be transferred to the snakefile, which
+    is particularly useful for avoiding hard-coded paths, etc. and make the snakefiles more reusable.
+
+    It is possible to override the configuration file parameters by using command line arguments, although only the ones I actually use in this project
+    are updated for now. It would be possible to add an argument params with a string of type key1=value1,key2=value2, etc., but it is not implemented (yet).
+
+    This script uses the installed npfc libary in your favorite env manager.
 
     """
     # parameters CLI
     parser = argparse.ArgumentParser(description=description, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('protocol', type=str, default=None, help="Protocol to apply. If this is not a file, then a lookup for matching the string with known protocols is performed. Possible values are: fragments/natural/synthetic. Sevral protocols can be defined by separating them with ',' (no space or ',' allowed in protocol names). Protocols are executed in the specified order.")
-    parser.add_argument('-w', '--wd', type=str, default=None, help="Working directory containing the data folder, where output subfolders and files are stored.")
-    parser.add_argument('-i', '--input_file', type=str, default=None, help="Default Input file (SDF) for all protocols to be run. Need to be specified either as argument or in protocol JSON file. If both are speicified, command line argument is used.")
-    parser.add_argument('-p', '--prefix', type=str, default=None, help="Default prefix to use for all output files.")
-    parser.add_argument('-c', '--config', type=str, default=None, help="JSON configuration file for running the protocol. This is a different file than the JSON file used for configuring snakemake execution on clusters. If several protocols are defined, configurations files have to be defined in the same order, separated with ',' (no space or ',' allowed in configuration file names).")
+    parser.add_argument('protocol', type=str, default=None, help="Protocol to apply. If this is not a file, then a lookup for matching the string with known protocols is performed. Possible values are: fragments/natural/synthetic.")
     parser.add_argument('-e', '--env', type=str, default='local', help="Environment for running the protocol. By default locally, but it can also be run on cluster schedulers (clem/gwdg1).")
     parser.add_argument('-j', '--jobs', type=str, default=6, help="Number of jobs that can be run simultaneously when workflow is run locally.")
-    parser.add_argument('--chunksize', type=int, default=5000, help="Overwrite config file chunksize property.")
     parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
+    parser.add_argument('-c', '--config', type=str, default=None, help="JSON configuration file for setting up default variables when the running the protocol. Arguments below overwrite parameters specified in the config file.")
+    parser.add_argument('-w', '--wd', type=str, default=None, help="Working directory containing the data folder, where output subfolders and files are stored.")
+    parser.add_argument('-p', '--prefix', type=str, default=None, help="Default prefix to use for all output files.")
+    parser.add_argument('-m', '--molid', type=str, default=None, help="SDF property to use for setting idm.")
+    parser.add_argument('-i', '--input_file', type=str, default=None, help="SDF with molecules to process.")
+    parser.add_argument('-f', '--frags_file', type=str, default=None, help="SDF with the fragments to use for substructure seach.")
+    parser.add_argument('-a', '--act_file', type=str, default=None, help="File with activity data for annotating fragment combinations in case of synthetic dataset.")
+    parser.add_argument('-n', '--natref', type=str, default=None, help="Root folder of the dataset to use for natural reference when running synthetic protocol.")
+    parser.add_argument('--chunksize', type=int, default=None, help="Overwrite config file chunksize property.")
     args = parser.parse_args()
 
     # logging
     logger = utils._configure_logger(args.log)
     pad = 40
     warnings.filterwarnings('ignore', category=pd.io.pytables.PerformanceWarning)  # if None is returned instead of a molecule, do not complain about mixed types
-    logger.info("RUNNING NPFC PROTOCOL(S)")
+    logger.info("RUNNING NPFC PROTOCOL")
 
     # parse arguments
     errors = []
     # protocol
-    protocols = [p.strip() for p in args.protocol.split(',')]
-    for p in protocols:
-        if p not in ('fragments', 'natural', 'synthetic') and not Path(p).exists():
-            errors.append(f"ERROR! UNKNOWN PROTOCOL ({p})!")  # error if file does not exist or if protocol is not recorded as package data
+    if args.protocol not in ('fragments', 'natural', 'synthetic') and not Path(args.protocol).exists():
+        errors.append(f"ERROR! UNKNOWN PROTOCOL ({args.protocol})!")  # error if file does not exist or if protocol is not recorded as package data
+
     # config
     if args.config is not None:
-        config_files = [c.strip() for c in args.config.split(',')]
-        for i, c in enumerate(config_files):
-            if not Path(c).exists():
-                errors.append(f"ERROR! CONFIG FILES FOR PROTOCOL '{protocols[i]}' COULD NOT BE FOUND AT '{c}'!")
-        if len(protocols) != len(config_files):
-            errors.append(f"ERROR! NOT SAME AMOUNT OF PROTOCOLS ({len(protocols)}) AND CONFIGURATION FILES ({len(config_files)})!")
-    else:
-        config_files = []
-        try:
-            for p in protocols:
-                config_files.append(pkg_resources.resource_filename('npfc', f"data/{p}.json"))
-        except ValueError:
-            errors.append(f"ERROR! UNKOWN DEFAULT CONFIG FILE FOR PROTOCOL '{p}'!")
+        if not Path(args.config).exists():
+            errors.append(f"ERROR! CONFIG FILE FOR PROTOCOL '{args.protocol}' COULD NOT BE FOUND AT '{args.config}'!")
 
-    # wd
-    if args.wd is not None:
-        utils.check_arg_input_dir(args.wd)
+    # display general infos
+    logger.info("LIBRARY VERSIONS".center(pad))
+    logger.info("rdkit".ljust(pad) + f"{rdkit.__version__}")
+    logger.info("pandas".ljust(pad) + f"{pd.__version__}")
+    logger.info("npfc".ljust(pad) + f"{npfc.__version__}")
+    logger.info("ARGUMENTS".center(pad))
+    logging.info("PROTOCOL".ljust(pad) + f"{args.protocol}")
+    logging.info("CONFIG".ljust(pad) + f"{args.config}")
+    logging.info("ENV".ljust(pad) + f"{args.env}")
+    logging.info("JOBS".ljust(pad) + f"{args.jobs}")
+
+    # default keys set to None
+    config = ['molid', 'prefix', 'WD', 'input_file', 'frags_file', 'chunksize', 'natref', 'act_file']
+    config = {k: None for k in config}
+
+    # begin
+    ds.append(('CONFIGURE', datetime.now()))
+    logging.info("BEGIN")
+
+    # configure job by updating config with config_parsed
+    if args.config is not None:
+        config_file = args.config
+        logging.info(f"PARSING SPECIFIED CONFIG FILE")
+    else:
+        config_file = pkg_resources.resource_filename('npfc', f"data/{args.protocol}.json")
+        logging.info(f"NO SPECIFIED CONFIG FILE, PARSING DEFAULT CONFIG FILE AT '{config_file}'")
+    with open(config_file, 'r') as CONFIG:
+        config_parsed = json.load(CONFIG)
+    config.update(config_parsed)
+
+    # check arguments
 
     # input_file
     if args.input_file is not None:
-        utils.check_arg_input_file(args.input_file)
+        logger.info(f"OVERWRITING INPUT_FILE TO {args.input_file}")
+        config['input_file'] = args.input_file
+    if not utils.check_arg_input_file(config['input_file']):
+        errors.append(f"ERROR! INPUT_FILE COULD NOT BE FOUND AT '{config['input_file']}'!")
+
+    # chunksize
+    if args.chunksize is not None:
+        logger.info(f"OVERWRITING CHUNKSIZE TO {args.chunksize}")
+        config['chunksize'] = args.chunksize
+    if not utils.check_arg_positive_number(config['chunksize']):
+        errors.append(f"ERROR! ILLEGAL VALUE FOR  CHUNKSIZE ({config['chunksize']})!")
+
+    # wd
+    if args.wd is not None:
+        logger.info(f"OVERWRITING WD TO {args.wd}")
+        config['WD'] = args.wd
+    if not utils.check_arg_input_dir(config['WD']):
+        errors.append(f"ERROR! WD COULD NOT BE FOUND AT '{config['WD']}'!")
+
+    # prefix
+    if args.prefix is not None:
+        logger.info(f"OVERWRITING PREFIX TO {args.prefix}")
+        config['prefix'] = args.prefix
+    if config['prefix'] is None:
+        errors.append(f"ERROR! PREFIX IS UNDEFINED!")
+
+    # frags_file
+    if args.frags_file is not None:
+        logger.info(f"OVERWRITING PREFIX TO {args.frags_file}")
+        config['frags_file'] = args.frags_file
+    if config['frags_file'] is not None and not utils.check_arg_input_file(config['frags_file']):
+        errors.append(f"ERROR! FRAGS_FILE COULD NOT BE FOUND AT '{config['frags_file']}'!")
+
+    # act_file
+    if args.act_file is not None:
+        logger.info(f"OVERWRITING PREFIX TO {args.act_file}")
+        config['act_file'] = args.act_file
+    if config['act_file'] is not None:
+        if not utils.check_arg_input_file(config['act_file']):
+            errors.append(f"ERROR! ACT_FILE COULD NOT BE FOUND AT '{config['act_file']}'!")
+
+    # natref
+    if args.natref is not None:
+        logger.info(f"OVERWRITING WD TO {args.natref}")
+        config['natref'] = args.natref
+    if config['natref'] is not None:
+        if not utils.check_arg_input_dir(config['natref']):
+            errors.append(f"ERROR! natref COULD NOT BE FOUND AT '{config['natref']}'!")
 
     # env
     if args.env not in ('local', 'gwdg1', 'clem'):
         errors.append(f"ERROR! UNKNOWN ENV ({args.env})!")
-    # chunksize
-    if args.chunksize < 1:
-        errors.append(f"ERROR! UNSUITABLE VALUE FOR CHUNKSIZE ({args.chunksize})")
+
     # jobs
     if args.jobs < 1:
         errors.append(f"ERROR! UNSUITABLE VALUE FOR JOBS ({args.jobs})")
@@ -105,92 +180,68 @@ def main():
         logger.error(f"{n_errors} ERROR(S) FOUND DURING ARGUMENT PARSING:\n" + '\n'.join(errors) + "\n")
         sys.exit(1)
 
-    # display general infos
-    logger.info("LIBRARY VERSIONS".center(pad))
-    logger.info("rdkit".ljust(pad) + f"{rdkit.__version__}")
-    logger.info("pandas".ljust(pad) + f"{pd.__version__}")
-    logger.info("npfc".ljust(pad) + f"{npfc.__version__}")
-    logger.info("ARGUMENTS".center(pad))
-    logging.info("PROTOCOL".ljust(pad) + f"{args.protocol}")
-    if args.input_file is not None:
-        logging.info("INPUT_FILE".ljust(pad) + f"{args.input_file}")
-    logging.info("CONFIG".ljust(pad) + f"{args.config}")
-    logging.info("ENV".ljust(pad) + f"{args.env}")
 
-    # begin
-    ds.append(('CONFIGURE', datetime.now()))
-    logging.info("BEGIN")
+    logger.info(f"PROTOCOL - {args.protocol}".center(pad))
+    # automatically retrieve all variables and append them to command string using key=value
+    if Path(args.protocol).is_file():
+        smk_file = args.protocol
+    else:
+        try:
+            smk_file = pkg_resources.resource_filename('npfc', f"data/{args.protocol}.smk")
+        except ValueError:   # ### no tested
+            logger.error(f"ERROR! PROTOCOL '{args.protocol}' COULD NOT BE FOUND EITHER IN STORED PROTOCOLS OR AT LOCATED FILE!")
+    # configure current smk command
+    smk_command = f"snakemake -k -s {smk_file} "
 
-    # iterate over each protocol
-    for i, (p, c) in enumerate(zip(protocols, config_files)):
-        # parse configuration
-        with open(c, 'r') as CONFIG:
-            config = json.load(CONFIG)
-            if args.input_file is not None:
-                config['input_file'] = args.input_file
-            if args.chunksize is not None:
-                logger.info(f"MANUALLY SETTING CHUNKSIZE TO {args.chunksize}")
-                config['chunksize'] = args.chunksize
-            logger.info(f"PROTOCOL#{i} - {p}".center(pad))
-        # automatically retrieve all variables and append them to command string using key=value
-        if Path(p).is_file():
-            smk_file = p
-        else:
-            try:
-                smk_file = pkg_resources.resource_filename('npfc', f"data/{p}.smk")
-            except ValueError:   # ### no tested
-                logger.error(f"ERROR! PROTOCOL '{p}' COULD NOT BE FOUND EITHER IN STORED PROTOCOLS OR AT LOCATED FILE!")
-        # configure current smk command
-        smk_command = f"snakemake -k -s {smk_file} "
+    # determine environment
+    if args.env == 'local':
+        smk_command += f"-j {args.jobs} "
+    elif args.env == 'clem':
+        config_cluster = pkg_resources.resource_filename('npfc', f"data/cluster_clem.json")
+        smk_command += '-j 100 --cluster-config ' + config_cluster + ' --cluster "sbatch -A {cluster.account} -p {cluster.partition} -n {cluster.n}  -t {cluster.time} --oversubscribe" '
+    elif args.env == 'gwdg1':
+        smk_command = "sbatch -p medium -t '12:00:00'" + smk_command
+        config_cluster = pkg_resources.resource_filename('npfc', f"data/cluster_gwdg1.json")
+        smk_command += '-j 400 --cluster-config ' + config_cluster + ' --cluster "sbatch -p medium -n {cluster.n}  -t {cluster.time} --oversubscribe" '
 
-        # determine environment
-        if args.env == 'local':
-            smk_command += f"-j {args.jobs} "
-        elif args.env == 'clem':
-            config_cluster = pkg_resources.resource_filename('npfc', f"data/cluster_clem.json")
-            smk_command += '-j 100 --cluster-config ' + config_cluster + ' --cluster "sbatch -A {cluster.account} -p {cluster.partition} -n {cluster.n}  -t {cluster.time} --oversubscribe" '
-        elif args.env == 'gwdg1':
-            smk_command = "sbatch -p medium " + smk_command
-            config_cluster = pkg_resources.resource_filename('npfc', f"data/cluster_gwdg1.json")
-            smk_command += '-j 400 --cluster-config ' + config_cluster + ' --cluster "sbatch -p medium -n {cluster.n}  -t {cluster.time} --oversubscribe" '
-
-        # arguments
-        # add specific arguments when chunks are needed
-        if p in ('natural', 'synthetic'):
-            # count mols for natural and synthetic
-            # for counting mols, need to process the unzipped file
-            input_file_uncompressed = config['input_file'].split('.gz')[0]
-            # count mols + uncompress input file
-            num_mols = load.count_mols(config['input_file'], keep_uncompressed=True)
-            # uncompressed input file works not in smk file (makes the whole pipeline to overwrite any output) so just discard it. The archive will be unziped again.
-            Path(input_file_uncompressed).unlink()
-            # determine the number of chunks to generate
-            num_chunks = ceil(num_mols / config['chunksize'])
-            config['num_chunks'] = num_chunks
-            logger.info(f"NUMBER OF CHUNKS:".ljust(pad) + f"{num_mols:,d} / {config['chunksize']:,d} = {num_chunks:,d}")
-        # add arguments to the smk command
-        smk_command += "--config "
-        for k, v in config.items():
+    # arguments
+    # add specific arguments when chunks are needed
+    if args.protocol in ('natural', 'synthetic'):
+        # count mols for natural and synthetic
+        # for counting mols, need to process the unzipped file
+        input_file_uncompressed = config['input_file'].split('.gz')[0]
+        # count mols + uncompress input file
+        num_mols = load.count_mols(config['input_file'], keep_uncompressed=True)
+        # uncompressed input file works not in smk file (makes the whole pipeline to overwrite any output) so just discard it. The archive will be unziped again.
+        Path(input_file_uncompressed).unlink()
+        # determine the number of chunks to generate
+        num_chunks = ceil(num_mols / config['chunksize'])
+        config['num_chunks'] = num_chunks
+        logger.info(f"NUMBER OF CHUNKS:".ljust(pad) + f"{num_mols:,d} / {config['chunksize']:,d} = {num_chunks:,d}")
+    # add arguments to the smk command
+    smk_command += "--config "
+    for k, v in config.items():
+        if v is not None:
             logger.info(f"OPT {k}".ljust(pad) + f"{v}")
             smk_command += f"{k}='{v}' "
-        smk_command = smk_command[:-1]
+    smk_command = smk_command[:-1]
 
-        logging.debug(f"SMK COMMAND:\n{smk_command}\n")
+    logging.debug(f"SMK COMMAND:\n{smk_command}\n")
 
-        # draw the protocol task tree
-        WD = config['WD']
-        if WD.endswith('/'):
-            WD = WD[:-1]
-        svg = WD + f"/{config['prefix']}_tasktree.svg"
-        smk_command_svg = smk_command + f" --dag | dot -Tsvg > {svg}"
-        logger.info(f"DRAWING TASK TREE AT '{svg}'")
-        subprocess.run(smk_command_svg, shell=True, check=True)
+    # draw the protocol task tree
+    WD = config['WD']
+    if WD.endswith('/'):
+        WD = WD[:-1]
+    svg = WD + f"/{config['prefix']}_tasktree.svg"
+    smk_command_svg = smk_command + f" --dag | dot -Tsvg > {svg}"
+    logger.info(f"DRAWING TASK TREE AT '{svg}'")
+    subprocess.run(smk_command_svg, shell=True, check=True)
 
-        # run protocol
-        logger.info(f"BEGIN OF SNAKEMAKE PROTOCOL '{p}'")
-        subprocess.run(smk_command, shell=True, check=True)
-        ds.append((f"PROTOCOL#{i} '{p}'", datetime.now()))
-        logger.info(f"END OF SNAKEMAKE PROTOCOL '{p}'")
+    # run protocol
+    logger.info(f"BEGIN OF SNAKEMAKE PROTOCOL")
+    subprocess.run(smk_command, shell=True, check=True)
+    ds.append((f"PROTOCOL '{args.protocol}'", datetime.now()))
+    logger.info(f"END OF SNAKEMAKE PROTOCOL '{args.protocol}'")
 
     # end
     ds.append((f"END", datetime.now()))

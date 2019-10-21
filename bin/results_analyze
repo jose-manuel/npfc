@@ -20,6 +20,12 @@ from collections import OrderedDict
 # data handling
 import json
 import pandas as pd
+from pandas import DataFrame
+# data visualization
+from matplotlib import pyplot as plt
+import seaborn as sns
+from matplotlib.ticker import FuncFormatter
+from pylab import savefig
 # chemoinformatics
 import rdkit
 from rdkit import Chem
@@ -31,6 +37,22 @@ from npfc import load
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
+def _getplot_1(df, x_name, y_name, title, x_label=None, y_label=None):
+    svm = sns.barplot(data=df, x='Category', y='Count', color=color)
+    svm.set_title(title, fontsize=24, y=1.02)
+    svm.tick_params(labelsize=20)
+    svm.set_xlabel(x_label,fontsize=25, labelpad=20)
+    svm.set_ylabel(y_label,fontsize=25, labelpad=20)
+    # format y labels
+    ylabels = ['{:,.0f}'.format(x) for x in svm.get_yticks()]
+    svm.set_yticklabels(ylabels)
+
+    # save
+    figure = svm.get_figure()
+
+    return figure
 
 
 def check_chunks(WD: str):
@@ -74,52 +96,69 @@ def check_chunks(WD: str):
     return True
 
 
-def plot_result_deglyco(WD: str, output_csv: str):
-    """This functions computes the CSV file for checking on the status of the deglycosylation.
-    The WD is the subfolder of the deglycosylation (3_deglyco).
-    Since the job is executed by a KNIME workflow, I used a log file to store the smiles alongside
-    the status of the molecule. This is these files we are parsing like CSV.
+def plot_result_deglyco(dataset_label: str, df: DataFrame = None, input_csv: str = None, WD: str = None, output_csv: str = None, output_png: str = None):
+    """This functions computes the CSV/PNG files for checking on the status of the deglycosylation.
+    The WD is the subfolder of the deglycosylation (3_deglyco) and is used in case the df param is not specified.
+    Since the job is executed by a KNIME workflow, I used a csv file to store the smiles alongside
+    the status of the molecule.
     """
     logger.info("PLOT_RESULT_DEGLYCO")
-    # go inside log subfolder in WD
-    WD += "log"
-    logger.info(f"WD={WD}")
-    WD = Path(WD)
+    if df is None:
+        if input_csv is None:
+            logger.info("COMPUTING DF_DEGLYCO FROM WD")
 
-    # iterate over the log files to count status
-    chunks = list(WD.glob("*[0-9][0-9][0-9]_deglyco.csv"))
-    chunks.sort()
-    logger.info(f"FOUND {len(chunks):,d} CHUNKS")
+            # go inside log subfolder in WD
+            WD += "log"
+            logger.info(f"WD={WD}")
+            WD = Path(WD)
 
-    # initiate counts
-    num_tot = 0
-    num_unchanged = 0
-    num_deglycosylated = 0
-    num_failed = 0
-    num_error = 0
+            # iterate over the log files to count status
+            chunks = list(WD.glob("*[0-9][0-9][0-9]_deglyco.csv"))
+            chunks.sort()
+            logger.info(f"FOUND {len(chunks):,d} CHUNKS")
 
-    # count status
-    for c in chunks:
-        df = pd.read_csv(c, sep="|")
-        num_tot += len(df.index)
-        num_unchanged += len(df[df['status'] == 'unchanged'].index)
-        num_deglycosylated += len(df[df['status'] == 'deglycosylated'].index)
-        num_failed += len(df[df['status'] == 'failed'].index)
-        num_error += len(df[df['status'] == 'error'].index)
+            # initiate counts
+            num_tot = 0
+            num_unchanged = 0
+            num_deglycosylated = 0
+            num_failed = 0
+            num_error = 0
 
-    logger.info(f"TOTAL NUMBER OF MOLECULES: {num_tot:,d}")
-    # create a dataframe with counts
-    df = pd.DataFrame({"deglycosylated": [num_deglycosylated], "unchanged": [num_unchanged], "failed": [num_failed], 'error': [num_error]}).T.rename({0: "Count"}, axis=1)
-    df['Category'] = df.index
-    df['Perc_status'] = round(df['Count'] / num_tot, 3) * 100
+            # count status
+            for c in chunks:
+                df = pd.read_csv(c, sep="|")
+                num_tot += len(df.index)
+                num_unchanged += len(df[df['status'] == 'unchanged'].index)
+                num_deglycosylated += len(df[df['status'] == 'deglycosylated'].index)
+                num_failed += len(df[df['status'] == 'failed'].index)
+                num_error += len(df[df['status'] == 'error'].index)
+
+            logger.info(f"TOTAL NUMBER OF MOLECULES: {num_tot:,d}")
+            # create a dataframe with counts
+            df = pd.DataFrame({"deglycosylated": [num_deglycosylated], "unchanged": [num_unchanged], "failed": [num_failed], 'error': [num_error]}).T.rename({0: "Count"}, axis=1)
+            df['Category'] = df.index
+            df['Perc_status'] = round(df['Count'] / num_tot, 3) * 100
+        else:
+            logger.info("PARSING DF_DEGLYCO FROM CSV")
+            logger.info(f"CSV={input_csv}")
+            df = pd.read_csv(input_csv, sep='|')
+    else:
+            logger.info("USING PROVIDED DF_DEGLYCO")
+
     logger.info(f"RESULTS:\n\n{df}\n")
-
     # export to csv
-    format, compression = utils.get_file_format(output_csv)
-    df.to_csv(output_csv, sep="|", compression=compression, index=False)
-    logger.info(f"SAVED RESULTS AT '{output_csv}'")
+    if output_csv is not None:
+        format, compression = utils.get_file_format(output_csv)
+        df.to_csv(output_csv, sep="|", compression=compression, index=False)
+        logger.info(f"SAVED RESULTS AT '{output_csv}'")
 
-    return df
+
+    logger.info(f"PLOTTING RESULTS")
+    figure = _getplot_1(df, 'Category', 'Count', f"Deglycosylation of {dataset_label}", x_label='Status', y_label='Count')
+    if output_png is not None:
+        figure.savefig(output_png, dpi=600)
+
+    return (df, figure)
 
 
 def _parse_std_chunks(chunks):
@@ -146,49 +185,68 @@ def _parse_std_chunks(chunks):
     return df
 
 
-def plot_result_std(WD: str, output_csv: str):
+def plot_result_std(dataset_label: str, df: DataFrame = None, input_csv: str = None, WD: str = None, output_csv: str = None, output_png: str = None):
     """This functions computes the CSV file for checking on the status of the standardization.
     The WD is the subfolder of the standardization (4_std) and it uses the log files for counting
     status.
     """
     logger.info("PLOT_RESULT_STD")
+    if df is None:
+        if input_csv is None:
+            # go inside log subfolder in WD
+            WD_LOG = WD + "log"
+            logger.info("GENERAL RESULTS")
+            logger.info(f"WD={WD_LOG}")
+            WD_LOG = Path(WD_LOG)
 
-    # go inside log subfolder in WD
-    WD_LOG = WD + "log"
-    logger.info("GENERAL RESULTS")
-    logger.info(f"WD={WD_LOG}")
-    WD_LOG = Path(WD_LOG)
+            # iterate over the log files to count status
+            chunks = list(WD_LOG.glob("*[0-9][0-9][0-9]_std.log"))
+            chunks.sort()
+            logger.info(f"FOUND {len(chunks):,d} CHUNKS")
 
-    # iterate over the log files to count status
-    chunks = list(WD_LOG.glob("*[0-9][0-9][0-9]_std.log"))
-    chunks.sort()
-    logger.info(f"FOUND {len(chunks):,d} CHUNKS")
+            # initiate counts
+            num_tot = 0
+            num_passed = 0
+            num_filtered = 0
+            num_error = 0
 
-    # initiate counts
-    num_tot = 0
-    num_passed = 0
-    num_filtered = 0
-    num_error = 0
+            for c in chunks:
+                df = pd.read_csv(c, sep="@", header=None)  # char not found in the log file so we can extract all lines as one column
+                passed, filtered, error = [int(x) for x in df[df[0].str.contains("COUNT")].iloc[0][0].split()[-3:]]
+                num_passed += passed
+                num_filtered += filtered
+                num_error += error
+                num_tot += passed + filtered + error
 
-    for c in chunks:
-        df = pd.read_csv(c, sep="@", header=None)  # char not found in the log file so we can extract all lines as one column
-        passed, filtered, error = [int(x) for x in df[df[0].str.contains("COUNT")].iloc[0][0].split()[-3:]]
-        num_passed += passed
-        num_filtered += filtered
-        num_error += error
-        num_tot += passed + filtered + error
-
-    df = pd.DataFrame({"passed": [num_passed], "filtered": [num_filtered], "error": [num_error]}).T.rename({0: "Count"}, axis=1)
-    df['Category'] = df.index
-    df['Perc_status'] = round(df['Count'] / num_tot, 3) * 100
+            df = pd.DataFrame({"passed": [num_passed], "filtered": [num_filtered], "error": [num_error]}).T.rename({0: "Count"}, axis=1)
+            df['Category'] = df.index
+            df['Perc_status'] = round(df['Count'] / num_tot, 3) * 100
+        else:
+            logger.info("PARSING DF_STD FROM CSV")
+            logger.info(f"CSV={input_csv}")
+            df = pd.read_csv(input_csv, sep='|')
+    else:
+            logger.info("USING PROVIDED DF_STD")
 
     # display results
     logger.info(f"RESULTS:\n\n{df}\n")
 
     # export to csv
-    format, compression = utils.get_file_format(output_csv)
-    df.to_csv(output_csv, sep="|", compression=compression, index=False)
-    logger.info(f"SAVED RESULTS AT '{output_csv}'")
+    if output_csv is not None:
+        format, compression = utils.get_file_format(output_csv)
+        df.to_csv(output_csv, sep="|", compression=compression, index=False)
+        logger.info(f"SAVED RESULTS AT '{output_csv}'")
+
+    logger.info(f"PLOTTING RESULTS")
+    figure = _getplot_1(df, 'Category', 'Count', f"Standardization of {dataset_label}", x_label='Status', y_label='Count')
+    if output_png is not None:
+        figure.savefig(output_png, dpi=600)
+
+    dfs = {}
+    dfigs = {}
+    dfs['all'] = df
+    dfigs['all'] = figure
+
 
     # details
 
@@ -232,6 +290,17 @@ def plot_result_std(WD: str, output_csv: str):
         output_csv_error += ".gz"
     df_error.to_csv(output_csv_error, sep="|", compression=compression, index=False)
     logger.info(f"SAVED RESULTS AT '{output_csv_error}'")
+
+
+    # plots
+    logger.info(f"PLOTTING DETAILED RESULTS")
+
+    # filtered
+    logger.info(f"FILTERED")
+    figure_filtered = _getplot_1(df_filtered, 'task', 'Count', f"Details of the filtered records in {dataset_label}", x_label='Alert Type', y_label='Number of Records')
+    if output_png is not None:
+        output_png_filtered = output_png.replace('.png', '_filtered.png')
+        output_png_filtered = figure_filtered.savefig(output_png, dpi=600)
 
     return df
 
@@ -306,7 +375,7 @@ def plot_result_map(WD: str, output_csv: str, file_frags: str):
     logger.info(f"SUB -- TOTAL NUMBER OF SUBSTRUCTURE HITS: {num_tot_hit_sub:,d}")
 
     # regroup by molecule
-    df_sub['count_hit_per_mol'] = df_sub.groupby(['idm', 'idf'])['aidxf'].transform(len)
+    df_sub['count_hit_per_mol'] = df_sub.groupby(['idm', 'idf'])['_aidxf'].transform(len)
     groups_mols_sub = df_sub[["idm", "idf", "count_hit_per_mol"]].groupby("idm")
     num_tot_mol_sub = len(groups_mols_sub)
     logger.info(f"SUB -- TOTAL NUMBER OF MOLECULES WITH >0 NATURAL FRAGMENTS: {num_tot_mol_sub:,d}")
@@ -365,7 +434,7 @@ def plot_result_map(WD: str, output_csv: str, file_frags: str):
     logger.info(f"FCC -- NUMBER OF FILTERED MOLECULES BECAUSE OF FP: {num_mol_fp_fcc:,d}")
 
     # parse map results
-    chunks = list(p.glob("data/*_map/data/*[0-9][0-9][0-9]_map.csv.gz"))
+    chunks = list(p.glob("data/*_fmap/data/*[0-9][0-9][0-9]_fmap.csv.gz"))
     chunks.sort()
     logger.info(f"MAP -- FOUND {len(chunks):,d} CHUNKS_MAP")
     df_map = pd.concat([pd.read_csv(x, sep="|", compression="gzip") for x in chunks])
@@ -537,11 +606,11 @@ def plot_result_map(WD: str, output_csv: str, file_frags: str):
     # combinations
 
     # initialization
-    categories = ['fsp', 'fed', 'fbr', 'fot',
+    categories = ['fsp', 'fed', 'fbr', 'fli',
                   'cmo',
-                  'cbs', 'cbe', 'cbb', 'cbo',
-                  'cts', 'cte', 'ctb', 'cto',
-                  'cos', 'coe', 'cob', 'coo',
+                  'cbs', 'cbe', 'cbb', 'cbl',
+                  'cts', 'cte', 'ctb', 'ctl',
+                  'cos', 'coe', 'cob', 'col',
                   ]
     df_map["comb"] = df_map["comb"].map(lambda x: json.loads(x.replace("'", '"')))
 
@@ -562,15 +631,15 @@ def plot_result_map(WD: str, output_csv: str, file_frags: str):
     # logger.info(f"MAP -- SAVED RESULTS AT '{output_csv_counts_sub}'")
 
     # all combs per molecule
-    df_map_tmp = df_map[['idm', 'map_str', 'fmid']].copy()
-    df_map_tmp["map_str"] = df_map_tmp["map_str"].map(lambda x: x.split("-"))
+    df_map_tmp = df_map[['idm', 'fmap_str', 'fmid']].copy()
+    df_map_tmp["fmap_str"] = df_map_tmp["fmap_str"].map(lambda x: x.split("-"))
     groups_mol_map = df_map_tmp.groupby('idm')
-    df_map_tmp = groups_mol_map.agg({'map_str': 'sum'})
+    df_map_tmp = groups_mol_map.agg({'fmap_str': 'sum'})
     df_map_tmp.reset_index(inplace=True)
     # remove dupl. common parts between alternative fragment maps
-    df_map_tmp["map_str"] = df_map_tmp["map_str"].map(lambda x: list(set(x)))
-    df_map_tmp["comb"] = df_map_tmp["map_str"].map(lambda x: [y.split("[")[1].split("]")[0] for y in x])
-    df_map_tmp.drop("map_str", axis=1, inplace=True)
+    df_map_tmp["fmap_str"] = df_map_tmp["fmap_str"].map(lambda x: list(set(x)))
+    df_map_tmp["comb"] = df_map_tmp["fmap_str"].map(lambda x: [y.split("[")[1].split("]")[0] for y in x])
+    df_map_tmp.drop("fmap_str", axis=1, inplace=True)
     # count remaining combinations
     ds_comb = []
     for i in range(len(df_map_tmp.index)):
@@ -682,6 +751,21 @@ if __name__ == '__main__':
     dataset = str(Path(wd).resolve(strict=True)).split('/')[-1]
     logger.info(f"DATASET='{dataset}'")
 
+    d_dataset_labels = {'dnp': 'DNP', 'chembl': 'ChEMBL'}
+    dataset_label = d_dataset_labels[dataset]
+
+
+    # geenral style for plotting
+    sns.set(rc={'figure.figsize':(12, 12)})
+    sns.set_style('whitegrid', {'axes.edgecolor': '0.2'})
+    sns.set_context("paper", font_scale=2)
+
+    # atribute color for individual plots
+    if dataset == 'dnp':
+        color = '#2ca02c'
+    else:
+        color = '#2ca02c'  ####
+
     # missing chunks
 
     logger.info("=" * pad)
@@ -696,7 +780,7 @@ if __name__ == '__main__':
     logger.info("CHECKING RESULTS FROM DEGLYCOSYLATION".center(pad))
     logger.info("=" * pad)
     subfolder_deglyco = [str(x) for x in list(Path(wd).glob("data/*_deglyco"))][0] + "/"
-    plot_result_deglyco(subfolder_deglyco, wd + f"figures/{dataset}_deglyco.csv")
+    plot_result_deglyco(dataset_label, WD=subfolder_deglyco, output_csv=wd + f"figures/{dataset}_deglyco.csv", output_png=wd + f"figures/{dataset}_deglyco.png")
 
     # standardization
 
@@ -705,7 +789,7 @@ if __name__ == '__main__':
     logger.info("=" * pad)
     try:
         subfolder_std = [str(x) for x in list(Path(wd).glob("data/*_std"))][0] + "/"
-        plot_result_std(subfolder_std, wd + f"figures/{dataset}_std.csv")
+        plot_result_std(dataset_label, WD=subfolder_deglyco, output_csv=wd + f"figures/{dataset}_std.csv", output_png=wd + f"figures/{dataset}_std.png")
     except IndexError:
         logger.info("NO STANDARDIZATION RESULTS TO CHECK")
 

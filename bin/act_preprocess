@@ -90,17 +90,17 @@ def main():
     logger.info("pandas".ljust(pad) + f"{pd.__version__}")
     logger.info("npfc".ljust(pad) + f"{npfc.__version__}")
     logger.info("ARGUMENTS:")
-    logging.info("INPUT_ACT".ljust(pad) + f"{args.input_act}")
-    logging.info("INPUT_ACT_FORMAT".ljust(pad) + f"{input_act_format}")
-    logging.info("INPUT_ACT_COMPRESSION".ljust(pad) + f"{input_act_compression}")
-    logging.info("REF_UNI".ljust(pad) + f"{args.ref_uni}")
-    logging.info("REF_UNI_FORMAT".ljust(pad) + f"{ref_uni_format}")
-    logging.info("REF_UNI_COMPRESSION".ljust(pad) + f"{ref_uni_compression}")
-    logging.info("DIR_LOG_UNI".ljust(pad) + f"{args.dir_log_uni}")
-    logging.info("OUTPUT_ACT".ljust(pad) + f"{args.output_act}")
-    logging.info("OUTPUT_ACT_FORMAT".ljust(pad) + f"{output_act_format}")
-    logging.info("OUTPUT_ACT_COMPRESSION".ljust(pad) + f"{output_act_compression}")
-    logging.info("LOG".ljust(pad) + f"{args.log}")
+    logger.info("INPUT_ACT".ljust(pad) + f"{args.input_act}")
+    logger.info("INPUT_ACT_FORMAT".ljust(pad) + f"{input_act_format}")
+    logger.info("INPUT_ACT_COMPRESSION".ljust(pad) + f"{input_act_compression}")
+    logger.info("REF_UNI".ljust(pad) + f"{args.ref_uni}")
+    logger.info("REF_UNI_FORMAT".ljust(pad) + f"{ref_uni_format}")
+    logger.info("REF_UNI_COMPRESSION".ljust(pad) + f"{ref_uni_compression}")
+    logger.info("DIR_LOG_UNI".ljust(pad) + f"{args.dir_log_uni}")
+    logger.info("OUTPUT_ACT".ljust(pad) + f"{args.output_act}")
+    logger.info("OUTPUT_ACT_FORMAT".ljust(pad) + f"{output_act_format}")
+    logger.info("OUTPUT_ACT_COMPRESSION".ljust(pad) + f"{output_act_compression}")
+    logger.info("LOG".ljust(pad) + f"{args.log}")
 
     # begin
     logging.info("BEGIN")
@@ -110,7 +110,9 @@ def main():
     logger.info("LOADING ACTIVITY FILE")
     df_act = load.file(args.input_act)
     logger.info(f"LOADED {len(df_act.index)} DATA POINTS")
-
+    if 'Unnamed: 0' in df_act.columns:
+        df_act.drop('Unnamed: 0', axis=1, inplace=True)
+    logger.debug(f"EXCERPT:\n\n{df_act.head(10)}\n")
     # classify act into active/inactive
     d2 = datetime.now()
     logger.info("CLASSIFYING ACTIVITY INTO ACTIVE/INACTIVE")
@@ -122,7 +124,10 @@ def main():
 
     # filtered entries
     p_dir_log_uni = Path(args.dir_log_uni)
-    df_syn = pd.concat([pd.read_csv(x, sep="@", header=None) for x in p_dir_log_uni.glob("*.log")])
+    files_log_uni = sorted([str(x) for x in list(p_dir_log_uni.glob("*.log"))])
+    logger.info(f"FOUND {len(files_log_uni)} LOG FILES")
+    logger.debug(f"LOG FILES:\n{files_log_uni}\n")
+    df_syn = pd.concat([pd.read_csv(x, sep="@", header=None) for x in files_log_uni])
     df_syn = df_syn[df_syn[0].str.contains("RESULT")]  # each log contains a list of RESULT lines with inchikey|idm_kept|idm_filtered
     if len(df_syn.index) > 0:
         df_syn["inchikey"], df_syn["idm_kept"], df_syn["idm_filtered"] = zip(*df_syn[0].map(lambda x: x.split(":")[-1].strip().split("|")))
