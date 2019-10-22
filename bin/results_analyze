@@ -295,12 +295,12 @@ def plot_result_std(dataset_label: str, df: DataFrame = None, input_csv: str = N
     # plots
     logger.info(f"PLOTTING DETAILED RESULTS")
 
-    # filtered
-    logger.info(f"FILTERED")
-    figure_filtered = _getplot_1(df_filtered, 'task', 'Count', f"Details of the filtered records in {dataset_label}", x_label='Alert Type', y_label='Number of Records')
-    if output_png is not None:
-        output_png_filtered = output_png.replace('.png', '_filtered.png')
-        output_png_filtered = figure_filtered.savefig(output_png, dpi=600)
+    # # filtered
+    # logger.info(f"FILTERED")
+    # figure_filtered = _getplot_1(df_filtered, 'task', 'Count', f"Details of the filtered records in {dataset_label}", x_label='Alert Type', y_label='Number of Records')
+    # if output_png is not None:
+    #     output_png_filtered = output_png.replace('.png', '_filtered.png')
+    #     output_png_filtered = figure_filtered.savefig(output_png, dpi=600)
 
     return df
 
@@ -712,6 +712,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Compute all required files for analyzing FCC results", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('wd', type=str, default='./', help="Working directory from the job to analyse (root folder, where the smk file is)")
     parser.add_argument('-f', '--frags', type=str, default=None, help="Fragment file used for substructure search")
+    parser.add_argument('-d', '--dataset', type=str, default=None, help="Dataset name for using in the csv/png outputs in the figures folder.")
+    parser.add_argument('-p', '--prefix', type=str, default=None, help="Prefix used for output files in the data/log folders.")
     parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
     args = parser.parse_args()
 
@@ -751,9 +753,11 @@ if __name__ == '__main__':
     dataset = str(Path(wd).resolve(strict=True)).split('/')[-1]
     logger.info(f"DATASET='{dataset}'")
 
-    d_dataset_labels = {'dnp': 'DNP', 'chembl': 'ChEMBL'}
-    dataset_label = d_dataset_labels[dataset]
-
+    d_dataset_labels = {'dnp': 'DNP', 'dnp_nobz': 'DNP_nobz', 'chembl': 'ChEMBL', 'chembl_nobz': 'ChEMBL_nobz'}
+    try:
+        dataset_label = d_dataset_labels[dataset]
+    except KeyError:
+        raise KeyError(f"ERROR! Unknown key: '{dataset}'")
 
     # geenral style for plotting
     sns.set(rc={'figure.figsize':(12, 12)})
@@ -789,7 +793,7 @@ if __name__ == '__main__':
     logger.info("=" * pad)
     try:
         subfolder_std = [str(x) for x in list(Path(wd).glob("data/*_std"))][0] + "/"
-        plot_result_std(dataset_label, WD=subfolder_deglyco, output_csv=wd + f"figures/{dataset}_std.csv", output_png=wd + f"figures/{dataset}_std.png")
+        plot_result_std(dataset_label, WD=subfolder_std, output_csv=wd + f"figures/{dataset}_std.csv", output_png=wd + f"figures/{dataset}_std.png")
     except IndexError:
         logger.info("NO STANDARDIZATION RESULTS TO CHECK")
 
