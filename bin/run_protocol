@@ -53,7 +53,7 @@ def main():
     parser = argparse.ArgumentParser(description=description, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('protocol', type=str, default=None, help="Protocol to apply. If this is not a file, then a lookup for matching the string with known protocols is performed. Possible values are: fragments/natural/synthetic.")
     parser.add_argument('-e', '--env', type=str, default='local', help="Environment for running the protocol. By default locally, but it can also be run on cluster schedulers (clem/gwdg1).")
-    parser.add_argument('-j', '--jobs', type=str, default=6, help="Number of jobs that can be run simultaneously when workflow is run locally.")
+    parser.add_argument('-j', '--jobs', type=int, default=6, help="Number of jobs that can be run simultaneously when workflow is run locally.")
     parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
     parser.add_argument('-c', '--config', type=str, default=None, help="JSON configuration file for setting up default variables when the running the protocol. Arguments below overwrite parameters specified in the config file.")
     parser.add_argument('-w', '--wd', type=str, default=None, help="Working directory containing the data folder, where output subfolders and files are stored.")

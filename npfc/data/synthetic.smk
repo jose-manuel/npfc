@@ -64,7 +64,7 @@ rule all:
 
 rule PNP:
     priority: 0
-    input: "{WD}/11_map/data/{prefix}_{cid}_map.csv.gz"
+    input: "{WD}/11_fmap/data/{prefix}_{cid}_fmap.csv.gz"
     output: "{WD}/12_pnp/data/{prefix}_{cid}_pnp.csv.gz"
     log: "{WD}/12_pnp/log/{prefix}_{cid}_pnp.log"
     shell: "fmaps_annotate_pnp {input} {natref_fmap_dir} {output} >{log} 2>&1"
@@ -72,8 +72,8 @@ rule PNP:
 rule MAP:
     priority: 1
     input: "{WD}/10_act/data/{prefix}_{cid}_act.csv.gz"
-    output: "{WD}/11_map/data/{prefix}_{cid}_map.csv.gz"
-    log: "{WD}/11_map/log/{prefix}_{cid}_map.log"
+    output: "{WD}/11_fmap/data/{prefix}_{cid}_fmap.csv.gz"
+    log: "{WD}/11_fmap/log/{prefix}_{cid}_fmap.log"
     shell: "fc_map {input} {output} --min-frags 2 --max-frags 9999 --max-overlaps 5 >{log} 2>&1"
 
 rule ACT:

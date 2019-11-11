@@ -476,10 +476,16 @@ def plot_result_map(WD: str, output_csv: str, file_frags: str):
     df_map_mol.reset_index(inplace=True)
     df_map_mol.rename({"index": "idm"}, axis=True, inplace=True)
 
+    # NumFragsPerMol for n=0 and n=1
+    df_sub_counts_lt2 = pd.DataFrame({'NumFrags': [0, 1], 'NumMols': [num_mol_eq0_sub, num_mol_eq1_sub]})
+    df_sub_counts_lt2_unique = pd.DataFrame({'NumUniqueFrags': [0, 1], 'NumMols': [num_mol_eq0_sub, num_mol_eq1_sub]})
+
     # fragment counts per mol
     df_sub_counts = df_map_mol.groupby('nfrags').count()[['idm']].rename({'idm': 'NumMols'}, axis=1)
     df_sub_counts.reset_index(inplace=True)
     df_sub_counts.rename({"nfrags": "NumFrags"}, axis=1, inplace=True)
+    df_sub_counts = pd.concat([df_sub_counts_lt2, df_sub_counts])
+    df_sub_counts.reset_index(inplace=True)
     logger.info(f"MAP -- RESULTS -- NUMBER OF FRAGMENTS FOUND PER MOLECULE:\n\n{df_sub_counts}\n")
     output_csv_counts_sub = output_csv_basename + "_map_numfragpermol_counts.csv"
     if compression is not None:
@@ -491,6 +497,8 @@ def plot_result_map(WD: str, output_csv: str, file_frags: str):
     df_sub_counts = df_map_mol.groupby('nfrags_u').count()[['idm']].rename({'idm': 'NumMols'}, axis=1)
     df_sub_counts.reset_index(inplace=True)
     df_sub_counts.rename({"nfrags_u": "NumUniqueFrags"}, axis=1, inplace=True)
+    df_sub_counts = pd.concat([df_sub_counts_lt2_unique, df_sub_counts])
+    df_sub_counts.reset_index(inplace=True)
     logger.info(f"MAP -- RESULTS -- NUMBER OF UNIQUE FRAGMENTS FOUND PER MOLECULE:\n\n{df_sub_counts}\n")
     output_csv_counts_sub = output_csv_basename + "_map_numuniquefragpermol_counts.csv"
     if compression is not None:
@@ -753,19 +761,19 @@ if __name__ == '__main__':
     dataset = str(Path(wd).resolve(strict=True)).split('/')[-1]
     logger.info(f"DATASET='{dataset}'")
 
-    d_dataset_labels = {'dnp': 'DNP', 'dnp_nobz': 'DNP_nobz', 'chembl': 'ChEMBL', 'chembl_nobz': 'ChEMBL_nobz'}
-    try:
-        dataset_label = d_dataset_labels[dataset]
-    except KeyError:
-        raise KeyError(f"ERROR! Unknown key: '{dataset}'")
+    d_dataset_labels = {'dnp': 'DNP', 'chembl': 'ChEMBL', 'cpa': 'CPA'}
 
-    # geenral style for plotting
+    dataset_label = dataset
+    for k, v in d_dataset_labels.items():
+         dataset_label = dataset_label.replace(k, v)
+
+    # general style for plotting
     sns.set(rc={'figure.figsize':(12, 12)})
     sns.set_style('whitegrid', {'axes.edgecolor': '0.2'})
     sns.set_context("paper", font_scale=2)
 
     # atribute color for individual plots
-    if dataset == 'dnp':
+    if dataset_label == 'DNP':
         color = '#2ca02c'
     else:
         color = '#2ca02c'  ####
