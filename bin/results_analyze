@@ -151,7 +151,6 @@ def plot_result_load(dataset_label: str, df: DataFrame = None, input_csv: str = 
     logger.info(f"SAVED RESULTS AT '{output_csv}'")
 
 
-
 def plot_result_deglyco(dataset_label: str, df: DataFrame = None, input_csv: str = None, WD: str = None, output_csv: str = None, output_png: str = None):
     """This functions computes the CSV/PNG files for checking on the status of the deglycosylation.
     The WD is the subfolder of the deglycosylation (3_deglyco) and is used in case the df param is not specified.
@@ -510,6 +509,8 @@ def plot_result_map(WD: str, output_csv: str, file_frags: str):
     df_sub_counts = df_map.groupby('nfrags').count()[['idm']].rename({'idm': 'NumFragmentMaps'}, axis=1)
     df_sub_counts.reset_index(inplace=True)
     df_sub_counts.rename({"nfrags": "NumFrags"}, axis=1, inplace=True)
+    num_tot = df_sub_counts['NumFragmentMaps'].sum()
+    df_sub_counts['Perc_FM'] = df_sub_counts['NumFragmentMaps'].map(lambda x: f"{x/num_tot:.2%}")
     logger.info(f"MAP -- RESULTS -- NUMBER OF FRAGMENTS FOUND PER FRAGMENT MAP:\n\n{df_sub_counts}\n")
     output_csv_counts_sub = output_csv_basename + "_map_numfragperfm_counts.csv"
     if compression is not None:
@@ -521,6 +522,8 @@ def plot_result_map(WD: str, output_csv: str, file_frags: str):
     df_sub_counts = df_map.groupby('nfrags_u').count()[['idm']].rename({'idm': 'NumFragmentMaps'}, axis=1)
     df_sub_counts.reset_index(inplace=True)
     df_sub_counts.rename({"nfrags_u": "NumUniqueFrags"}, axis=1, inplace=True)
+    num_tot = df_sub_counts['NumFragmentMaps'].sum()
+    df_sub_counts['Perc_FM'] = df_sub_counts['NumFragmentMaps'].map(lambda x: f"{x/num_tot:.2%}")
     logger.info(f"MAP -- RESULTS -- NUMBER OF UNIQUE FRAGMENTS FOUND PER FRAGMENT MAP:\n\n{df_sub_counts}\n")
     output_csv_counts_sub = output_csv_basename + "_map_numuniquefragperfm_counts.csv"
     if compression is not None:
@@ -544,6 +547,8 @@ def plot_result_map(WD: str, output_csv: str, file_frags: str):
     df_sub_counts.rename({"nfrags": "NumFrags"}, axis=1, inplace=True)
     df_sub_counts = pd.concat([df_sub_counts_lt2, df_sub_counts])
     df_sub_counts.reset_index(inplace=True)
+    num_tot = df_sub_counts['NumMols'].sum()
+    df_sub_counts['Perc_Mols'] = df_sub_counts['NumMols'].map(lambda x: f"{x/num_tot:.2%}")
     logger.info(f"MAP -- RESULTS -- NUMBER OF FRAGMENTS FOUND PER MOLECULE:\n\n{df_sub_counts}\n")
     output_csv_counts_sub = output_csv_basename + "_map_numfragpermol_counts.csv"
     if compression is not None:
@@ -557,6 +562,8 @@ def plot_result_map(WD: str, output_csv: str, file_frags: str):
     df_sub_counts.rename({"nfrags_u": "NumUniqueFrags"}, axis=1, inplace=True)
     df_sub_counts = pd.concat([df_sub_counts_lt2_unique, df_sub_counts])
     df_sub_counts.reset_index(inplace=True)
+    num_tot = df_sub_counts['NumMols'].sum()
+    df_sub_counts['Perc_Mols'] = df_sub_counts['NumMols'].map(lambda x: f"{x/num_tot:.2%}")
     logger.info(f"MAP -- RESULTS -- NUMBER OF UNIQUE FRAGMENTS FOUND PER MOLECULE:\n\n{df_sub_counts}\n")
     output_csv_counts_sub = output_csv_basename + "_map_numuniquefragpermol_counts.csv"
     if compression is not None:
@@ -570,7 +577,8 @@ def plot_result_map(WD: str, output_csv: str, file_frags: str):
     df_frag_fm_cov_counts = df_frag_fm_cov.groupby("perc_mol_cov_frags").count()
     df_frag_fm_cov_counts.reset_index(inplace=True)
     df_frag_fm_cov_counts.rename({"perc_mol_cov_frags": "Perc_Frag_Coverage_Per_FragmentMap", "idm": "NumFragMaps"}, axis=1, inplace=True)
-    df_frag_fm_cov_counts["PercFM"] = (df_frag_fm_cov_counts["NumFragMaps"] / num_tot_fm_fcc_molcov) * 100
+    num_tot = df_frag_fm_cov_counts["NumFragMaps"].sum()
+    df_frag_fm_cov_counts['PercFM'] = df_frag_fm_cov_counts['NumFragMaps'].map(lambda x: f"{x/num_tot:.2%}")
     logger.info(f"MAP -- RESULTS -- PERC OF FRAGMENT COVERAGE PER FRAGMENT MAP:\n\n{df_frag_fm_cov_counts}\n")
     output_csv_counts_sub = output_csv_basename + "_map_perc_frag_cov_fm_counts.csv"
     if compression is not None:
@@ -592,8 +600,9 @@ def plot_result_map(WD: str, output_csv: str, file_frags: str):
     df_frag_mol_cov.drop("hac_frags", axis=1, inplace=True)
     df_frag_mol_cov.rename({"hac_mol": "NumMols"}, axis=1, inplace=True)
     df_frag_mol_cov_counts = df_frag_mol_cov.groupby("Perc_Frag_Coverage_Per_Mol").count()
-    df_frag_mol_cov_counts["PercMols"] = (df_frag_mol_cov_counts["NumMols"] / num_tot_mol_fcc_molcov) * 100
     df_frag_mol_cov_counts.reset_index(inplace=True)
+    num_tot = df_frag_mol_cov_counts["NumMols"].sum()
+    df_frag_mol_cov_counts['PercMols'] = df_frag_mol_cov_counts['NumMols'].map(lambda x: f"{x/num_tot:.2%}")
     logger.info(f"MAP -- RESULTS -- PERC OF FRAGMENT COVERAGE PER MOLECULE:\n\n{df_frag_mol_cov_counts}\n")
     output_csv_counts_sub = output_csv_basename + "_map_perc_frag_cov_mol_counts.csv"
     if compression is not None:
@@ -627,8 +636,10 @@ def plot_result_map(WD: str, output_csv: str, file_frags: str):
     df_top10["smiles"] = df_top10['mol'].map(Chem.MolToSmiles)
     df_top10.drop(['mol', "idm"], axis=1, inplace=True)
     # percentage of the top 10
-    df_top10['Perc'] = df_top10['Count'].map(lambda x: round(x / idf_counts_tot, 4) * 100)
-    df_top10['Perc_cum'] = 100 * round(df_top10['Count'].cumsum() / idf_counts_tot, 4)
+    df_top10['Perc'] = df_top10['Count'].map(lambda x: x / idf_counts_tot)
+    df_top10['Perc_cum'] = df_top10['Count'].cumsum() / idf_counts_tot
+    df_top10['Perc'] = df_top10['Perc'].map(lambda x: f"{x:.2%}")
+    df_top10['Perc_cum'] = df_top10['Perc_cum'].map(lambda x: f"{x:.2%}")
     logger.info(f"MAP -- RESULTS -- TOP 10 MOST OCCURRING UNIQUE FRAGMENTS PER MOLECULE:\n\n{df_top10}\n")
     output_csv_counts_sub = output_csv_basename + "_map_top10_unique.csv"
     if compression is not None:
@@ -660,8 +671,10 @@ def plot_result_map(WD: str, output_csv: str, file_frags: str):
     df_top10["smiles"] = df_top10['mol'].map(Chem.MolToSmiles)
     df_top10.drop(['mol', "idm"], axis=1, inplace=True)
     # percentage of the top 10
-    df_top10['Perc'] = df_top10['Count'].map(lambda x: round(x / idf_counts_tot, 4) * 100)
-    df_top10['Perc_cum'] = 100 * round(df_top10['Count'].cumsum() / idf_counts_tot, 4)
+    df_top10['Perc'] = df_top10['Count'].map(lambda x: x / idf_counts_tot)
+    df_top10['Perc_cum'] = df_top10['Count'].cumsum() / idf_counts_tot
+    df_top10['Perc'] = df_top10['Perc'].map(lambda x: f"{x:.2%}")
+    df_top10['Perc_cum'] = df_top10['Perc_cum'].map(lambda x: f"{x:.2%}")
     logger.info(f"MAP -- RESULTS -- TOP 10 MOST OCCURRING FRAGMENTS PER MOLECULE:\n\n{df_top10}\n")
     output_csv_counts_sub = output_csv_basename + "_map_top10_mol.csv"
     if compression is not None:
@@ -714,8 +727,10 @@ def plot_result_map(WD: str, output_csv: str, file_frags: str):
     df_comb = pd.DataFrame(ds_comb, columns=categories).fillna(0)
     df_comb = pd.DataFrame(df_comb.apply(lambda x: pd.to_numeric(x, downcast='integer')).sum()).rename({0: "Count"}, axis=1)
     df_comb['Category'] = df_comb.index
-    df_comb['Perc'] = df_comb['Count'].map(lambda x: round(x/df_comb['Count'].sum(), 4)*100)
-    logger.info(f"MAP -- RESULTS -- FRAGMENT COMBINATIONS FOUND IN ALL FRAGMENT MAPS:\n\n{df_comb}\n")
+    num_tot = df_comb['Count'].sum()
+    df_comb['Perc_FC'] = df_comb['Count'] /num_tot
+    df_comb['Perc_FC'] = df_comb['Perc_FC'].map(lambda x: f"{x:.2%}")
+    logger.info(f"MAP -- RESULTS -- FRAGMENT COMBINATIONS FOUND IN ALL FRAGMENT MAPS (tot={num_tot:,}):\n\n{df_comb}\n")
     output_csv_counts_sub = output_csv_basename + "_map_fragcomb.csv"
     if compression is not None:
         output_csv_counts_sub += ".gz"
@@ -750,7 +765,7 @@ def plot_result_pnp(WD: str, output_csv: str):
         num_non_pnp_fm += len(df[~df['pnp_fm']].index)
         # mols
         df.sort_values(["idm", "pnp_mol"], ascending=False, inplace=True)  # first member of a group is set to True
-        df_mols = df.groupby("idm", sort=False).first()  #
+        df_mols = df.groupby("idm", sort=False).first()
 
         num_pnp_mol += len(df_mols[df_mols["pnp_mol"]].index)
         num_non_pnp_mol += len(df_mols[~df_mols["pnp_mol"]].index)
@@ -764,7 +779,8 @@ def plot_result_pnp(WD: str, output_csv: str):
     # result
     df = pd.DataFrame({"PNP_fm": [num_pnp_fm], "Non-PNP_fm": [num_non_pnp_fm], "PNP_mol": [num_pnp_mol], "Non-PNP_mol": [num_non_pnp_mol]}).T.rename({0: "Count"}, axis=1)
     df['Category'] = df.index
-    df['Perc'] = [round(x/num_tot_mol, 3) * 100 if 'mol' in y else round(x/num_tot_fm, 3) * 100 for x, y in zip(df["Count"], df['Category'])]
+    df['Perc_PNP'] = [x/num_tot_mol if 'mol' in y else x/num_tot_fm for x, y in zip(df["Count"], df['Category'])]
+    df['Perc_PNP'] = df['Perc_PNP'].map(lambda x: f"{x:.2%}")
     logger.info(f"RESULTS:\n\n{df}\n")
 
     # export to csv
