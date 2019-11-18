@@ -894,7 +894,7 @@ if __name__ == '__main__':
     try:
         subfolder_std = [str(x) for x in list(Path(wd).glob("data/*_std"))][0] + "/"
         output_csvs = get_result_std(WD=subfolder_std, output_csv=wd + f"figures/{dataset}_std.csv")
-        keys = ['std', 'std_passed', 'std_filtered', 'std_error']
+        keys = ['std', 'std_passed', 'std_filtered', 'std_error', 'std']  # I know this is very confusing, but I am in a hurry at the moment. I need the total count for detailed counts, but I also need to update the std using the detailed counts. This is a mess and I am sorry.
         tot_mols = None
         for i, k in enumerate(keys):
             # try:
@@ -911,6 +911,7 @@ if __name__ == '__main__':
 
             elif i == 1:
                 title += ' - Passed'
+                total_passed = df_std['Count'].sum()
             elif i == 2:
                 title += ' - Filtered'
                 subfolder_uni = [str(x) for x in list(Path(wd).glob("data/*_uni"))][0] + "/"
@@ -928,6 +929,7 @@ if __name__ == '__main__':
                 df_std.reset_index(inplace=True)
                 df_std.fillna(0, inplace=True)
                 df_std['Perc_status'] = df_std['Count'].map(lambda x: f"{x/tot_mols:.2%}")
+                total_filtered = df_std['Count'].sum()
                 df_std.to_csv(output_csv, sep='|', index=False)  # this is confusing!!! Adding the missing categories should be done right at the beginning? same for df_std_error
                 logger.info(f"STD -- FINAL RESULTS FOR FILTERED:\n\n{df_std}\n")
             elif i == 3:
@@ -947,9 +949,21 @@ if __name__ == '__main__':
                 df_std.reset_index(inplace=True)
                 df_std.fillna(0, inplace=True)
                 df_std['Perc_status'] = df_std['Count'].map(lambda x: f"{x/tot_mols:.2%}")
+                total_errors = df_std['Count'].sum()
                 df_std.to_csv(output_csv, sep='|', index=False)
                 logger.info(f"STD -- FINAL RESULTS FOR ERROR:\n\n{df_std}\n")
+            elif i == 4:
+                df_std = DataFrame({"passed": [total_passed], "filtered": [total_filtered], "error": [total_errors]}).T.rename({0: "Count"}, axis=1)
+                df_std['Category'] = df_std.index
+                df_std.reset_index(inplace=True, drop=True)
+                num_tot = df_std['Count'].sum()
+                if num_tot > 0:
+                    df_std['Perc_status'] = df_std['Count'].map(lambda x: f"{x/num_tot:.2%}")
+                else:
+                    df_std['Perc_status'] = 'NA'
 
+
+                print(f"****************\n\n\n{df_std}\n\n")
             if len(df_std) > 0:
                 fig = save_barplot(df_std, output_png, 'Category', 'Count', title, color=color, perc_labels='Perc_status', rotate_x=rotate_x)
             else:
