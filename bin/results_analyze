@@ -51,10 +51,15 @@ def _get_chunks(WD, pattern):
     return chunks
 
 
-def save_barplot(df, output_png, x_name, y_name, title, x_label=None, y_label=None, rotate_x=0, perc_labels=None, color='#2ca02c', fig_size=(12, 12)):
+def save_barplot(df, output_png, x_name, y_name, title, x_label=None, y_label=None, rotate_x=0, perc_labels=None, perc_label_size=15, color='#2ca02c', fig_size=(12, 12)):
+    # delete existing file for preventing stacking of plots
+    p = Path(output_png)
+    if p.exists():
+        p.unlink()
 
     # general style for plotting
-    sns.set(rc={'figure.figsize':fig_size})
+    # sns.set(rc={'figure.figsize': fig_size})
+    plt.figure(figsize=fig_size)
     sns.set_style('whitegrid', {'axes.edgecolor': '0.2'})
     sns.set_context("paper", font_scale=2)
     # barplot
@@ -65,6 +70,11 @@ def save_barplot(df, output_png, x_name, y_name, title, x_label=None, y_label=No
     svm.set_xticklabels(df[x_name])
     svm.set_xlabel(x_label,fontsize=25, labelpad=20)
     svm.set_ylabel(y_label,fontsize=25, labelpad=20)
+    # if no entry, then y ticks get all confused
+    if df[y_name].sum() == 0:
+        svm.set_yticks((0, 1, 2, 3, 4, 5))
+        svm.set_ylim((0, 5))
+
     # format y labels
     ylabels = ['{:,.0f}'.format(x) for x in svm.get_yticks()]
     svm.set_yticklabels(ylabels)
@@ -72,7 +82,7 @@ def save_barplot(df, output_png, x_name, y_name, title, x_label=None, y_label=No
     if perc_labels is not None:
         for i in range(len(df.index)):
             row = df.iloc[i]
-            svm.text(row.name, row[y_name], row[perc_labels], color='black', ha='center')
+            svm.text(row.name, row[y_name], row[perc_labels], color='black', ha='center', fontdict={'fontsize': perc_label_size})
     # save
     figure = svm.get_figure()
     if rotate_x > 0:
@@ -502,11 +512,11 @@ def get_result_map(WD: str, output_csv: str, file_frags: str):
     num_tot = df_sub_counts['NumFragmentMaps'].sum()
     df_sub_counts['Perc_FM'] = df_sub_counts['NumFragmentMaps'].map(lambda x: f"{x/num_tot:.2%}")
     logger.info(f"MAP -- RESULTS -- NUMBER OF FRAGMENTS FOUND PER FRAGMENT MAP:\n\n{df_sub_counts}\n")
-    output_csv_counts_sub = output_csv_basename + "_map_numfragperfm.csv"
+    output_csv_map_frag_fm = output_csv_basename + "_map_frag_fm.csv"
     if compression is not None:
-        output_csv_counts_sub += ".gz"
-    df_sub_counts.to_csv(output_csv_counts_sub, sep="|", compression=compression, index=False)
-    logger.info(f"MAP -- SAVED RESULTS AT '{output_csv_counts_sub}'")
+        output_csv_map_frag_fm += ".gz"
+    df_sub_counts.to_csv(output_csv_map_frag_fm, sep="|", compression=compression, index=False)
+    logger.info(f"MAP -- SAVED RESULTS AT '{output_csv_map_frag_fm}'")
 
     # unique fragment counts per fm
     df_sub_counts = df_map.groupby('nfrags_u').count()[['idm']].rename({'idm': 'NumFragmentMaps'}, axis=1)
@@ -515,11 +525,11 @@ def get_result_map(WD: str, output_csv: str, file_frags: str):
     num_tot = df_sub_counts['NumFragmentMaps'].sum()
     df_sub_counts['Perc_FM'] = df_sub_counts['NumFragmentMaps'].map(lambda x: f"{x/num_tot:.2%}")
     logger.info(f"MAP -- RESULTS -- NUMBER OF UNIQUE FRAGMENTS FOUND PER FRAGMENT MAP:\n\n{df_sub_counts}\n")
-    output_csv_counts_sub_u = output_csv_basename + "_map_numuniquefragperfm_counts.csv"
+    output_csv_map_frag_fm_u = output_csv_basename + "_map_frag_fm_u.csv"
     if compression is not None:
-        output_csv_counts_sub_u += ".gz"
-    df_sub_counts.to_csv(output_csv_counts_sub_u, sep="|", compression=compression, index=False)
-    logger.info(f"MAP -- SAVED RESULTS AT '{output_csv_counts_sub_u}'")
+        output_csv_map_frag_fm_u += ".gz"
+    df_sub_counts.to_csv(output_csv_map_frag_fm_u, sep="|", compression=compression, index=False)
+    logger.info(f"MAP -- SAVED RESULTS AT '{output_csv_map_frag_fm_u}'")
 
     # smallest fm per mol
     df_map.sort_values(["idm", "nfrags"], inplace=True)  # ascending so first element of each idm group has the smallest nfrags
@@ -540,11 +550,11 @@ def get_result_map(WD: str, output_csv: str, file_frags: str):
     num_tot = df_sub_counts['NumMols'].sum()
     df_sub_counts['Perc_Mols'] = df_sub_counts['NumMols'].map(lambda x: f"{x/num_tot:.2%}")
     logger.info(f"MAP -- RESULTS -- NUMBER OF FRAGMENTS FOUND PER MOLECULE:\n\n{df_sub_counts}\n")
-    output_csv_counts_sub_m = output_csv_basename + "_map_numfragpermol.csv"
+    output_csv_map_frag_mol = output_csv_basename + "_map_frag_mol.csv"
     if compression is not None:
-        output_csv_counts_sub_m += ".gz"
-    df_sub_counts.to_csv(output_csv_counts_sub_m, sep="|", compression=compression, index=False)
-    logger.info(f"MAP -- SAVED RESULTS AT '{output_csv_counts_sub_m}'")
+        output_csv_map_frag_mol += ".gz"
+    df_sub_counts.to_csv(output_csv_map_frag_mol, sep="|", compression=compression, index=False)
+    logger.info(f"MAP -- SAVED RESULTS AT '{output_csv_map_frag_mol}'")
 
     # unique fragment counts per mol
     df_sub_counts = df_map_mol.groupby('nfrags_u').count()[['idm']].rename({'idm': 'NumMols'}, axis=1)
@@ -555,26 +565,11 @@ def get_result_map(WD: str, output_csv: str, file_frags: str):
     num_tot = df_sub_counts['NumMols'].sum()
     df_sub_counts['Perc_Mols'] = df_sub_counts['NumMols'].map(lambda x: f"{x/num_tot:.2%}")
     logger.info(f"MAP -- RESULTS -- NUMBER OF UNIQUE FRAGMENTS FOUND PER MOLECULE:\n\n{df_sub_counts}\n")
-    output_csv_counts_sub_um = output_csv_basename + "_map_numuniquefragpermol.csv"
+    output_csv_map_frag_mol_u = output_csv_basename + "_map_frag_mol_u.csv"
     if compression is not None:
-        output_csv_counts_sub_um += ".gz"
-    df_sub_counts.to_csv(output_csv_counts_sub_um, sep="|", compression=compression, index=False)
-    logger.info(f"MAP -- SAVED RESULTS AT '{output_csv_counts_sub_um}'")
-
-    # # fragment map coverage by fragments
-    # df_frag_fm_cov = df_map[["perc_mol_cov_frags", "idm"]]
-    # num_tot_fm_fcc_molcov = len(df_frag_fm_cov.index)
-    # df_frag_fm_cov_counts = df_frag_fm_cov.groupby("perc_mol_cov_frags").count()
-    # df_frag_fm_cov_counts.reset_index(inplace=True)
-    # df_frag_fm_cov_counts.rename({"perc_mol_cov_frags": "Perc_Frag_Coverage_Per_FragmentMap", "idm": "NumFragMaps"}, axis=1, inplace=True)
-    # num_tot = df_frag_fm_cov_counts["NumFragMaps"].sum()
-    # df_frag_fm_cov_counts['Perc_FM'] = df_frag_fm_cov_counts['NumFragMaps'].map(lambda x: f"{x/num_tot:.2%}")
-    # logger.info(f"MAP -- RESULTS -- PERC OF FRAGMENT COVERAGE PER FRAGMENT MAP:\n\n{df_frag_fm_cov_counts}\n")
-    # output_csv_counts_sub_molcov_fm = output_csv_basename + "_map_perc_frag_cov_fm.csv"
-    # if compression is not None:
-    #     output_csv_counts_sub_molcov_fm += ".gz"
-    # df_frag_fm_cov_counts.to_csv(output_csv_counts_sub_molcov_fm, sep="|", compression=compression, index=False)
-    # logger.info(f"MAP -- SAVED RESULTS AT '{output_csv_counts_sub_molcov_fm}'")
+        output_csv_map_frag_mol_u += ".gz"
+    df_sub_counts.to_csv(output_csv_map_frag_mol_u, sep="|", compression=compression, index=False)
+    logger.info(f"MAP -- SAVED RESULTS AT '{output_csv_map_frag_mol_u}'")
 
     # molecule coverage by fragments
     df_map["_colormap"] = df_map["_colormap"].map(utils.decode_object)
@@ -588,11 +583,11 @@ def get_result_map(WD: str, output_csv: str, file_frags: str):
     df_frag_mol_cov.drop("aidxs", axis=1, inplace=True)
     df_frag_mol_cov["Perc_Frag_Coverage_Per_Mol"] = df_frag_mol_cov.apply(lambda x: f"{x['hac_frags'] / x['hac_mol']:.4%}".replace('%', ''), axis=1)
     df_frag_mol_cov.drop("hac_frags", axis=1, inplace=True)
-    output_csv_counts_sub_molcov_m = output_csv_basename + "_map_perc_frag_cov_mol.csv"
+    output_csv_map_perc_frag_cov_mol = output_csv_basename + "_map_perc_frag_cov_mol.csv"
     if compression is not None:
-        output_csv_counts_sub_molcov_m += ".gz"
-    df_frag_mol_cov[['Perc_Frag_Coverage_Per_Mol']].to_csv(output_csv_counts_sub_molcov_m, sep="|", compression=compression, index=False)
-    logger.info(f"MAP -- SAVED RESULTS AT '{output_csv_counts_sub_molcov_m}'")
+        output_csv_map_perc_frag_cov_mol += ".gz"
+    df_frag_mol_cov[['Perc_Frag_Coverage_Per_Mol']].to_csv(output_csv_map_perc_frag_cov_mol, sep="|", compression=compression, index=False)
+    logger.info(f"MAP -- SAVED RESULTS AT '{output_csv_map_perc_frag_cov_mol}'")
     # and now with couting elements in groups of given % for easier display and quicker analysis
     df_frag_mol_cov.rename({"hac_mol": "NumMols"}, axis=1, inplace=True)
     df_frag_mol_cov_counts = df_frag_mol_cov.groupby("Perc_Frag_Coverage_Per_Mol").count()
@@ -600,11 +595,11 @@ def get_result_map(WD: str, output_csv: str, file_frags: str):
     num_tot = df_frag_mol_cov_counts["NumMols"].sum()
     df_frag_mol_cov_counts['Perc_Mols'] = df_frag_mol_cov_counts['NumMols'].map(lambda x: f"{x/num_tot:.1%}")
     logger.info(f"MAP -- RESULTS -- PERC OF FRAGMENT COVERAGE PER MOLECULE:\n\n{df_frag_mol_cov_counts}\n")
-    output_csv_counts_sub_molcov_m_grouped = output_csv_basename + "_map_perc_frag_cov_mol_grouped.csv"
+    output_csv_map_perc_frag_cov_mol_grouped = output_csv_basename + "_map_perc_frag_cov_mol_grouped.csv"
     if compression is not None:
-        output_csv_counts_sub_molcov_m_grouped += ".gz"
-    df_frag_mol_cov_counts.to_csv(output_csv_counts_sub_molcov_m_grouped, sep="|", compression=compression, index=False)
-    logger.info(f"MAP -- SAVED RESULTS AT '{output_csv_counts_sub_molcov_m_grouped}'")
+        output_csv_map_perc_frag_cov_mol_grouped += ".gz"
+    df_frag_mol_cov_counts.to_csv(output_csv_map_perc_frag_cov_mol_grouped, sep="|", compression=compression, index=False)
+    logger.info(f"MAP -- SAVED RESULTS AT '{output_csv_map_perc_frag_cov_mol_grouped}'")
 
     # top 10 most occurring unique fragments per molecule
     df_map_tmp = df_map.copy()
@@ -637,11 +632,11 @@ def get_result_map(WD: str, output_csv: str, file_frags: str):
     df_top10['Perc'] = df_top10['Perc'].map(lambda x: f"{x:.2%}")
     df_top10['Perc_cum'] = df_top10['Perc_cum'].map(lambda x: f"{x:.2%}")
     logger.info(f"MAP -- RESULTS -- TOP 10 MOST OCCURRING UNIQUE FRAGMENTS PER MOLECULE:\n\n{df_top10}\n")
-    output_csv_counts_sub_top10u = output_csv_basename + "_map_top10_unique.csv"
+    output_csv_map_top10_mol_u = output_csv_basename + "_map_top10_mol_u.csv"
     if compression is not None:
-        output_csv_counts_sub_top10u += ".gz"
-    df_top10.to_csv(output_csv_counts_sub_top10u, sep="|", compression=compression, index=False)
-    logger.info(f"MAP -- SAVED RESULTS AT '{output_csv_counts_sub_top10u}'")
+        output_csv_map_top10_mol_u += ".gz"
+    df_top10.to_csv(output_csv_map_top10_mol_u, sep="|", compression=compression, index=False)
+    logger.info(f"MAP -- SAVED RESULTS AT '{output_csv_map_top10_mol_u}'")
 
     # top 10 most occurring fragments per molecule
     df_map_tmp = df_map.copy()
@@ -672,11 +667,11 @@ def get_result_map(WD: str, output_csv: str, file_frags: str):
     df_top10['Perc'] = df_top10['Perc'].map(lambda x: f"{x:.2%}")
     df_top10['Perc_cum'] = df_top10['Perc_cum'].map(lambda x: f"{x:.2%}")
     logger.info(f"MAP -- RESULTS -- TOP 10 MOST OCCURRING FRAGMENTS PER MOLECULE:\n\n{df_top10}\n")
-    output_csv_counts_sub_top10 = output_csv_basename + "_map_top10_mol.csv"
+    output_csv_map_top10_mol = output_csv_basename + "_map_top10_mol.csv"
     if compression is not None:
-        output_csv_counts_sub_top10 += ".gz"
-    df_top10.to_csv(output_csv_counts_sub_top10, sep="|", compression=compression, index=False)
-    logger.info(f"MAP -- SAVED RESULTS AT '{output_csv_counts_sub_top10}'")
+        output_csv_map_top10_mol += ".gz"
+    df_top10.to_csv(output_csv_map_top10_mol, sep="|", compression=compression, index=False)
+    logger.info(f"MAP -- SAVED RESULTS AT '{output_csv_map_top10_mol}'")
 
     # combinations
 
@@ -727,21 +722,21 @@ def get_result_map(WD: str, output_csv: str, file_frags: str):
     df_comb['Perc_FC'] = df_comb['Count'] /num_tot
     df_comb['Perc_FC'] = df_comb['Perc_FC'].map(lambda x: f"{x:.2%}")
     logger.info(f"MAP -- RESULTS -- FRAGMENT COMBINATIONS FOUND IN ALL FRAGMENT MAPS (tot={num_tot:,}):\n\n{df_comb}\n")
-    output_csv_counts_sub_fc = output_csv_basename + "_map_fc.csv"
+    output_csv_map_fc = output_csv_basename + "_map_fc.csv"
     if compression is not None:
-        output_csv_counts_sub_fc += ".gz"
-    df_comb.to_csv(output_csv_counts_sub_fc, sep="|", compression=compression, index=False)
-    logger.info(f"MAP -- SAVED RESULTS AT '{output_csv_counts_sub_fc}'")
+        output_csv_map_fc += ".gz"
+    df_comb.to_csv(output_csv_map_fc, sep="|", compression=compression, index=False)
+    logger.info(f"MAP -- SAVED RESULTS AT '{output_csv_map_fc}'")
 
-    return {'map_frag_fm': output_csv_counts_sub,
-            'map_frag_fm_u': output_csv_counts_sub_u,
-            'map_frag_mol': output_csv_counts_sub_m,
-            'map_frag_mol_u': output_csv_counts_sub_um,
-            'map_perc_frag_cov_mol': output_csv_counts_sub_molcov_m,
-            'map_perc_frag_cov_mol_grouped': output_csv_counts_sub_molcov_m_grouped,
-            'map_top10_mol_u': output_csv_counts_sub_top10u,
-            'map_top10_mol': output_csv_counts_sub_top10,
-            'map_fc': output_csv_counts_sub_fc,
+    return {'map_frag_fm': output_csv_map_frag_fm,
+            'map_frag_fm_u': output_csv_map_frag_fm_u,
+            'map_frag_mol': output_csv_map_frag_mol,
+            'map_frag_mol_u': output_csv_map_frag_mol_u,
+            'map_perc_frag_cov_mol': output_csv_map_perc_frag_cov_mol,
+            'map_perc_frag_cov_mol_grouped': output_csv_map_perc_frag_cov_mol_grouped,
+            'map_top10_mol_u': output_csv_map_top10_mol_u,
+            'map_top10_mol': output_csv_map_top10_mol,
+            'map_fc': output_csv_map_fc,
             }
 
 def get_result_pnp(WD: str, output_csv: str):
@@ -876,22 +871,6 @@ if __name__ == '__main__':
     if check_chunks(wd):
         logger.info("ALL EXPECTED CHUNKS WERE FOUND!")
 
-    # # load
-    #
-    # logger.info("=" * pad)
-    # logger.info("CHECKING RESULTS FROM LOAD".center(pad))
-    # logger.info("=" * pad)
-    # try:
-    #     subfolder_load = [str(x) for x in list(Path(wd).glob("data/*_load"))][0] + "/"
-    #     output_csv = get_result_load(dataset_label, WD=subfolder_load, output_csv=wd + f"figures/{dataset}_load.csv")
-    #     output_png = output_csv.replace('.csv', '.png')
-    #     title = f"Loading of {dataset_label}"
-    #     df = pd.read_csv(output_csv, sep='|')
-    #     fig = save_barplot(df, output_png, 'Category', 'Count', title, color=color, perc_labels='Perc_status')
-    # except IndexError:
-    #     logger.info("NO LOAD RESULTS TO CHECK")
-
-
     # deglycosylation
 
     logger.info("=" * pad)
@@ -949,6 +928,7 @@ if __name__ == '__main__':
                 df_std.reset_index(inplace=True)
                 df_std.fillna(0, inplace=True)
                 df_std['Perc_status'] = df_std['Count'].map(lambda x: f"{x/tot_mols:.2%}")
+                df_std.to_csv(output_csv, sep='|', index=False)  # this is confusing!!! Adding the missing categories should be done right at the beginning? same for df_std_error
                 logger.info(f"STD -- FINAL RESULTS FOR FILTERED:\n\n{df_std}\n")
             elif i == 3:
                 title += ' - Error'
@@ -967,6 +947,7 @@ if __name__ == '__main__':
                 df_std.reset_index(inplace=True)
                 df_std.fillna(0, inplace=True)
                 df_std['Perc_status'] = df_std['Count'].map(lambda x: f"{x/tot_mols:.2%}")
+                df_std.to_csv(output_csv, sep='|', index=False)
                 logger.info(f"STD -- FINAL RESULTS FOR ERROR:\n\n{df_std}\n")
 
             if len(df_std) > 0:
@@ -1005,6 +986,7 @@ if __name__ == '__main__':
                 y_label = 'Number of Fragment Maps'
                 perc_labels='Perc_FM'
                 fig_size = (12, 12)
+                continue ###
 
             elif k == 'map_frag_fm_u':
                 plot_type = 'barplot'
@@ -1041,7 +1023,7 @@ if __name__ == '__main__':
                 title = f"Distribution of Ratio of Fragments found in Molecules in {dataset_label}"
                 x = 'Perc_Frag_Coverage_Per_Mol'
                 x_label = 'Ratio Fragment/Molecule'
-                ylabel = 'Kernel Density Estimate'
+                y_label = 'Kernel Density Estimate'
                 perc_labels='Perc_Mols'
                 fig_size = (12, 12)
 
@@ -1052,7 +1034,7 @@ if __name__ == '__main__':
                 x_label = 'Fragment ID'
                 y = 'Count'
                 y_label = 'Occurrence'
-                perc_labels=None
+                perc_labels='Perc'
                 fig_size = (12, 12)
 
             elif k == 'map_top10_mol':
@@ -1062,7 +1044,7 @@ if __name__ == '__main__':
                 x_label = 'Fragment ID'
                 y = 'Count'
                 y_label = 'Occurrence'
-                perc_labels=None
+                perc_labels='Perc'
                 fig_size = (12, 12)
 
             elif k == 'map_fc':
@@ -1073,7 +1055,7 @@ if __name__ == '__main__':
                 y = 'Count'
                 y_label = 'Occurrence'
                 perc_labels='Perc_FC'
-                fig_size = (12, 24)
+                fig_size = (24, 12)
             else:
                 continue
             logger.info(f"GENERATING PLOT FOR '{k}'")
@@ -1105,12 +1087,29 @@ if __name__ == '__main__':
     logger.info("=" * pad)
     try:
         subfolder_pnp = [str(x) for x in list(Path(wd).glob("data/*_pnp"))][0] + "/"
-        get_result_pnp(subfolder_pnp, wd + f"figures/{dataset}_pnp.csv")
+        output_csv = get_result_pnp(subfolder_pnp, wd + f"figures/{dataset}_pnp.csv")
+        output_png = output_csv.replace('.csv', '.png')
+        df = pd.read_csv(output_csv, sep='|')
+        df = df[df['Category'].str.contains('_mol')]
+        plot_type = 'barplot'
+        title = f"Number of Pseudo Natural Products (PNPs) in {dataset_label}"
+        x = 'Category'
+        x_label = 'Category'
+        y = 'Count'
+        y_label = 'Count'
+        perc_labels='Perc_PNP'
+        fig_size = (12, 12)
+        rotate_x  = 0
+        fig = save_barplot(df,
+                           output_png,
+                           x,
+                           y,
+                           title,
+                           x_label=x_label,
+                           y_label=y_label,
+                           color=color,
+                           perc_labels=perc_labels,
+                           rotate_x=rotate_x,
+                           fig_size=fig_size)
     except IndexError:
-        logger.info("NO PNP RESULTS TO CHECK")
-
-
-    # logger.info(f"PLOTTING RESULTS")
-    # figure = _getplot_1(df, 'Category', 'Count', f"Deglycosylation of {dataset_label}", x_label='Status', y_label='Count')
-    # if output_png is not None:
-    #     figure.savefig(output_png, dpi=600)
+        logger.info("ERROR OR NO PNP RESULTS TO CHECK")
