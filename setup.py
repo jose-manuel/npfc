@@ -43,7 +43,7 @@ setuptools.setup(
              'bin/fc_classify',
              'bin/fc_map',
              'bin/fmaps_annotate_pnp',
-             'bin/results_analyze',
+             'bin/report_protocol',
              'bin/run_protocol',
              'bin/peek_hdf',
              ],
