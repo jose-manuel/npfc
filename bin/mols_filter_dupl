@@ -58,6 +58,7 @@ def main():
     parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
 
     args = parser.parse_args()
+    d0 = datetime.now()
 
     # logging
 
