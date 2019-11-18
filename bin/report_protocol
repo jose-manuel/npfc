@@ -794,7 +794,7 @@ def get_result_pnp(WD: str, output_csv: str):
 if __name__ == '__main__':
 
     d0 = datetime.now()
-    
+
     parser = argparse.ArgumentParser(description="Compute all required files for analyzing FCC results", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('wd', type=str, default='./', help="Working directory from the job to analyse (root folder, where the smk file is)")
     parser.add_argument('-f', '--frags', type=str, default=None, help="Fragment file used for substructure search")
@@ -1134,4 +1134,4 @@ if __name__ == '__main__':
     # end
     d1 = datetime.now()
     logger.info("-- END OF REPORT")
-    logger.info("COMPUTATIONAL TIME: TOTAL".ljust(pad * 2) + f"{d1-d0}")
+    logger.info(f"COMPUTATIONAL TIME: {d1-d0}")
