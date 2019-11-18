@@ -1134,4 +1134,4 @@ if __name__ == '__main__':
     # end
     d1 = datetime.now()
     logger.info("-- END OF REPORT")
-    logger.info(f"COMPUTATIONAL TIME: {d1-d0}")
+    logger.info(f"COMPUTATIONAL TIME: {d1-d0:.2f} S")
