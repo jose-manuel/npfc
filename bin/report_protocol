@@ -793,6 +793,8 @@ def get_result_pnp(WD: str, output_csv: str):
 
 if __name__ == '__main__':
 
+    d0 = datetime.now()
+    
     parser = argparse.ArgumentParser(description="Compute all required files for analyzing FCC results", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('wd', type=str, default='./', help="Working directory from the job to analyse (root folder, where the smk file is)")
     parser.add_argument('-f', '--frags', type=str, default=None, help="Fragment file used for substructure search")
@@ -800,6 +802,7 @@ if __name__ == '__main__':
     parser.add_argument('-p', '--prefix', type=str, default=None, help="Prefix used for output files in the data/log folders.")
     parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
     args = parser.parse_args()
+
 
     # logging
     logger = utils._configure_logger(args.log)
