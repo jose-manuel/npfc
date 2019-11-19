@@ -851,7 +851,7 @@ if __name__ == '__main__':
         scenario = 'synthetic'
         if args.frags is None:
             raise ValueError(f"ERROR! FRAGS FILE SHOULD BE SPECIFIED FOR PROTOCOL '{scenario}'")
-        color = '#204F6A'
+        color = '#378EBF'
     else:
         scenario = 'unknown'
         color = '#000000'
