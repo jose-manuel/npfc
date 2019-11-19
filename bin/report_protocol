@@ -136,6 +136,7 @@ def check_chunks(WD: str):
     pattern = "1_input/data/*([0-9][0-9][0-9])?.sdf.gz"
     chunks_ini = [str(s).split("_")[-1].split(".")[0] for s in list(WD.glob(pattern))]
     num_chunks_ini = len(chunks_ini)
+    logger.info(f"NUMBER OF EXPECTED CHUNKS FOR EACH SUBSTEP: {num_chunks_ini}")
     # define what subfolders are to be checked
     subfolders = [str(d).split("/")[-1] for d in WD.iterdir() if d.is_dir() if str(d).split("/")[-1] not in ("0_raw", "1_input")]
 
@@ -617,9 +618,9 @@ def get_result_map(WD: str, output_csv: str, file_frags: str):
     df_idf_counts['Rank'] = df_idf_counts['Rank'].map(lambda x: x + 1)
     # display the corresponding fragments
     df_frags = load.file(file_frags).drop(['status', 'task', "status_deglyco", "_Name", "inchikey"], axis=1)
-    df_frags['idm'] = df_frags['idm'].astype(int)
-    df_idf_counts['idf'] = df_idf_counts['idf'].astype(int)
-    df_frags['idm'] = df_frags['idm'].astype(int)
+    df_frags['idm'] = df_frags['idm'].astype(str)
+    df_idf_counts['idf'] = df_idf_counts['idf'].astype(str)
+    df_frags['idm'] = df_frags['idm'].astype(str)
     df_idf_counts = df_idf_counts.merge(df_frags, left_on='idf', right_on='idm')
     df_idf_counts.index = range(len(df_idf_counts.index))
     # total of fragments
@@ -655,7 +656,8 @@ def get_result_map(WD: str, output_csv: str, file_frags: str):
     df_idf_counts.reset_index(inplace=True)
     df_idf_counts['Rank'] = df_idf_counts.index
     df_idf_counts['Rank'] = df_idf_counts['Rank'].map(lambda x: x + 1)
-    df_idf_counts['idf'] = df_idf_counts['idf'].astype(int)
+    df_idf_counts['idf'] = df_idf_counts['idf'].astype(str)
+    df_frags['idm'] = df_frags['idm'].astype(str)
     df_idf_counts = df_idf_counts.merge(df_frags, left_on='idf', right_on='idm')
     df_idf_counts.index = range(len(df_idf_counts.index))
     idf_counts_tot = df_idf_counts['Count'].sum()
@@ -684,22 +686,6 @@ def get_result_map(WD: str, output_csv: str, file_frags: str):
                   'cos', 'coe', 'cob', 'col',
                   ]
     df_map["comb"] = df_map["comb"].map(lambda x: json.loads(x.replace("'", '"')))
-
-    # # all combs found in all fragment maps  # misleading?
-    # ds_comb = []
-    # for i in range(len(df_map.index)):
-    #     d = dict(Counter(df_map.iloc[i]['comb']))
-    #     ds_comb.append(d)
-    # df_comb = pd.DataFrame(ds_comb, columns=categories).fillna(0)
-    # df_comb = pd.DataFrame(df_comb.apply(lambda x: pd.to_numeric(x, downcast='integer')).sum()).rename({0: "Count"}, axis=1)
-    # df_comb['Category'] = df_comb.index
-    # df_comb['Perc'] = df_comb['Count'].map(lambda x: round(x/df_comb['Count'].sum(), 4)*100)
-    # logger.info(f"MAP -- RESULTS -- FRAGMENT COMBINATIONS FOUND IN ALL FRAGMENT MAPS:\n\n{df_comb}\n")
-    # output_csv_counts_sub = output_csv_basename + "_map_fragcomb.csv"
-    # if compression is not None:
-    #     output_csv_counts_sub += ".gz"
-    # df_comb.to_csv(output_csv_counts_sub, sep="|", compression=compression, index=False)
-    # logger.info(f"MAP -- SAVED RESULTS AT '{output_csv_counts_sub}'")
 
     # all combs per molecule
     df_map_tmp = df_map[['idm', 'fmap_str', 'fmid']].copy()
@@ -859,13 +845,18 @@ if __name__ == '__main__':
     elif 'natural' in args.wd:
         scenario = 'natural'
         color = '#2CA02C'
+        if args.frags is None:
+            raise ValueError(f"ERROR! FRAGS FILE SHOULD BE SPECIFIED FOR PROTOCOL '{scenario}'")
     elif 'synthetic' in args.wd:
         scenario = 'synthetic'
+        if args.frags is None:
+            raise ValueError(f"ERROR! FRAGS FILE SHOULD BE SPECIFIED FOR PROTOCOL '{scenario}'")
         color = '#204F6A'
     else:
         scenario = 'unknown'
         color = '#000000'
     logger.info(f"SCENARIO IS '{scenario}', attributing color='{color}'")
+
 
     # missing chunks
 
@@ -908,7 +899,6 @@ if __name__ == '__main__':
             df_std = pd.read_csv(output_csv, sep='|')
             df_dupl = None
             df_load = None
-            rotate_x = 60
             if i == 0:
                 rotate_x = 0
                 tot_mols = df_std['Count'].sum()  # so % are computed based on
@@ -916,8 +906,12 @@ if __name__ == '__main__':
             elif i == 1:
                 title += ' - Passed'
                 total_passed = df_std['Count'].sum()
+                rotate_x=0
+
             elif i == 2:
                 title += ' - Filtered'
+                rotate_x = 60
+
                 subfolder_uni = [str(x) for x in list(Path(wd).glob("data/*_uni"))][0] + "/"
                 tmp_csv_uni = get_result_dupl(subfolder_uni, wd + f"figures/tmp_{dataset}_uni.csv")
                 df_dupl = pd.read_csv(tmp_csv_uni, sep='|')
@@ -938,6 +932,8 @@ if __name__ == '__main__':
                 logger.info(f"STD -- FINAL RESULTS FOR FILTERED:\n\n{df_std}\n")
             elif i == 3:
                 title += ' - Error'
+                rotate_x = 60
+
                 subfolder_load = [str(x) for x in list(Path(wd).glob("data/*_load"))][0] + "/"
                 tmp_csv_load = get_result_load(subfolder_load, wd + f"figures/tmp_{dataset}_load.csv")
                 df_load = pd.read_csv(tmp_csv_load, sep='|')
@@ -966,6 +962,7 @@ if __name__ == '__main__':
                 else:
                     df_std['Perc_status'] = 'NA'
                 logger.info(f"STD -- FINAL GENERAL RESULTS:\n\n{df_std}\n")
+                rotate_x=0
 
             if len(df_std) > 0:
                 fig = save_barplot(df_std, output_png, 'Category', 'Count', title, color=color, perc_labels='Perc_status', rotate_x=rotate_x)
@@ -1073,6 +1070,7 @@ if __name__ == '__main__':
                 y_label = 'Occurrence'
                 perc_labels='Perc_FC'
                 fig_size = (24, 12)
+
             else:
                 continue
             logger.info(f"GENERATING PLOT FOR '{k}'")
