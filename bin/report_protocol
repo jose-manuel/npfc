@@ -130,7 +130,7 @@ def check_chunks(WD: str):
     :return: True if no error was found, ValueError otherwise
     """
     # go inside data subfolder in WD
-    WD = Path(WD + "data")
+    WD = Path(WD + "/data")
 
     # initialize the references for comparing
     pattern = "1_input/data/*([0-9][0-9][0-9])?.sdf.gz"
@@ -162,26 +162,17 @@ def check_chunks(WD: str):
     return True
 
 
-def get_result_load(WD: str = None, output_csv: str = None):
-
-    logger.info("PLOT_RESULT_LOAD")
-
-    # go inside log subfolder in WD
-    WD_LOG = WD + "log"
-    logger.info("GENERAL RESULTS")
-    logger.info(f"WD={WD_LOG}")
-
-
+def get_df_load(WD: str):
+    if WD.endswith('/'):
+        WD = WD[0:-1]
+    logger.info("PARSE LOAD_MOLECULES RESULTS")
     # iterate over the log files to count status
     pattern = ".*([0-9]{3})?.log"
-    chunks = _get_chunks(WD_LOG, pattern)
+    chunks = _get_chunks(f"{WD}/log", pattern)
     logger.info(f"FOUND {len(chunks):,d} CHUNKS")
-
     # initiate counts
-    num_tot = 0
     num_passed = 0
     num_errors = 0
-
     for c in chunks:
         df = pd.read_csv(c, sep="@", header=None)  # char not found in the log file so we can extract all lines as one column
         records = df[df[0].str.contains("FAILURE")].iloc[0][0].split()
@@ -191,51 +182,25 @@ def get_result_load(WD: str = None, output_csv: str = None):
         logger.debug(f"{c} => PASSED: {passed}/{total} ({errors} ERRORS)")
         num_passed += passed
         num_errors += errors
-        num_tot += total
-
-    df = pd.DataFrame({"passed": [num_passed], "error": [num_errors]}).T.rename({0: "Count"}, axis=1)
-    df['Category'] = df.index
-    if num_tot > 0:
-        df['Perc_status'] = df['Count'].map(lambda x: f"{x/num_tot:.2%}")
-    else:
-        df['Perc_status'] = 'NA'
-    # display results
-    logger.info(f"RESULTS:\n\n{df}\n")
-
-    # export to csv
-    format, compression = utils.get_file_format(output_csv)
-    df.to_csv(output_csv, sep="|", compression=compression, index=False)
-    logger.info(f"SAVED RESULTS AT '{output_csv}'")
-
-    return output_csv
+    # create a dataframe with counts
+    df = pd.DataFrame({'Category': ['loaded', 'cannot_load'], 'Count': [num_passed, num_errors]})
+    return df
 
 
-def get_result_deglyco(WD: str = None, output_csv: str = None):
-    """This functions computes the CSV/PNG files for checking on the status of the deglycosylation.
-    The WD is the subfolder of the deglycosylation (3_deglyco) and is used in case the df param is not specified.
-    Since the job is executed by a KNIME workflow, I used a csv file to store the smiles alongside
-    the status of the molecule.
-    """
-    logger.info("PLOT_RESULT_DEGLYCO")
-
-    logger.info("COMPUTING DF_DEGLYCO FROM WD")
-
-    # go inside log subfolder in WD
+def get_df_deglyco(WD: str):
+    if WD.endswith('/'):
+        WD = WD[0:-1]
+    logger.info("PARSE DEGLYCO RESULTS")
+    # iterate over the log files to count status
     pattern = ".*([0-9]{3})?_deglyco\.csv"
-    WD += "log"
-    logger.info(f"WD={WD}")
-
-    chunks = _get_chunks(WD, pattern)
-    chunks.sort()
+    chunks = _get_chunks(f"{WD}/log", pattern)
     logger.info(f"FOUND {len(chunks):,d} CHUNKS")
-
     # initiate counts
     num_tot = 0
     num_unchanged = 0
     num_deglycosylated = 0
     num_failed = 0
     num_error = 0
-
     # count status
     for c in chunks:
         df = pd.read_csv(c, sep="|")
@@ -244,24 +209,131 @@ def get_result_deglyco(WD: str = None, output_csv: str = None):
         num_deglycosylated += len(df[df['status'] == 'deglycosylated'].index)
         num_failed += len(df[df['status'] == 'failed'].index)
         num_error += len(df[df['status'] == 'error'].index)
-
-    logger.info(f"TOTAL NUMBER OF MOLECULES: {num_tot:,d}")
     # create a dataframe with counts
-    df = pd.DataFrame({"deglycosylated": [num_deglycosylated], "unchanged": [num_unchanged], "failed": [num_failed], 'error': [num_error]}).T.rename({0: "Count"}, axis=1)
-    df['Category'] = df.index
-    df['Perc_status'] = df['Count'].map(lambda x: f"{x/num_tot:.2%}")
+    df = pd.DataFrame({'Category': ['deglycosylated', 'unchanged', 'failed', 'error'], 'Count': [num_deglycosylated, num_unchanged, num_failed, num_error]})
+    return df
 
-    logger.info(f"RESULTS:\n\n{df}\n")
-    # export to csv
-    if output_csv is not None:
-        format, compression = utils.get_file_format(output_csv)
-        df.to_csv(output_csv, sep="|", compression=compression, index=False)
-        logger.info(f"SAVED RESULTS AT '{output_csv}'")
+def get_df_std_passed(WD: str):
+    logger.info("PARSE STD PASSED RESULTS")
+    # iterate over the log files to count status
+    pattern = ".*([0-9]{3})?_passed\.csv.gz"
+    chunks = _get_chunks(f"{WD}/data", pattern)
+    logger.info(f"FOUND {len(chunks):,d} CHUNKS")
+    # initiate counts
+    num_passed = 0
+    for c in chunks:
+        df = pd.read_csv(c, sep="|")
+        num_passed += len(df.index)
+    df = pd.DataFrame({"Category": ['passed'], 'Count': [num_passed]})
+    return df
 
-    return output_csv
+def get_df_std_filtered(WD: str):
+    logger.info("PARSE STD FILTERED RESULTS")
+    # iterate over the log files to count status
+    pattern = ".*([0-9]{3})?_filtered\.csv.gz"
+    chunks = _get_chunks(f"{WD}/data", pattern)
+    logger.info(f"FOUND {len(chunks):,d} CHUNKS")
+    # initiate counts
+    df = _parse_std_chunks(chunks)
+    return df
 
 
-def _parse_std_chunks(chunks, tot_mols):
+def get_df_std_error(WD: str):
+    logger.info("PARSE STD ERROR RESULTS")
+    # iterate over the log files to count status
+    pattern = ".*([0-9]{3})?_error\.csv.gz"
+    chunks = _get_chunks(f"{WD}/data", pattern)
+    logger.info(f"FOUND {len(chunks):,d} CHUNKS")
+    # initiate counts
+    df = _parse_std_chunks(chunks)
+    return df
+
+
+def get_df_dedupl(WD: str):
+    logger.info("PARSE DEDUPL RESULTS")
+    # iterate over the log files to count status
+    pattern = ".*([0-9]{3})?_uni\.log"
+    chunks = _get_chunks(f"{WD}/log", pattern)
+    logger.info(f"FOUND {len(chunks):,d} CHUNKS")
+    # initiate counts
+    num_tot = 0
+    num_passed = 0
+    num_filtered = 0
+    for c in chunks:
+        df = pd.read_csv(c, sep="@", header=None)  # char not found in the log file so we can extract all lines as one column
+        passed, total = [int(x) for x in df[df[0].str.contains("REMAINING MOLECULES")].iloc[0][0].split("MOLECULES:")[1].split("/")]
+        num_passed += passed
+        num_filtered += total - passed
+        num_tot += total
+    # create a dataframe with counts
+    df = pd.DataFrame({'Category': ['unique', 'duplicate'], 'Count': [num_passed, num_filtered]})
+    return df
+
+
+def get_results_preprocess(WD_LOAD: str, WD_DEGLYCO: str, WD_STD: str, WD_DEDUPL: str):
+
+    logger.info("GET_RESULT_PREPROCESS")
+
+    # get dfs
+
+    df_load = get_df_load(WD_LOAD)
+    df_deglyco = get_df_deglyco(WD_DEGLYCO)
+    df_std_passed = get_df_std_passed(WD_STD)
+    df_std_filtered = get_df_std_filtered(WD_STD)
+    df_std_error = get_df_std_error(WD_STD)
+    df_dedupl = get_df_dedupl(WD_DEDUPL)
+
+    logger.info(f"RESULTS FOR LOAD:\n\n{df_load}\n")
+    logger.info(f"RESULTS FOR DEGL:\n\n{df_deglyco}\n")
+    logger.info(f"RESULTS FOR STD_FILTERED:\n\n{df_std_filtered}\n")
+    logger.info(f"RESULTS FOR STD_ERROR:\n\n{df_std_error}\n")
+    logger.info(f"RESULTS FOR DEDUPL:\n\n{df_dedupl}\n")
+
+    # get total of molecules in input
+    num_mols_tot = df_load['Count'].sum()
+    # count not loaded molecules as well in deglyco
+    num_mols_deglyco_na = len(df_load[df_load['Category'] == 'cannot_load'].index)
+    df_deglyco = pd.concat([df_deglyco, pd.DataFrame({'Category': ['NA'], 'Count': [num_mols_deglyco_na]})])
+    df_deglyco.reset_index(inplace=True)
+    df_deglyco['Count'] = df_deglyco['Count'].astype(int)
+    df_deglyco['Perc_Status'] = df_deglyco['Count'].map(lambda x: f"{x/num_mols_tot:.2%}")
+    logger.info(f"RESULTS FOR DEGLYCOSYLATION:\n\n{df_deglyco}\n")
+    # gather all filtered molecules
+    df_dedupl_dupl = df_dedupl[df_dedupl['Category'] == 'duplicate']
+    num_dedupl_dupl = df_dedupl_dupl['Count'].sum()
+    df_std_filtered = pd.concat([df_std_filtered, df_dedupl_dupl], sort=True)
+    # count even unoccurred cases in df_std_filtered
+    filters = ['empty', 'hac', 'molweight', 'nrings', 'medchem', 'timeout', 'duplicate']
+    df_std_filtered.set_index('Category', inplace=True)
+    df_std_filtered = df_std_filtered.reindex(filters)
+    df_std_filtered.reset_index(inplace=True)
+    df_std_filtered.fillna(0, inplace=True)
+    df_std_filtered['Count'] = df_std_filtered['Count'].astype(int)
+    df_std_filtered['Perc_Status'] = df_std_filtered['Count'].map(lambda x: f"{x/num_mols_tot:.2%}")
+    logger.info(f"RESULTS FOR STD_FILTERED:\n\n{df_std_filtered}\n")
+    # gather all molecules that raised an error
+    df_std_error = pd.concat([df_std_error, df_load[df_load['Category'] == 'cannot_load']], sort=True)
+    # count even unoccurred cases in df_std_error
+    errors = ['cannot_load', 'initiate_mol', 'disconnect_metal', 'sanitize', 'remove_isotopes', 'normalize', 'uncharge', 'canonicalize', 'remove_stereo']
+    df_std_error.set_index('Category', inplace=True)
+    df_std_error = df_std_error.reindex(errors)
+    df_std_error.reset_index(inplace=True)
+    df_std_error.fillna(0, inplace=True)
+    df_std_error['Count'] = df_std_error['Count'].astype(int)
+    df_std_error['Perc_Status'] = df_std_error['Count'].map(lambda x: f"{x/num_mols_tot:.2%}")
+    logger.info(f"RESULTS FOR STD_ERRORS:\n\n{df_std_error}\n")
+    # general count for passed/filtered/errors
+    num_tot_filtered = df_std_filtered['Count'].sum()
+    num_tot_passed = df_std_passed['Count'].sum() - num_dedupl_dupl  # dedupl happens after std, so std contains passsed mols that get filtered
+    num_tot_errors = df_std_error['Count'].sum()
+    df_std_all = pd.DataFrame({'Category': ['passed', 'filtered', 'errors'], 'Count': [num_tot_passed, num_tot_filtered, num_tot_errors]})
+    df_std_all['Perc_Status'] = df_std_all['Count'].map(lambda x: f"{x/num_mols_tot:.2%}")
+    logger.info(f"RESULTS FOR STD_ALL:\n\n{df_std_all}\n")
+
+    return (df_deglyco, df_std_filtered, df_std_error, df_std_all)
+
+
+def _parse_std_chunks(chunks):
     dfs = []
     for c in chunks:
         df = pd.read_csv(c, sep="|", compression="gzip").groupby("task").count()[['status']].rename({'status': 'Count'}, axis=1)
@@ -270,7 +342,7 @@ def _parse_std_chunks(chunks, tot_mols):
 
     # if no case was found, return an empty dataframe
     if len(dfs) == 0:
-        df = pd.DataFrame([], columns=["Count", "Category", "Perc_status"])
+        df = pd.DataFrame([], columns=["Count", "Category"])
         return df
 
     # concatenate all dataframes and compute the sum of all counts
@@ -278,155 +350,10 @@ def _parse_std_chunks(chunks, tot_mols):
     df["Category"] = df.index  # I don't know how to group by index!
     df = df.groupby("Category").sum()
     df["Category"] = df.index.map(lambda x: x.replace('filter_', ''))
-    df['Perc_status'] = df['Count'].map(lambda x: f"{x/tot_mols:.2%}")
+    # df['Perc_status'] = df['Count'].map(lambda x: f"{x/tot_mols:.2%}")
 
     return df
 
-
-def get_result_std(WD: str = None, output_csv: str = None):
-    """This functions computes the CSV file for checking on the status of the standardization.
-    The WD is the subfolder of the standardization (4_std) and it uses the log files for counting
-    status.
-
-    .. note:: this function only creates temporary files that serve as input for producing files taking into account other steps as well (load for errors and dupl for filtered: sometimes less is more for barplots)
-    """
-    logger.info("PLOT_RESULT_STD")
-    logger.info("COMPUTING TEMPORARY FILES USING ONLY THE STD STEP. THESE FILES WILL BE UPDATED LATER ON USING OTHER STEPS AS WELL.")
-
-    # go inside log subfolder in WD_STD
-    WD_LOG = WD + "log"
-    logger.info("TEMP GENERAL RESULTS")
-    logger.info(f"WD={WD_LOG}")
-
-    pattern = ".*([0-9]{3})?_std\.log"
-    # iterate over the log files to count status
-    chunks = _get_chunks(WD_LOG, pattern)
-    chunks.sort()
-    logger.info(f"FOUND {len(chunks):,d} CHUNKS")
-
-    # initiate counts
-    num_tot = 0
-    num_passed = 0
-    num_filtered = 0
-    num_error = 0
-
-    for c in chunks:
-        df = pd.read_csv(c, sep="@", header=None)  # char not found in the log file so we can extract all lines as one column
-        passed, filtered, error = [int(x) for x in df[df[0].str.contains("COUNT")].iloc[0][0].split()[-3:]]
-        num_passed += passed
-        num_filtered += filtered
-        num_error += error
-        num_tot += passed + filtered + error
-
-    df = pd.DataFrame({"passed": [num_passed], "filtered": [num_filtered], "error": [num_error]}).T.rename({0: "Count"}, axis=1)
-    df['Category'] = df.index
-    df['Perc_status'] = df['Count'].map(lambda x: f"{x/num_tot:.2%}")
-
-    # display results
-    logger.info(f"TEMP RESULTS:\n\n{df}\n")
-
-    # export to csv
-    if output_csv is not None:
-        format, compression = utils.get_file_format(output_csv)
-        df.to_csv(output_csv, sep="|", compression=compression, index=False)
-        logger.info(f"SAVED RESULTS AT '{output_csv}'")
-
-    # details
-
-    # go inside data subfolder in WD
-    WD_DATA = WD + "data"
-    logger.info("DETAILED TEMP RESULTS")
-    logger.info(f"WD={WD_DATA}")
-
-    # passed
-    logger.info("PASSED")
-    perc_passed = f"{num_passed/num_tot:.2%}"
-    df_passed = pd.DataFrame([[num_passed, "standardized", perc_passed]], columns=["Count", "Category", "Perc_status"])
-    logger.info(f"TEMP RESULTS:\n\n{df_passed}\n")
-
-    output_csv_passed = output_csv.split(".")[0] + "_passed.csv"
-    if compression is not None:
-        output_csv_passed += ".gz"
-    df_passed.to_csv(output_csv_passed, sep="|", compression=compression, index=False)
-    logger.info(f"SAVED RESULTS AT '{output_csv_passed}'")
-
-    # filtered
-    logger.info("FILTERED")
-    pattern = ".*([0-9]{3})?_filtered\.csv\.gz"
-    # iterate over the log files to count status
-    chunks = _get_chunks(WD_DATA, pattern)
-    df_filtered = _parse_std_chunks(chunks, num_tot)
-    logger.info(f"TEMP RESULTS:\n\n{df_filtered}\n")
-
-    output_csv_filtered = output_csv.split(".")[0] + "_filtered.csv"
-    if compression is not None:
-        output_csv_filtered += ".gz"
-    df_filtered.to_csv(output_csv_filtered, sep="|", compression=compression, index=False)
-    logger.info(f"SAVED RESULTS AT '{output_csv_filtered}'")
-
-    # error
-    logger.info("ERROR")
-    pattern = ".*([0-9]{3})?_error\.csv\.gz"
-    chunks = _get_chunks(WD_DATA, pattern)
-    df_error = _parse_std_chunks(chunks, num_tot)
-    logger.info(f"TEMP RESULTS:\n\n{df_error}\n")
-
-    output_csv_error = output_csv.split(".")[0] + "_error.csv"
-    if compression is not None:
-        output_csv_error += ".gz"
-    df_error.to_csv(output_csv_error, sep="|", compression=compression, index=False)
-    logger.info(f"SAVED RESULTS AT '{output_csv_error}'")
-
-
-    return {'std': output_csv,
-            'std_passed': output_csv_passed,
-            'std_filtered': output_csv_filtered,
-            'std_error': output_csv_error,
-            }
-
-
-def get_result_dupl(WD: str, output_csv: str):
-
-    logger.info("PLOT_RESULT_DUPL")
-
-    # go inside log subfolder in WD
-    WD_LOG = WD + "log"
-    logger.info("GENERAL RESULTS")
-    logger.info(f"WD={WD_LOG}")
-
-
-    # iterate over the log files to count status
-    pattern = ".*([0-9]{3})?_uni\.log"
-    chunks = _get_chunks(WD_LOG, pattern)
-    logger.info(f"FOUND {len(chunks):,d} CHUNKS")
-
-    # initiate counts
-    num_tot = 0
-    num_passed = 0
-    num_filtered = 0
-
-    for c in chunks:
-        df = pd.read_csv(c, sep="@", header=None)  # char not found in the log file so we can extract all lines as one column
-        passed, total = [int(x) for x in df[df[0].str.contains("REMAINING MOLECULES")].iloc[0][0].split("MOLECULES:")[1].split("/")]
-        num_passed += passed
-        num_filtered += total - passed
-        num_tot += total
-
-    df = pd.DataFrame({"passed": [num_passed], "filtered": [num_filtered]}).T.rename({0: "Count"}, axis=1)
-    df['Category'] = df.index
-    if num_tot > 0:
-        df['Perc_status'] = df['Count'].map(lambda x: f"{x/num_tot:.2%}")
-    else:
-        df['Perc_status'] = 'NA'
-    # display results
-    logger.info(f"RESULTS:\n\n{df}\n")
-
-    # export to csv
-    format, compression = utils.get_file_format(output_csv)
-    df.to_csv(output_csv, sep="|", compression=compression, index=False)
-    logger.info(f"SAVED RESULTS AT '{output_csv}'")
-
-    return output_csv
 
 def get_result_map(WD: str, output_csv: str, file_frags: str):
     logger.info("PLOT_RESULT_MAP")
@@ -562,8 +489,23 @@ def get_result_map(WD: str, output_csv: str, file_frags: str):
     df_sub_counts = df_map_mol.groupby('nfrags_u').count()[['idm']].rename({'idm': 'NumMols'}, axis=1)
     df_sub_counts.reset_index(inplace=True)
     df_sub_counts.rename({"nfrags_u": "NumUniqueFrags"}, axis=1, inplace=True)
+    df_sub_counts.sort_values('NumUniqueFrags', inplace=True)
+
+    # add n = 1
+    if df_sub_counts.iloc[0]['NumUniqueFrags'] == 1:
+        df_sub_counts.iloc[0]['NumMols']  += num_mol_eq1_sub  # increment unique counts of frags with count of mols that had only 1 frag and got discarded
+    elif df_sub_counts.iloc[0]['NumUniqueFrags'] > 1:
+        df_sub_counts_lt2_unique = DataFrame({'NumUniqueFrags': [1], 'NumMols': [num_mol_eq1_sub]})
+        df_sub_counts = pd.concat([df_sub_counts_lt2_unique, df_sub_counts])
+    else:
+        logger.error(f"ERROR! COUNT IS NEITHER 1 OR >1... THIS SHOULD NOT HAPPEN!!!")
+
+    # add n = 0
+    df_sub_counts_lt2_unique = DataFrame({'NumUniqueFrags': [0], 'NumMols': [num_mol_eq0_sub]})
     df_sub_counts = pd.concat([df_sub_counts_lt2_unique, df_sub_counts])
     df_sub_counts.reset_index(inplace=True)
+
+    # process the whole
     num_tot = df_sub_counts['NumMols'].sum()
     df_sub_counts['Perc_Mols'] = df_sub_counts['NumMols'].map(lambda x: f"{x/num_tot:.2%}")
     logger.info(f"MAP -- RESULTS -- NUMBER OF UNIQUE FRAGMENTS FOUND PER MOLECULE:\n\n{df_sub_counts}\n")
@@ -777,6 +719,10 @@ def get_result_pnp(WD: str, output_csv: str):
     logger.info(f"SAVED RESULTS AT '{output_csv}'")
     return output_csv
 
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ BEGIN ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
 if __name__ == '__main__':
 
     d0 = datetime.now()
@@ -815,14 +761,14 @@ if __name__ == '__main__':
     if not p_wd.exists():
         raise ValueError(f"ERROR! WD COULD NOT BE FOUND AT '{args.wd}'")
     wd = str(p_wd.resolve())
-    if not wd.endswith("/"):
-        wd += "/"
-    p = Path(wd + "figures")
+    if wd.endswith("/"):
+        wd = wd[0:-1]
+    p = Path(f"{wd}/figures")
     if not p.is_dir():
-        logger.warning(f"WARNING! OUTPUT SUBFOLDER MISSING, SO CREATING IT AT: {wd + 'figures'}")
+        logger.warning(f"WARNING! OUTPUT SUBFOLDER MISSING, SO CREATING IT AT: {wd + '/figures'}")
         p.mkdir(parents=True)
     else:
-        logger.info(f"OUTPUT SUBFOLDER LOCATED AT: {wd + 'figures'}")
+        logger.info(f"OUTPUT SUBFOLDER LOCATED AT: {wd + '/figures'}")
 
     dataset = str(Path(wd).resolve(strict=True)).split('/')[-1]
     logger.info(f"DATASET='{dataset}'")
@@ -852,13 +798,17 @@ if __name__ == '__main__':
         if args.frags is None:
             raise ValueError(f"ERROR! FRAGS FILE SHOULD BE SPECIFIED FOR PROTOCOL '{scenario}'")
         color = '#378EBF'
+    elif 'other' in args.wd:
+        scenario='other'
+        color='#EB5763'
     else:
         scenario = 'unknown'
         color = '#000000'
     logger.info(f"SCENARIO IS '{scenario}', attributing color='{color}'")
 
 
-    # missing chunks
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ MISSING CHUNKS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
 
     logger.info("=" * pad)
     logger.info("CHECKING FOR MISSING CHUNKS".center(pad))
@@ -866,121 +816,91 @@ if __name__ == '__main__':
     if check_chunks(wd):
         logger.info("ALL EXPECTED CHUNKS WERE FOUND!")
 
-    # deglycosylation
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ PREPROCESSING ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
 
     logger.info("=" * pad)
-    logger.info("CHECKING RESULTS FROM DEGLYCOSYLATION".center(pad))
+    logger.info("CHECKING RESULTS FROM PREPROCESSING".center(pad))
     logger.info("=" * pad)
-    try:
-        subfolder_deglyco = [str(x) for x in list(Path(wd).glob("data/*_deglyco"))][0] + "/"
-        output_csv = get_result_deglyco(WD=subfolder_deglyco, output_csv=wd + f"figures/{dataset}_deglyco.csv")
-        output_png = output_csv.replace('.csv', '.png')
-        title = f"Deglycosylation of {dataset_label}"
-        df = pd.read_csv(output_csv, sep='|')
-        fig = save_barplot(df, output_png, 'Category', 'Count', title, color=color, perc_labels='Perc_status')
-    except IndexError:
-        logger.info("NO DEGLYCOSYLATION RESULTS TO CHECK")
 
-    # standardization
+    # defined WD folders
+    subfolder_load = [str(x) for x in list(Path(wd).glob("data/*_load"))][0]
+    subfolder_deglyco = [str(x) for x in list(Path(wd).glob("data/*_deglyco"))][0]
+    subfolder_std = [str(x) for x in list(Path(wd).glob("data/*_std"))][0]
+    subfolder_dedupl = [str(x) for x in list(Path(wd).glob("data/*_uni"))][0]
 
-    logger.info("=" * pad)
-    logger.info("CHECKING RESULTS FROM STANDARDIZATION".center(pad))
-    logger.info("=" * pad)
-    try:
-        subfolder_std = [str(x) for x in list(Path(wd).glob("data/*_std"))][0] + "/"
-        output_csvs = get_result_std(WD=subfolder_std, output_csv=wd + f"figures/{dataset}_std.csv")
-        keys = ['std', 'std_passed', 'std_filtered', 'std_error', 'std']  # I know this is very confusing, but I am in a hurry at the moment. I need the total count for detailed counts, but I also need to update the std using the detailed counts. This is a mess and I am sorry.
-        tot_mols = None
-        for i, k in enumerate(keys):
-            # try:
-            output_csv = output_csvs[k]
-            output_png = output_csv.replace('.csv', '.png')
-            title = f"Standardization of {dataset_label}"
-            df_std = pd.read_csv(output_csv, sep='|')
-            df_dupl = None
-            df_load = None
-            if i == 0:
-                rotate_x = 0
-                tot_mols = df_std['Count'].sum()  # so % are computed based on
-                continue  # compute plot later only!
-            elif i == 1:
-                title += ' - Passed'
-                total_passed = df_std['Count'].sum()
-                rotate_x=0
+    # define output csv files
+    output_csv_deglyco = f"{wd}/figures/{dataset}_pre_deglyco.csv"
+    output_csv_std_filtered = f"{wd}/figures/{dataset}_pre_std_filtered.csv"
+    output_csv_std_error = f"{wd}/figures/{dataset}_prep_std_error.csv"
+    output_csv_std_all = f"{wd}/figures/{dataset}_pre_std_all.csv"
 
-            elif i == 2:
-                title += ' - Filtered'
-                rotate_x = 60
+    # define output png files
+    output_png_deglyco = output_csv_deglyco.replace('.csv', '.png')
+    output_png_std_filtered = output_csv_std_filtered.replace('.csv', '.png')
+    output_png_std_error = output_csv_std_error.replace('.csv', '.png')
+    output_png_std_all = output_csv_std_all.replace('.csv', '.png')
 
-                subfolder_uni = [str(x) for x in list(Path(wd).glob("data/*_uni"))][0] + "/"
-                tmp_csv_uni = get_result_dupl(subfolder_uni, wd + f"figures/tmp_{dataset}_uni.csv")
-                df_dupl = pd.read_csv(tmp_csv_uni, sep='|')
-                df_dupl = df_dupl[df_dupl['Category'] == 'filtered']
-                # concat both
-                if len(df_dupl.index) > 0:
-                    df_std = pd.concat([df_std, df_dupl])
-                df_std.drop('Perc_status', axis=1, inplace=True)
-                # sort by order of filter
-                filters = ['empty', 'hac', 'molweight', 'nrings', 'medchem', 'timeout', 'duplicate']
-                df_std.set_index('Category', inplace=True)
-                df_std = df_std.reindex(filters)
-                df_std.reset_index(inplace=True)
-                df_std.fillna(0, inplace=True)
-                df_std['Perc_status'] = df_std['Count'].map(lambda x: f"{x/tot_mols:.2%}")
-                total_filtered = df_std['Count'].sum()
-                df_std.to_csv(output_csv, sep='|', index=False)  # this is confusing!!! Adding the missing categories should be done right at the beginning? same for df_std_error
-                logger.info(f"STD -- FINAL RESULTS FOR FILTERED:\n\n{df_std}\n")
-            elif i == 3:
-                title += ' - Error'
-                rotate_x = 60
+    # get dfs
+    df_deglyco, df_std_filtered, df_std_error, df_std_all = get_results_preprocess(subfolder_load, subfolder_deglyco, subfolder_std, subfolder_dedupl)
 
-                subfolder_load = [str(x) for x in list(Path(wd).glob("data/*_load"))][0] + "/"
-                tmp_csv_load = get_result_load(subfolder_load, wd + f"figures/tmp_{dataset}_load.csv")
-                df_load = pd.read_csv(tmp_csv_load, sep='|')
-                df_load = df_load[df_load['Category'] == 'error']
-                df_load.replace({'error': 'load_mol'}, inplace=True)
-                if len(df_load.index) > 0:
-                    df_std = pd.concat([df_std, df_load])
-                df_std.drop('Perc_status', axis=1, inplace=True)
-                # sort by order of errors
-                errors = ['load_mol', 'initiate_mol', 'disconnect_metal', 'sanitize', 'remove_isotopes', 'normalize', 'uncharge', 'canonicalize', 'remove_stereo']
-                df_std.set_index('Category', inplace=True)
-                df_std = df_std.reindex(errors)
-                df_std.reset_index(inplace=True)
-                df_std.fillna(0, inplace=True)
-                df_std['Perc_status'] = df_std['Count'].map(lambda x: f"{x/tot_mols:.2%}")
-                total_errors = df_std['Count'].sum()
-                df_std.to_csv(output_csv, sep='|', index=False)
-                logger.info(f"STD -- FINAL RESULTS FOR ERROR:\n\n{df_std}\n")
-            elif i == 4:
-                df_std = DataFrame({"passed": [total_passed], "filtered": [total_filtered], "error": [total_errors]}).T.rename({0: "Count"}, axis=1)
-                df_std['Category'] = df_std.index
-                df_std.reset_index(inplace=True, drop=True)
-                num_tot = df_std['Count'].sum()
-                if num_tot > 0:
-                    df_std['Perc_status'] = df_std['Count'].map(lambda x: f"{x/num_tot:.2%}")
-                else:
-                    df_std['Perc_status'] = 'NA'
-                logger.info(f"STD -- FINAL GENERAL RESULTS:\n\n{df_std}\n")
-                rotate_x=0
+    # exporting dfs to csv files
+    df_deglyco.to_csv(output_csv_deglyco, sep='|')
+    df_std_filtered.to_csv(output_csv_std_filtered, sep='|')
+    df_std_error.to_csv(output_csv_std_error, sep='|')
+    df_std_all.to_csv(output_csv_std_all, sep='|')
 
-            if len(df_std) > 0:
-                fig = save_barplot(df_std, output_png, 'Category', 'Count', title, color=color, perc_labels='Perc_status', rotate_x=rotate_x)
-            else:
-                logger.error("DF_STD IS EMPTY! NO FIGURE COULD BE PRINTED")
-            # except ValueError:
-            #     logger.error(f"Could not compute plot for key={k}")
-    except IndexError:
-        logger.error("NO STANDARDIZATION RESULTS TO CHECK")
+    # computing png plots
+    logger.info(f"GENERATING PLOT '{output_png_deglyco}'")
+    save_barplot(df_deglyco,
+                 output_png_deglyco,
+                 'Category',
+                 'Count',
+                 f"Deglycosylation of {dataset_label}",
+                 color=color,
+                 perc_labels='Perc_Status',
+                 )
+    logger.info(f"GENERATING PLOT '{output_png_std_filtered}'")
+    save_barplot(df_std_filtered,
+                 output_png_std_filtered,
+                 'Category',
+                 'Count',
+                 f"Preprocessing of {dataset_label} - Filtered",
+                 color=color,
+                 perc_labels='Perc_Status',
+                 rotate_x=60,
+                 )
+    logger.info(f"GENERATING PLOT '{output_png_std_error}'")
+    save_barplot(df_std_error,
+                 output_png_std_error,
+                 'Category',
+                 'Count',
+                 f"Preprocessing of {dataset_label} - Errors",
+                 color=color,
+                 perc_labels='Perc_Status',
+                 rotate_x=60,
+                 )
+    logger.info(f"GENERATING PLOT '{output_png_std_all}'")
+    save_barplot(df_std_all,
+                 output_png_std_all,
+                 'Category',
+                 'Count',
+                 f"Preprocessing of {dataset_label} - Overview",
+                 color=color,
+                 perc_labels='Perc_Status',
+                 )
 
-    # mapping
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ MAPPING ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
 
     logger.info("=" * pad)
     logger.info("CHECKING RESULTS FROM MAPPING".center(pad))
     logger.info("=" * pad)
     output_csvs = None
     try:
-        output_csvs = get_result_map(wd, wd + f"figures/{dataset}.csv", args.frags)
+        output_csvs = get_result_map(wd, f"{wd}/figures/{dataset}.csv", args.frags)
     except IndexError:
         logger.info("NO MAP RESULTS TO CHECK")
 
@@ -1073,7 +993,7 @@ if __name__ == '__main__':
 
             else:
                 continue
-            logger.info(f"GENERATING PLOT FOR '{k}'")
+            logger.info(f"GENERATING PLOT '{k}'")
             if plot_type == 'barplot':
                 fig = save_barplot(df,
                                    output_png,
@@ -1129,7 +1049,10 @@ if __name__ == '__main__':
     except IndexError:
         logger.info("ERROR OR NO PNP RESULTS TO CHECK")
 
-    # end
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ END ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
     d1 = datetime.now()
     logger.info("-- END OF REPORT")
     time_d = d1-d0
