@@ -35,7 +35,7 @@ def main():
     from the ChEMBL database.
 
     Preprocessing consists in:
-        1. labelling activities into active (1) or inactive (0) based on rules
+        1. labelling activities into active (1), maybe (0.5) or inactive (0) based on rules
         2. updating idms from activity file with kept_idm from ref-uni/dir-log-uni.
            This is so that filtered idms linked with activity are not lost when merging
            activity with unique molecule idms.

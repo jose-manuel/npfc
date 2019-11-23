@@ -365,6 +365,41 @@ def get_result_map(WD: str, output_csv: str, file_frags: str):
     output_csv_basename = output_csv.split(".csv")[0]
     logger.info(f"OUTPUTS BASENAME: {output_csv_basename}")
 
+    # all outputs
+    output_csv_map_frag_fm = output_csv_basename + "_map_frag_fm.csv"
+    output_csv_map_frag_fm_u = output_csv_basename + "_map_frag_fm_u.csv"
+    output_csv_map_frag_mol = output_csv_basename + "_map_frag_mol.csv"
+    output_csv_map_frag_mol_u = output_csv_basename + "_map_frag_mol_u.csv"
+    output_csv_map_perc_frag_cov_mol = output_csv_basename + "_map_perc_frag_cov_mol.csv"
+    output_csv_map_perc_frag_cov_mol_grouped = output_csv_basename + "_map_perc_frag_cov_mol_grouped.csv"
+    output_csv_map_top10_mol_u = output_csv_basename + "_map_top10_mol_u.csv"
+    output_csv_map_top10_mol = output_csv_basename + "_map_top10_mol.csv"
+    output_csv_map_fc = output_csv_basename + "_map_fc.csv"
+
+    # if all outputs are already available, skip this step
+    if all([Path(f).exists() for f in [output_csv_map_frag_fm,
+                             output_csv_map_frag_fm_u,
+                             output_csv_map_frag_mol,
+                             output_csv_map_frag_mol_u,
+                             output_csv_map_perc_frag_cov_mol,
+                             output_csv_map_perc_frag_cov_mol_grouped,
+                             output_csv_map_top10_mol_u,
+                             output_csv_map_top10_mol,
+                             output_csv_map_fc,
+                             ]]):
+
+        logger.warning("OUTPUT CSV FILES ALREADY AVAILABLE, SKIPPING PROCESSING LOGS")
+        return {'map_frag_fm': output_csv_map_frag_fm,
+                'map_frag_fm_u': output_csv_map_frag_fm_u,
+                'map_frag_mol': output_csv_map_frag_mol,
+                'map_frag_mol_u': output_csv_map_frag_mol_u,
+                'map_perc_frag_cov_mol': output_csv_map_perc_frag_cov_mol,
+                'map_perc_frag_cov_mol_grouped': output_csv_map_perc_frag_cov_mol_grouped,
+                'map_top10_mol_u': output_csv_map_top10_mol_u,
+                'map_top10_mol': output_csv_map_top10_mol,
+                'map_fc': output_csv_map_fc,
+                }
+
     # parse std results (num_mol_tot_std)
     logger.info("SYNTH -- COMPUTING TOTAL NUMBER OF MOLECULES BEFORE SUBSTRUCTURE SEARCH")
     chunks = list(p.glob("data/*_synth/data/*[0-9][0-9][0-9]_synth.csv.gz"))
@@ -441,9 +476,6 @@ def get_result_map(WD: str, output_csv: str, file_frags: str):
     num_tot = df_sub_counts['NumFragmentMaps'].sum()
     df_sub_counts['Perc_FM'] = df_sub_counts['NumFragmentMaps'].map(lambda x: f"{x/num_tot:.2%}")
     logger.info(f"MAP -- RESULTS -- NUMBER OF FRAGMENTS FOUND PER FRAGMENT MAP:\n\n{df_sub_counts}\n")
-    output_csv_map_frag_fm = output_csv_basename + "_map_frag_fm.csv"
-    if compression is not None:
-        output_csv_map_frag_fm += ".gz"
     df_sub_counts.to_csv(output_csv_map_frag_fm, sep="|", compression=compression, index=False)
     logger.info(f"MAP -- SAVED RESULTS AT '{output_csv_map_frag_fm}'")
 
@@ -454,9 +486,6 @@ def get_result_map(WD: str, output_csv: str, file_frags: str):
     num_tot = df_sub_counts['NumFragmentMaps'].sum()
     df_sub_counts['Perc_FM'] = df_sub_counts['NumFragmentMaps'].map(lambda x: f"{x/num_tot:.2%}")
     logger.info(f"MAP -- RESULTS -- NUMBER OF UNIQUE FRAGMENTS FOUND PER FRAGMENT MAP:\n\n{df_sub_counts}\n")
-    output_csv_map_frag_fm_u = output_csv_basename + "_map_frag_fm_u.csv"
-    if compression is not None:
-        output_csv_map_frag_fm_u += ".gz"
     df_sub_counts.to_csv(output_csv_map_frag_fm_u, sep="|", compression=compression, index=False)
     logger.info(f"MAP -- SAVED RESULTS AT '{output_csv_map_frag_fm_u}'")
 
@@ -479,9 +508,6 @@ def get_result_map(WD: str, output_csv: str, file_frags: str):
     num_tot = df_sub_counts['NumMols'].sum()
     df_sub_counts['Perc_Mols'] = df_sub_counts['NumMols'].map(lambda x: f"{x/num_tot:.2%}")
     logger.info(f"MAP -- RESULTS -- NUMBER OF FRAGMENTS FOUND PER MOLECULE:\n\n{df_sub_counts}\n")
-    output_csv_map_frag_mol = output_csv_basename + "_map_frag_mol.csv"
-    if compression is not None:
-        output_csv_map_frag_mol += ".gz"
     df_sub_counts.to_csv(output_csv_map_frag_mol, sep="|", compression=compression, index=False)
     logger.info(f"MAP -- SAVED RESULTS AT '{output_csv_map_frag_mol}'")
 
@@ -509,9 +535,6 @@ def get_result_map(WD: str, output_csv: str, file_frags: str):
     num_tot = df_sub_counts['NumMols'].sum()
     df_sub_counts['Perc_Mols'] = df_sub_counts['NumMols'].map(lambda x: f"{x/num_tot:.2%}")
     logger.info(f"MAP -- RESULTS -- NUMBER OF UNIQUE FRAGMENTS FOUND PER MOLECULE:\n\n{df_sub_counts}\n")
-    output_csv_map_frag_mol_u = output_csv_basename + "_map_frag_mol_u.csv"
-    if compression is not None:
-        output_csv_map_frag_mol_u += ".gz"
     df_sub_counts.to_csv(output_csv_map_frag_mol_u, sep="|", compression=compression, index=False)
     logger.info(f"MAP -- SAVED RESULTS AT '{output_csv_map_frag_mol_u}'")
 
@@ -527,9 +550,6 @@ def get_result_map(WD: str, output_csv: str, file_frags: str):
     df_frag_mol_cov.drop("aidxs", axis=1, inplace=True)
     df_frag_mol_cov["Perc_Frag_Coverage_Per_Mol"] = df_frag_mol_cov.apply(lambda x: f"{x['hac_frags'] / x['hac_mol']:.4%}".replace('%', ''), axis=1)
     df_frag_mol_cov.drop("hac_frags", axis=1, inplace=True)
-    output_csv_map_perc_frag_cov_mol = output_csv_basename + "_map_perc_frag_cov_mol.csv"
-    if compression is not None:
-        output_csv_map_perc_frag_cov_mol += ".gz"
     df_frag_mol_cov[['Perc_Frag_Coverage_Per_Mol']].to_csv(output_csv_map_perc_frag_cov_mol, sep="|", compression=compression, index=False)
     logger.info(f"MAP -- SAVED RESULTS AT '{output_csv_map_perc_frag_cov_mol}'")
     # and now with couting elements in groups of given % for easier display and quicker analysis
@@ -539,9 +559,6 @@ def get_result_map(WD: str, output_csv: str, file_frags: str):
     num_tot = df_frag_mol_cov_counts["NumMols"].sum()
     df_frag_mol_cov_counts['Perc_Mols'] = df_frag_mol_cov_counts['NumMols'].map(lambda x: f"{x/num_tot:.1%}")
     logger.info(f"MAP -- RESULTS -- PERC OF FRAGMENT COVERAGE PER MOLECULE:\n\n{df_frag_mol_cov_counts}\n")
-    output_csv_map_perc_frag_cov_mol_grouped = output_csv_basename + "_map_perc_frag_cov_mol_grouped.csv"
-    if compression is not None:
-        output_csv_map_perc_frag_cov_mol_grouped += ".gz"
     df_frag_mol_cov_counts.to_csv(output_csv_map_perc_frag_cov_mol_grouped, sep="|", compression=compression, index=False)
     logger.info(f"MAP -- SAVED RESULTS AT '{output_csv_map_perc_frag_cov_mol_grouped}'")
 
@@ -576,9 +593,6 @@ def get_result_map(WD: str, output_csv: str, file_frags: str):
     df_top10['Perc'] = df_top10['Perc'].map(lambda x: f"{x:.2%}")
     df_top10['Perc_cum'] = df_top10['Perc_cum'].map(lambda x: f"{x:.2%}")
     logger.info(f"MAP -- RESULTS -- TOP 10 MOST OCCURRING UNIQUE FRAGMENTS PER MOLECULE:\n\n{df_top10}\n")
-    output_csv_map_top10_mol_u = output_csv_basename + "_map_top10_mol_u.csv"
-    if compression is not None:
-        output_csv_map_top10_mol_u += ".gz"
     df_top10.to_csv(output_csv_map_top10_mol_u, sep="|", compression=compression, index=False)
     logger.info(f"MAP -- SAVED RESULTS AT '{output_csv_map_top10_mol_u}'")
 
@@ -612,9 +626,6 @@ def get_result_map(WD: str, output_csv: str, file_frags: str):
     df_top10['Perc'] = df_top10['Perc'].map(lambda x: f"{x:.2%}")
     df_top10['Perc_cum'] = df_top10['Perc_cum'].map(lambda x: f"{x:.2%}")
     logger.info(f"MAP -- RESULTS -- TOP 10 MOST OCCURRING FRAGMENTS PER MOLECULE:\n\n{df_top10}\n")
-    output_csv_map_top10_mol = output_csv_basename + "_map_top10_mol.csv"
-    if compression is not None:
-        output_csv_map_top10_mol += ".gz"
     df_top10.to_csv(output_csv_map_top10_mol, sep="|", compression=compression, index=False)
     logger.info(f"MAP -- SAVED RESULTS AT '{output_csv_map_top10_mol}'")
 
@@ -651,9 +662,6 @@ def get_result_map(WD: str, output_csv: str, file_frags: str):
     df_comb['Perc_FC'] = df_comb['Count'] /num_tot
     df_comb['Perc_FC'] = df_comb['Perc_FC'].map(lambda x: f"{x:.2%}")
     logger.info(f"MAP -- RESULTS -- FRAGMENT COMBINATIONS FOUND IN ALL FRAGMENT MAPS (tot={num_tot:,}):\n\n{df_comb}\n")
-    output_csv_map_fc = output_csv_basename + "_map_fc.csv"
-    if compression is not None:
-        output_csv_map_fc += ".gz"
     df_comb.to_csv(output_csv_map_fc, sep="|", compression=compression, index=False)
     logger.info(f"MAP -- SAVED RESULTS AT '{output_csv_map_fc}'")
 
@@ -842,54 +850,64 @@ if __name__ == '__main__':
     output_png_std_error = output_csv_std_error.replace('.csv', '.png')
     output_png_std_all = output_csv_std_all.replace('.csv', '.png')
 
+    # define all outputs from this step
+    outputs_csv_std = [output_csv_deglyco, output_csv_std_filtered, output_csv_std_error, output_csv_std_all]
+    outputs_png_std = [output_png_deglyco, output_png_std_filtered, output_png_std_error, output_png_std_all]
+
     # get dfs
-    df_deglyco, df_std_filtered, df_std_error, df_std_all = get_results_preprocess(subfolder_load, subfolder_deglyco, subfolder_std, subfolder_dedupl)
-
-    # exporting dfs to csv files
-    df_deglyco.to_csv(output_csv_deglyco, sep='|')
-    df_std_filtered.to_csv(output_csv_std_filtered, sep='|')
-    df_std_error.to_csv(output_csv_std_error, sep='|')
-    df_std_all.to_csv(output_csv_std_all, sep='|')
-
+    if not all([Path(f).exists() for f in outputs_csv_std]):
+        df_deglyco, df_std_filtered, df_std_error, df_std_all = get_results_preprocess(subfolder_load, subfolder_deglyco, subfolder_std, subfolder_dedupl)
+        # exporting dfs to csv files
+        df_deglyco.to_csv(output_csv_deglyco, sep='|')
+        df_std_filtered.to_csv(output_csv_std_filtered, sep='|')
+        df_std_error.to_csv(output_csv_std_error, sep='|')
+        df_std_all.to_csv(output_csv_std_all, sep='|')
+    else:
+        df_deglyco, df_std_filtered, df_std_error, df_std_all = [pd.read_csv(f, sep='|') for f in outputs_csv_std]
+        logger.info('CSV FILES ALREADY COMPUTED')
     # computing png plots
-    logger.info(f"GENERATING PLOT '{output_png_deglyco}'")
-    save_barplot(df_deglyco,
-                 output_png_deglyco,
-                 'Category',
-                 'Count',
-                 f"Deglycosylation of {dataset_label}",
-                 color=color,
-                 perc_labels='Perc_Status',
-                 )
-    logger.info(f"GENERATING PLOT '{output_png_std_filtered}'")
-    save_barplot(df_std_filtered,
-                 output_png_std_filtered,
-                 'Category',
-                 'Count',
-                 f"Preprocessing of {dataset_label} - Filtered",
-                 color=color,
-                 perc_labels='Perc_Status',
-                 rotate_x=60,
-                 )
-    logger.info(f"GENERATING PLOT '{output_png_std_error}'")
-    save_barplot(df_std_error,
-                 output_png_std_error,
-                 'Category',
-                 'Count',
-                 f"Preprocessing of {dataset_label} - Errors",
-                 color=color,
-                 perc_labels='Perc_Status',
-                 rotate_x=60,
-                 )
-    logger.info(f"GENERATING PLOT '{output_png_std_all}'")
-    save_barplot(df_std_all,
-                 output_png_std_all,
-                 'Category',
-                 'Count',
-                 f"Preprocessing of {dataset_label} - Overview",
-                 color=color,
-                 perc_labels='Perc_Status',
-                 )
+    if not all([Path(f).exists() for f in outputs_png_std]):
+        logger.info(f"GENERATING PLOT '{output_png_deglyco}'")
+        save_barplot(df_deglyco,
+                     output_png_deglyco,
+                     'Category',
+                     'Count',
+                     f"Deglycosylation of {dataset_label}",
+                     color=color,
+                     perc_labels='Perc_Status',
+                     )
+        logger.info(f"GENERATING PLOT '{output_png_std_filtered}'")
+        save_barplot(df_std_filtered,
+                     output_png_std_filtered,
+                     'Category',
+                     'Count',
+                     f"Preprocessing of {dataset_label} - Filtered",
+                     color=color,
+                     perc_labels='Perc_Status',
+                     rotate_x=60,
+                     )
+        logger.info(f"GENERATING PLOT '{output_png_std_error}'")
+        save_barplot(df_std_error,
+                     output_png_std_error,
+                     'Category',
+                     'Count',
+                     f"Preprocessing of {dataset_label} - Errors",
+                     color=color,
+                     perc_labels='Perc_Status',
+                     rotate_x=60,
+                     )
+        logger.info(f"GENERATING PLOT '{output_png_std_all}'")
+        save_barplot(df_std_all,
+                     output_png_std_all,
+                     'Category',
+                     'Count',
+                     f"Preprocessing of {dataset_label} - Overview",
+                     color=color,
+                     perc_labels='Perc_Status',
+                     )
+    else:
+         logger.info('PLOTS ALREADY COMPUTED')
+
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ MAPPING ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
@@ -908,6 +926,9 @@ if __name__ == '__main__':
         for k in output_csvs.keys():
             output_csv = output_csvs[k]
             output_png = output_csv.replace('.csv', '.png')
+            if Path(output_png).exists():
+                logger.info(f"PLOT '{k}' ALREADY EXISTS, SKIPPING IT")
+                continue
             df = pd.read_csv(output_csv, sep='|')
             rotate_x = 0
 
@@ -1007,14 +1028,14 @@ if __name__ == '__main__':
                                    rotate_x=rotate_x,
                                    fig_size=fig_size)
             elif plot_type == 'kdeplot':
-                fig = save_kdeplot(df,
-                                   output_png,
-                                   x,
-                                   title,
-                                   x_label=x_label,
-                                   y_label=y_label,
-                                   color=color,
-                                   fig_size=fig_size)
+                save_kdeplot(df,
+                             output_png,
+                             x,
+                             title,
+                             x_label=x_label,
+                             y_label=y_label,
+                             color=color,
+                             fig_size=fig_size)
     # PNP
 
     logger.info("=" * pad)
@@ -1022,30 +1043,37 @@ if __name__ == '__main__':
     logger.info("=" * pad)
     try:
         subfolder_pnp = [str(x) for x in list(Path(wd).glob("data/*_pnp"))][0] + "/"
-        output_csv = get_result_pnp(subfolder_pnp, wd + f"figures/{dataset}_pnp.csv")
+        output_csv = f"{wd}/figures/{dataset}_pnp.csv"
+        if Path(output_csv).exists():
+            logger.info('CSV FILE ALREADY EXISTS')
+        else:
+            get_result_pnp(subfolder_pnp, output_csv)
         output_png = output_csv.replace('.csv', '.png')
-        df = pd.read_csv(output_csv, sep='|')
-        df = df[df['Category'].str.contains('_mol')]
-        plot_type = 'barplot'
-        title = f"Number of Pseudo Natural Products (PNPs) in {dataset_label}"
-        x = 'Category'
-        x_label = 'Category'
-        y = 'Count'
-        y_label = 'Count'
-        perc_labels='Perc_PNP'
-        fig_size = (12, 12)
-        rotate_x  = 0
-        fig = save_barplot(df,
-                           output_png,
-                           x,
-                           y,
-                           title,
-                           x_label=x_label,
-                           y_label=y_label,
-                           color=color,
-                           perc_labels=perc_labels,
-                           rotate_x=rotate_x,
-                           fig_size=fig_size)
+        if Path(output_png).exists():
+            logger.info('PLOT ALREADY EXISTS')
+        else:
+            df = pd.read_csv(output_csv, sep='|')
+            df = df[df['Category'].str.contains('_mol')]
+            plot_type = 'barplot'
+            title = f"Number of Pseudo Natural Products (PNPs) in {dataset_label}"
+            x = 'Category'
+            x_label = 'Category'
+            y = 'Count'
+            y_label = 'Count'
+            perc_labels='Perc_PNP'
+            fig_size = (12, 12)
+            rotate_x  = 0
+            save_barplot(df,
+                         output_png,
+                         x,
+                         y,
+                         title,
+                         x_label=x_label,
+                         y_label=y_label,
+                         color=color,
+                         perc_labels=perc_labels,
+                         rotate_x=rotate_x,
+                         fig_size=fig_size)
     except IndexError:
         logger.info("ERROR OR NO PNP RESULTS TO CHECK")
 
