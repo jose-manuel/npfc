@@ -27,6 +27,16 @@ pd.options.mode.chained_assignment = None  # default='warn'
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
+
+def set_activity_score(activity):
+    if activity < 5:
+        return 0
+    elif activity < 20:
+        return 0.5
+    else:
+        return 1
+
+
 def main():
 
     # init
@@ -108,15 +118,32 @@ def main():
     # load act data
     d1 = datetime.now()
     logger.info("LOADING ACTIVITY FILE")
-    df_act = load.file(args.input_act)
+    df_act = pd.read_csv(args.input_act, sep='\t')
     logger.info(f"LOADED {len(df_act.index)} DATA POINTS")
     if 'Unnamed: 0' in df_act.columns:
         df_act.drop('Unnamed: 0', axis=1, inplace=True)
     logger.debug(f"EXCERPT:\n\n{df_act.head(10)}\n")
     # classify act into active/inactive
     d2 = datetime.now()
-    logger.info("CLASSIFYING ACTIVITY INTO ACTIVE/INACTIVE")
-    df_act["active"] = df_act["pchembl_value"].map(lambda x: 1 if x >= args.threshold else 0)
+    logger.info("FILTERING ACTIVITY DATA")
+    n_act_ini = len(df_act.index)
+
+    df_act = df_act[
+        (df_act["Plate"].str.contains("-10.00-")) |
+        (df_act["Plate"].str.contains("-02.00-"))
+    ]
+    df_act = df_act[df_act['Toxic'] == False]
+    n_act_rem = len(df_act.index)
+    logger.info(f"NUMBER OF REMAINING ENTRIES: {n_act_rem:,}/{n_act_ini:,} ({n_act_rem/n_act_ini:.2%})")
+    logger.info("CLASSIFYING ACTIVITY INTO ACTIVE/INACTIVE/MAYBE")
+    df_act['active'] = df_act['Activity'].map(set_activity_score)
+    n_act_1 = len(df_act[df_act['active'] == 1])
+    n_act_05 = len(df_act[df_act['active'] == 0.5])
+    n_act_0 = len(df_act[df_act['active'] == 0])
+    logger.info(f"NUMBER OF ACTIVES: {n_act_1:,}")
+    logger.info(f"NUMBER OF INACTIVES: {n_act_0:,}")
+    logger.info(f"NUMBER OF MAYBE: {n_act_05:,}")
+
 
     # update act idm with kept idm from ref file
     d3 = datetime.now()
@@ -149,9 +176,9 @@ def main():
 
     # merge act with idms
     logger.info("MERGING IDMS WITH ACTIVITY DATA")
-    df_act = df_act.merge(df_syn, how='right', left_on='chembl_id', right_on='idm_filtered')
-    df_act.dropna(subset=['chembl_id'], inplace=True)
-    df_act.drop(['chembl_id', 'idm_filtered', 'inchikey'], axis=1, inplace=True)
+    df_act = df_act.merge(df_syn, how='right', left_on='Compound_Id', right_on='idm_filtered')
+    df_act.dropna(subset=['Compound_Id'], inplace=True)
+    df_act.drop(['Compound_Id', 'idm_filtered', 'inchikey'], axis=1, inplace=True)
     df_act.rename({'idm_kept': 'idm'}, axis=1, inplace=True)
     logger.info(f"REMAINING NUMBER OF IDM: {len(df_act.index):,d}")
 

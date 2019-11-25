@@ -1,0 +1,10 @@
+{
+                    "prefix": "cpa",
+                    "molid": "Compound_Id",
+                    "WD": "other/cpa/",
+                    "input_file": "other/cpa/data/00_raw/data/cpa.sdf.gz",
+                    "frags_file": "fragments/crms/data/07_gen2D/data/crms_gen2D.csv.gz",
+                    "chunksize": 5000,
+                    "natref": "natural/dnp/",
+                    "act_file": "other/cpa/data/00_raw/data/cpa_act_raw.csv.gz"
+}

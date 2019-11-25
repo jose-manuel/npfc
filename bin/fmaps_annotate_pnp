@@ -164,13 +164,13 @@ def main():
     logger.info("=" * pad)
     logger.info(f"LIST OF PNPs ({len(df_pnps.index)})".center(pad))
     logger.info("=" * pad)
-    [logging.info("PNP: " + df_pnps.iat[i, 0]) for i in range(len(df_pnps.index))]
+    [logging.info(f"PNP: {df_pnps.iat[i, 0]}") for i in range(len(df_pnps.index))]
     # others
     df_others = df_map[~df_map["idm"].isin(df_pnps['idm'])].groupby("idm").first().reset_index()[["idm"]]
     logger.info("=" * pad)
     logger.info(f"LIST OF NON-PNPs ({len(df_others.index)})".center(pad))
     logger.info("=" * pad)
-    [logging.info("NON-PNP: " + df_others.iat[i, 0]) for i in range(len(df_others.index))]
+    [logging.info(f"NON-PNP: {df_others.iat[i, 0]}") for i in range(len(df_others.index))]
     logger.info("=" * pad)
 
     # curating results

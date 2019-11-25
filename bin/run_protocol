@@ -206,7 +206,7 @@ def main():
 
     # arguments
     # add specific arguments when chunks are needed
-    if args.protocol in ('natural', 'synthetic'):
+    if 'natural' in args.protocol or 'synthetic' in args.protocol or 'other' in args.protocol:
         # count mols for natural and synthetic
         # for counting mols, need to process the unzipped file
         input_file_uncompressed = config['input_file'].split('.gz')[0]
