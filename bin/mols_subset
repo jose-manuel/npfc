@@ -108,7 +108,7 @@ def main():
     logger.info(f"SUBSETTING MOLS")
     d3 = datetime.now()
     num_ini = len(df_mols.index)
-    df_mols_subset = df_mols[~df_mols['inchikey'].isin(df_synref.index)]
+    df_mols_subset = df_mols[~df_mols['inchikey'].isin(df_synref['inchikey'])]
     logging.info(f"NUMBER OF REMAINING RECORDS IN SUBSET: {len(df_mols_subset.index)}/{num_ini}")
 
     # save results
