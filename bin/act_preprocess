@@ -116,7 +116,7 @@ def main():
     # classify act into active/inactive
     d2 = datetime.now()
     logger.info("CLASSIFYING ACTIVITY INTO ACTIVE/INACTIVE")
-    df_act["active"] = df_act["pchembl_value"].map(lambda x: 1 if x >= args.threshold else 0)
+    df_act["active"] = df_act["pchembl_value"].map(lambda x: 1 if x >= args. else 0)
 
     # update act idm with kept idm from ref file
     d3 = datetime.now()

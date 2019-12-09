@@ -51,7 +51,7 @@ rule FMAP:
     input: "{WD}/08_fcc/data/{prefix}_{cid}_fcc.csv.gz"
     output: "{WD}/09_fmap/data/{prefix}_{cid}_fmap.csv.gz"
     log: "{WD}/09_fmap/log/{prefix}_{cid}_fmap.log"
-    shell: "fc_map {input} {output} --min-frags 2 --max-frags 9999 --max-overlaps 5 >{log} 2>&1"
+    shell: "fc_map {input} {output} --min-frags 2 --max-frags 9999 --max-overlaps 5 --log DEBUG >{log} 2>&1"
 
 rule FCC:
     priority: 12

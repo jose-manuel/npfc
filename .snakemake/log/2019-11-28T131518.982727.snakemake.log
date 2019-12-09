@@ -1,0 +1,4 @@
+Building DAG of jobs...
+MissingInputException in line 110 of /home/gally/Software/anaconda3/envs/npfc/lib/python3.7/site-packages/npfc/data/natural.smk:
+Missing input files for rule CHUNK:
+natural/dnp/data/00_raw/data/dnp.sdf.gz

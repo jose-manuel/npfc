@@ -36,6 +36,7 @@ from rdkit import RDLogger
 import npfc
 from npfc import utils
 from npfc import load
+from npfc import save
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
@@ -101,11 +102,11 @@ def save_kdeplot(df, output_png, x_name, title, x_label=None, y_label=None, colo
     sns.set_style('whitegrid', {'axes.edgecolor': '0.2'})
     sns.set_context("paper", font_scale=2)
 
-    svm = sns.kdeplot(df['Perc_Frag_Coverage_Per_Mol'], shade=True, label='', color=color)
+    svm = sns.kdeplot(df[x_name], shade=True, label='', color=color)
     svm.set_title(title, fontsize=24, y=1.02)
     svm.tick_params(labelsize=20)
     svm.tick_params(axis='x', rotation=0)
-    svm.set_xlim(0, 100)
+    svm.set_xlim(0, 1)
     #svm.set_xticklabels(df[x_name])
     svm.set_xlabel(x_label,fontsize=25, labelpad=20)
     svm.set_ylabel(y_label,fontsize=25, labelpad=20)
@@ -116,7 +117,6 @@ def save_kdeplot(df, output_png, x_name, title, x_label=None, y_label=None, colo
     plt.clf()
 
     return figure
-
 
 
 def check_chunks(WD: str):
@@ -353,6 +353,137 @@ def _parse_std_chunks(chunks):
     # df['Perc_status'] = df['Count'].map(lambda x: f"{x/tot_mols:.2%}")
 
     return df
+
+
+def get_result_fragment_search(WD: str, output_csv: str, file_frags: str):
+    logger.info("FRAGMENT SEARCH")
+
+    # have a look if outputs are already computed
+    logger.info(f"WD={WD}")
+    p = Path(WD)
+    format, compression = utils.get_file_format(output_csv)
+    output_csv_basename = output_csv.split(".csv")[0]
+    logger.info(f"OUTPUTS BASENAME: {output_csv_basename}")
+
+    # all outputs
+    output_csv_fs_frag_mol = output_csv_basename + "_fs_frag_mol.csv"
+    output_csv_fs_frag_mol_u = output_csv_basename + "_fs_frag_mol_u.csv"
+    output_csv_fs_perc_frag_cov_mol = output_csv_basename + "_fs_perc_frag_cov_mol.csv"
+    output_csv_fs_perc_frag_cov_mol_u = output_csv_basename + "_fs_perc_frag_cov_mol_u.csv"
+    output_csv_fs_top10_mol = output_csv_basename + "_fs_top10_mol.csv"
+    output_csv_fs_top10_mol_u = output_csv_basename + "_fs_top10_mol_u.csv"
+
+    # if all outputs are already available, skip this step
+    if all([Path(f).exists() for f in [ output_csv_fs_frag_mol,
+                             output_csv_fs_frag_mol_u,
+                             output_csv_fs_perc_frag_cov_mol,
+                             output_csv_fs_perc_frag_cov_mol_u,
+                             output_csv_fs_top10_mol,
+                             output_csv_fs_top10_mol_u,
+                             ]]):
+
+        logger.warning("OUTPUT CSV FILES ALREADY AVAILABLE, SKIPPING PROCESSING LOGS")
+        return {'fs_frag_mol': output_csv_fs_frag_mol,
+                'fs_frag_mol_u': output_csv_fs_frag_mol_u,
+                'fs_perc_frag_cov_mol': output_csv_fs_perc_frag_cov_mol,
+                'fs_perc_frag_cov_mol_u': output_csv_fs_perc_frag_cov_mol_u,
+                'fs_top10_mol': output_csv_fs_top10_mol,
+                'fs_top10_mol_u': output_csv_fs_top10_mol_u,
+                }
+
+    # parse results before fragment search
+    logger.info("FS -- COMPUTING TOTAL NUMBER OF MOLECULES BEFORE FRAGMENT SEARCH")
+    # get latest step
+    fsearch_dirname = list(p.glob("data/*_sub"))[0].name
+    pstep_direname = list(p.glob(f"data/{str(int(fsearch_dirname.split('_')[0]) - 1).zfill(2)}_*"))[0].name
+    logger.info(f"FS -- COUNTING MOLECULES IN PREVIOUS STEP='{pstep_direname}'")
+
+    # previous step to assess how many (1 row = 1 mol!)
+    chunks_pstep = sorted([str(x) for x in list(p.glob(f"data/{pstep_direname}/data/*_[0-9][0-9][0-9]_*.csv.gz"))])
+    n_tot = sum([len(pd.read_csv(x, sep='|', compression='gzip')) for x in chunks_pstep])
+    logger.info(f"FS -- TOTAL NUMBER OF MOLECULES IN PREVIOUS STEP: {n_tot:,}")
+    logger.info(f"FS -- INVESTIGATING RESULTS IN WD='{fsearch_dirname}'")
+
+    # parse chunks
+    chunks_fsearch = sorted([str(x) for x in list(p.glob(f"data/{fsearch_dirname}/data/*_[0-9][0-9][0-9]_*.csv.gz"))])
+    df_fsearch = pd.concat([load.file(x) for x in chunks_fsearch])
+    df_fsearch['_aidxf'] = df_fsearch['_aidxf'].map(list)
+    df_smiles = df_fsearch[['idf', 'mol_frag']].drop_duplicates(subset=['idf'])
+    df_smiles['mol_frag'] = df_smiles['mol_frag'].map(Chem.MolToSmiles)
+    df_fsearch['hac_mol'] = df_fsearch['mol'].map(lambda x: x.GetNumAtoms())
+
+    # top 10 fragments
+    df_top_frags = df_fsearch[['idf', 'idm']].groupby('idf').count().reset_index().rename({'idm': 'Count'}, axis=1).sort_values('Count', ascending=False).reset_index(drop=True)
+    logger.info(f"FS -- TOTAL NUMBER OF FRAGMENTS={len(df_top_frags):,}")
+    logger.info(f"FS -- TOTAL NUMBER OF FRAGMENT HITS={len(df_fsearch.index):,}")
+    df_top_frags['Rank'] = df_top_frags.index + 1
+
+    # counts for all fragment hits
+    groups = df_fsearch.groupby('idm')
+    logger.info(f"FS -- TOTAL NUMBER OF MOLECULES={len(groups)}")
+    logger.info(f"FS -- AVERAGE NUMBER OF FRAGMENTS PER MOL={len(df_fsearch.index)/len(groups):,.2f}")
+    logger.info(f"FS -- TOP 10 FRAGMENTS\n\n{df_top_frags.head(10).merge(df_smiles, how='inner', on='idf')}\n")
+    save.file(df_top_frags.head(10), output_csv_fs_top10_mol)
+    logger.info(f"FS -- SAVED RESULTS AT '{output_csv_fs_top10_mol}'")
+
+    # fragment hits per mol
+    df_fs_nhits = groups.count()[['idf']].reset_index().rename({'idf': 'NumFrags'}, axis=1).groupby('NumFrags').count().rename({'idm': 'Count'}, axis=1).reset_index()  # this counts >0 hits
+    n_fs_nhits_0 = n_tot - df_fs_nhits['Count'].sum()  # this counts nhits = 0
+    df_fs_nhits = pd.concat([pd.DataFrame({'NumFrags': [0], 'Count': [n_fs_nhits_0]}), df_fs_nhits]).sort_values('NumFrags')  # now we have all nhits
+    logger.info(f"FS -- NUMBER OF FRAGMENT HITS PER MOLECULE\n\n{df_fs_nhits}\n")
+    save.file(df_fs_nhits, output_csv_fs_frag_mol)
+    logger.info(f"FS -- SAVED RESULTS AT '{output_csv_fs_frag_mol}'")
+
+    # fragment ratio per molecule
+    df_fsearch['hac_mol'] = df_fsearch['mol'].map(lambda x: x.GetNumAtoms())
+    df_frag_ratio = df_fsearch.copy()
+    df_frag_ratio = groups.agg({'_aidxf': 'sum', 'hac_mol': 'first'})
+    df_frag_ratio['_aidxf'] = df_frag_ratio['_aidxf'].map(lambda x: len(set(x)))
+    df_frag_ratio.rename({'_aidxf': 'hac_frags'}, axis=1, inplace=True)
+    df_frag_ratio['frag_ratio'] = df_frag_ratio['hac_frags'] / df_frag_ratio['hac_mol']
+    logger.info(f"FS -- RATIO OF FRAGMENT PER MOLECULE\n\n{df_frag_ratio}\n")
+    save.file(df_frag_ratio, output_csv_fs_perc_frag_cov_mol)
+    logger.info(f"FS -- SAVED RESULTS AT '{output_csv_fs_perc_frag_cov_mol}'")
+
+
+    # counts for unique fragment hits
+    logger.info(f"FS -- NOW COMPUTING RESULTS WHEN COUNTING ONLY UNIQUE FRAGMENTS PER MOLECULE")
+    df_fsearch_u = df_fsearch.groupby(['idm', 'idf']).first().reset_index()
+    logger.info(f"FS -- TOTAL NUMBER OF UNIQUE FRAGMENT HITS={len(df_fsearch_u.index):,}")
+    groups = df_fsearch_u.groupby('idm')
+    logger.info(f"FS -- AVERAGE NUMBER OF FRAGMENTS PER MOL={len(df_fsearch_u.index)/len(groups):,.2f}")
+
+    # top 10 unique fragments
+    df_top_frags_u = df_fsearch_u[['idf', 'idm']].groupby('idf').count().reset_index().rename({'idm': 'Count'}, axis=1).sort_values('Count', ascending=False).reset_index(drop=True)
+    df_top_frags_u['Rank'] = df_top_frags_u.index + 1
+    logger.info(f"FS -- TOP 10 UNIQUE FRAGMENTS\n\n{df_top_frags_u.head(10).merge(df_smiles, how='inner', on='idf')}\n")
+    save.file(df_top_frags_u.head(10), output_csv_fs_top10_mol_u)
+    logger.info(f"FS -- SAVED RESULTS AT '{output_csv_fs_top10_mol_u}'")
+
+    # unique fragment hits per mol
+    df_fs_nhits_u = groups.count()[['idf']].reset_index().rename({'idf': 'NumFrags'}, axis=1).groupby('NumFrags').count().rename({'idm': 'Count'}, axis=1).reset_index()  # this counts >0 hits
+    df_fs_nhits_u = pd.concat([pd.DataFrame({'NumFrags': [0], 'Count': [n_fs_nhits_0]}), df_fs_nhits_u]).sort_values('NumFrags')  # now we have all nhits
+    logger.info(f"FS -- NUMBER OF UNIQUE FRAGMENT HITS PER MOLECULE\n\n{df_fs_nhits_u}\n")
+    save.file(df_fs_nhits_u, output_csv_fs_frag_mol_u)
+    logger.info(f"FS -- SAVED RESULTS AT '{output_csv_fs_frag_mol_u}'")
+
+    # uique fragment ratio per molecule
+    df_frag_ratio_u = df_fsearch_u
+    df_frag_ratio_u = groups.agg({'_aidxf': 'sum', 'hac_mol': 'first'})
+    df_frag_ratio_u['_aidxf'] = df_frag_ratio_u['_aidxf'].map(lambda x: len(set(x)))
+    df_frag_ratio_u.rename({'_aidxf': 'hac_frags'}, axis=1, inplace=True)
+    df_frag_ratio_u['frag_ratio'] = df_frag_ratio_u['hac_frags'] / df_frag_ratio_u['hac_mol']
+    logger.info(f"FS -- RATIO OF UNIQUE FRAGMENT PER MOLECULE\n\n{df_frag_ratio_u}\n")
+    save.file(df_frag_ratio_u, output_csv_fs_perc_frag_cov_mol_u)
+    logger.info(f"FS -- SAVED RESULTS AT '{output_csv_fs_perc_frag_cov_mol_u}'")
+
+    return {'fs_frag_mol': output_csv_fs_frag_mol,
+            'fs_frag_mol_u': output_csv_fs_frag_mol_u,
+            'fs_perc_frag_cov_mol': output_csv_fs_perc_frag_cov_mol,
+            'fs_perc_frag_cov_mol_u': output_csv_fs_perc_frag_cov_mol_u,
+            'fs_top10_mol': output_csv_fs_top10_mol,
+            'fs_top10_mol_u': output_csv_fs_top10_mol_u,
+            }
 
 
 def get_result_map(WD: str, output_csv: str, file_frags: str):
@@ -676,6 +807,7 @@ def get_result_map(WD: str, output_csv: str, file_frags: str):
             'map_fc': output_csv_map_fc,
             }
 
+
 def get_result_pnp(WD: str, output_csv: str):
 
     logger.info("PLOT_RESULT_PNP")
@@ -910,6 +1042,92 @@ if __name__ == '__main__':
 
 
 
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FRAGMENT SEARCH ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+    logger.info("=" * pad)
+    logger.info("CHECKING RESULTS FROM FRAGMENT SEARCH".center(pad))
+    logger.info("=" * pad)
+    output_csvs = None
+    try:
+        output_csvs = get_result_fragment_search(wd, f"{wd}/figures/{dataset}.csv", args.frags)
+    except IndexError:
+        logger.info("NO RESULTS RESULTS TO CHECK")
+
+if output_csvs is not None:
+    for k in output_csvs.keys():
+        output_csv = output_csvs[k]
+        output_png = output_csv.replace('.csv', '.png')
+        if Path(output_png).exists():
+            logger.info(f"PLOT '{k}' ALREADY EXISTS, SKIPPING IT")
+            continue
+        df = pd.read_csv(output_csv, sep='|')
+        rotate_x = 0
+        fig_size = (12, 12)
+        perc_labels = None
+        if k == 'fs_frag_mol' or k == 'fs_frag_mol_u':
+            plot_type = 'barplot'
+            if k ==  'fs_frag_mol':
+                title = f"Number of Fragments in Molecules in {dataset_label}"
+            else:
+                title = f"Number of Unique Fragments in Molecules in {dataset_label}"
+            x = 'NumFrags'
+            x_label = 'Number of Fragments'
+            y = 'Count'
+            y_label = 'Number of Molecules'
+            #perc_labels='Perc_Mols'
+
+        elif k == 'fs_perc_frag_cov_mol' or k == 'fs_perc_frag_cov_mol_u':
+            plot_type = 'kdeplot'
+            if k ==  'fs_perc_frag_cov_mol':
+               title = f"Distribution of Ratio of Fragments found in Molecules in {dataset_label}"
+            else:
+               title = f"Distribution of Ratio of Unique Fragments found in Molecules in {dataset_label}"
+            x = 'frag_ratio'
+            x_label = 'Ratio Fragment/Molecule'
+            y_label = 'Kernel Density Estimate'
+            #perc_labels='Perc_Mols'
+
+        elif k == 'fs_top10_mol' or k == 'fs_top10_mol_u':
+            plot_type = 'barplot'
+            if k == 'fs_top10_mol':
+                title = f"Top 10 Fragments Found in {dataset_label}"
+            else:
+                title = f"Top 10 Unique Fragments Found in {dataset_label}"
+            x = 'idf'
+            x_label = 'Fragment ID'
+            y = 'Count'
+            y_label = 'Occurrence'
+            #perc_labels='Perc'
+            rotate_x = 60
+
+        else:
+            logger.error(f"IGNORING UNKNOWN DATA='{k}'")
+            continue
+
+        logger.info(f"GENERATING PLOT '{k}'")
+        if plot_type == 'barplot':
+            fig = save_barplot(df,
+                               output_png,
+                               x,
+                               y,
+                               title,
+                               x_label=x_label,
+                               y_label=y_label,
+                               color=color,
+                               perc_labels=perc_labels,
+                               rotate_x=rotate_x,
+                               fig_size=fig_size)
+        elif plot_type == 'kdeplot':
+            save_kdeplot(df,
+                         output_png,
+                         x,
+                         title,
+                         x_label=x_label,
+                         y_label=y_label,
+                         color=color,
+                         fig_size=fig_size)
+
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ MAPPING ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 
@@ -991,6 +1209,7 @@ if __name__ == '__main__':
                 y_label = 'Occurrence'
                 perc_labels='Perc'
                 fig_size = (12, 12)
+                rotate_x = 60
 
             elif k == 'map_top10_mol':
                 plot_type = 'barplot'
@@ -1001,6 +1220,7 @@ if __name__ == '__main__':
                 y_label = 'Occurrence'
                 perc_labels='Perc'
                 fig_size = (12, 12)
+                rotate_x = 60
 
             elif k == 'map_fc':
                 plot_type = 'barplot'
