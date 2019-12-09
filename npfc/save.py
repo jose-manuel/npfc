@@ -81,7 +81,7 @@ def file(df: pd.DataFrame,
         if ext_output_file[0] != '.sdf' and col_mol in df.columns:
             df[col_mol] = df[col_mol].map(utils.encode_mol)
         # other RDKit Mol objects can be encoded though
-        for col in ("mol", "mol_frag"):
+        for col in ("mol", "mol_frag", "mol_frag_1", "mol_frag_2"):
             if col in df.columns and col != col_mol:
                 df[col] = df[col].map(utils.encode_mol)
         # other objects are labelled with leading '_'

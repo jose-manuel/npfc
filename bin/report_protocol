@@ -31,6 +31,8 @@ from pylab import savefig
 # chemoinformatics
 import rdkit
 from rdkit import Chem
+# docs
+from typing import List
 from rdkit import RDLogger
 # custom libraries
 import npfc
@@ -355,7 +357,7 @@ def _parse_std_chunks(chunks):
     return df
 
 
-def get_result_fragment_search(WD: str, output_csv: str, file_frags: str):
+def get_result_fragment_search(WD: str, output_csv: str):
     logger.info("FRAGMENT SEARCH")
 
     # have a look if outputs are already computed
@@ -445,7 +447,6 @@ def get_result_fragment_search(WD: str, output_csv: str, file_frags: str):
     save.file(df_frag_ratio, output_csv_fs_perc_frag_cov_mol)
     logger.info(f"FS -- SAVED RESULTS AT '{output_csv_fs_perc_frag_cov_mol}'")
 
-
     # counts for unique fragment hits
     logger.info(f"FS -- NOW COMPUTING RESULTS WHEN COUNTING ONLY UNIQUE FRAGMENTS PER MOLECULE")
     df_fsearch_u = df_fsearch.groupby(['idm', 'idf']).first().reset_index()
@@ -485,8 +486,93 @@ def get_result_fragment_search(WD: str, output_csv: str, file_frags: str):
             'fs_top10_mol_u': output_csv_fs_top10_mol_u,
             }
 
+def get_result_fcc(WD: str, output_csv: str, frags_file: str, categories: List[str]):
 
-def get_result_map(WD: str, output_csv: str, file_frags: str):
+
+
+    # check if col with activity in dataframe, if so return top10 most active fcc
+    logger.info("FRAGMENT COMBINATION CLASSIFICATION (FCC)")
+
+    # have a look if outputs are already computed
+    logger.info(f"WD={WD}")
+    p = Path(WD)
+    format, compression = utils.get_file_format(output_csv)
+    output_csv_basename = output_csv.split(".csv")[0]
+    logger.info(f"OUTPUTS BASENAME: {output_csv_basename}")
+
+    # all outputs
+    output_csv_fcc = output_csv_basename + "_fcc.csv"
+    output_csv_fc_top20 = output_csv_basename + "_fc_top20.csv"
+
+    # if all outputs are already available, skip this step
+    if all([Path(f).exists() for f in [ output_csv_fcc,
+                                        output_csv_fc_top20,
+                             ]]):
+
+        logger.warning("OUTPUT CSV FILES ALREADY AVAILABLE, SKIPPING PROCESSING LOGS")
+        return {'fcc': output_csv_fcc,
+                'fc_top20': output_csv_fc_top20,
+                }
+
+    # parse results before fragment search
+    logger.info("FCC -- COMPUTING TOTAL NUMBER OF MOLECULES BEFORE FCC")
+    # get latest step
+    fcc_dirname = list(p.glob("data/*_fcc"))[0].name
+    pstep_direname = list(p.glob(f"data/{str(int(fcc_dirname.split('_')[0]) - 1).zfill(2)}_*"))[0].name
+    logger.info(f"FCC -- COUNTING MOLECULES IN PREVIOUS STEP='{pstep_direname}'")
+
+    # previous step to assess how many mols
+    chunks_pstep = sorted([str(x) for x in list(p.glob(f"data/{pstep_direname}/data/*_[0-9][0-9][0-9]_*.csv.gz"))])
+    n_tot = sum([len(pd.read_csv(x, sep='|', compression='gzip').groupby('idm')) for x in chunks_pstep])
+    logger.info(f"FCC -- TOTAL NUMBER OF MOLECULES IN PREVIOUS STEP: {n_tot:,}")
+    logger.info(f"FCC -- INVESTIGATING RESULTS IN WD='{fcc_dirname}'")
+
+    # parse chunks
+    chunks_fcc = sorted([str(x) for x in list(p.glob(f"data/{fcc_dirname}/data/*_[0-9][0-9][0-9]_*.csv.gz"))])
+    df_fcc = pd.concat([load.file(x) for x in chunks_fcc])
+    n_fcc_tot = len(df_fcc.index)
+    logger.info(f"FCC -- REMOVING FALSE POSITIVES (OVERLAPS)")
+    df_fcc = df_fcc[df_fcc['abbrev'] != 'ffo']
+    n_fcc_tp = len(df_fcc.index)
+    n_fcc_fp = n_fcc_tot - n_fcc_tp
+    logger.info(f"FCC -- NUMBER OF FRAGMENT COMBINATIONS: {n_fcc_tp:,} TP +  {n_fcc_fp:,} FP = {n_fcc_tot:,} IN TOTAL")
+    logger.info(f"FCC -- FOCUSING ON THE {n_fcc_tp:,} TP")
+
+
+    # fragment combination categories counts
+    df_fcc_counts_default = pd.DataFrame({'abbrev': categories, 'Count': [0] * len(categories)})
+    df_fcc_counts = df_fcc[['abbrev', 'idm']].groupby('abbrev').count().rename({'idm': 'Count'}, axis=1).reset_index()
+    df_fcc_counts = pd.concat([df_fcc_counts, df_fcc_counts_default]).groupby('abbrev').sum().T
+    df_fcc_counts.columns = categories
+    df_fcc_counts = df_fcc_counts.T.reset_index().rename({'index': 'abbrev'}, axis=1)
+    df_fcc_counts['Perc'] = df_fcc_counts['Count'].map(lambda x: f"{x / n_fcc_tp:.2%}")
+    logger.info(f"FCC -- RESULTS FOR FCC COUNTS\n\n{df_fcc_counts}\n")
+    save.file(df_fcc_counts, output_csv_fcc)
+    logger.info(f"FS -- SAVED RESULTS AT '{output_csv_fcc}'")
+
+    # top 20 fragment combinations
+    df_fc_counts = df_fcc[['idf1', 'idf2', 'abbrev', 'idm']].groupby(['idf1', 'idf2', 'abbrev']).count().rename({'idm': 'Count'}, axis=1).sort_values('Count', ascending=False).reset_index()
+    n_fc_u = len(df_fc_counts.index)
+    logger.info(f"FCC -- NUMBER OF UNIQUE FC: {n_fc_u:,}")
+    logger.info(f"FCC -- COMPUTING THE TOP 20 FRAGMENT COMBINATIONS (FC)")
+    df_fc_counts = df_fc_counts.head(20)
+    df_fc_counts['Perc'] = df_fc_counts['Count'].map(lambda x: f"{x / n_fcc_tp:.2%}")
+    df_fc_counts['fc'] = df_fc_counts['idf1'].astype(str) + '[' + df_fc_counts['abbrev'] + ']' + df_fc_counts['idf2'].astype(str)
+    logger.info(f"FCC -- TOP 20 FC: {df_fc_counts['Count'].sum():,} ENTRIES ({sum(df_fc_counts['Perc'].map(lambda x: float(x.split('%')[0]))):.2f}% OF TOTAL)")
+    # add fragments to the mix
+    df_frags = load.file(frags_file)
+    df_fc_counts = pd.merge(df_fc_counts, df_frags[['idm', 'mol']], left_on='idf1', right_on='idm', how='inner').rename({'mol': 'mol_frag_1'}, axis=1).drop('idm', axis=1)
+    df_fc_counts = pd.merge(df_fc_counts, df_frags[['idm', 'mol']], left_on='idf2', right_on='idm', how='inner').rename({'mol': 'mol_frag_2'}, axis=1).drop('idm', axis=1)
+    # display smiles in the log
+    df_fcc_counts_smiles = df_fc_counts.copy()
+    df_fcc_counts_smiles['mol_frag_1'] = df_fcc_counts_smiles['mol_frag_1'].map(Chem.MolToSmiles)
+    df_fcc_counts_smiles['mol_frag_2'] = df_fcc_counts_smiles['mol_frag_2'].map(Chem.MolToSmiles)
+    logger.info(f"FCC -- RESULTS FOR TOP 20 FC\n\n{df_fcc_counts_smiles}\n")
+    save.file(df_fc_counts, output_csv_fc_top20)
+    logger.info(f"FS -- SAVED RESULTS AT '{output_csv_fc_top20}'")
+
+
+def get_result_map(WD: str, output_csv: str, file_frags: str, categories: List[str]):
     logger.info("PLOT_RESULT_MAP")
     # go inside log subfolder in WD
     logger.info(f"WD={WD}")
@@ -763,12 +849,6 @@ def get_result_map(WD: str, output_csv: str, file_frags: str):
     # combinations
 
     # initialization
-    categories = ['fsp', 'fed', 'fbr', 'fli',
-                  'cmo',
-                  'cbs', 'cbe', 'cbb', 'cbl',
-                  'cts', 'cte', 'ctb', 'ctl',
-                  'cos', 'coe', 'cob', 'col',
-                  ]
     df_map["comb"] = df_map["comb"].map(lambda x: json.loads(x.replace("'", '"')))
 
     # all combs per molecule
@@ -790,7 +870,7 @@ def get_result_map(WD: str, output_csv: str, file_frags: str):
     df_comb = pd.DataFrame(df_comb.apply(lambda x: pd.to_numeric(x, downcast='integer')).sum()).rename({0: "Count"}, axis=1)
     df_comb['Category'] = df_comb.index
     num_tot = df_comb['Count'].sum()
-    df_comb['Perc_FC'] = df_comb['Count'] /num_tot
+    df_comb['Perc_FC'] = df_comb['Count'] / num_tot
     df_comb['Perc_FC'] = df_comb['Perc_FC'].map(lambda x: f"{x:.2%}")
     logger.info(f"MAP -- RESULTS -- FRAGMENT COMBINATIONS FOUND IN ALL FRAGMENT MAPS (tot={num_tot:,}):\n\n{df_comb}\n")
     df_comb.to_csv(output_csv_map_fc, sep="|", compression=compression, index=False)
@@ -946,6 +1026,13 @@ if __name__ == '__main__':
         color = '#000000'
     logger.info(f"SCENARIO IS '{scenario}', attributing color='{color}'")
 
+    categories = ['fsp', 'fed', 'fbr', 'fli',
+                  'cmo',
+                  'cbs', 'cbe', 'cbb', 'cbl',
+                  'cts', 'cte', 'ctb', 'ctl',
+                  'cos', 'coe', 'cob', 'col',
+                  ]
+
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ MISSING CHUNKS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
@@ -1044,12 +1131,13 @@ if __name__ == '__main__':
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FRAGMENT SEARCH ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
+
     logger.info("=" * pad)
     logger.info("CHECKING RESULTS FROM FRAGMENT SEARCH".center(pad))
     logger.info("=" * pad)
     output_csvs = None
     try:
-        output_csvs = get_result_fragment_search(wd, f"{wd}/figures/{dataset}.csv", args.frags)
+        output_csvs = get_result_fragment_search(wd, f"{wd}/figures/{dataset}.csv")
     except IndexError:
         logger.info("NO RESULTS RESULTS TO CHECK")
 
@@ -1128,6 +1216,19 @@ if output_csvs is not None:
                          fig_size=fig_size)
 
 
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FCC ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
+    logger.info("=" * pad)
+    logger.info("CHECKING RESULTS FROM FCC".center(pad))
+    logger.info("=" * pad)
+    output_csvs = None
+    try:
+        output_csvs = get_result_fcc(wd, f"{wd}/figures/{dataset}.csv", args.frags, categories=categories)
+    except IndexError:
+        logger.info("NO FCC RESULTS TO CHECK")
+
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ MAPPING ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 
@@ -1136,7 +1237,7 @@ if output_csvs is not None:
     logger.info("=" * pad)
     output_csvs = None
     try:
-        output_csvs = get_result_map(wd, f"{wd}/figures/{dataset}.csv", args.frags)
+        output_csvs = get_result_map(wd, f"{wd}/figures/{dataset}.csv", args.frags, categories=categories)
     except IndexError:
         logger.info("NO MAP RESULTS TO CHECK")
 
