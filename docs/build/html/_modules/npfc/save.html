@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.save &mdash; npfc 0.5.9-1-gb9a41a1 documentation</title>
+  <title>npfc.save &mdash; npfc 0.5.9-2-g2f6e5fe documentation</title>
   
 
   
@@ -58,7 +58,7 @@
             
             
               <div class="version">
-                0.5.9-1-gb9a41a1
+                0.5.9-2-g2f6e5fe
               </div>
             
           
@@ -240,7 +240,7 @@
         <span class="k">if</span> <span class="n">ext_output_file</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;.sdf&#39;</span> <span class="ow">and</span> <span class="n">col_mol</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
             <span class="n">df</span><span class="p">[</span><span class="n">col_mol</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">col_mol</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">utils</span><span class="o">.</span><span class="n">encode_mol</span><span class="p">)</span>
         <span class="c1"># other RDKit Mol objects can be encoded though</span>
-        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;mol&quot;</span><span class="p">,</span> <span class="s2">&quot;mol_frag&quot;</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;mol&quot;</span><span class="p">,</span> <span class="s2">&quot;mol_frag&quot;</span><span class="p">,</span> <span class="s2">&quot;mol_frag_1&quot;</span><span class="p">,</span> <span class="s2">&quot;mol_frag_2&quot;</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span> <span class="ow">and</span> <span class="n">col</span> <span class="o">!=</span> <span class="n">col_mol</span><span class="p">:</span>
                 <span class="n">df</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">utils</span><span class="o">.</span><span class="n">encode_mol</span><span class="p">)</span>
         <span class="c1"># other objects are labelled with leading &#39;_&#39;</span>

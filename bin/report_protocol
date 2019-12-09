@@ -67,7 +67,7 @@ def save_barplot(df, output_png, x_name, y_name, title, x_label=None, y_label=No
     sns.set_style('whitegrid', {'axes.edgecolor': '0.2'})
     sns.set_context("paper", font_scale=2)
     # barplot
-    svm = sns.barplot(x=df.index, y=df[y_name], color=color)
+    svm = sns.barplot(x=df[x_name], y=df[y_name], color=color)
     svm.set_title(title, fontsize=24, y=1.02)
     svm.tick_params(labelsize=20)
     svm.tick_params(axis='x', rotation=rotate_x)
@@ -108,7 +108,7 @@ def save_kdeplot(df, output_png, x_name, title, x_label=None, y_label=None, colo
     svm.set_title(title, fontsize=24, y=1.02)
     svm.tick_params(labelsize=20)
     svm.tick_params(axis='x', rotation=0)
-    svm.set_xlim(0, 1)
+    svm.set_xlim(0, 100)
     #svm.set_xticklabels(df[x_name])
     svm.set_xlabel(x_label,fontsize=25, labelpad=20)
     svm.set_ylabel(y_label,fontsize=25, labelpad=20)
@@ -442,7 +442,7 @@ def get_result_fragment_search(WD: str, output_csv: str):
     df_frag_ratio = groups.agg({'_aidxf': 'sum', 'hac_mol': 'first'})
     df_frag_ratio['_aidxf'] = df_frag_ratio['_aidxf'].map(lambda x: len(set(x)))
     df_frag_ratio.rename({'_aidxf': 'hac_frags'}, axis=1, inplace=True)
-    df_frag_ratio['frag_ratio'] = df_frag_ratio['hac_frags'] / df_frag_ratio['hac_mol']
+    df_frag_ratio['frag_ratio'] = (df_frag_ratio['hac_frags'] / df_frag_ratio['hac_mol']) * 100
     logger.info(f"FS -- RATIO OF FRAGMENT PER MOLECULE\n\n{df_frag_ratio}\n")
     save.file(df_frag_ratio, output_csv_fs_perc_frag_cov_mol)
     logger.info(f"FS -- SAVED RESULTS AT '{output_csv_fs_perc_frag_cov_mol}'")
@@ -473,7 +473,7 @@ def get_result_fragment_search(WD: str, output_csv: str):
     df_frag_ratio_u = groups.agg({'_aidxf': 'sum', 'hac_mol': 'first'})
     df_frag_ratio_u['_aidxf'] = df_frag_ratio_u['_aidxf'].map(lambda x: len(set(x)))
     df_frag_ratio_u.rename({'_aidxf': 'hac_frags'}, axis=1, inplace=True)
-    df_frag_ratio_u['frag_ratio'] = df_frag_ratio_u['hac_frags'] / df_frag_ratio_u['hac_mol']
+    df_frag_ratio_u['frag_ratio'] = (df_frag_ratio_u['hac_frags'] / df_frag_ratio_u['hac_mol']) * 100
     logger.info(f"FS -- RATIO OF UNIQUE FRAGMENT PER MOLECULE\n\n{df_frag_ratio_u}\n")
     save.file(df_frag_ratio_u, output_csv_fs_perc_frag_cov_mol_u)
     logger.info(f"FS -- SAVED RESULTS AT '{output_csv_fs_perc_frag_cov_mol_u}'")
@@ -487,8 +487,6 @@ def get_result_fragment_search(WD: str, output_csv: str):
             }
 
 def get_result_fcc(WD: str, output_csv: str, frags_file: str, categories: List[str]):
-
-
 
     # check if col with activity in dataframe, if so return top10 most active fcc
     logger.info("FRAGMENT COMBINATION CLASSIFICATION (FCC)")
@@ -562,7 +560,8 @@ def get_result_fcc(WD: str, output_csv: str, frags_file: str, categories: List[s
     # add fragments to the mix
     df_frags = load.file(frags_file)
     df_fc_counts = pd.merge(df_fc_counts, df_frags[['idm', 'mol']], left_on='idf1', right_on='idm', how='inner').rename({'mol': 'mol_frag_1'}, axis=1).drop('idm', axis=1)
-    df_fc_counts = pd.merge(df_fc_counts, df_frags[['idm', 'mol']], left_on='idf2', right_on='idm', how='inner').rename({'mol': 'mol_frag_2'}, axis=1).drop('idm', axis=1)
+    df_fc_counts = pd.merge(df_fc_counts, df_frags[['idm', 'mol']], left_on='idf2', right_on='idm', how='inner').rename({'mol': 'mol_frag_2'}, axis=1).drop('idm', axis=1).sort_values('Count', ascending=False)
+
     # display smiles in the log
     df_fcc_counts_smiles = df_fc_counts.copy()
     df_fcc_counts_smiles['mol_frag_1'] = df_fcc_counts_smiles['mol_frag_1'].map(Chem.MolToSmiles)
@@ -571,6 +570,9 @@ def get_result_fcc(WD: str, output_csv: str, frags_file: str, categories: List[s
     save.file(df_fc_counts, output_csv_fc_top20)
     logger.info(f"FS -- SAVED RESULTS AT '{output_csv_fc_top20}'")
 
+    return {'fcc': output_csv_fcc,
+            'fc_top20': output_csv_fc_top20,
+            }
 
 def get_result_map(WD: str, output_csv: str, file_frags: str, categories: List[str]):
     logger.info("PLOT_RESULT_MAP")
@@ -1227,6 +1229,52 @@ if output_csvs is not None:
         output_csvs = get_result_fcc(wd, f"{wd}/figures/{dataset}.csv", args.frags, categories=categories)
     except IndexError:
         logger.info("NO FCC RESULTS TO CHECK")
+
+    if output_csvs is not None:
+        for k in output_csvs.keys():
+            output_csv = output_csvs[k]
+            output_png = output_csv.replace('.csv', '.png')
+            if Path(output_png).exists():
+                logger.info(f"PLOT '{k}' ALREADY EXISTS, SKIPPING IT")
+                continue
+            df = pd.read_csv(output_csv, sep='|')
+
+            # general plot arguments
+            perc_labels='Perc'
+            y = 'Count'
+
+            if k == 'fcc':
+                title = f"Fragment Combinations Categories (FCC) in {dataset_label}"
+                x = 'abbrev'
+                x_label = 'FCC'
+                y_label = 'Count'
+                rotate_x = 0
+                fig_size = (24, 12)
+
+            elif k == 'fc_top20':
+                title = f"Top 20 Fragment Combinations in {dataset_label}"
+                x = 'fc'
+                y = 'Count'
+                x_label = 'Fragment Combination'
+                y_label = 'Count'
+                rotate_x = 60
+                fig_size = (24, 16)
+            else:
+                logger.error(f"UNKNOWN DATA IN FRAGMENT COMBINATION ANALYSIS ('{k}')")
+
+             # draw plot
+            logger.info(f"GENERATING PLOT '{k}'")
+            fig = save_barplot(df,
+                   output_png,
+                   x,
+                   y,
+                   title,
+                   x_label=x_label,
+                   y_label=y_label,
+                   color=color,
+                   perc_labels=perc_labels,
+                   rotate_x=rotate_x,
+                   fig_size=fig_size)
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ MAPPING ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
