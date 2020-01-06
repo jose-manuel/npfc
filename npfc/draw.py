@@ -216,7 +216,12 @@ def scale_rgb_colormap(colormap: Dict) -> Dict:
     return {k: scale_rgb(colormap[k]) for k in colormap.keys()}
 
 
-def highlight_mol(mol: Mol, colormap: 'ColorMap', img_size: Tuple[int] = (300, 300), debug: bool = False, svg: bool = False) -> Image:
+def highlight_mol(mol: Mol,
+                  colormap: 'ColorMap',
+                  img_size: Tuple[int] = (300, 300),
+                  debug: bool = False,
+                  svg: bool = False,
+                  legend: str = None) -> Image:
     """
     Draw an Image of a molecule with highlighted atoms and bonds according to a colormap.
 
@@ -248,6 +253,7 @@ def highlight_mol(mol: Mol, colormap: 'ColorMap', img_size: Tuple[int] = (300, 3
                                 highlightAtomColors=[highlightAtomColors],
                                 highlightBondColors=[highlightBondColors],
                                 useSVG=svg,
+                                legends=[legend],
                                 )
 
 
@@ -257,6 +263,7 @@ def highlight_mols(mols: List[Mol],
                    max_mols_per_row: int = 5,
                    debug: bool = False,
                    svg: bool = False,
+                   legends: List[str] = None,
                    ):
     """
     Draw an Image of a list of molecules with highlighted atoms and bonds
@@ -291,6 +298,7 @@ def highlight_mols(mols: List[Mol],
                                 highlightAtomColors=colormaps_a,
                                 highlightBondColors=colormaps_b,
                                 useSVG=svg,
+                                legends=legends,
                                 )
 
 

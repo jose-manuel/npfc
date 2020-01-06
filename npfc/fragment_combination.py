@@ -18,7 +18,28 @@ from pandas import Series
 from pandas import DataFrame
 from typing import List
 
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
+def get_fragment_combination_categories(include_fp: bool = False) -> list:
+    """Return the list of all possible of Fragment Combinations Categories.
+
+    :param include_fp: include false positives
+    :return: the list of all possible fragment combination categories
+    """
+
+    cats = ['fsp', 'fed', 'fbr', 'fli',  # fusions
+            'cmo',                       # connection monopodal
+            'cbs', 'cbe', 'cbb', 'cbl',  # connections bipodal
+            'cts', 'cte', 'ctb', 'ctl',  # connections tripodal
+            'cos', 'coe', 'cob', 'col',  # connections others
+            ]
+    if include_fp:
+        cats += ['ffs', 'cfc',  'ffo']   # false positives
+
+    return cats
+
 
 
 def get_rings_between_two_fragments(mol: Mol, aidxf1: set, aidxf2: set) -> list:

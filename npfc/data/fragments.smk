@@ -26,6 +26,7 @@ input_file = config['input_file']
 
 # find where the KNIME workflow is (installed as data of the npfc package)
 file_knwf = pkg_resources.resource_filename('npfc', 'data/mols_deglyco.knwf')
+config_std_frags = pkg_resources.resource_filename('npfc', 'data/std_fragments.json')
 
 # remove trailing / from WD if any
 if WD.endswith('/'):
@@ -53,7 +54,7 @@ rule UNIMS:
     log: "{WD}/06_unims/log/{prefix}_uni.log"
     shell: "mols_filter_dupl {input} {output} -r " + "{WD}/06_unims/{prefix}_ref.hdf --log DEBUG 2>{log}"
 
-rule STD:
+rule STDMS:
     priority: 103
     input: "{WD}/04_murcko/data/{prefix}_murcko.csv.gz"
     output:
@@ -76,6 +77,16 @@ rule UNI:
     output: "{WD}/03_uni/data/{prefix}_uni.csv.gz"
     log: "{WD}/03_uni/log/{prefix}_uni.log"
     shell: "mols_filter_dupl {input} {output} -r {WD}/03_uni/{prefix}_ref.hdf --log DEBUG 2>{log}"
+
+rule STD:
+    priority: 106
+    input: "{WD}/02_deglyco/data/{prefix}_deglyco.sdf.gz"
+    output:
+        "{WD}/03_std/data/{prefix}_passed.csv.gz",
+        "{WD}/03_std/data/{prefix}_filtered.csv.gz",
+        "{WD}/03_std/data/{prefix}_error.csv.gz"
+    log: "{WD}/03_std/log/{prefix}_std.log"
+    shell: "mols_standardize {input} {WD}/03_std/data/{prefix}.csv.gz -p " + config_std_frags + " 2>{log}"  # mols_standardize takes a dir as output
 
 rule DGC:
     priority: 107
