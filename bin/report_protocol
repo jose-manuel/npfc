@@ -645,65 +645,106 @@ def get_dfs_fs(WD: Path) -> Tuple[DataFrame]:
 
     # parse chunks
     chunks_fsearch = sorted([str(x) for x in list(WD.glob(f"{fsearch_dirname}/data/*_[0-9][0-9][0-9]_*.csv.gz"))])
-    df_fsearch = pd.concat([load.file(x) for x in chunks_fsearch])
-    df_fsearch['_aidxf'] = df_fsearch['_aidxf'].map(list)
-    df_smiles = df_fsearch[['idf', 'mol_frag']].drop_duplicates(subset=['idf'])
-    df_smiles['smiles_frag'] = df_smiles['mol_frag'].map(Chem.MolToSmiles)
-    df_smiles = df_smiles[['idf', 'smiles_frag', 'mol_frag']]
-    df_fsearch['hac_mol'] = df_fsearch['mol'].map(lambda x: x.GetNumAtoms())
 
-    # counts for all fragment hits
-    groups = df_fsearch.groupby('idm')
-    n_fs_nhits_tot = len(df_fsearch.index)
-    n_fs_mols_tot = len(groups)
-    logger.info(f"FS -- TOTAL NUMBER OF MOLECULES={n_fs_mols_tot}")
-    logger.info(f"FS -- TOTAL NUMBER OF FRAGMENT HITS={n_fs_nhits_tot:,}")
-    logger.info(f"FS -- AVERAGE NUMBER OF FRAGMENTS PER MOL={n_fs_nhits_tot/len(groups):,.2f}")
+    logger.info(f"FS -- STARTING CHUNK ITERATION...")
+    n_fs_nhits_tot = 0
+    n_fs_mols_tot = 0
+    n_fs_nhits_tot_u = 0
+    dfs_fs_nhits = []
+    dfs_top_frags = []
+    dfs_frag_ratio = []
+    dfs_fs_nhits_u = []
+    dfs_top_frags_u = []
+    for x in chunks_fsearch:  # chunk-wise iteration to save up memory
+        df_fsearch = load.file(x)
+        df_fsearch['_aidxf'] = df_fsearch['_aidxf'].map(list)
+        df_smiles = df_fsearch[['idf', 'mol_frag']].drop_duplicates(subset=['idf'])
+        df_smiles['smiles_frag'] = df_smiles['mol_frag'].map(Chem.MolToSmiles)
+        df_smiles = df_smiles[['idf', 'smiles_frag', 'mol_frag']]
+        df_fsearch['hac_mol'] = df_fsearch['mol'].map(lambda x: x.GetNumAtoms())
+
+        # fragment hits per mol
+        groups = df_fsearch.groupby('idm')
+        n_fs_nhits_tot += len(df_fsearch.index)
+        n_fs_mols_tot += len(groups)  # there are no duplicate ids at this point, each chunk contain unique and non-redundant mols
+        df_fs_nhits = groups.count()[['idf']].reset_index().rename({'idf': 'NumFrags'}, axis=1).groupby('NumFrags').count().rename({'idm': 'Count'}, axis=1).reset_index()  # this counts >0 hits
+        dfs_fs_nhits.append(df_fs_nhits)
+
+        # top fragments
+        df_top_frags = df_fsearch[['idf', 'idm']].groupby('idf').count().reset_index().rename({'idm': 'Count'}, axis=1).sort_values('Count', ascending=False).reset_index(drop=True)
+        dfs_top_frags.append(df_top_frags)
+
+        # fragment ratio per molecule (to do last)
+        df_fsearch['hac_mol'] = df_fsearch['mol'].map(lambda x: x.GetNumAtoms())
+        df_frag_ratio = df_fsearch.copy()
+        df_frag_ratio = groups.agg({'_aidxf': 'sum', 'hac_mol': 'first'}).reset_index()
+        df_frag_ratio['_aidxf'] = df_frag_ratio['_aidxf'].map(lambda x: len(set(x)))
+        df_frag_ratio.rename({'_aidxf': 'hac_frags'}, axis=1, inplace=True)
+        df_frag_ratio['frag_ratio'] = df_frag_ratio['hac_frags'] / df_frag_ratio['hac_mol']
+        dfs_frag_ratio.append(df_frag_ratio)
+
+        # unique fragments per molecule only
+        df_fsearch_u = df_fsearch.groupby(['idm', 'idf']).first().reset_index()
+        n_fs_nhits_tot_u += len(df_fsearch_u.index)
+
+        # unique fragment hits per mol
+        df_fs_nhits_u = df_fsearch_u.groupby('idm').count()[['idf']].reset_index().rename({'idf': 'NumFrags'}, axis=1).groupby('NumFrags').count().rename({'idm': 'Count'}, axis=1).reset_index()  # this counts >0 hits
+        dfs_fs_nhits_u.append(df_fs_nhits_u)
+
+        # top unique fragments
+        df_top_frags_u = df_fsearch_u[['idf', 'idm']].groupby('idf').count().reset_index().rename({'idm': 'Count'}, axis=1).sort_values('Count', ascending=False).reset_index(drop=True)
+        dfs_top_frags_u.append(df_top_frags_u)
+
+    logger.info(f"FS -- COMPLETED CHUNK ITERATION")
+    logger.info(f"FS -- TOTAL NUMBER OF FRAGMENTS HITS={n_fs_nhits_tot:,}")
+    logger.info(f"FS -- TOTAL NUMBER OF MOLECULES={n_fs_mols_tot:,}")
+    logger.info(f"FS -- AVERAGE NUMBER OF FRAGMENTS PER MOL={n_fs_nhits_tot/n_fs_mols_tot:,.2f}")
+
+    # count used later for fragment hit counts
+    n_fs_nhits_0 = n_tot - n_fs_mols_tot  # this counts nhits = 0
 
     # fragment hits per mol
-    df_fs_nhits = groups.count()[['idf']].reset_index().rename({'idf': 'NumFrags'}, axis=1).groupby('NumFrags').count().rename({'idm': 'Count'}, axis=1).reset_index()  # this counts >0 hits
-    n_fs_nhits_0 = n_tot - df_fs_nhits['Count'].sum()  # this counts nhits = 0
+    logger.info(f"FS -- INVESTIGATING THE NUMBER OF FRAGMENT HITS PER MOLECULE")
+    df_fs_nhits = pd.concat(dfs_fs_nhits).groupby('NumFrags').sum().reset_index().sort_values('NumFrags')  # concatenate counts because they do not take any memory anymore
     df_fs_nhits = pd.concat([pd.DataFrame({'NumFrags': [0], 'Count': [n_fs_nhits_0]}), df_fs_nhits]).sort_values('NumFrags').reset_index(drop=True)  # now we have all nhits
     df_fs_nhits['Perc_Mols'] = df_fs_nhits['Count'].map(lambda x: f"{x / n_fs_mols_tot:.2%}")
-    logger.info(f"FS -- RESULTS FOR NUMBER OF FRAGMENT HITS PER MOLECULE\n\n{df_fs_nhits}\n")
+    logger.info(f"FS -- RESULTS FOR THE NUMBER OF FRAGMENT HITS PER MOLECULE\n\n{df_fs_nhits}\n")
 
     # top fragments
-    df_top_frags = df_fsearch[['idf', 'idm']].groupby('idf').count().reset_index().rename({'idm': 'Count'}, axis=1).sort_values('Count', ascending=False).reset_index(drop=True)
-    logger.info(f"FS -- TOTAL NUMBER OF FRAGMENTS={len(df_top_frags):,}")
+    logger.info(f"FS -- INVESTIGATING THE TOP FRAGMENTS")
+    df_top_frags = pd.concat(dfs_top_frags)
+    df_top_frags = df_top_frags.groupby('idf').sum().reset_index()
     df_top_frags['Rank'] = df_top_frags.index + 1
     df_top_frags['Perc_FHits'] = df_top_frags['Count'].map(lambda x: f"{x / n_fs_nhits_tot:.2%}")
     df_top_frags = df_top_frags.merge(df_smiles, how='inner', on='idf')
-    logger.info(f"FS -- RESULTS FOR TOP FRAGMENTS\n\n{df_top_frags.drop('mol_frag', axis=1)}\n")
+    logger.info(f"FS -- TOTAL NUMBER OF FRAGMENTS={len(df_top_frags):,}")
+    logger.info(f"FS -- RESULTS FOR THE TOP FRAGMENTS\n\n{df_top_frags.drop('mol_frag', axis=1)}\n")
 
     # fragment ratio per molecule
-    df_fsearch['hac_mol'] = df_fsearch['mol'].map(lambda x: x.GetNumAtoms())
-    df_frag_ratio = df_fsearch.copy()
-    df_frag_ratio = groups.agg({'_aidxf': 'sum', 'hac_mol': 'first'}).reset_index()
-    df_frag_ratio['_aidxf'] = df_frag_ratio['_aidxf'].map(lambda x: len(set(x)))
-    df_frag_ratio.rename({'_aidxf': 'hac_frags'}, axis=1, inplace=True)
-    df_frag_ratio['frag_ratio'] = df_frag_ratio['hac_frags'] / df_frag_ratio['hac_mol']
-    logger.info(f"FS -- RESULTS FOR RATIO OF FRAGMENT PER MOLECULE\n\n{df_frag_ratio}\n")
-
-    # counts for unique fragment hits
-    logger.info(f"FS -- NOW COMPUTING RESULTS WHEN COUNTING ONLY UNIQUE FRAGMENTS PER MOLECULE")
-    df_fsearch_u = df_fsearch.groupby(['idm', 'idf']).first().reset_index()
-    n_fs_nhits_tot_u = len(df_fsearch_u.index)
-    logger.info(f"FS -- TOTAL NUMBER OF UNIQUE FRAGMENT HITS={n_fs_nhits_tot_u:,}")
-    groups = df_fsearch_u.groupby('idm')
-    logger.info(f"FS -- AVERAGE NUMBER OF UNIQUE FRAGMENTS PER MOL={len(df_fsearch_u.index)/len(groups):,.2f}")
+    logger.info(f"FS -- INVESTIGATING THE RATIO OF FRAGMENT PER MOLECULE")
+    df_frag_ratio = pd.concat(dfs_frag_ratio)
+    logger.info(f"FS -- RESULTS FOR THE RATIO OF FRAGMENT PER MOLECULE\n\n{df_frag_ratio}\n")
 
     # unique fragment hits per mol
-    df_fs_nhits_u = groups.count()[['idf']].reset_index().rename({'idf': 'NumFrags'}, axis=1).groupby('NumFrags').count().rename({'idm': 'Count'}, axis=1).reset_index()  # this counts >0 hits
+    logger.info(f"FS -- NOW COMPUTING RESULTS WHEN COUNTING ONLY UNIQUE FRAGMENTS PER MOLECULE")
+    logger.info(f"FS -- TOTAL NUMBER OF UNIQUE FRAGMENTS HITS={n_fs_nhits_tot_u:,}")
+    logger.info(f"FS -- INVESTIGATING THE NUMBER OF UNIQUE FRAGMENT HITS PER MOLECULE")
+    df_fs_nhits_u = pd.concat(dfs_fs_nhits_u).groupby('NumFrags').sum().reset_index().sort_values('NumFrags')  # concatenate counts because they do not take any memory anymore
     df_fs_nhits_u = pd.concat([pd.DataFrame({'NumFrags': [0], 'Count': [n_fs_nhits_0]}), df_fs_nhits_u]).sort_values('NumFrags').reset_index(drop=True)  # now we have all nhits
     df_fs_nhits_u['Perc_Mols'] = df_fs_nhits_u['Count'].map(lambda x: f"{x / n_fs_nhits_tot_u:.2%}")
-    logger.info(f"FS -- RESULTS FOR NUMBER OF UNIQUE FRAGMENT HITS PER MOLECULE\n\n{df_fs_nhits_u}\n")
+    logger.info(f"FS -- TOTAL NUMBER OF UNIQUE FRAGMENT HITS={n_fs_nhits_tot_u:,}")
+    logger.info(f"FS -- AVERAGE NUMBER OF UNIQUE FRAGMENTS PER MOL={n_fs_nhits_tot_u/n_fs_mols_tot:,.2f}")
+    logger.info(f"FS -- RESULTS FOR THE NUMBER OF UNIQUE FRAGMENT HITS PER MOLECULE\n\n{df_fs_nhits_u}\n")
 
     # top unique fragments
-    df_top_frags_u = df_fsearch_u[['idf', 'idm']].groupby('idf').count().reset_index().rename({'idm': 'Count'}, axis=1).sort_values('Count', ascending=False).reset_index(drop=True)
+    logger.info(f"FS -- INVESTIGATING THE TOP UNIQUE FRAGMENTS")
+    df_top_frags_u = pd.concat(dfs_top_frags_u)
+    df_top_frags_u = df_top_frags_u.groupby('idf').sum().reset_index()
     df_top_frags_u['Rank'] = df_top_frags_u.index + 1
     df_top_frags_u['Perc_FHits'] = df_top_frags_u['Count'].map(lambda x: f"{x / n_fs_nhits_tot_u:.2%}")
     df_top_frags_u = df_top_frags_u.merge(df_smiles, how='inner', on='idf')
-    logger.info(f"FS -- RESULTS FOR TOP UNIQUE FRAGMENTS\n\n{df_top_frags_u.drop('mol_frag', axis=1)}\n")
+    logger.info(f"FS -- RESULTS FOR THE TOP UNIQUE FRAGMENTS\n\n{df_top_frags_u.drop('mol_frag', axis=1)}\n")
+
 
     # no unique fragment ratio because I cannot think of a good way to decide what atom index to retain
 
