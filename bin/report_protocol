@@ -1239,6 +1239,7 @@ if __name__ == '__main__':
                              y_label='Count',
                              color=color,
                              perc_labels='Perc_Status',
+                             fig_size=(12, 12),
                              )
             # plot output_png_prep_filtered
             if Path(output_png_prep_filtered).exists():
@@ -1284,6 +1285,7 @@ if __name__ == '__main__':
                              y_label='Count',
                              color=color,
                              perc_labels='Perc_Status',
+                             fig_size=(12, 12),
                              )
 
 
