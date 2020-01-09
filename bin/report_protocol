@@ -588,7 +588,7 @@ def get_df_subset(WD: Path) -> DataFrame:
     :param WD: the main directory of the dataset data (i.e. 'natural/dnp/data')
     :return: a DF summarizing results of the murcko subset step
     """
-    logger.info("FS -- COMPUTING RESULTS FOR SUBSET")
+    logger.info("SUB -- COMPUTING RESULTS FOR SUBSET")
     if not isinstance(WD, Path):
         WD = Path(WD)
     # parse results before fragment search
@@ -609,7 +609,7 @@ def get_df_subset(WD: Path) -> DataFrame:
     # create a dataframe with counts
     df = pd.DataFrame({'Category': ['passed', 'filtered'], 'Count': [num_passed, num_filtered]})
     df['Perc_Status'] = df['Count'].map(lambda x: f"{x/num_total:.2%}")
-    logger.info(f"PREP -- RESULTS FOR SUBSETTING {num_total:,} MOLECULES:\n\n{df}\n")
+    logger.info(f"SUB -- RESULTS FOR SUBSETTING {num_total:,} MOLECULES:\n\n{df}\n")
 
     return df
 
@@ -713,7 +713,7 @@ def get_dfs_fs(WD: Path) -> Tuple[DataFrame]:
     # top fragments
     logger.info(f"FS -- INVESTIGATING THE TOP FRAGMENTS")
     df_top_frags = pd.concat(dfs_top_frags)
-    df_top_frags = df_top_frags.groupby('idf').sum().reset_index()
+    df_top_frags = df_top_frags.groupby('idf').sum().reset_index().sort_values('Count', ascending=False).reset_index(drop=True)
     df_top_frags['Rank'] = df_top_frags.index + 1
     df_top_frags['Perc_FHits'] = df_top_frags['Count'].map(lambda x: f"{x / n_fs_nhits_tot:.2%}")
     df_top_frags = df_top_frags.merge(df_smiles, how='inner', on='idf')
@@ -739,7 +739,7 @@ def get_dfs_fs(WD: Path) -> Tuple[DataFrame]:
     # top unique fragments
     logger.info(f"FS -- INVESTIGATING THE TOP UNIQUE FRAGMENTS")
     df_top_frags_u = pd.concat(dfs_top_frags_u)
-    df_top_frags_u = df_top_frags_u.groupby('idf').sum().reset_index()
+    df_top_frags_u = df_top_frags_u.groupby('idf').sum().reset_index().sort_values('Count', ascending=False).reset_index(drop=True)
     df_top_frags_u['Rank'] = df_top_frags_u.index + 1
     df_top_frags_u['Perc_FHits'] = df_top_frags_u['Count'].map(lambda x: f"{x / n_fs_nhits_tot_u:.2%}")
     df_top_frags_u = df_top_frags_u.merge(df_smiles, how='inner', on='idf')
@@ -873,13 +873,17 @@ def get_df_fm(WD: Path, frags_file) -> DataFrame:
     categories = fragment_combination.get_fragment_combination_categories()
 
     # parse fragments data
+    logger.info(f"FM -- RETRIEVING FRAGMENT DATA")
     df_frags = load.file(frags_file).rename({'idm': 'idf', 'mol': 'mol_frag'}, axis=1)
     df_frags['idf'] = df_frags['idf'].astype(str)
     df_frags['frag_hac'] = df_frags['mol_frag'].map(lambda x: x.GetNumAtoms())
     df_frags['smiles_frag'] = df_frags['mol_frag'].map(Chem.MolToSmiles)
     df_frags = df_frags[['idf', 'frag_hac', 'smiles_frag', 'mol_frag']]
+    logger.info(f"FM -- RETRIEVED {len(df_frags.index)} FRAGMENTS")
+
 
     # initialize chunk iteration
+    logger.info(f"FS -- STARTING CHUNK ITERATION...")
     num_tot_fm_map = 0
     num_tot_mol_map = 0
     n_fm_nhits_tot = 0
@@ -962,6 +966,7 @@ def get_df_fm(WD: Path, frags_file) -> DataFrame:
         dfs_fm_fc.append(df_fm_fc)
 
     logger.setLevel(logging.INFO)  # ok now back to normal
+    logger.info(f"FS -- COMPLETED CHUNK ITERATION...")
 
     # fm_nfmpermol
     logger.info(f"FM -- RESULTS FOR THE NUMBER OF FM PER MOLECULE")
@@ -1026,92 +1031,6 @@ def get_df_fm(WD: Path, frags_file) -> DataFrame:
 
 
     return (df_fm_nhits, df_fm_nhits_u, df_fm_frag_ratio, df_fm_top_frags, df_fm_top_frags_u, df_fm_fcc, df_fm_fc, df_fm_nfmpermol)
-
-    # # OLD
-    # # retrieve data
-    # df_fm = pd.concat([load.file(x, decode=['_fmap']) for x in chunks]).sort_values(["idm", "nfrags"], ascending=True) # df_fm already sorted for the best examples per case
-    # num_tot_fm_map = len(df_fm.index)
-    # logger.info(f"FM -- TOTAL NUMBER OF FRAGMENT MAPS: {num_tot_fm_map:,d}")
-    # groups = df_fm[['idm', 'fmid', 'nfrags']].groupby('idm')
-    # num_tot_mol_map = len(groups)
-    # logger.info(f"FM -- TOTAL NUMBER OF MOLECULES: {num_tot_mol_map:,d}")
-    #
-    # # number of fragments map per molecule
-    # df_fm_nfmpermol = groups.count().rename({'fmid' : 'NumFM'}, axis=1).groupby('NumFM').count().rename({'nfrags': 'Count'}, axis=1).reset_index()
-    # df_fm_nfmpermol['Perc_Mols'] = df_fm_nfmpermol['Count'].map(lambda x: f"{x / num_tot_mol_map:.2%}")
-    # logger.info(f"FM -- RESULTS FOR THE NUMBER OF FM PER MOLECULE:\n\n{df_fm_nfmpermol}\n")
-    #
-    # # extract the maps
-    # df_edges = pd.concat([nx.convert_matrix.to_pandas_edgelist(df_fm.iloc[i]["_fmap"]) for i in range(len(df_fm.index))]).rename({'source': 'idf1', 'target': 'idf2'}, axis=1)
-    # df_edges.rename({'source': 'idf1', 'target': 'idf2'}, axis=1)
-    #
-    #
-    # # fs analysis
-    #
-    # # initialization of a common df useful for fs analysis
-    # df_fm['frags'] = df_fm['frags'].map(lambda x: x.replace("'", '"'))
-    # df_fm['frags'] = df_fm['frags'].map(lambda x: json.loads(x))
-    # df_fm['aidxs'] = df_fm['_d_aidxs'].map(lambda x: [v for l in x.values() for v in l])  # extract all values from dict: list of tuples
-    # df_fm['aidxs'] = df_fm['aidxs'].map(lambda x: [v for l in x for v in l])   # flatten the list and identify only unique atom indices
-    # groups = df_fm.groupby('idm')
-    # df_fm_grouped = groups.agg({'frags': 'sum'}).reset_index(drop=True)  # concatenate lists in the same group
-    # df_fm_grouped['frags'] = df_fm_grouped['frags'].map(lambda x: list(set(x)))  # count each occurrence of a fragment
-    # df_fm_grouped['n_frags'] =  df_fm_grouped['frags'].map(lambda x: len(x))
-    #
-    # # fragment hits per mol
-    # df_fm_nhits = df_fm_grouped[['n_frags', 'frags']].groupby('n_frags').count().reset_index().rename({'frags': 'Count', 'n_frags': 'NumFrags'}, axis=1)
-    # df_fm_nhits['Perc_Mols'] = df_fm_nhits['Count'].map(lambda x: f"{x / num_tot_mol_map:.2%}")
-    # logger.info(f"FS -- RESULTS FOR NUMBER OF FRAGMENT HITS PER MOLECULE\n\n{df_fm_nhits}\n")
-    #
-    # # top fragments
-    #
-    # # parse fragments data
-    # df_frags = load.file(frags_file).rename({'idm': 'idf', 'mol': 'mol_frag'}, axis=1)
-    # df_frags['idf'] = df_frags['idf'].astype(str)
-    # df_frags['frag_hac'] = df_frags['mol_frag'].map(lambda x: x.GetNumAtoms())
-    # df_frags['smiles_frag'] = df_frags['mol_frag'].map(Chem.MolToSmiles)
-    # df_frags = df_frags[['idf', 'frag_hac', 'smiles_frag', 'mol_frag']]
-    # d_frags = {k: v for k, v in zip(df_frags['idf'], df_frags['frag_hac'])}  # ### try for frag ratio
-    #
-    # # process fm data
-    # df_fm_top_frags = df_fm_grouped['frags'].apply(pd.Series).reset_index().melt(id_vars='index').dropna()[['index', 'value']]  # ungroup values by frag id in list
-    # df_fm_top_frags['value'] = df_fm_top_frags['value'].map(lambda x: x.split(':')[0])
-    # df_fm_top_frags = df_fm_top_frags.groupby('value').count().reset_index().rename({'value': 'idf', 'index': 'Count'}, axis=1).sort_values('Count', ascending=False).reset_index(drop=True)  # count and sort idfs
-    # df_fm_top_frags['Rank'] = df_fm_top_frags.index + 1
-    # n_fm_nhits_tot = df_fm_top_frags['Count'].sum()
-    # logger.info(f"FS -- TOTAL NUMBER OF FRAGMENT HITS={n_fm_nhits_tot:,}")
-    # df_fm_top_frags['Perc_FHits'] = df_fm_top_frags['Count'].map(lambda x: f"{x / n_fm_nhits_tot:.2%}")
-    # df_fm_top_frags['idf'] = df_fm_top_frags['idf'].astype(str)
-    # df_fm_top_frags = pd.merge(df_fm_top_frags, df_frags, on='idf', how='inner').drop('frag_hac', axis=1)
-    # logger.info(f"FS -- RESULTS FOR TOP FRAGMENTS\n\n{df_fm_top_frags.drop('mol_frag', axis=1)}\n")
-    #
-    # # fragment ratio per molecule
-    # df_fm_frag_ratio = groups.agg({'aidxs': 'sum', 'hac_mol': 'first'}).reset_index()  # concatenate all aidxs obtained previously
-    # df_fm_frag_ratio['hac_frags'] = df_fm_frag_ratio['aidxs'].map(lambda x: len(set(x)))  # the length of atom indices is the number of hac in fragments
-    # df_fm_frag_ratio['frag_ratio'] = df_fm_frag_ratio['hac_frags'] / df_fm_frag_ratio['hac_mol']
-    # df_fm_frag_ratio.drop('aidxs', axis=1, inplace=True)
-    # logger.info(f"FS -- RESULTS FOR RATIO OF FRAGMENT PER MOLECULE\n\n{df_fm_frag_ratio}\n")
-    #
-    # # unique fragment hits per mol
-    # df_fm_grouped['frags_u'] = df_fm_grouped['frags'].map(lambda x: list(set([v.split(':')[0] for v in x])))
-    # df_fm_grouped['n_frags_u'] =  df_fm_grouped['frags_u'].map(lambda x: len(x))
-    # df_fm_nhits_u = df_fm_grouped[['n_frags_u', 'frags_u']].groupby('n_frags_u').count().reset_index().rename({'frags_u': 'Count', 'n_frags_u': 'NumFrags'}, axis=1)
-    # df_fm_nhits_u['Perc_Mols'] = df_fm_nhits_u['Count'].map(lambda x: f"{x / num_tot_mol_map:.2%}")
-    # logger.info(f"FS -- RESULTS FOR NUMBER OF UNIQUE FRAGMENT HITS PER MOLECULE\n\n{df_fm_nhits_u}\n")
-    #
-    # # top unique fragments
-    # df_fm_top_frags_u = df_fm_grouped['frags_u'].apply(pd.Series).reset_index().melt(id_vars='index').dropna()[['index', 'value']]  # ungroup values by frag id in list
-    # df_fm_top_frags_u = df_fm_top_frags_u.groupby('value').count().reset_index().rename({'value': 'idf', 'index': 'Count'}, axis=1).sort_values('Count', ascending=False).reset_index(drop=True)  # count and sort idfs
-    # df_fm_top_frags_u['Rank'] = df_fm_top_frags_u.index + 1
-    # df_fm_top_frags_u['Perc_FHits'] = df_fm_top_frags_u['Count'].map(lambda x: f"{x / n_fm_nhits_tot:.2%}")
-    # df_fm_top_frags_u['idf'] = df_fm_top_frags_u['idf'].astype(str)
-    # df_fm_top_frags_u = pd.merge(df_fm_top_frags_u, df_frags, on='idf', how='inner').drop('frag_hac', axis=1)
-    # logger.info(f"FS -- RESULTS FOR TOP UNIQUE FRAGMENTS\n\n{df_fm_top_frags_u.drop('mol_frag', axis=1)}\n")
-    #
-    # # fcc analysis
-    # df_fm_fcc, df_fm_fc = _prep_df_fcc(df_edges, frags_file, compute_df_ffo=False)  # no ffo in maps because they got splitted up during fmapping
-    #
-    # return (df_fm_nhits, df_fm_nhits_u, df_fm_frag_ratio, df_fm_top_frags, df_fm_top_frags_u, df_fm_fcc, df_fm_fc, df_fm_nfmpermol)
 
 
 def get_df_pnp(WD: Path) -> DataFrame:
@@ -1523,6 +1442,7 @@ if __name__ == '__main__':
                              rotate_x=60,
                              perc_labels='Perc_FHits',
                              force_order=True,
+                             fig_size = (12, 12),
                              )
 
             # plot output_png_fs_nfragpermol_u
@@ -1557,6 +1477,7 @@ if __name__ == '__main__':
                              rotate_x=60,
                              perc_labels='Perc_FHits',
                              force_order=True,
+                             fig_size = (12, 12),
                              )
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FCC ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
@@ -1782,6 +1703,7 @@ if __name__ == '__main__':
                              rotate_x=60,
                              perc_labels='Perc_FHits',
                              force_order=True,
+                             fig_size = (12, 12),
                              )
 
             # plot output_png_fm_nfragpermol_u
@@ -1816,6 +1738,7 @@ if __name__ == '__main__':
                              rotate_x=60,
                              perc_labels='Perc_FHits',
                              force_order=True,
+                             fig_size = (12, 12),
                              )
 
             # plot output_png_fm_fcc
