@@ -81,13 +81,19 @@ def _split_overlaps(df_fc: DataFrame, max_overlaps: int) -> DataFrame:
     d_incompatible = _get_incompatible_fragments_dict(df_overlaps)
     # common
     df_common = df_fc[(~df_fc['fid1'].isin(d_incompatible.keys())) & (~df_fc['fid2'].isin(d_incompatible.keys()))]
-    logging.debug(f"Number of common combinations: {len(df_common.index)}")
+    logging.debug(f"Identified {len(df_common.index):,} variant combinations:\n{df_common[['idm', 'fid1', 'fid2', 'abbrev']]}")
+
     # variants
     df_variants = df_fc[ (df_fc['abbrev'] != 'ffo') & ((df_fc['fid1'].isin(d_incompatible.keys()) | (df_fc['fid2'].isin(d_incompatible.keys()))))]
-    logging.debug(f"Number of variant combinations: {len(df_variants.index)}")
+    logging.debug(f"Identified {len(df_variants.index):,} variant combinations:\n{df_variants[['idm', 'fid1', 'fid2', 'abbrev']]}")
 
     # define a list of sets of alternative fragments (i.e. [(A, B), (C, D)]) for computing all possible alternative fmap possibilities
     alt_frags = list(set([tuple(sorted([k] + v)) for k, v in d_incompatible.items()]))
+    # remove sublists included in others: i.e. ('1724:0', '627:1'), ('1724:0', '627:0'), ('1724:0', '627:0', '627:1') => ('1724:0', '627:0', '627:1')
+    alt_frags = [set(x) for x in alt_frags]  # now the former set of tuples is a list of sets
+    alt_frags.sort(key=len)  # do only 1 check: left in right and not right in left as well
+    alt_frags = [tuple(sorted(list(x))) for x in list(filter(lambda f: not any(f < g for g in alt_frags), alt_frags))]  # discard any set that is subset of another
+    logging.debug(f"Alternative fragments:\n" + '\n'.join([str(x) for x in alt_frags]))
 
     # compute 1 df for each alternative fmap and then concatenate it all into one single df
     dfs_alt_curr = []
@@ -99,6 +105,7 @@ def _split_overlaps(df_fc: DataFrame, max_overlaps: int) -> DataFrame:
         df_variants_curr = df_variants[((~df_variants['fid1'].isin(to_remove)) & (~df_variants['fid2'].isin(to_remove)))]
         dfs_alt_curr.append(pd.concat([df_common, df_variants_curr]))
 
+    # clear duplicate dfs  #### no idea why they happen: done later in main func
     return (dfs_alt_curr, noverlaps)
 
 
@@ -175,7 +182,11 @@ def generate(df_fcc: DataFrame, min_frags: int = 2, max_frags: int = 5, max_over
         logging.debug(f"Current Molecule: {gid}")
         # split overlaps into different Dataframes
         dfs_fcc_clean, noverlaps = _split_overlaps(g, max_overlaps)
-        logging.debug(f"dfs_fcc_clean\n{dfs_fcc_clean}\n")
+
+        if logging.getLogger().level == logging.DEBUG:
+            for i, df_fcc_clean in enumerate(dfs_fcc_clean):
+                logging.info(f"df_fcc_clean #{i}\n\n{df_fcc_clean[['idm', 'fid1', 'fid2', 'abbrev']]}\n")
+
         if len(dfs_fcc_clean) == 0:
             continue
 
@@ -255,4 +266,4 @@ def generate(df_fcc: DataFrame, min_frags: int = 2, max_frags: int = 5, max_over
             ds_map.append({'idm': gid, 'fmid': str(i+1).zfill(3), 'nfrags': nfrags, 'nfrags_u': nfrags_u, 'ncomb': ncomb, 'ncomb_u': ncomb_u, 'hac_mol': hac_mol, 'hac_frags': hac_frags, 'perc_mol_cov_frags': perc_mol_cov_frags, 'frags': frags, 'frags_u': frags_u, 'comb': comb, 'comb_u': comb_u, 'fmap_str': frag_map_str, '_d_aidxs': d_aidxs, '_colormap': colormap, '_fmap': graph, 'mol': mol})
 
     # df_map
-    return DataFrame(ds_map, columns=['idm', 'fmid', 'nfrags', 'nfrags_u', 'ncomb', 'ncomb_u', 'hac_mol', 'hac_frags', 'perc_mol_cov_frags', 'frags', 'frags_u', 'comb', 'comb_u', 'fmap_str', '_d_aidxs', '_colormap', '_fmap', 'mol'])
+    return DataFrame(ds_map, columns=['idm', 'fmid', 'nfrags', 'nfrags_u', 'ncomb', 'ncomb_u', 'hac_mol', 'hac_frags', 'perc_mol_cov_frags', 'frags', 'frags_u', 'comb', 'comb_u', 'fmap_str', '_d_aidxs', '_colormap', '_fmap', 'mol']).drop_duplicates(subset=['fmap_str'])
