@@ -221,7 +221,7 @@ def highlight_mol(mol: Mol,
                   img_size: Tuple[int] = (300, 300),
                   debug: bool = False,
                   svg: bool = False,
-                  legend: str = None) -> Image:
+                  legend: str = '') -> Image:
     """
     Draw an Image of a molecule with highlighted atoms and bonds according to a colormap.
 
