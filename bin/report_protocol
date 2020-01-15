@@ -1515,6 +1515,9 @@ if __name__ == '__main__':
                 df_fcc_ffo = load.file(output_csv_fcc_ffo)
             else:
                 logger.info(f"FCC -- COMPUTING OUTPUT CSV FILES")
+                if args.frags is None or not Path(args.frags).exists():
+                    logging.error("FCC -- ERROR! COULD NOT FOUND FRAGMENT FILE! SKIPPING STEP...")
+                    continue
                 df_fcc_fcc, df_fcc_fc, df_fcc_ffo = get_dfs_fcc(p, args.frags, compute_df_ffo=True)
                 save.file(df_fcc_fcc, output_csv_fcc_fcc)
                 save.file(df_fcc_fc, output_csv_fcc_fc)
@@ -1644,6 +1647,9 @@ if __name__ == '__main__':
                 df_fm_nfmpermol = load.file(output_csv_fm_nfmpermol)
             else:
                 logger.info(f"FM -- COMPUTING OUTPUT CSV FILES")
+                if args.frags is None or not Path(args.frags).exists():
+                    logging.error("FM -- ERROR! COULD NOT FOUND FRAGMENT FILE! SKIPPING STEP...")
+                    continue
                 dfs_fm =  get_df_fm(p, args.frags)
                 for df_fm, output_csv_fm in zip(dfs_fm, output_csv_files):
                     save.file(df_fm, output_csv_fm)
