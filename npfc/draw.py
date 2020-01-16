@@ -217,13 +217,14 @@ def scale_rgb_colormap(colormap: Dict) -> Dict:
 
 
 def highlight_mol(mol: Mol,
-                  colormap: 'ColorMap',
+                  colormap: 'ColorMap' = None,
                   img_size: Tuple[int] = (300, 300),
                   debug: bool = False,
                   svg: bool = False,
                   legend: str = '') -> Image:
     """
     Draw an Image of a molecule with highlighted atoms and bonds according to a colormap.
+    If no Colormap object is provided, no highlighting is done.
 
     .. image:: _images/draw_highlight.svg
         :align: center
@@ -258,7 +259,7 @@ def highlight_mol(mol: Mol,
 
 
 def highlight_mols(mols: List[Mol],
-                   colormaps: List['ColorMap'],
+                   colormaps: List['ColorMap'] = None,
                    sub_img_size: Tuple[int] = (300, 300),
                    max_mols_per_row: int = 5,
                    debug: bool = False,
@@ -281,10 +282,16 @@ def highlight_mols(mols: List[Mol],
     colormaps_a = []
     colormaps_b = []
 
-    for colormap in colormaps:
-        atom_lists.append([int(x) for x in list(colormap.atoms.keys())])
-        colormaps_a.append(colormap.atoms)
-        colormaps_b.append(colormap.bonds)
+    if colormaps is None:
+        for colormap in colormaps:
+            atom_lists.append([])
+            colormaps_a.append({})
+            colormaps_b.append({})
+    else:
+        for colormap in colormaps:
+            atom_lists.append([int(x) for x in list(colormap.atoms.keys())])
+            colormaps_a.append(colormap.atoms)
+            colormaps_b.append(colormap.bonds)
 
     if debug:
         mols = [Mol(mol) for mol in mols]
