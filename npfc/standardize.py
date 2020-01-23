@@ -175,6 +175,8 @@ class Standardizer(Filter):
                                   }
         if protocol is None:
             self._protocol = self._default_protocol
+        else:
+            self._protocol = protocol
         # workers
         self.metal_disconnector = MetalDisconnector()
         self.normalizer = Normalizer()
@@ -287,6 +289,7 @@ class Standardizer(Filter):
         :param mol: the input molecule
         :return: the molecule without isotope
         """
+        mol = Mol(mol)
         for a in mol.GetAtoms():
             a.SetIsotope(0)
         return mol

@@ -8,7 +8,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="npfc",
-    version='0.5.11-2-gf2c004a',
+    version='0.5.11-3-g0491a27',
     author="Stephane Bourg, Jose-Manuel Gally",
     author_email="stephane.bourg@crns.fr",
     description="A package for classifying fragment combinations in molecules",

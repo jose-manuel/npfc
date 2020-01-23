@@ -25,7 +25,6 @@ from rdkit.Chem import Draw
 # 2D depiction of molecules
 from rdkit.Chem import rdDepictor
 from rdkit.Chem import rdCoordGen
-from rdkit.Avalon import pyAvalonTools as pyAv
 from pdbeccdutils.core.depictions import DepictionValidator
 # graph
 import networkx as nx
@@ -388,20 +387,19 @@ def rescale(mol: Mol, f: float = 1.4):
     Chem.TransformMol(mol, tm)
 
 
-def compute_2D(mol: Mol, methods: List[str] = ["CoordGen", "rdDepictor"], consider_input: bool = True) -> Mol:
+def compute_2D(mol: Mol, methods: List[str] = ["CoordGen", "rdDepictor", "Avalon"], consider_input: bool = True) -> Mol:
     """
     Returns the "best" 2D depiction of a molecule according the methods in METHODS_2D.
-    Currently four methods are available:
+    Currently two methods are available:
 
         - CoordGen
         - rdDepictor
-        - Avalon  (currently disabled because of RunTimeError when used with RDKit 2019.03.4, BOOST 1_70 and pdbeccdutils 5.1)
-        - Input
 
     A perfect score of 0 means the depiction is good enough (no overalapping atom/bonds)
     and it is not worth computing other depictions. When no perfect score is reached,
     the depiction with lowest score is retrieved. In case of tie, the first method applied
-    is preferred.
+    is preferred. In case the input molecule contains input coordinates, they can be compared
+    to the methods as 'Input' (lowest priority).
 
     The method used for depicting the molecule is stored as molecule property: "_2D".
 
@@ -439,7 +437,6 @@ def compute_2D(mol: Mol, methods: List[str] = ["CoordGen", "rdDepictor"], consid
     # methods
     METHODS = {'CoordGen': lambda x: rdCoordGen.AddCoords(x),
                'rdDepictor': lambda x: rdDepictor.Compute2DCoords(x),
-               'Avalon': lambda x: pyAv.Generate2DCoords(x),
                'Input': lambda x: x,
                }
 
