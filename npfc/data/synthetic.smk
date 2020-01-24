@@ -26,13 +26,13 @@ prefix = config['prefix']
 input_file = config['input_file']
 # additional
 frags_file = config['frags_file']  # fragment file to use for substructure search
-frags_filename = Path(frags_file).stem   # basename from frags file
+frags_subdir = config['frags_subdir']
 chunksize = config['chunksize']  # maximum number of molecules per chunk
 # specific to synthetic
 natref = config['natref']
-natref_filename = Path(natref).stem.split('_ref')[0]  # basename from natef hdf
-# for activity
 act_file_raw = config['act_file']  # raw file with activity for annotating fmaps. For now only works with the ChEMBL
+# from master script
+num_chunks = config['num_chunks']
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ INITIALIZATION ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
@@ -48,13 +48,17 @@ WD += '/data'
 if natref.endswith('/'):
     natref = natref[:-1]
 
-natref_dedupl_reffile = f"{config['natref']}/data/05_dedupl/dnp_ref.hdf"
-natref_fmap_dir = f"{config['natref']}/data/09_fmap/data/"
-natref_fmap_files = [str(x) for x in Path(natref_fmap_dir).glob('*')]
-
-
-num_chunks = config['num_chunks']
-# define chunk_ids for wildcard expansionWcx7g5!Qu
+# frags
+frags_filename = Path(frags_file).stem.split('.')[0]   # basename from frags file
+# natref
+natref_filename = Path(natref).stem   # basename from natref dir
+natref_subdir = Path(natref).stem.split('.')[0]  # subfolder where outputs using nat_ref are stored
+# natref dedupl - for subset
+natref_dedupl_dir = list(Path(f"{natref}/data").glob("[0-9][0-9]_dedupl"))[0]
+natref_dedupl_reffile = list(natref_dedupl_dir.glob('*.hdf'))[0]
+# natref fmap - for pnp
+natref_fmap_dir = [str(x) for x in Path(f"{natref}/data/{frags_subdir}").glob("[0-9][0-9]_fmap")][0] + '/data'
+# define chunk_ids for wildcard expansion
 chunk_ids = [str(i+1).zfill(3) for i in range(num_chunks)]
 
 
@@ -62,53 +66,53 @@ chunk_ids = [str(i+1).zfill(3) for i in range(num_chunks)]
 
 
 rule all:
-    input: expand(WD + '/11_pnp/data/' + prefix + '_{cid}_pnp.csv.gz', cid=chunk_ids)
+    input: expand(f"{WD}/{natref_subdir}/{frags_subdir}/11_pnp/data/{prefix}" + '_{cid}_pnp.csv.gz', cid=chunk_ids)
 
 rule PNP:
     priority: 0
-    input: "{WD}/10_fmap/data/{prefix}_{cid}_fmap.csv.gz"
-    output: "{WD}/11_pnp/data/{prefix}_{cid}_pnp.csv.gz"
-    log: "{WD}/12_pnp/log/{prefix}_{cid}_pnp.log"
+    input: "{WD}" + f"/{natref_subdir}/{frags_subdir}" + "/10_fmap/data/{prefix}_{cid}_fmap.csv.gz"
+    output: "{WD}" + f"/{natref_subdir}/{frags_subdir}" + "/11_pnp/data/{prefix}_{cid}_pnp.csv.gz"
+    log: "{WD}" + f"/{natref_subdir}/{frags_subdir}" + "/11_pnp/log/{prefix}_{cid}_pnp.log"
     shell: "fmaps_annotate_pnp {input} {natref_fmap_dir} {output} >{log} 2>&1"
 
-rule MAP:
+rule FMAP:
     priority: 1
-    input: "{WD}/09_fcc/data/{prefix}_{cid}_fcc.csv.gz"
-    output: "{WD}/10_fmap/data/{prefix}_{cid}_fmap.csv.gz"
-    log: "{WD}/11_fmap/log/{prefix}_{cid}_fmap.log"
+    input: "{WD}" + f"/{natref_subdir}/{frags_subdir}" + "/09_fcc/data/{prefix}_{cid}_fcc.csv.gz"
+    output: "{WD}" + f"/{natref_subdir}/{frags_subdir}" + "/10_fmap/data/{prefix}_{cid}_fmap.csv.gz"
+    log: "{WD}" + f"/{natref_subdir}/{frags_subdir}" + "/10_fmap/log/{prefix}_{cid}_fmap.log"
     shell: "fc_map {input} {output} --min-frags 2 --max-frags 9999 --max-overlaps 5 >{log} 2>&1"
 
 rule FCC:
     priority: 2
-    input: "{WD}/08_sub/data/{prefix}_{cid}_sub.csv.gz"
-    output: "{WD}/09_fcc/data/{prefix}_{cid}_fcc.csv.gz"
-    log: "{WD}/09_fcc/log/{prefix}_{cid}_fcc.log"
+    input: "{WD}" + f"/{natref_subdir}/{frags_subdir}" + "/08_fsearch/data/{prefix}_{cid}_fsearch.csv.gz"
+    output: "{WD}" + f"/{natref_subdir}/{frags_subdir}" + "/09_fcc/data/{prefix}_{cid}_fcc.csv.gz"
+    log: "{WD}" + f"/{natref_subdir}/{frags_subdir}" + "/09_fcc/log/{prefix}_{cid}_fcc.log"
     shell: "fc_classify {input} {output} -c 3 >{log} 2>&1"
 
-rule SUB:
+rule FSEARCH:
     priority: 3
     input:
-        mols = "{WD}/07_gen2D/data/{prefix}_{cid}_gen2D.csv.gz",
+        mols = "{WD}" + f"/{natref_subdir}" + "/07_subset/data/{prefix}_{cid}_subset.csv.gz",
         frags = frags_file
-    output: "{WD}/08_sub/data/{prefix}_{cid}_sub.csv.gz"
-    log: "{WD}/08_sub/log/{prefix}_{cid}_sub.log"
+    output: "{WD}" + f"/{natref_subdir}/{frags_subdir}" + "/08_fsearch/data/{prefix}_{cid}_fsearch.csv.gz"
+    log: "{WD}" + f"/{natref_subdir}/{frags_subdir}" + "/08_fsearch/log/{prefix}_{cid}_fsearch.log"
     shell: "mols_substruct {input.mols} {input.frags} {output} >{log} 2>&1"
 
-rule GEN2D:
+rule SUBSET:
     priority: 4
-    input: "{WD}/06_synth/data/{prefix}_{cid}_synth.csv.gz"
-    output: "{WD}/07_gen2D/data/{prefix}_{cid}_gen2D.csv.gz"
-    log: "{WD}/07_gen2D/log/{prefix}_{cid}_gen2D.log"
-    shell: "mols_gen2D {input} {output} 2>{log}"
-
-rule SYNTH:
-    priority: 5
     input:
-        mols = "{WD}/05_dedupl/data/{prefix}_{cid}_dedupl.csv.gz",
+        mols = "{WD}/06_gen2D/data/{prefix}_{cid}_gen2D.csv.gz",
         ref = natref + "/data/05_dedupl/dnp_ref.hdf"
-    output: "{WD}/06_synth/data/{prefix}_{cid}_synth.csv.gz"
-    log: "{WD}/06_synth/log/{prefix}_{cid}_sub.log"
+    output: "{WD}" + f"/{natref_subdir}" + "/07_subset/data/{prefix}_{cid}_subset.csv.gz"
+    log: "{WD}" + f"/{natref_subdir}" + "/07_subset/log/{prefix}_{cid}_subset.log"
     shell: "mols_subset {input.mols} {input.ref} {output} >{log} 2>&1"
+
+rule GEN2D:
+    priority: 5
+    input: "{WD}/05_dedupl/data/{prefix}_{cid}_dedupl.csv.gz"
+    output: "{WD}/06_gen2D/data/{prefix}_{cid}_gen2D.csv.gz"
+    log: "{WD}/06_gen2D/log/{prefix}_{cid}_gen2D.log"
+    shell: "mols_gen2D {input} {output} 2>{log}"
 
 rule DEDUPL:
     priority: 6

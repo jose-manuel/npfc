@@ -23,6 +23,7 @@ molid = config['molid']
 prefix = config['prefix']
 input_file = config['input_file']
 frags_file = config['frags_file']
+frags_subdir = config['frags_subdir']
 chunksize = config['chunksize']
 
 
@@ -40,33 +41,34 @@ WD += '/data'
 chunk_ids = [str(i+1).zfill(3) for i in range(config['num_chunks'])]
 
 
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ PIPELINE ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 
 rule all:
-    input: expand(WD + '/09_fmap/data/' + prefix + '_{cid}_fmap.csv.gz', cid=chunk_ids)
+    input: expand(f"{WD}/{frags_subdir}/09_fmap/data/{prefix}" + '_{cid}_fmap.csv.gz', cid=chunk_ids)
 
 rule FMAP:
     priority: 11
-    input: "{WD}/08_fcc/data/{prefix}_{cid}_fcc.csv.gz"
-    output: "{WD}/09_fmap/data/{prefix}_{cid}_fmap.csv.gz"
-    log: "{WD}/09_fmap/log/{prefix}_{cid}_fmap.log"
+    input: "{WD}" + f"/{frags_subdir}" + "/08_fcc/data/{prefix}_{cid}_fcc.csv.gz"
+    output: "{WD}" + f"/{frags_subdir}" + "/09_fmap/data/{prefix}_{cid}_fmap.csv.gz"
+    log: "{WD}" + f"/{frags_subdir}" + "/09_fmap/log/{prefix}_{cid}_fmap.log"
     shell: "fc_map {input} {output} --min-frags 2 --max-frags 9999 --max-overlaps 5 --log DEBUG >{log} 2>&1"
 
 rule FCC:
     priority: 12
-    input: "{WD}/07_sub/data/{prefix}_{cid}_sub.csv.gz"
-    output: "{WD}/08_fcc/data/{prefix}_{cid}_fcc.csv.gz"
-    log: "{WD}/08_fcc/log/{prefix}_{cid}_fcc.log"
+    input: "{WD}" + f"/{frags_subdir}" + "/07_fsearch/data/{prefix}_{cid}_fsearch.csv.gz"
+    output: "{WD}" + f"/{frags_subdir}" + "/08_fcc/data/{prefix}_{cid}_fcc.csv.gz"
+    log: "{WD}" + f"/{frags_subdir}" + "/08_fcc/log/{prefix}_{cid}_fcc.log"
     shell: "fc_classify {input} {output} -c 3 >{log} 2>&1"
 
-rule SUB:
+rule FSEARCH:
     priority: 13
     input:
         mols = "{WD}/06_gen2D/data/{prefix}_{cid}_gen2D.csv.gz",
         frags = frags_file
-    output: "{WD}/07_sub/data/{prefix}_{cid}_sub.csv.gz"
-    log: "{WD}/07_sub/log/{prefix}_{cid}_sub.log"
+    output: "{WD}" + f"/{frags_subdir}" + "/07_fsearch/data/{prefix}_{cid}_fsearch.csv.gz"
+    log: "{WD}" + f"/{frags_subdir}" + "/07_fsearch/log/{prefix}_{cid}_fsearch.log"
     shell: "mols_substruct {input.mols} {input.frags} {output} >{log} 2>&1"
 
 rule GEN2D:

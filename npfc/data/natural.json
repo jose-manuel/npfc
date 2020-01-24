@@ -4,5 +4,6 @@
                     "WD": "natural/dnp/",
                     "input_file": "natural/dnp/data/00_raw/data/dnp.sdf.gz",
                     "frags_file": "fragments/crms/data/07_gen2D/data/crms_gen2D.csv.gz",
+                    "frags_subdir" : "crms",
                     "chunksize": 5000
 }
