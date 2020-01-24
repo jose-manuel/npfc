@@ -138,7 +138,7 @@ def main():
         row = df.iloc[i]
         # print(drawer)
         try:
-            img = Draw.MolToImage(row['mol'], size=(400, 400), options=rdkit_drawer, fitImage=True)
+            img = Draw.MolToImage(row['mol'], size=args.size, options=rdkit_drawer, fitImage=True)
             # img = Draw.MolsToGridImage([row['mol']],
             #                            molsPerRow=1,
             #                            subImgSize=size,

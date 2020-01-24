@@ -83,18 +83,18 @@ def mols_2D():
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ TESTS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 
-# def test_compute_2D(mols_2D):
-#     """Test if given methods yield the best 2D representations of molecules. Random seeds are not fixed but a run of 100x was applied with no variation in results."""
-#     # simple case where CoordGen does the trick just fine
-#     mol_s = draw.compute_2D(mols_2D["simple"])
-#     assert mol_s.GetProp("_2D") == "CoordGen"
-#     # medium case where CoordGen actually performs worse than Avalon
-#     mol_m = draw.compute_2D(mols_2D["medium"])
-#     assert mol_m.GetProp("_2D") == "CoordGen"
-#     # assert mol_m.GetProp("_2D") == "Avalon"  # for bow Avalon is disabled...
-#     # complex case where none of the tools yields a perfect score, but CoordGen is the "least worse"
-#     mol_c = draw.compute_2D(mols_2D["hard"])
-#     assert mol_c.GetProp("_2D") == "rdDepictor"
+def test_compute_2D(mols_2D):
+    """Test if given methods yield the best 2D representations of molecules. Random seeds are not fixed but a run of 100x was applied with no variation in results."""
+    # simple case where CoordGen does the trick just fine
+    mol_s = draw.compute_2D(mols_2D["simple"])
+    assert mol_s.GetProp("_2D") == "CoordGen"
+    # medium case where CoordGen actually performs worse than Avalon
+    mol_m = draw.compute_2D(mols_2D["medium"])
+    assert mol_m.GetProp("_2D") == "CoordGen"
+    # assert mol_m.GetProp("_2D") == "Avalon"  # for bow Avalon is disabled...
+    # complex case where none of the tools yields a perfect score, but CoordGen is the "least worse"
+    mol_c = draw.compute_2D(mols_2D["hard"])
+    assert mol_c.GetProp("_2D") == "rdDepictor"
 
 
 def test_highlight_mol(df_map, ref_file_highlight_mol):

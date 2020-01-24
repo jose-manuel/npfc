@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.standardize &mdash; npfc 0.5.11-4-g1d6326d documentation</title>
+  <title>npfc.standardize &mdash; npfc 0.5.11-5-g15733e8 documentation</title>
   
 
   
@@ -58,7 +58,7 @@
             
             
               <div class="version">
-                0.5.11-4-g1d6326d
+                0.5.11-5-g15733e8
               </div>
             
           
@@ -334,6 +334,8 @@
                                   <span class="p">}</span>
         <span class="k">if</span> <span class="n">protocol</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_protocol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default_protocol</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_protocol</span> <span class="o">=</span> <span class="n">protocol</span>
         <span class="c1"># workers</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">metal_disconnector</span> <span class="o">=</span> <span class="n">MetalDisconnector</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">normalizer</span> <span class="o">=</span> <span class="n">Normalizer</span><span class="p">()</span>
@@ -446,6 +448,7 @@
 <span class="sd">        :param mol: the input molecule</span>
 <span class="sd">        :return: the molecule without isotope</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">mol</span> <span class="o">=</span> <span class="n">Mol</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">mol</span><span class="o">.</span><span class="n">GetAtoms</span><span class="p">():</span>
             <span class="n">a</span><span class="o">.</span><span class="n">SetIsotope</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">mol</span></div>

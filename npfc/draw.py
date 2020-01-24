@@ -387,7 +387,7 @@ def rescale(mol: Mol, f: float = 1.4):
     Chem.TransformMol(mol, tm)
 
 
-def compute_2D(mol: Mol, methods: List[str] = ["CoordGen", "rdDepictor", "Avalon"], consider_input: bool = True) -> Mol:
+def compute_2D(mol: Mol, methods: List[str] = ["CoordGen", "rdDepictor"], consider_input: bool = True) -> Mol:
     """
     Returns the "best" 2D depiction of a molecule according the methods in METHODS_2D.
     Currently two methods are available:
@@ -426,10 +426,12 @@ def compute_2D(mol: Mol, methods: List[str] = ["CoordGen", "rdDepictor", "Avalon
     .. image:: _images/draw_hard.png
         :align: center
 
+    .. note:: Avalon was however removed from the available methods as it produces mostly errors since latest RDKit update...
+
     For some molecules, none of the methods yield a "perfect score". The depiction with the lowest score is thus selected.
 
     :param mol: the input molecule
-    :param methods: a list of methods to apply. Currently supported: CoordGen, rdDepictor, Avalon.
+    :param methods: a list of methods to apply. Currently supported: CoordGen, rdDepictor.
     :param consider_input: consider the input coordinates (if any), for determining the best 2D representation
     :return: the molecule with 2D coordinates and a new "_2D" property with the information of which depictor was selected.
     """

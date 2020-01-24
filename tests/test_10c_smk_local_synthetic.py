@@ -37,7 +37,7 @@ def test_init():
 def test_run():
     """Run the 'synthetic' protocol applied to a subset of the ChEMBL."""
 
-    output_files = [f"tests/tmp/synthetic/chembl/data/12_pnp/data/chembl_{str(cid+1).zfill(3)}_pnp.csv.gz" for cid in range(3)]
+    output_files = [f"tests/tmp/synthetic/chembl/data/11_pnp/data/chembl_{str(cid+1).zfill(3)}_pnp.csv.gz" for cid in range(3)]
     output_svg = 'tests/tmp/synthetic/chembl/chembl_tasktree.svg'
     # run protocol
     command_smk = 'run_protocol synthetic --chunksize 100'
