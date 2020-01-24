@@ -26,9 +26,11 @@ prefix = config['prefix']
 input_file = config['input_file']
 # additional
 frags_file = config['frags_file']  # fragment file to use for substructure search
+frags_filename = Path(frags_file).stem   # basename from frags file
 chunksize = config['chunksize']  # maximum number of molecules per chunk
 # specific to synthetic
 natref = config['natref']
+natref_filename = Path(natref).stem.split('_ref')[0]  # basename from natef hdf
 # for activity
 act_file_raw = config['act_file']  # raw file with activity for annotating fmaps. For now only works with the ChEMBL
 
@@ -46,7 +48,7 @@ WD += '/data'
 if natref.endswith('/'):
     natref = natref[:-1]
 
-natref_uni_reffile = f"{config['natref']}/data/05_uni/dnp_ref.hdf"
+natref_dedupl_reffile = f"{config['natref']}/data/05_dedupl/dnp_ref.hdf"
 natref_fmap_dir = f"{config['natref']}/data/09_fmap/data/"
 natref_fmap_files = [str(x) for x in Path(natref_fmap_dir).glob('*')]
 
@@ -102,18 +104,18 @@ rule GEN2D:
 rule SYNTH:
     priority: 5
     input:
-        mols = "{WD}/05_uni/data/{prefix}_{cid}_uni.csv.gz",
-        ref = natref + "/data/05_uni/dnp_ref.hdf"
+        mols = "{WD}/05_dedupl/data/{prefix}_{cid}_dedupl.csv.gz",
+        ref = natref + "/data/05_dedupl/dnp_ref.hdf"
     output: "{WD}/06_synth/data/{prefix}_{cid}_synth.csv.gz"
     log: "{WD}/06_synth/log/{prefix}_{cid}_sub.log"
     shell: "mols_subset {input.mols} {input.ref} {output} >{log} 2>&1"
 
-rule UNI:
+rule DEDUPL:
     priority: 6
     input: "{WD}/04_std/data/{prefix}_{cid}_passed.csv.gz"
-    output: "{WD}/05_uni/data/{prefix}_{cid}_uni.csv.gz"
-    log: "{WD}/05_uni/log/{prefix}_{cid}_uni.log"
-    shell: "mols_filter_dupl {input} {output} -r {WD}/05_uni/{prefix}_ref.hdf --log DEBUG 2>{log}"
+    output: "{WD}/05_dedupl/data/{prefix}_{cid}_dedupl.csv.gz"
+    log: "{WD}/05_dedupl/log/{prefix}_{cid}_dedupl.log"
+    shell: "mols_dedupl {input} {output} -r {WD}/05_dedupl/{prefix}_ref.hdf --log DEBUG 2>{log}"
 
 rule STD:
     priority: 7

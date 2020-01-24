@@ -8,7 +8,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="npfc",
-    version='0.5.11-4-g1d6326d',
+    version='0.5.12',
     author="Stephane Bourg, Jose-Manuel Gally",
     author_email="stephane.bourg@crns.fr",
     description="A package for classifying fragment combinations in molecules",
@@ -32,10 +32,10 @@ setuptools.setup(
              'bin/act_preprocess',
              'bin/act_preprocess_cpa',
              'bin/chunk_sdf',
+             'bin/mols_dedupl',
              'bin/mols_deglyco',
              'bin/mols_draw',
              'bin/mols_extract_murcko',
-             'bin/mols_filter_dupl',
              'bin/mols_gen2D',
              'bin/mols_load',
              'bin/mols_standardize',

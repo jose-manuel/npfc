@@ -71,17 +71,17 @@ rule SUB:
 
 rule GEN2D:
     priority: 14
-    input: "{WD}/05_uni/data/{prefix}_{cid}_uni.csv.gz"
+    input: "{WD}/05_dedupl/data/{prefix}_{cid}_dedupl.csv.gz"
     output: "{WD}/06_gen2D/data/{prefix}_{cid}_gen2D.csv.gz"
     log: "{WD}/06_gen2D/log/{prefix}_{cid}_gen2D.log"
     shell: "mols_gen2D {input} {output} 2>{log}"
 
-rule UNI:
+rule DEDUPL:
     priority: 15
     input: "{WD}/04_std/data/{prefix}_{cid}_passed.csv.gz"
-    output: "{WD}/05_uni/data/{prefix}_{cid}_uni.csv.gz"
-    log: "{WD}/05_uni/log/{prefix}_{cid}_uni.log"
-    shell: "mols_filter_dupl {input} {output} -r {WD}/05_uni/{prefix}_ref.hdf --log DEBUG 2>{log}"
+    output: "{WD}/05_dedupl/data/{prefix}_{cid}_dedupl.csv.gz"
+    log: "{WD}/05_dedupl/log/{prefix}_{cid}_dedupl.log"
+    shell: "mols_dedupl {input} {output} -r {WD}/05_dedupl/{prefix}_ref.hdf --log DEBUG 2>{log}"
 
 rule STD:
     priority: 16

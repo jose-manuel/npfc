@@ -42,17 +42,17 @@ rule all:
 
 rule GEN2D:
     priority: 101
-    input: "{WD}/06_unims/data/{prefix}_uni.csv.gz"
+    input: "{WD}/06_deduplms/data/{prefix}_dedupl.csv.gz"
     output: "{WD}/07_gen2D/data/{prefix}_gen2D.csv.gz"
     log: "{WD}/07_gen2D/log/{prefix}_gen2D.log"
     shell: "mols_gen2D {input} {output} 2>{log}"
 
-rule UNIMS:
+rule DEDUPLMS:
     priority: 102
     input: "{WD}/05_std/data/{prefix}_passed.csv.gz"
-    output: "{WD}/06_unims/data/{prefix}_uni.csv.gz"
-    log: "{WD}/06_unims/log/{prefix}_uni.log"
-    shell: "mols_filter_dupl {input} {output} -r " + "{WD}/06_unims/{prefix}_ref.hdf --log DEBUG 2>{log}"
+    output: "{WD}/06_deduplms/data/{prefix}_dedupl.csv.gz"
+    log: "{WD}/06_deduplms/log/{prefix}_dedupl.log"
+    shell: "mols_dedupl {input} {output} -r " + "{WD}/06_deduplms/{prefix}_ref.hdf --log DEBUG 2>{log}"
 
 rule STDMS:
     priority: 103
@@ -66,17 +66,17 @@ rule STDMS:
 
 rule MURCKO:
     priority: 104
-    input: "{WD}/03_uni/data/{prefix}_uni.csv.gz"
+    input: "{WD}/03_dedupl/data/{prefix}_dedupl.csv.gz"
     output: "{WD}/04_murcko/data/{prefix}_murcko.csv.gz"
     log: "{WD}/04_murcko/log/{prefix}_murcko.log"
     shell: "mols_extract_murcko {input} {output} 2>{log}"
 
-rule UNI:
+rule DEDUPL:
     priority: 105
     input: "{WD}/02_deglyco/data/{prefix}_deglyco.sdf.gz"
-    output: "{WD}/03_uni/data/{prefix}_uni.csv.gz"
-    log: "{WD}/03_uni/log/{prefix}_uni.log"
-    shell: "mols_filter_dupl {input} {output} -r {WD}/03_uni/{prefix}_ref.hdf --log DEBUG 2>{log}"
+    output: "{WD}/03_dedupl/data/{prefix}_dedupl.csv.gz"
+    log: "{WD}/03_dedupl/log/{prefix}_dedupl.log"
+    shell: "mols_dedupl {input} {output} -r {WD}/03_dedupl/{prefix}_ref.hdf --log DEBUG 2>{log}"
 
 rule STD:
     priority: 106
