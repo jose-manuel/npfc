@@ -346,13 +346,16 @@ def fc_graph(fc_graph: Graph, colormap_nodes: List[Tuple[float]] = None) -> Figu
             linewidths=1,
             node_size=2000,
             node_color=colormap_nodes,
-            alpha=0.95,
+            alpha=1,
+            font_size=16,
             with_labels=True,
+            connectionstyle='arc3,rad=0.9',
             )
     nx.draw_networkx_edge_labels(fc_graph,
                                  pos,
                                  edge_labels=edges_info,
                                  font_color='red',
+                                 font_size=14,
                                  )
     return figure
 

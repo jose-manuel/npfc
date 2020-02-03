@@ -47,6 +47,7 @@ def label_pnp_maps(df, df_ref):
             # if all edges of tested mol are present in ref edges, then it is not PNP
             if all(edge_ref in edges for edge_ref in df_ref.iat[j, 18]):
                 pnp = False
+                logging.debug("MOLECULE " + str(df.iloc[i]['idm']) + ' IS NOT PNP BECAUSE OF REF MOLECULE ' + str(df_ref.iloc[j]['idm']))
                 break
 
         results.append(pnp)

@@ -27,7 +27,6 @@ input_file = config['input_file']
 # find where the KNIME workflow is (installed as data of the npfc package)
 file_knwf = pkg_resources.resource_filename('npfc', 'data/mols_deglyco.knwf')
 config_std_frags = pkg_resources.resource_filename('npfc', 'data/std_fragments.json')
-
 # remove trailing / from WD if any
 if WD.endswith('/'):
     WD = WD[:-1]

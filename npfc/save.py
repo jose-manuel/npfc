@@ -58,6 +58,8 @@ def file(df: pd.DataFrame,
     utils.check_arg_bool(shuffle)
     utils.check_arg_bool(encode)
 
+    logging.debug(f"Excerpt of the data as provided to file function:\n\n{df.head(5)}\n")
+
     # init
     path_output_file = Path(output_file)
     ext_output_file = path_output_file.suffixes
@@ -70,6 +72,7 @@ def file(df: pd.DataFrame,
     df = df.copy()
     # shuffle
     if shuffle:
+        logging.debug('Shuffling rows before saving file')
         df = df.sample(frac=1, random_state=random_seed)
     # encode predefined data
     # if nothing to encode, just don't
@@ -88,6 +91,8 @@ def file(df: pd.DataFrame,
         for col in df.columns:
             if col.startswith('_') and col != '_Name':
                 df[col] = df[col].map(utils.encode_object)
+
+    logging.debug(f"Excerpt of the data to save before chuking:\n\n{df.head(3)}\n")
 
     # chunking
     if chunk_size is None:

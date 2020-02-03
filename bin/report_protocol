@@ -471,7 +471,7 @@ def get_df_dedupl(WD: str) -> DataFrame:
     """
     logger.info("PREP -- COMPUTING DEDUPL RESULTS")
     # iterate over the log files to count status
-    pattern = ".*([0-9]{3})?_uni\.log"
+    pattern = ".*([0-9]{3})?_dedupl\.log"
     chunks = _get_chunks(f"{WD}/log", pattern)
     logger.info(f"PREP -- FOUND {len(chunks):,d} CHUNKS")
     # initiate counts
@@ -511,7 +511,7 @@ def get_dfs_prep(WD: str) -> Tuple[DataFrame]:
     WD_LOAD = [str(x) for x in list(p.glob("*_load"))][0]
     WD_DEGLYCO = [str(x) for x in list(p.glob("*_deglyco"))][0]
     WD_STD = [str(x) for x in list(p.glob("*_std"))][0]
-    WD_DEDUPL = [str(x) for x in list(p.glob("*_uni"))][0]
+    WD_DEDUPL = [str(x) for x in list(p.glob("*_dedupl"))][0]
 
     # get dfs
     df_load = get_df_load(WD_LOAD)
@@ -524,7 +524,7 @@ def get_dfs_prep(WD: str) -> Tuple[DataFrame]:
     # get total of molecules in input
     num_mols_tot = df_load['Count'].sum()
     # count not loaded molecules as well in deglyco
-    num_mols_deglyco_na = len(df_load[df_load['Category'] == 'cannot_load'].index)
+    num_mols_deglyco_na = df_load[df_load['Category'] == 'cannot_load']['Count']
     df_deglyco = pd.concat([df_deglyco, pd.DataFrame({'Category': ['NA'], 'Count': [num_mols_deglyco_na]})])
     df_deglyco.reset_index(inplace=True, drop=True)
     df_deglyco['Count'] = df_deglyco['Count'].astype(int)
@@ -582,7 +582,7 @@ def get_df_murcko(WD: Path) -> DataFrame:
 def get_df_subset(WD: Path) -> DataFrame:
     """Get a DF summarizing the results of the subset step.
 
-    At the moment only one subset is recognized (i.e. 'synth' subfolder in WD).
+    At the moment only one subset is recognized (i.e. 'subset' subfolder in WD).
 
 
     :param WD: the main directory of the dataset data (i.e. 'natural/dnp/data')
@@ -592,7 +592,7 @@ def get_df_subset(WD: Path) -> DataFrame:
     if not isinstance(WD, Path):
         WD = Path(WD)
     # parse results before fragment search
-    WD_SUBSET = [str(x) for x in list(WD.glob("*_synth"))][0]    # get latest step
+    WD_SUBSET = [str(x) for x in list(WD.glob("*_subset"))][0]    # get latest step
     pattern = ".*([0-9]{3})?.log"
     chunks = _get_chunks(f"{WD_SUBSET}/log", pattern)
     num_passed = 0
@@ -632,7 +632,7 @@ def get_dfs_fs(WD: Path) -> Tuple[DataFrame]:
         WD = Path(WD)
     # parse results before fragment search
     logger.info("FS -- COMPUTING TOTAL NUMBER OF MOLECULES BEFORE FRAGMENT SEARCH")
-    WD_FSEARCH = [str(x) for x in list(WD.glob("*_sub"))][0]    # get latest step
+    WD_FSEARCH = [str(x) for x in list(WD.glob("*_fsearch"))][0]    # get latest step
     fsearch_dirname = Path(WD_FSEARCH).name
     pstep_direname = list(WD.glob(f"{str(int(fsearch_dirname.split('_')[0]) - 1).zfill(2)}_*"))[0].name
     logger.info(f"FS -- COUNTING MOLECULES IN PREVIOUS STEP='{pstep_direname}'")
@@ -1036,7 +1036,7 @@ def get_df_fm(WD: Path, frags_file) -> DataFrame:
 def get_df_pnp(WD: Path) -> DataFrame:
     """Get a DF summarizing the results of the pnp step.
 
-    At the moment only one subset is recognized (i.e. 'synth' subfolder in WD).
+    At the moment only one subset is recognized (i.e. 'subset' subfolder in WD).
 
 
     :param WD: the main directory of the dataset data (i.e. 'natural/dnp/data')
@@ -1131,12 +1131,13 @@ if __name__ == '__main__':
         logger.error("WARNING! FRAGS IS NOT DEFINED, SO NO ANALYSIS FURTHER THAN POSTPROCESSING OR MURCKO")
     else:
         utils.check_arg_input_file(args.frags)
+        frags_subdir = '_'.join(Path(args.frags).stem.split('_')[:-1])  # remove last suffix from frags file, so works with both crms_gen2D and crms_nobz_gen2D
 
     steps = ['find_missing_chunks', 'preprocess']
     subfolders = _get_subfolders(p)['included']
-    if any([sf.split('_')[1] == 'synth' for sf in subfolders]):
+    if any([sf.split('_')[1] == 'subset' for sf in subfolders]):
         steps += ['subset']
-    if any([sf.split('_')[1] == 'sub' for sf in subfolders]):
+    if any([sf.split('_')[1] == 'fsearch' for sf in subfolders]):
         steps += ['fsearch']
     if any([sf.split('_')[1] == 'fcc' for sf in subfolders]):
         steps += ['fcc']
@@ -1295,7 +1296,7 @@ if __name__ == '__main__':
         elif step == 'subset':
             _print_title("CHECKING RESULTS FROM SUBSET", logger, pad)
             # check if data is complete
-            subdir = 'synth'
+            subdir = 'subset'
             if not _step_is_valid(subdir, errors_data, errors_log):
                 logger.error(f"MISSING DATA OR LOG FOR SUBSET... SKIPPING THIS STEP!")
                 continue

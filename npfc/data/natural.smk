@@ -32,7 +32,6 @@ chunksize = config['chunksize']
 
 # find where the KNIME workflow is (installed as data of the npfc package)
 file_knwf = pkg_resources.resource_filename('npfc', 'data/mols_deglyco.knwf')
-
 # remove trailing / from WD for consistency
 if WD.endswith('/'):
     WD = WD[:-1]

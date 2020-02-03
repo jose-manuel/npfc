@@ -165,6 +165,8 @@ def file(input_file: str,
                 logging.debug(f"Decoding column='{col}'")
                 df[col] = df[col].map(utils.decode_object)
 
+    logging.debug(f"Excerpt of the data as extracted with load.file function\n\n{df.head(3)}\n")
+
     return df
 
 

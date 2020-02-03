@@ -29,8 +29,7 @@ frags_file = config['frags_file']  # fragment file to use for substructure searc
 frags_subdir = config['frags_subdir']
 chunksize = config['chunksize']  # maximum number of molecules per chunk
 # specific to synthetic
-natref = config['natref']
-act_file_raw = config['act_file']  # raw file with activity for annotating fmaps. For now only works with the ChEMBL
+natref = config['natref']  # WD for defining natural compounds, subdir with same frags is also searched for pnp annotation
 # from master script
 num_chunks = config['num_chunks']
 
