@@ -11,6 +11,8 @@ import pickle
 import base64
 # docstrings
 from rdkit.Chem import Mol
+from rdkit.Chem import MolFromSmiles
+from rdkit.Chem.rdinchi import MolToInchiKey
 from typing import Union
 from typing import List
 

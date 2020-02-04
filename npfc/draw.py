@@ -217,9 +217,10 @@ def scale_rgb_colormap(colormap: Dict) -> Dict:
 
 def highlight_mol(mol: Mol,
                   colormap: 'ColorMap' = None,
+                  output_file: str = None,
                   img_size: Tuple[int] = (300, 300),
                   debug: bool = False,
-                  svg: bool = False,
+                  svg: bool = True,
                   legend: str = '') -> Image:
     """
     Draw an Image of a molecule with highlighted atoms and bonds according to a colormap.
@@ -230,6 +231,7 @@ def highlight_mol(mol: Mol,
 
     :param mol: the molecule to highlight
     :param colormap: the colormap to use for highlighting the molecule
+    :param output_file: if speficied, the image is saved (format is deduced from extension)
     :param img_size: the size of the resulting Image
     :param debug: display atom indices on the structure
     :param svg: use SVG format instead of PNG
@@ -246,7 +248,7 @@ def highlight_mol(mol: Mol,
         highlightAtomList = [int(x) for x in list(colormap.atoms.keys())]
         highlightAtomColors = colormap.atoms
         highlightBondColors = colormap.bonds
-    return Draw.MolsToGridImage([mol],
+    img = Draw.MolsToGridImage([mol],
                                 molsPerRow=1,
                                 subImgSize=img_size,
                                 highlightAtomLists=[highlightAtomList],
@@ -255,14 +257,26 @@ def highlight_mol(mol: Mol,
                                 useSVG=svg,
                                 legends=[legend],
                                 )
+    # export img
+    if output_file is not None:
+        output_ext = output_file.split('.')[-1].upper()
+        if output_ext == 'SVG' and not svg:
+            raise ValueError(f"Error! output file extension is SVG but image format is PNG!")
+        if output_ext == 'SVG':
+            with open(output_file, 'w') as SVG:
+                SVG.write(img.data)
+        else:
+            raise ValueError(f"Error! Unsupported extension '{output_ext}'!")
+    return img
 
 
 def highlight_mols(mols: List[Mol],
-                   colormaps: List['ColorMap'] = None,
+                   colormaps: List['ColorMap'] = [],
+                   output_file:str = None,
                    sub_img_size: Tuple[int] = (300, 300),
                    max_mols_per_row: int = 5,
                    debug: bool = False,
-                   svg: bool = False,
+                   svg: bool = True,
                    legends: List[str] = None,
                    ):
     """
@@ -271,6 +285,7 @@ def highlight_mols(mols: List[Mol],
 
     :param mols: the molecules to highlight
     :param colormaps: the colormaps to use for highlighting the molecules
+    :param output_file: if speficied, the image is saved (format is deduced from extension)
     :param sub_img_size: the size of the image of every molecule composing the grid
     :param max_mols_per_row: the maximum number of molecules displayed per row
     :param debug: display atom indices on the structure
@@ -297,16 +312,26 @@ def highlight_mols(mols: List[Mol],
         for mol in mols:
             [mol.GetAtomWithIdx(idx).SetProp('molAtomMapNumber', str(mol.GetAtomWithIdx(idx).GetIdx())) for idx in range(mol.GetNumAtoms())]
 
-    return Draw.MolsToGridImage(mols,
-                                molsPerRow=max_mols_per_row,
-                                subImgSize=sub_img_size,
-                                highlightAtomLists=atom_lists,
-                                highlightAtomColors=colormaps_a,
-                                highlightBondColors=colormaps_b,
-                                useSVG=svg,
-                                legends=legends,
-                                )
-
+    img = Draw.MolsToGridImage(mols,
+                               molsPerRow=max_mols_per_row,
+                               subImgSize=sub_img_size,
+                               highlightAtomLists=atom_lists,
+                               highlightAtomColors=colormaps_a,
+                               highlightBondColors=colormaps_b,
+                               useSVG=svg,
+                               legends=legends,
+                               )
+    # export img
+    if output_file is not None:
+        output_ext = output_file.split('.')[-1].upper()
+        if output_ext == 'SVG' and not svg:
+            raise ValueError(f"Error! output file extension is SVG but image format is PNG!")
+        if output_ext == 'SVG':
+            with open(output_file, 'w') as SVG:
+                SVG.write(img.data)
+        else:
+            raise ValueError(f"Error! Unsupported extension '{output_ext}'!")
+    return img
 
 def _get_edge_info(fc_graph: Graph) -> Dict:
     """
@@ -321,7 +346,7 @@ def _get_edge_info(fc_graph: Graph) -> Dict:
     return d
 
 
-def fc_graph(fc_graph: Graph, colormap_nodes: List[Tuple[float]] = None) -> Figure:
+def fc_graph(fc_graph: Graph, colormap_nodes: List[Tuple[float]] = None, output_file: str = None) -> Figure:
     """
     Return a matplotlib Figure of a networkx graph.
 
@@ -357,6 +382,10 @@ def fc_graph(fc_graph: Graph, colormap_nodes: List[Tuple[float]] = None) -> Figu
                                  font_color='red',
                                  font_size=14,
                                  )
+    if output_file is not None:
+        output_file_format = output_file.split('.')[-1].upper()
+        plt.savefig(output_file, format=output_file_format)
+    plt.close()
     return figure
 
 

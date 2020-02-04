@@ -213,7 +213,7 @@ def generate(df_fcc: DataFrame, min_frags: int = 2, max_frags: int = 5, max_over
                 elif row["_aidxf2"] not in d_aidxs[row["idf2"]]:
                     d_aidxs[row["idf2"]].append(row["_aidxf2"])
 
-            # sort d_aidxs for reproducible colormaps
+            # sort d_aidxs for reproducible colormaps  ### might be the cause of the wrong coloration in alternative fmaps due to overlaps
             d_aidxs = OrderedDict(sorted(d_aidxs.items()))
             # count fragment occurrences (non-unique)
             frags = list(set([x for x in df_fcc_clean['fid1'].map(str).values] + [x for x in df_fcc_clean['fid2'].map(str).values]))

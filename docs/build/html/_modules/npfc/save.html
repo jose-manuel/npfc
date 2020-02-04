@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.save &mdash; npfc 0.5.12-2-g002b2a8 documentation</title>
+  <title>npfc.save &mdash; npfc 0.5.13 documentation</title>
   
 
   
@@ -58,7 +58,7 @@
             
             
               <div class="version">
-                0.5.12-2-g002b2a8
+                0.5.13
               </div>
             
           
@@ -217,6 +217,8 @@
     <span class="n">utils</span><span class="o">.</span><span class="n">check_arg_bool</span><span class="p">(</span><span class="n">shuffle</span><span class="p">)</span>
     <span class="n">utils</span><span class="o">.</span><span class="n">check_arg_bool</span><span class="p">(</span><span class="n">encode</span><span class="p">)</span>
 
+    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Excerpt of the data as provided to file function:</span><span class="se">\n\n</span><span class="s2">{df.head(5)}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
     <span class="c1"># init</span>
     <span class="n">path_output_file</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">output_file</span><span class="p">)</span>
     <span class="n">ext_output_file</span> <span class="o">=</span> <span class="n">path_output_file</span><span class="o">.</span><span class="n">suffixes</span>
@@ -229,6 +231,7 @@
     <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
     <span class="c1"># shuffle</span>
     <span class="k">if</span> <span class="n">shuffle</span><span class="p">:</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Shuffling rows before saving file&#39;</span><span class="p">)</span>
         <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">frac</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="n">random_seed</span><span class="p">)</span>
     <span class="c1"># encode predefined data</span>
     <span class="c1"># if nothing to encode, just don&#39;t</span>
@@ -247,6 +250,8 @@
         <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">col</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">col</span> <span class="o">!=</span> <span class="s1">&#39;_Name&#39;</span><span class="p">:</span>
                 <span class="n">df</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">utils</span><span class="o">.</span><span class="n">encode_object</span><span class="p">)</span>
+
+    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Excerpt of the data to save before chuking:</span><span class="se">\n\n</span><span class="s2">{df.head(3)}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
 
     <span class="c1"># chunking</span>
     <span class="k">if</span> <span class="n">chunk_size</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
