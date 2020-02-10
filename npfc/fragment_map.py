@@ -139,7 +139,7 @@ def _split_unconnected(dfs_fcc_clean: List[DataFrame]) -> List[DataFrame]:
     return dfs_fcc_ready
 
 
-def generate(df_fcc: DataFrame, min_frags: int = 2, max_frags: int = 5, max_overlaps: int = 5) -> DataFrame:
+def generate(df_fcc: DataFrame, min_frags: int = 2, max_frags: int = 5, max_overlaps: int = 5, split_unconnected: bool = True) -> DataFrame:
     """This method process a fragment combinations DataFrame
     and return a new DataFrame with a fragment map for each molecule.
 
@@ -191,7 +191,10 @@ def generate(df_fcc: DataFrame, min_frags: int = 2, max_frags: int = 5, max_over
             continue
 
         # compute fragment connectivity graph objects so we can split up disconnected subgraphs
-        dfs_fcc_ready = _split_unconnected(dfs_fcc_clean)
+        if split_unconnected:
+            dfs_fcc_ready = _split_unconnected(dfs_fcc_clean)
+        else:
+            dfs_fcc_ready = dfs_fcc_clean
         # compute the entries of the df_map
         for i, df_fcc_clean in enumerate(dfs_fcc_ready):
 

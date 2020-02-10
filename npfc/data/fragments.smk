@@ -20,17 +20,28 @@ molid = config['molid']
 prefix = config['prefix']
 input_file = config['input_file']
 
+fallback_default_std_frags = False
+try:
+    config_std_frags = config['config_std_frags']
+    if config_std_frags = '':
+        fallback_default_std_frags = True
+except KeyError:
+    fallback_default_std_frags = True
+
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ INITIALIZATION ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 
 # find where the KNIME workflow is (installed as data of the npfc package)
 file_knwf = pkg_resources.resource_filename('npfc', 'data/mols_deglyco.knwf')
-config_std_frags = pkg_resources.resource_filename('npfc', 'data/std_fragments.json')
 # remove trailing / from WD if any
 if WD.endswith('/'):
     WD = WD[:-1]
 WD += '/data'
+
+# fall back to default std configuration in case either missing from JSON file or empty string
+if fallback_default_std_frags:
+    config_std_frags = pkg_resources.resource_filename('npfc', 'data/std_fragments.json')
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ PIPELINE ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #

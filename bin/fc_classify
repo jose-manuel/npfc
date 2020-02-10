@@ -106,7 +106,7 @@ def main():
         d5 = datetime.now()
     else:
         d3 = datetime.now()
-        df_fcc = c.classify_fragment_combinations(df_sub, clean=False)
+        df_fcc = fragment_combination.classify_df(df_sub, clean_combinations=False)
         logger.info(f"FOUND {len(df_fcc.index)} COMBINATIONS")
 
         # save raw results
