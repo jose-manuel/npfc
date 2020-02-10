@@ -11,7 +11,7 @@ from rdkit import Chem
 # tests
 import pytest
 from npfc import save
-from npfc import fragment
+from npfc import fragment_search
 from npfc import fragment_combination
 from npfc import utils
 # debug
@@ -348,7 +348,7 @@ def test_classify_col(df_aidxf_col):
 
 def test_classify_ffs(df_aidxf_ffs):
     """Check if fragment combinations of type fusion false positive substructure are identified."""
-    df_fcc = fragment_combination.classify_df(df_aidxf_ffs, clean_combinations=False)
+    df_fcc = fragment_combination.classify_df(df_aidxf_ffs)
     result = df_fcc.iloc[0]
     assert result['category'] == 'fusion' and result['type'] == 'false_positive' and result['subtype'] == 'substructure' and result['abbrev'] == 'ffs'
 
@@ -362,6 +362,6 @@ def test_classify_ffo(df_aidxf_ffo):
 
 def test_classify_cfc(df_aidxf_cfc):
     """Check if fragment combinations of type fusion false positive substructure are identified."""
-    df_fcc = fragment_combination.classify_df(df_aidxf_cfc, clean_combinations=False)
+    df_fcc = fragment_combination.classify_df(df_aidxf_cfc, clear_cfc=False)
     result = df_fcc.iloc[0]
     assert result['category'] == 'connection' and result['type'] == 'false_positive' and result['subtype'] == 'cutoff' and result['abbrev'] == 'cfc'

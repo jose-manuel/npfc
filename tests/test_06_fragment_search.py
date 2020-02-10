@@ -11,7 +11,7 @@ from rdkit import Chem
 # tests
 import pytest
 from npfc import save
-from npfc import fragment
+from npfc import fragment_search
 from npfc import utils
 # debug
 import logging
@@ -41,7 +41,7 @@ def df_mols_no_match():
 
 def test_find_fragments_hit(df_mols_match, df_frags):
     """Find fragments in a molecule that contain them."""
-    df_aidxf = fragment.find(df_mols_match, df_frags)
+    df_aidxf = fragment_search.get_fragment_hits(df_mols_match, df_frags)
     logging.debug(f"Fragment Hits:\n{df_aidxf}\n")
     assert list(df_aidxf.index) == [0, 1]
     assert list(df_aidxf['idm']) == ['MOL1'] * 2
@@ -52,6 +52,6 @@ def test_find_fragments_hit(df_mols_match, df_frags):
 
 def test_find_fragments_no_hit(df_mols_no_match, df_frags):
     """Do not find fragments if the molecule does not contain them."""
-    df_aidxf = fragment.find(df_mols_no_match, df_frags)
+    df_aidxf = fragment_search.get_fragment_hits(df_mols_no_match, df_frags)
     logging.debug(f"Fragment Hits:\n{df_aidxf}\n")
     assert len(df_aidxf.index) == 0

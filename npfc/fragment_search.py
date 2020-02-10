@@ -1,6 +1,6 @@
 """
-Module fragment
-====================
+Module fragment_search
+==========================
 This modules contains the function to run substructure searches.
 """
 
@@ -15,15 +15,15 @@ from rdkit.Chem import Mol
 from typing import List
 
 
-def find(df_mols: DataFrame,
-        df_frags: DataFrame,
-        col_mol_mols: str = 'mol',
-        col_mol_frags: str = 'mol',
-        ) -> DataFrame:
-    """Create a DataFrame recording every substructure (fragment) match in the
+def get_fragment_hits(df_mols: DataFrame,
+                      df_frags: DataFrame,
+                      col_mol_mols: str = 'mol',
+                      col_mol_frags: str = 'mol',
+                      ) -> DataFrame:
+    """Create a DataFrame recording every Fragment Hit in the
     input molecule DataFrame.
 
-    A record is composed of 6 fields:
+    A Fragment Hit is composed of 6 fields:
 
     1) idm: the id of the molecule (rowid from df_mols)
     2) idf: the id of the fragment (rowid from df_frags)

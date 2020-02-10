@@ -23,7 +23,7 @@ import npfc
 from npfc import load
 from npfc import save
 from npfc import utils
-from npfc import fragment
+from npfc import fragment_search
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
@@ -161,7 +161,7 @@ def main():
     # substructure search
     logger.info(f"SUBSTRUCTURE SEARCH")
     d3 = datetime.now()
-    df_aidxf = fragment.find(df_mols, df_frags)
+    df_aidxf = fragment_search.get_fragment_hits(df_mols, df_frags)
     logger.info(f"FOUND {len(df_aidxf.index)} HITS")
 
     # save results
