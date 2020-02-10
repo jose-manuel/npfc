@@ -355,7 +355,7 @@ def _get_combination_subtype(category: str, type: str, aidxf1: set, aidxf2: set,
 
 def classify_df(df_aidxf: DataFrame,
                 cutoff: int = 3,
-                clean_combinations: bool = True) -> DataFrame:
+                clear_cfc: bool = True) -> DataFrame:
     """Return a DataFrame with all fragment combination categories for a given set of
     molecules and fragment atom indices obtained by substructure search.
     For more details about category, type and subtype, see doc in method classify_fragment_combination.
@@ -377,7 +377,7 @@ def classify_df(df_aidxf: DataFrame,
 
     :param df_aidxf: the input DataFrame with substructure matches
     :param cutoff: the maximum number of intermediary atoms between 2 fragments
-    :param clean_combinations: remove false positives such as cfc or substructures from results by calling the clean method.
+    :param clear_cfc: remove cfc combinations (false positives) from results
     :return: a DataFrame with all fragment combination classifications
     """
     ds_fcc = []
@@ -422,7 +422,7 @@ def classify_df(df_aidxf: DataFrame,
     logging.debug("="*80)
     # dataframe with columns in given order
     df_fcc = DataFrame(ds_fcc, columns=['idm', 'idf1', 'idxf1', 'fid1', 'idf2', 'idxf2', 'fid2', 'abbrev', 'category', 'type', 'subtype', '_aidxf1', '_aidxf2', 'hac', 'mol'])
-    # clean results from false positives
-    if clean_combinations:
+    # clear_cfc
+    if clear_cfc:
         df_fcc = df_fcc[df_fcc['abbrev'] != 'cfc']
     return df_fcc
