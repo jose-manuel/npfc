@@ -23,7 +23,7 @@ input_file = config['input_file']
 fallback_default_std_frags = False
 try:
     config_std_frags = config['config_std_frags']
-    if config_std_frags = '':
+    if config_std_frags == '':
         fallback_default_std_frags = True
 except KeyError:
     fallback_default_std_frags = True

@@ -25,6 +25,59 @@ from npfc import draw
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 
+def _clear_ffs(df_fcc: DataFrame) -> DataFrame:
+    """Clear ffs combinations by discarding any combination in which  the smaller
+    fragments is involved.
+
+    :param df_fcc: a fcc DataFrame
+    :return: a cleaned fcc DataFrame
+    """
+
+    # clean the data
+
+    logging.debug("Now cleaning fragment combinations")
+
+    # drop cutoff combinations
+    logging.debug(f"Removing cutoff connections from fragment combinations")
+    num_fcc_ini = len(df_fcc.index)
+    logging.debug(f"Number of remaining fragment combinations: {len(df_fcc.index)}/{num_fcc_ini}")
+
+    # drop fragments combinations paired with a substructure
+    logging.debug(f"Removing substructures from fragment combinations")
+    df_substructures = df_fcc[df_fcc['abbrev'] == 'ffs']  # all the substructures in the whole dataframe
+    num_substructures = len(df_substructures.index)
+    logging.debug(f"Number of substructures found in df_fcc: {num_substructures}/{len(df_fcc.index)}")
+    # in case of substructures to remove, iterate over all identified subtructures for each molecule,
+    # determine what fragments are part of others and discard all entries with them
+    if num_substructures > 0:
+        logging.debug(f"Substructure combinations:\n\n{df_substructures[['idm', 'fid1', 'fid2', 'abbrev']]}\n")
+        logging.debug(f"Determining what fragments should be removed:")
+        # intialize the iteration
+        rowids_to_remove = []  # the rowids of the df_fcc dataframe to remove
+        for gid, g in df_fcc[df_fcc['idm'].isin(df_substructures['idm'])].groupby('idm'):  # iterate only on the groups with at least one substructure
+            fid_to_remove = set()   # fid of substructures identified for the current molecule
+            # for each molecule, look at what fids we should remove
+            for rowid, row in g[g['abbrev'] == 'ffs'].iterrows():
+                # combination ifs ffs, so remove either fid1 or fid2 depending on hac
+                if len(row['_aidxf1']) > len(row['_aidxf2']):
+                    fid_to_remove.add(row['fid2'])
+                else:
+                    fid_to_remove.add(row['fid1'])
+                # display some debugging
+                logging.debug(f"{gid}: {row['fid1']} - {row['fid2']} ==> fid_to_remove={fid_to_remove}")
+                # register df_fcc rowids that will be removed for this substructure
+                rowids_to_remove += list(g[g["fid1"].isin(list(fid_to_remove))].index) + list(g[g["fid2"].isin(list(fid_to_remove))].index)
+        # remove dupl in rowids_to_remove
+        rowids_to_remove = list(set(rowids_to_remove))
+        # filter the unwanted fragment combinations
+        logging.debug(f"Number of fragments combinations to remove: {len(rowids_to_remove)}")
+        nb_fcc_ini = len(df_fcc.index)
+        df_fcc = df_fcc.loc[~df_fcc.index.isin(rowids_to_remove)]
+        logging.debug(f"Number of fragment combinations remaining: {len(df_fcc)}/{nb_fcc_ini}")
+
+    return df_fcc
+
+
 def _get_incompatible_fragments_dict(df_overlaps: DataFrame) -> dict:
     """Compute a dictionary indicating what fragment id is incompatible with another:
     d[frag1] = [frag2, frag3, ...]
@@ -139,7 +192,7 @@ def _split_unconnected(dfs_fcc_clean: List[DataFrame]) -> List[DataFrame]:
     return dfs_fcc_ready
 
 
-def generate(df_fcc: DataFrame, min_frags: int = 2, max_frags: int = 5, max_overlaps: int = 5, split_unconnected: bool = True) -> DataFrame:
+def generate(df_fcc: DataFrame, min_frags: int = 2, max_frags: int = 5, max_overlaps: int = 5, split_unconnected: bool = True, clear_ffs: bool = True) -> DataFrame:
     """This method process a fragment combinations DataFrame
     and return a new DataFrame with a fragment map for each molecule.
 
@@ -195,6 +248,12 @@ def generate(df_fcc: DataFrame, min_frags: int = 2, max_frags: int = 5, max_over
             dfs_fcc_ready = _split_unconnected(dfs_fcc_clean)
         else:
             dfs_fcc_ready = dfs_fcc_clean
+
+        # clear ffs
+        if clear_ffs:
+            dfs_fcc_ready = [_clear_ffs(df_fcc_ready) for df_fcc_ready in dfs_fcc_ready]
+
+
         # compute the entries of the df_map
         for i, df_fcc_clean in enumerate(dfs_fcc_ready):
 

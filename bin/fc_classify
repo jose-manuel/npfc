@@ -117,7 +117,7 @@ def main():
         # run cleaning
         logger.info(f"CLEANING COMBINATIONS")
         d5 = datetime.now()
-        df_fcc = c.clean(df_fcc)
+        df_fcc = df_fcc[df_fcc['abbrev'] != 'cfc']
         logging.info(f"NUMBER OF FRAGMENT COMBINATIONS REMAINING: {len(df_fcc.index)}")
     logging.warning(f"OVERLAPPING FRAGMENTS ARE STILL CONSIDERED A FRAGMENT COMBINATION HERE,")
     logging.warning("THIS IS NEEDED FOR ALTERNATIVE MAPPING FRAGMENT COMBINATIONS.")

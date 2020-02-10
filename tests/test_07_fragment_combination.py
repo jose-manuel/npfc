@@ -351,8 +351,7 @@ def test_classify_ffs(df_aidxf_ffs):
     df_fcc = fragment_combination.classify_df(df_aidxf_ffs, clean_combinations=False)
     result = df_fcc.iloc[0]
     assert result['category'] == 'fusion' and result['type'] == 'false_positive' and result['subtype'] == 'substructure' and result['abbrev'] == 'ffs'
-    df_fcc = fragment_combination.clean(df_fcc)
-    assert len(df_fcc.index) == 0
+
 
 def test_classify_ffo(df_aidxf_ffo):
     """Check if fragment combinations of type fusion false positive substructure are identified."""
@@ -366,5 +365,3 @@ def test_classify_cfc(df_aidxf_cfc):
     df_fcc = fragment_combination.classify_df(df_aidxf_cfc, clean_combinations=False)
     result = df_fcc.iloc[0]
     assert result['category'] == 'connection' and result['type'] == 'false_positive' and result['subtype'] == 'cutoff' and result['abbrev'] == 'cfc'
-    df_fcc = fragment_combination.clean(df_fcc)
-    assert len(df_fcc.index) == 0
