@@ -1,2 +1,2 @@
-.. automodule:: npfc.fragment_map
+.. automodule:: npfc.fragment_graph
     :members:
