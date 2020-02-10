@@ -23,7 +23,7 @@ available. Please have a look and enjoy, any feedback is welcome!
    filter
    standardize
    duplicate
-   fragment
+   fragment_search
    fragment_combination
    fragment_map
    draw

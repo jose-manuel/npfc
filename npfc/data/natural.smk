@@ -23,7 +23,7 @@ molid = config['molid']
 prefix = config['prefix']
 input_file = config['input_file']
 frags_file = config['frags_file']
-frags_subdir = config['frags_subdir']
+frags_subdir = "frags_" + config['frags_subdir']
 chunksize = config['chunksize']
 
 

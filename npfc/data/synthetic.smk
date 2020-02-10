@@ -26,7 +26,7 @@ prefix = config['prefix']
 input_file = config['input_file']
 # additional
 frags_file = config['frags_file']  # fragment file to use for substructure search
-frags_subdir = config['frags_subdir']
+frags_subdir = "frags_" + config['frags_subdir']
 chunksize = config['chunksize']  # maximum number of molecules per chunk
 # specific to synthetic
 natref = config['natref']  # WD for defining natural compounds, subdir with same frags is also searched for pnp annotation
@@ -51,7 +51,7 @@ if natref.endswith('/'):
 frags_filename = Path(frags_file).stem.split('.')[0]   # basename from frags file
 # natref
 natref_filename = Path(natref).stem   # basename from natref dir
-natref_subdir = Path(natref).stem.split('.')[0]  # subfolder where outputs using nat_ref are stored
+natref_subdir = "natref_" + Path(natref).stem.split('.')[0]  # subfolder where outputs using nat_ref are stored
 # natref dedupl - for subset
 natref_dedupl_dir = list(Path(f"{natref}/data").glob("[0-9][0-9]_dedupl"))[0]
 natref_dedupl_reffile = list(natref_dedupl_dir.glob('*.hdf'))[0]
