@@ -1,3 +1,3 @@
 {
-    "tasks": ["filter_empty", "disconnect_metal", "keep_best", "sanitize", "remove_isotopes", "normalize", "uncharge", "canonicalize", "remove_stereo"],
+    "tasks": ["filter_empty", "disconnect_metal", "keep_best", "sanitize", "remove_isotopes", "normalize", "uncharge", "canonicalize", "remove_stereo"]
 }

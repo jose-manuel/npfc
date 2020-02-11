@@ -176,7 +176,10 @@ class Standardizer(Filter):
         if protocol is None:
             self._protocol = self._default_protocol
         else:
-            self._protocol = protocol
+            if isinstance(protocol, str):
+                self._protocol = json.load(open(protocol, 'r'))
+            else:
+                self._protocol = protocol
         # workers
         self.metal_disconnector = MetalDisconnector()
         self.normalizer = Normalizer()

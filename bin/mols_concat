@@ -108,7 +108,7 @@ def main():
     utils.check_arg_output_file(args.output_mols)
     colnames, orders = parse_arg_sortby(args.sortby)
 
-    if args.groupby != 'idm':
+    if args.groupby != 'idm' and args.groupby is not None:
         raise ValueError(f"ERROR! UNSUPPORTED VALUE FOR ARGUMENT GROUPBY ('{args.groupby}')!")
 
     # IO infos
@@ -154,6 +154,8 @@ def main():
     logging.info("ENCODE".ljust(pad) + f"{encode}")
     logging.info("CSV_SEP".ljust(pad) + f"{csv_sep}")
     logging.info("SORTBY".ljust(pad) + f"{args.sortby}")
+    logging.info("GROUPBY".ljust(pad) + f"{args.groupby}")
+
     logging.info("LOG".ljust(pad) + f"{args.log}")
 
     # begin

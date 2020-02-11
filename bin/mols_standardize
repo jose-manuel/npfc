@@ -28,6 +28,18 @@ from npfc import standardize
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 
+def disable_rdkit_logging():
+    """
+    Disables RDKit whiny logging.
+    https://github.com/rdkit/rdkit/issues/2320
+    """
+    import rdkit.rdBase as rkrb
+    import rdkit.RDLogger as rkl
+    logger = rkl.logger()
+    logger.setLevel(rkl.ERROR)
+    rkrb.DisableLog('rdApp.error')
+
+
 def main():
 
     # init
@@ -75,11 +87,10 @@ def main():
     # logging
 
     logger = utils._configure_logger(args.log)
-    logger.info("RUNNING STANDARDIZE_MOLS")
+    logger.info("RUNNING MOLS_STANDARDIZE")
     warnings.filterwarnings('ignore', category=pd.io.pytables.PerformanceWarning)  # if None is returned instead of a molecule, do not complain about mixed types
     pad = 40
-    lg = RDLogger.logger()
-    lg.setLevel(RDLogger.CRITICAL)
+    disable_rdkit_logging()  # does not work... known issue... nothing much to do apart from editing the log file content. will do in smk directly
 
     # parse arguments
 
