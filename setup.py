@@ -8,10 +8,10 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="npfc",
-    version='0.5.14',
-    author="Stephane Bourg, Jose-Manuel Gally",
-    author_email="stephane.bourg@crns.fr",
-    description="A package for classifying fragment combinations in molecules",
+    version='0.5.14-1-gac97d93',
+    author="Jose-Manuel Gally",
+    author_email="josemanuel.gally@mpi-dortmund.mpg.de",
+    description="A package for analywing fragment combinations in natural and synthetic molecules",
     long_description=long_description,
     long_description_content_type="text/markdown",
     # url="https://github.com/pypa/sampleproject",
@@ -21,7 +21,7 @@ setuptools.setup(
       ],
     setup_requires=["pytest-runner"],
     tests_require=["pytest"],
-    keywords=['chemoinformatics', 'natural products', 'fragments', 'chemical biology'],
+    keywords=['chemoinformatics', 'natural products', 'fragments', 'chemical biology', 'pseudo-natura products'],
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
@@ -32,6 +32,7 @@ setuptools.setup(
              'bin/act_preprocess',
              'bin/act_preprocess_cpa',
              'bin/chunk_sdf',
+             'bin/mols_concat',
              'bin/mols_dedupl',
              'bin/mols_deglyco',
              'bin/mols_draw',
