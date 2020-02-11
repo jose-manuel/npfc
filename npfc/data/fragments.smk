@@ -81,7 +81,7 @@ rule STDMS_A:
         "{WD}/04a_std/data/{prefix}_filtered.csv.gz",
         "{WD}/04a_std/data/{prefix}_error.csv.gz"
     log: "{WD}/04a_std/log/{prefix}_std.log"
-    shell: "mols_standardize {input} {WD}/04a_std/data/{prefix}.csv.gz 2>{log}"  # mols_standardize takes a dir as output
+    shell: "mols_standardize {input} {WD}/04a_std/data/{prefix}.csv.gz -p " + config_std_frags + " 2>{log}"  # mols_standardize takes a dir as output
 
 rule MURCKO_A:
     priority: 104
@@ -98,7 +98,7 @@ rule STDMS_B:
         "{WD}/05b_std/data/{prefix}_filtered.csv.gz",
         "{WD}/05b_std/data/{prefix}_error.csv.gz"
     log: "{WD}/05b_std/log/{prefix}_std.log"
-    shell: "mols_standardize {input} {WD}/05b_std/data/{prefix}.csv.gz 2>{log}"  # mols_standardize takes a dir as output
+    shell: "mols_standardize {input} {WD}/05b_std/data/{prefix}.csv.gz -p " + config_std_frags + " 2>{log}"  # mols_standardize takes a dir as output
 
 rule MURCKO_B:
     priority: 106
