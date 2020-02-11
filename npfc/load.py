@@ -165,6 +165,9 @@ def file(input_file: str,
                 logging.debug(f"Decoding column='{col}'")
                 df[col] = df[col].map(utils.decode_object)
 
+    # consistent id comparison accross datasets
+    df[out_id] = df[out_id].astype(str)
+
     logging.debug(f"Excerpt of the data as extracted with load.file function\n\n{df.head(3)}\n")
 
     return df
