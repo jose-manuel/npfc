@@ -419,7 +419,7 @@ def rescale(mol: Mol, f: float = 1.4):
     Chem.TransformMol(mol, tm)
 
 
-def compute_2D(mol: Mol, methods: List[str] = ["CoordGen", "rdDepictor"], consider_input: bool = True) -> Mol:
+def depict_mol(mol: Mol, methods: List[str] = ["CoordGen", "rdDepictor"], consider_input: bool = True) -> Mol:
     """
     Returns the "best" 2D depiction of a molecule according the methods in METHODS_2D.
     Currently two methods are available:

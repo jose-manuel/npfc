@@ -48,14 +48,14 @@ if fallback_default_std_frags:
 
 
 rule all:
-    input: WD + "/08_gen2D/data/" + prefix + "_gen2D.csv.gz"  # rule all does not accept wildcards
+    input: WD + "/08_depict/data/" + prefix + "_depict.csv.gz"  # rule all does not accept wildcards
 
-rule GEN2D:
+rule depict:
     priority: 100
     input: "{WD}/07_dedupl/data/{prefix}_dedupl.csv.gz"
-    output: "{WD}/08_gen2D/data/{prefix}_gen2D.csv.gz"
-    log: "{WD}/08_gen2D/log/{prefix}_gen2D.log"
-    shell: "mols_gen2D {input} {output} 2>{log}"
+    output: "{WD}/08_depict/data/{prefix}_depict.csv.gz"
+    log: "{WD}/08_depict/log/{prefix}_depict.log"
+    shell: "mols_depict {input} {output} 2>{log}"
 
 rule DEDUPLMS:
     priority: 101
@@ -115,7 +115,7 @@ rule STD_B:
         "{WD}/03b_std/data/{prefix}_filtered.csv.gz",
         "{WD}/03b_std/data/{prefix}_error.csv.gz"
     log: "{WD}/03b_std/log/{prefix}_std.log"
-    shell: "mols_standardize {input} {WD}/03b_std/data/{prefix}.csv.gz -p " + config_std_frags + " 2>{log}"  # mols_standardize takes a dir as output 
+    shell: "mols_standardize {input} {WD}/03b_std/data/{prefix}.csv.gz -p " + config_std_frags + " 2>{log}"  # mols_standardize takes a dir as output
 
 rule DGC:
     priority: 108

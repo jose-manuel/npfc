@@ -8,7 +8,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="npfc",
-    version='0.5.14-3-g8e933cc',
+    version='0.5.14-4-ga8a6205',
     author="Jose-Manuel Gally",
     author_email="josemanuel.gally@mpi-dortmund.mpg.de",
     description="A package for analywing fragment combinations in natural and synthetic molecules",
@@ -36,8 +36,8 @@ setuptools.setup(
              'bin/mols_dedupl',
              'bin/mols_deglyco',
              'bin/mols_draw',
+             'bin/mols_depict',
              'bin/mols_extract_murcko',
-             'bin/mols_gen2D',
              'bin/mols_load',
              'bin/mols_standardize',
              'bin/mols_subset',

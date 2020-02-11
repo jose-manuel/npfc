@@ -100,18 +100,18 @@ rule FSEARCH:
 rule SUBSET:
     priority: 4
     input:
-        mols = "{WD}/06_gen2D/data/{prefix}_{cid}_gen2D.csv.gz",
+        mols = "{WD}/06_depict/data/{prefix}_{cid}_depict.csv.gz",
         ref = natref + "/data/05_dedupl/dnp_ref.hdf"
     output: "{WD}" + f"/{natref_subdir}" + "/07_subset/data/{prefix}_{cid}_subset.csv.gz"
     log: "{WD}" + f"/{natref_subdir}" + "/07_subset/log/{prefix}_{cid}_subset.log"
     shell: "mols_subset {input.mols} {input.ref} {output} >{log} 2>&1"
 
-rule GEN2D:
+rule depict:
     priority: 5
     input: "{WD}/05_dedupl/data/{prefix}_{cid}_dedupl.csv.gz"
-    output: "{WD}/06_gen2D/data/{prefix}_{cid}_gen2D.csv.gz"
-    log: "{WD}/06_gen2D/log/{prefix}_{cid}_gen2D.log"
-    shell: "mols_gen2D {input} {output} 2>{log}"
+    output: "{WD}/06_depict/data/{prefix}_{cid}_depict.csv.gz"
+    log: "{WD}/06_depict/log/{prefix}_{cid}_depict.log"
+    shell: "mols_depict {input} {output} 2>{log}"
 
 rule DEDUPL:
     priority: 6

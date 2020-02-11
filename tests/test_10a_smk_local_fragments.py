@@ -37,7 +37,7 @@ def test_init():
 def test_run():
     """Run the 'fragments' protocol applied to the cr dataset."""
 
-    output_files = ["tests/tmp/fragments/crms/data/08_gen2D/data/crms_gen2D.csv.gz"]
+    output_files = ["tests/tmp/fragments/crms/data/08_depict/data/crms_depict.csv.gz"]
     output_svg = 'tests/tmp/fragments/crms/crms_tasktree.svg'
     # run protocol
     command_smk = 'run_protocol fragments --chunksize 100'

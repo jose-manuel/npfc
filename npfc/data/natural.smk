@@ -64,18 +64,18 @@ rule FCC:
 rule FSEARCH:
     priority: 13
     input:
-        mols = "{WD}/06_gen2D/data/{prefix}_{cid}_gen2D.csv.gz",
+        mols = "{WD}/06_depict/data/{prefix}_{cid}_depict.csv.gz",
         frags = frags_file
     output: "{WD}" + f"/{frags_subdir}" + "/07_fsearch/data/{prefix}_{cid}_fsearch.csv.gz"
     log: "{WD}" + f"/{frags_subdir}" + "/07_fsearch/log/{prefix}_{cid}_fsearch.log"
     shell: "mols_substruct {input.mols} {input.frags} {output} >{log} 2>&1"
 
-rule GEN2D:
+rule depict:
     priority: 14
     input: "{WD}/05_dedupl/data/{prefix}_{cid}_dedupl.csv.gz"
-    output: "{WD}/06_gen2D/data/{prefix}_{cid}_gen2D.csv.gz"
-    log: "{WD}/06_gen2D/log/{prefix}_{cid}_gen2D.log"
-    shell: "mols_gen2D {input} {output} 2>{log}"
+    output: "{WD}/06_depict/data/{prefix}_{cid}_depict.csv.gz"
+    log: "{WD}/06_depict/log/{prefix}_{cid}_depict.log"
+    shell: "mols_depict {input} {output} 2>{log}"
 
 rule DEDUPL:
     priority: 15

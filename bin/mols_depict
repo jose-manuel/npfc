@@ -58,7 +58,7 @@ def main():
     # logging
 
     logger = utils._configure_logger(args.log)
-    logger.info("RUNNING COMPUTE_2D")
+    logger.info("RUNNING MOLS_DEPICT")
     warnings.filterwarnings('ignore', category=pd.io.pytables.PerformanceWarning)  # if None is returned instead of a molecule, do not complain about mixed types
     pad = 40
     lg = RDLogger.logger()
@@ -116,7 +116,7 @@ def main():
     # extract Murcko scaffolds
     d2 = datetime.now()
     logger.info(f"COMPUTING 2D COORDINATES")
-    df_mols['mol'] = df_mols['mol'].map(lambda x: draw.compute_2D(x, methods=methods))
+    df_mols['mol'] = df_mols['mol'].map(lambda x: draw.depict_mol(x, methods=methods))
 
     # save results
     d3 = datetime.now()
