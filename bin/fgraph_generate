@@ -31,7 +31,7 @@ def main():
 
     # init
     d0 = datetime.now()
-    description = """Script used for mapping fragment combinations.
+    description = """Script used for genearting fragment combination graphs.
 
     It uses the installed npfc libary in your favorite env manager.
 
@@ -84,7 +84,7 @@ def main():
     logging.info("LOG".ljust(pad) + f"{args.log}")
 
     # begin
-    logging.info("BEGIN")
+    logging.info("RUNNING FRAGMENT GRAPH GENERATION")
 
     # load fcc
     logging.info("LOADING FRAGMENT COMBINATIONS")

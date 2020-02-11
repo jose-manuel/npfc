@@ -113,7 +113,7 @@ def main():
     p = Path(args.ref_dir)
     if not p.is_dir():
         raise ValueError(f"ERROR! REF_DIR COULD NOT BE FOUND! ({args.ref_dir})")
-    ref_files = [str(x) for x in list(p.glob("*_fmap.csv.gz"))]
+    ref_files = [str(x) for x in list(p.glob("*_fgraph.csv.gz"))]
     ref_files.sort()
     logging.info(f"FOUND {len(ref_files)} FRAGMENT MAP FILES AT {args.ref_dir}")
 
@@ -151,7 +151,7 @@ def main():
     # df_map_ref.drop("Unnamed: 0", axis=1, inplace=True)
     logging.info(f"FOUND {len(df_map_ref.index)} REFERENCE FRAGMENT MAPS")
     logging.info(f"EXTRACTING EDGES FROM FRAGMENT MAPS")
-    df_map_ref["edges_ref"] = df_map_ref["_fmap"].map(lambda x: x.edges(data="abbrev"))
+    df_map_ref["edges_ref"] = df_map_ref["_fgraph"].map(lambda x: x.edges(data="abbrev"))
 
     # mapping fragment combinations
     logger.info(f"ANNOTATING FRAGMENT MAPS")

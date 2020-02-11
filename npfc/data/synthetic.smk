@@ -55,8 +55,8 @@ natref_subdir = "natref_" + Path(natref).stem.split('.')[0]  # subfolder where o
 # natref dedupl - for subset
 natref_dedupl_dir = list(Path(f"{natref}/data").glob("[0-9][0-9]_dedupl"))[0]
 natref_dedupl_reffile = list(natref_dedupl_dir.glob('*.hdf'))[0]
-# natref fmap - for pnp
-natref_fmap_dir = [str(x) for x in Path(f"{natref}/data/{frags_subdir}").glob("[0-9][0-9]_fmap")][0] + '/data'
+# natref fg - for pnp
+natref_fgraph_dir = [str(x) for x in Path(f"{natref}/data/{frags_subdir}").glob("[0-9][0-9]_fgraph")][0] + '/data'
 # define chunk_ids for wildcard expansion
 chunk_ids = [str(i+1).zfill(3) for i in range(num_chunks)]
 
@@ -69,17 +69,17 @@ rule all:
 
 rule PNP:
     priority: 0
-    input: "{WD}" + f"/{natref_subdir}/{frags_subdir}" + "/10_fmap/data/{prefix}_{cid}_fmap.csv.gz"
+    input: "{WD}" + f"/{natref_subdir}/{frags_subdir}" + "/10_fgraph/data/{prefix}_{cid}_fgraph.csv.gz"
     output: "{WD}" + f"/{natref_subdir}/{frags_subdir}" + "/11_pnp/data/{prefix}_{cid}_pnp.csv.gz"
     log: "{WD}" + f"/{natref_subdir}/{frags_subdir}" + "/11_pnp/log/{prefix}_{cid}_pnp.log"
-    shell: "fmaps_annotate_pnp {input} {natref_fmap_dir} {output} >{log} 2>&1"
+    shell: "fgraph_annotate_pnp {input} {natref_fgraph_dir} {output} >{log} 2>&1"
 
-rule FMAP:
+rule FGRAPH:
     priority: 1
     input: "{WD}" + f"/{natref_subdir}/{frags_subdir}" + "/09_fcc/data/{prefix}_{cid}_fcc.csv.gz"
-    output: "{WD}" + f"/{natref_subdir}/{frags_subdir}" + "/10_fmap/data/{prefix}_{cid}_fmap.csv.gz"
-    log: "{WD}" + f"/{natref_subdir}/{frags_subdir}" + "/10_fmap/log/{prefix}_{cid}_fmap.log"
-    shell: "fc_map {input} {output} --min-frags 2 --max-frags 9999 --max-overlaps 5 >{log} 2>&1"
+    output: "{WD}" + f"/{natref_subdir}/{frags_subdir}" + "/10_fgraph/data/{prefix}_{cid}_fgraph.csv.gz"
+    log: "{WD}" + f"/{natref_subdir}/{frags_subdir}" + "/10_fgraph/log/{prefix}_{cid}_fgraph.log"
+    shell: "fgraph_generate {input} {output} --min-frags 2 --max-frags 9999 --max-overlaps 5 >{log} 2>&1"
 
 rule FCC:
     priority: 2
@@ -106,7 +106,7 @@ rule SUBSET:
     log: "{WD}" + f"/{natref_subdir}" + "/07_subset/log/{prefix}_{cid}_subset.log"
     shell: "mols_subset {input.mols} {input.ref} {output} >{log} 2>&1"
 
-rule depict:
+rule DEPICT:
     priority: 5
     input: "{WD}/05_dedupl/data/{prefix}_{cid}_dedupl.csv.gz"
     output: "{WD}/06_depict/data/{prefix}_{cid}_depict.csv.gz"

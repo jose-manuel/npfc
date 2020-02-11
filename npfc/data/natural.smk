@@ -45,14 +45,14 @@ chunk_ids = [str(i+1).zfill(3) for i in range(config['num_chunks'])]
 
 
 rule all:
-    input: expand(f"{WD}/{frags_subdir}/09_fmap/data/{prefix}" + '_{cid}_fmap.csv.gz', cid=chunk_ids)
+    input: expand(f"{WD}/{frags_subdir}/09_fgraph/data/{prefix}" + '_{cid}_fgraph.csv.gz', cid=chunk_ids)
 
-rule FMAP:
+rule FGRAPH:
     priority: 11
     input: "{WD}" + f"/{frags_subdir}" + "/08_fcc/data/{prefix}_{cid}_fcc.csv.gz"
-    output: "{WD}" + f"/{frags_subdir}" + "/09_fmap/data/{prefix}_{cid}_fmap.csv.gz"
-    log: "{WD}" + f"/{frags_subdir}" + "/09_fmap/log/{prefix}_{cid}_fmap.log"
-    shell: "fc_map {input} {output} --min-frags 2 --max-frags 9999 --max-overlaps 5 --log DEBUG >{log} 2>&1"
+    output: "{WD}" + f"/{frags_subdir}" + "/09_fgraph/data/{prefix}_{cid}_fgraph.csv.gz"
+    log: "{WD}" + f"/{frags_subdir}" + "/09_fgraphraph/log/{prefix}_{cid}_fgraph.log"
+    shell: "fgraph_generate {input} {output} --min-frags 2 --max-frags 9999 --max-overlaps 5 --log DEBUG >{log} 2>&1"
 
 rule FCC:
     priority: 12
@@ -70,7 +70,7 @@ rule FSEARCH:
     log: "{WD}" + f"/{frags_subdir}" + "/07_fsearch/log/{prefix}_{cid}_fsearch.log"
     shell: "mols_substruct {input.mols} {input.frags} {output} >{log} 2>&1"
 
-rule depict:
+rule DEPICT:
     priority: 14
     input: "{WD}/05_dedupl/data/{prefix}_{cid}_dedupl.csv.gz"
     output: "{WD}/06_depict/data/{prefix}_{cid}_depict.csv.gz"

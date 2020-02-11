@@ -140,7 +140,7 @@ def _split_overlaps(df_fc: DataFrame, max_overlaps: int) -> DataFrame:
     df_variants = df_fc[ (df_fc['abbrev'] != 'ffo') & ((df_fc['fid1'].isin(d_incompatible.keys()) | (df_fc['fid2'].isin(d_incompatible.keys()))))]
     logging.debug(f"Identified {len(df_variants.index):,} variant combinations:\n{df_variants[['idm', 'fid1', 'fid2', 'abbrev']]}")
 
-    # define a list of sets of alternative fragments (i.e. [(A, B), (C, D)]) for computing all possible alternative fmap possibilities
+    # define a list of sets of alternative fragments (i.e. [(A, B), (C, D)]) for computing all possible alternative fgraph possibilities
     alt_frags = list(set([tuple(sorted([k] + v)) for k, v in d_incompatible.items()]))
     # remove sublists included in others: i.e. ('1724:0', '627:1'), ('1724:0', '627:0'), ('1724:0', '627:0', '627:1') => ('1724:0', '627:0', '627:1')
     alt_frags = [set(x) for x in alt_frags]  # now the former set of tuples is a list of sets
@@ -148,10 +148,10 @@ def _split_overlaps(df_fc: DataFrame, max_overlaps: int) -> DataFrame:
     alt_frags = [tuple(sorted(list(x))) for x in list(filter(lambda f: not any(f < g for g in alt_frags), alt_frags))]  # discard any set that is subset of another
     logging.debug(f"Alternative fragments:\n" + '\n'.join([str(x) for x in alt_frags]))
 
-    # compute 1 df for each alternative fmap and then concatenate it all into one single df
+    # compute 1 df for each alternative fgraph and then concatenate it all into one single df
     dfs_alt_curr = []
     for product in itertools.product(*alt_frags):
-        logging.debug(f"Current alternative route for fmaps: {product}")
+        logging.debug(f"Current alternative route for fgraphs: {product}")
         to_remove = []
         for p in product:
             to_remove += d_incompatible[p]
@@ -275,7 +275,7 @@ def generate(df_fcc: DataFrame, min_frags: int = 2, max_frags: int = 5, max_over
                 elif row["_aidxf2"] not in d_aidxs[row["idf2"]]:
                     d_aidxs[row["idf2"]].append(row["_aidxf2"])
 
-            # sort d_aidxs for reproducible colormaps  ### might be the cause of the wrong coloration in alternative fmaps due to overlaps
+            # sort d_aidxs for reproducible colormaps  ### might be the cause of the wrong coloration in alternative fgraphs due to overlaps
             d_aidxs = OrderedDict(sorted(d_aidxs.items()))
             # count fragment occurrences (non-unique)
             frags = list(set([x for x in df_fcc_clean['fid1'].map(str).values] + [x for x in df_fcc_clean['fid2'].map(str).values]))
@@ -325,7 +325,7 @@ def generate(df_fcc: DataFrame, min_frags: int = 2, max_frags: int = 5, max_over
             ncomb = len(comb)
             comb_u = list(set(comb))
             ncomb_u = len(comb_u)
-            ds_map.append({'idm': gid, 'fmid': str(i+1).zfill(3), 'nfrags': nfrags, 'nfrags_u': nfrags_u, 'ncomb': ncomb, 'ncomb_u': ncomb_u, 'hac_mol': hac_mol, 'hac_frags': hac_frags, 'perc_mol_cov_frags': perc_mol_cov_frags, 'frags': frags, 'frags_u': frags_u, 'comb': comb, 'comb_u': comb_u, 'fmap_str': frag_map_str, '_d_aidxs': d_aidxs, '_colormap': colormap, '_fmap': graph, 'mol': mol})
+            ds_map.append({'idm': gid, 'fmid': str(i+1).zfill(3), 'nfrags': nfrags, 'nfrags_u': nfrags_u, 'ncomb': ncomb, 'ncomb_u': ncomb_u, 'hac_mol': hac_mol, 'hac_frags': hac_frags, 'perc_mol_cov_frags': perc_mol_cov_frags, 'frags': frags, 'frags_u': frags_u, 'comb': comb, 'comb_u': comb_u, 'fgraph_str': frag_map_str, '_d_aidxs': d_aidxs, '_colormap': colormap, '_fgraph': graph, 'mol': mol})
 
     # df_map
-    return DataFrame(ds_map, columns=['idm', 'fmid', 'nfrags', 'nfrags_u', 'ncomb', 'ncomb_u', 'hac_mol', 'hac_frags', 'perc_mol_cov_frags', 'frags', 'frags_u', 'comb', 'comb_u', 'fmap_str', '_d_aidxs', '_colormap', '_fmap', 'mol']).drop_duplicates(subset=['fmap_str'])
+    return DataFrame(ds_map, columns=['idm', 'fmid', 'nfrags', 'nfrags_u', 'ncomb', 'ncomb_u', 'hac_mol', 'hac_frags', 'perc_mol_cov_frags', 'frags', 'frags_u', 'comb', 'comb_u', 'fgraph_str', '_d_aidxs', '_colormap', '_fgraph', 'mol']).drop_duplicates(subset=['fgraph_str'])

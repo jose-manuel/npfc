@@ -50,7 +50,7 @@ if fallback_default_std_frags:
 rule all:
     input: WD + "/08_depict/data/" + prefix + "_depict.csv.gz"  # rule all does not accept wildcards
 
-rule depict:
+rule DEPICT:
     priority: 100
     input: "{WD}/07_dedupl/data/{prefix}_dedupl.csv.gz"
     output: "{WD}/08_depict/data/{prefix}_depict.csv.gz"
