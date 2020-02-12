@@ -233,7 +233,7 @@ def main():
     if WD.endswith('/'):
         WD = WD[:-1]
     svg = WD + f"/{config['prefix']}_tasktree.svg"
-    smk_command_svg = smk_command + f" --dag | dot -Tsvg > {svg}"
+    smk_command_svg = smk_command + f" --rulegraph | dot -Tsvg > {svg}"
     logger.info(f"DRAWING TASK TREE AT '{svg}'")
     subprocess.run(smk_command_svg, shell=True, check=True)
 
