@@ -62,7 +62,7 @@ rule DEDUPL:
     input: "{WD}/05_concat/data/{prefix}_concat.csv.gz"
     output: "{WD}/06_dedupl/data/{prefix}_dedupl.csv.gz"
     log: "{WD}/06_dedupl/log/{prefix}_dedupl.log"
-    shell: "mols_dedupl {input} {output} -r " + "{WD}/07_dedupl/{prefix}_ref.hdf --log DEBUG 2>{log}"
+    shell: "mols_dedupl {input} {output} -r " + "{WD}/06_dedupl/{prefix}_ref.hdf --log DEBUG 2>{log}"
 
 rule CONCAT:
     priority: 102
