@@ -205,8 +205,19 @@ def main():
         smk_command += '-j 400 --cluster-config ' + config_cluster + ' --cluster "sbatch -p medium -n {cluster.n}  -t {cluster.time} --oversubscribe" '
 
     # arguments
+    if 'fragments' in args.protocol:
+        protocol = 'fragments'
+    elif 'natural' in args.protocol:
+        protocol = 'natural'
+    elif 'synthetic' in args.protocol:
+        protocol = 'synthetic'
+    elif 'other' in args.protocol:
+        protocol = 'other'
+    else:
+        raise ValueError(f"UNKNOWN PROTOCOL! ('{args.protocol}')")
+
     # add specific arguments when chunks are needed
-    if 'natural' in args.protocol or 'synthetic' in args.protocol or 'other' in args.protocol:
+    if protocol in ['natural', 'synthetic', 'other']:
         # count mols for natural and synthetic
         # for counting mols, need to process the unzipped file
         input_file_uncompressed = config['input_file'].split('.gz')[0]
@@ -232,7 +243,7 @@ def main():
     WD = config['WD']
     if WD.endswith('/'):
         WD = WD[:-1]
-    svg = WD + f"/{config['prefix']}_tasktree.svg"
+    svg = WD + f"/{protocol}_{config['prefix']}_tasktree.svg"
     smk_command_svg = smk_command + f" --rulegraph | dot -Tsvg > {svg}"
     logger.info(f"DRAWING TASK TREE AT '{svg}'")
     subprocess.run(smk_command_svg, shell=True, check=True)
