@@ -51,7 +51,7 @@ rule FGRAPH:
     priority: 11
     input: "{WD}" + f"/{frags_subdir}" + "/08_fcc/data/{prefix}_{cid}_fcc.csv.gz"
     output: "{WD}" + f"/{frags_subdir}" + "/09_fgraph/data/{prefix}_{cid}_fgraph.csv.gz"
-    log: "{WD}" + f"/{frags_subdir}" + "/09_fgraphraph/log/{prefix}_{cid}_fgraph.log"
+    log: "{WD}" + f"/{frags_subdir}" + "/09_fgraph/log/{prefix}_{cid}_fgraph.log"
     shell: "fgraph_generate {input} {output} --min-frags 2 --max-frags 9999 --max-overlaps 5 --log DEBUG >{log} 2>&1"
 
 rule FCC:
