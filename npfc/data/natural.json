@@ -3,7 +3,7 @@
                     "molid": "UKEY",
                     "WD": "natural/dnp/",
                     "input_file": "natural/dnp/data/00_raw/data/dnp.sdf.gz",
-                    "frags_file": "fragments/crms/data/08_depict/data/crms_depict.csv.gz",
+                    "frags_file": "fragments/crms/data/07_depict/data/crms_depict.csv.gz",
                     "frags_subdir" : "crms",
                     "chunksize": 5000
 }
