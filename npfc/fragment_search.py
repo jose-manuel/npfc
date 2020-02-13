@@ -19,6 +19,7 @@ def get_fragment_hits(df_mols: DataFrame,
                       df_frags: DataFrame,
                       col_mol_mols: str = 'mol',
                       col_mol_frags: str = 'mol',
+                      col_mol_inchikey: str = 'inchikey',
                       ) -> DataFrame:
     """Create a DataFrame recording every Fragment Hit in the
     input molecule DataFrame.
@@ -32,10 +33,12 @@ def get_fragment_hits(df_mols: DataFrame,
     5) mol: the molecule as RDKit Mol object
     6) mol_frag: the fragment as RDKit Mol object
 
-    :param df_mols: the input DataFrame with molecules
-    :param df_frags: the input DataFrame with fragments to use for substructure search
-    :param col_mol_mols: the the input DataFrame column name with the molecules
-    :param col_mol_frags: the input DataFrame column name with the fragments
+    :param df_mols: the input DataFrame with the molecules (df_mols)
+    :param df_frags: the input DataFrame with fragments to use for substructure search (df_frags)
+    :param col_mol_mols: the column name in df_mols with the molecules
+    :param col_mol_frags: the column name in df_frags with the fragments
+    :param col_mol_inchikey: the input DataFrame column name with the inchikey of the molecule
+
     :return: the substructure matches as a DataFrame
 
     .. note:: Rowids are used for recording the ids of substructure hits: mols => idm, frags => idf
@@ -49,6 +52,7 @@ def get_fragment_hits(df_mols: DataFrame,
     d['mol_perc'] = []  # proportion of the molecule the substructure represents
     d['mol'] = []  # encode the molecule here so we don't have to combine multiple files when trying to have a look at the results
     d['mol_frag'] = []  # strucutre of the fragment
+    d['inchikey'] = []  # inchikey of the molecule]
     # begin
     for i in range(len(df_mols.index)):
         rowm = df_mols.iloc[i]
@@ -60,13 +64,14 @@ def get_fragment_hits(df_mols: DataFrame,
             matches = mol.GetSubstructMatches(rowq[col_mol_frags])
             if len(matches) > 0:
                 logging.debug(f"MOL {rowm.name} + FRAG {rowq.name} ==> {matches}")
-                for i, m in enumerate(matches):
+                for m in matches:
                     d['idm'].append(rowm.name)
                     d['idf'].append(rowq.name)
                     d['_aidxf'].append(frozenset(m))  # frozenset so we can use intersection, etc. and still remove dupl. easily
                     d['idxf'].append(str(i))
                     d['mol_perc'].append(round(len(m)/hac, 2) * 100)
                     d['mol'].append(rowm[col_mol_mols])
+                    d['inchikey'].append(rowm[col_mol_inchikey])
                     d['mol_frag'].append(rowq[col_mol_frags])
 
     return DataFrame(d)

@@ -134,7 +134,7 @@ def main():
                         out_id=args.mid,
                         in_mol=args.mmol,
                         out_mol=args.mmol,
-                        keep_props=False,
+                        keep_props=True,
                         csv_sep=args.msep,
                         decode=args.mdecode,
                         )

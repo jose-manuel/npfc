@@ -33,17 +33,7 @@ def main():
 
     # init
     d0 = datetime.now()
-    description = """Script used for loading molecules from SDF, CSV or HDF files, convert them into RDKit objects and export them into CSV or HDF files.
-    Molecules that failed the RDKit conversion have None for structure but their properties, if any, remain.
-
-    It uses the installed npfc libary in your favorite env manager.
-
-    Examples:
-
-        >>> # Convert a SDF into a HDF using molecule titles as molecule id
-        >>> load_mols file_in.sdf file_out.hdf --src_id _Name
-        >>> # Chunk a CSV file into SDF files of 100 randomly ordered records while keeping all properties
-        >>> load_mols file_in.csv file_out.sdf -n 100 -k True -s True --src_id prop1 --src_mol mol --out_id _Name
+    description = """
     """
 
     # parameters CLI
