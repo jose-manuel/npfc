@@ -866,6 +866,8 @@ def get_dfs_fcc(WD: Path, frags_file: str, compute_df_ffo=False) -> Tuple[DataFr
 
 
 def get_df_fm(WD: Path, frags_file) -> DataFrame:
+    """test
+    """
     # define data
     WD_FMAP = [str(x) for x in list(WD.glob("*_fmap"))][0]    # get latest step
     pattern = ".*([0-9]{3})?.csv.gz"

@@ -38,7 +38,7 @@ def test_run():
     """Run the 'fragments' protocol applied to the cr dataset."""
 
     output_files = ["tests/tmp/fragments/crms/data/07_depict/data/crms_depict.csv.gz"]
-    output_svg = 'tests/tmp/fragments/crms/crms_tasktree.svg'
+    output_svg = 'tests/tmp/fragments/crms/fragments_crms_tasktree.svg'
     # run protocol
     command_smk = 'run_protocol fragments --chunksize 100'
     subprocess.run(command_smk, shell=True, check=True, cwd='tests/tmp')

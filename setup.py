@@ -8,7 +8,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="npfc",
-    version='0.5.16-1-g6e86a2a',
+    version='0.5.16-2-g4ac23cc',
     author="Jose-Manuel Gally",
     author_email="josemanuel.gally@mpi-dortmund.mpg.de",
     description="A package for analywing fragment combinations in natural and synthetic molecules",

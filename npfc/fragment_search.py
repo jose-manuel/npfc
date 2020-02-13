@@ -29,11 +29,12 @@ def get_fragment_hits(df_mols: DataFrame,
     2) idf: the id of the fragment (rowid from df_frags)
     3) aidxf: the atom indices of the fragment found in the molecule
     4) mol_perc: the percentage of the molecule the fragment represents (based on hac)
-    5) mol: the molecule
-    6) mol_frag: the fragment
+    5) mol: the molecule as RDKit Mol object
+    6) mol_frag: the fragment as RDKit Mol object
 
     :param df_mols: the input DataFrame with molecules
     :param df_frags: the input DataFrame with fragments to use for substructure search
+    :param col_mol_mols: the the input DataFrame column name with the molecules
     :param col_mol_frags: the input DataFrame column name with the fragments
     :return: the substructure matches as a DataFrame
 
