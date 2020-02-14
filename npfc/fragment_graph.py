@@ -261,17 +261,20 @@ def generate(df_fcc: DataFrame, min_frags: int = 2, max_frags: int = 5, max_over
             frag_map_str = '-'.join(list(df_fcc_clean['fid1'].map(str) + "[" + df_fcc_clean['abbrev'] + "]" + df_fcc_clean['fid2'].map(str)))
 
             # d_aidxs: a dict containing the occurrences of each fragment type
-            d_aidxs = {}  # normal dict
+            d_aidxs = {}
+            d_frags = {}
             for j in range(len(df_fcc_clean.index)):
                 row = df_fcc_clean.iloc[j]
                 # idf1
                 if row["idf1"] not in d_aidxs.keys():
                     d_aidxs[row["idf1"]] = [row["_aidxf1"]]
+                    d_frags[row["idf1"]] = row["mol_frag_1"]
                 elif row["_aidxf1"] not in d_aidxs[row["idf1"]]:
                     d_aidxs[row["idf1"]].append(row["_aidxf1"])
                 # idf2
                 if row["idf2"] not in d_aidxs.keys():
                     d_aidxs[row["idf2"]] = [row["_aidxf2"]]
+                    d_frags[row["idf2"]] = row["mol_frag_2"]
                 elif row["_aidxf2"] not in d_aidxs[row["idf2"]]:
                     d_aidxs[row["idf2"]].append(row["_aidxf2"])
 
@@ -325,7 +328,7 @@ def generate(df_fcc: DataFrame, min_frags: int = 2, max_frags: int = 5, max_over
             ncomb = len(comb)
             comb_u = list(set(comb))
             ncomb_u = len(comb_u)
-            ds_map.append({'idm': gid, 'fmid': str(i+1).zfill(3), 'nfrags': nfrags, 'nfrags_u': nfrags_u, 'ncomb': ncomb, 'ncomb_u': ncomb_u, 'hac_mol': hac_mol, 'hac_frags': hac_frags, 'perc_mol_cov_frags': perc_mol_cov_frags, 'frags': frags, 'frags_u': frags_u, 'comb': comb, 'comb_u': comb_u, 'fgraph_str': frag_map_str, '_d_aidxs': d_aidxs, '_colormap': colormap, '_fgraph': graph, 'mol': mol})
+            ds_map.append({'idm': gid, 'fmid': str(i+1).zfill(3), 'nfrags': nfrags, 'nfrags_u': nfrags_u, 'ncomb': ncomb, 'ncomb_u': ncomb_u, 'hac_mol': hac_mol, 'hac_frags': hac_frags, 'perc_mol_cov_frags': perc_mol_cov_frags, 'frags': frags, 'frags_u': frags_u, 'comb': comb, 'comb_u': comb_u, 'fgraph_str': frag_map_str, '_d_aidxs': d_aidxs, '_colormap': colormap, '_fgraph': graph, 'mol': mol, '_d_mol_frags': d_frags})
 
     # df_map
-    return DataFrame(ds_map, columns=['idm', 'fmid', 'nfrags', 'nfrags_u', 'ncomb', 'ncomb_u', 'hac_mol', 'hac_frags', 'perc_mol_cov_frags', 'frags', 'frags_u', 'comb', 'comb_u', 'fgraph_str', '_d_aidxs', '_colormap', '_fgraph', 'mol']).drop_duplicates(subset=['fgraph_str'])
+    return DataFrame(ds_map, columns=['idm', 'fmid', 'nfrags', 'nfrags_u', 'ncomb', 'ncomb_u', 'hac_mol', 'hac_frags', 'perc_mol_cov_frags', 'frags', 'frags_u', 'comb', 'comb_u', 'fgraph_str', '_d_aidxs', '_colormap', '_fgraph', 'mol', '_d_mol_frags']).drop_duplicates(subset=['fgraph_str'])
