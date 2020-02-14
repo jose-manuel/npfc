@@ -397,11 +397,13 @@ def classify_df(df_aidxf: DataFrame,
             aidxf1 = row_f1['_aidxf']
             idf1 = row_f1['idf']
             idxf1 = row_f1['idxf']
+            molf1 = row_f1['mol_frag']
             for j in range(i+1, len(g)):
                 row_f2 = g.iloc[j]
                 aidxf2 = row_f2['_aidxf']
                 idf2 = row_f2['idf']
                 idxf2 = row_f2['idxf']
+                molf2 = row_f2['mol_frag']
                 logging.debug("="*80)
                 logging.debug(f"Classifying m={gid}, f1={idf1}:{idxf1}, f2={idf2}:{idxf2}")
                 d_fcc = classify(mol, aidxf1, aidxf2, cutoff=cutoff)
@@ -418,10 +420,12 @@ def classify_df(df_aidxf: DataFrame,
                 d_fcc['_aidxf1'] = aidxf1
                 d_fcc['_aidxf2'] = aidxf2
                 d_fcc['hac'] = hac
+                d_fcc['mol_frag_1'] = molf1
+                d_fcc['mol_frag_2'] = molf2
                 ds_fcc.append(d_fcc)
     logging.debug("="*80)
     # dataframe with columns in given order
-    df_fcc = DataFrame(ds_fcc, columns=['idm', 'idf1', 'idxf1', 'fid1', 'idf2', 'idxf2', 'fid2', 'abbrev', 'category', 'type', 'subtype', '_aidxf1', '_aidxf2', 'hac', 'mol'])
+    df_fcc = DataFrame(ds_fcc, columns=['idm', 'idf1', 'idxf1', 'fid1', 'idf2', 'idxf2', 'fid2', 'abbrev', 'category', 'type', 'subtype', '_aidxf1', '_aidxf2', 'hac', 'mol', 'mol_frag_1', 'mol_frag_2'])
     # clear_cfc
     if clear_cfc:
         df_fcc = df_fcc[df_fcc['abbrev'] != 'cfc']
