@@ -8,10 +8,10 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="npfc",
-    version='0.5.16-4-gcf82144',
+    version='0.5.16-5-g20f3cf0',
     author="Jose-Manuel Gally",
     author_email="josemanuel.gally@mpi-dortmund.mpg.de",
-    description="A package for analywing fragment combinations in natural and synthetic molecules",
+    description="A package for analyzing fragment combinations in natural and synthetic molecules",
     long_description=long_description,
     long_description_content_type="text/markdown",
     # url="https://github.com/pypa/sampleproject",
@@ -21,33 +21,40 @@ setuptools.setup(
       ],
     setup_requires=["pytest-runner"],
     tests_require=["pytest"],
-    keywords=['chemoinformatics', 'natural products', 'fragments', 'chemical biology', 'pseudo-natura products'],
+    keywords=['chemical biology', 'pseudo-natura products', 'chemoinformatics', 'natural products', 'fragments'],
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
     scripts=[
+             # activities
              'bin/act_annotate_fc',
              'bin/act_preprocess',
              'bin/act_preprocess_cpa',
+             # chunks
              'bin/chunk_check',
              'bin/chunk_sdf',
+             # fragment combinations
+             'bin/fc_classify',
+             # fragment graphs
+             'bin/fgraph_generate',
+             'bin/fgraph_annotate_pnp',
+             # molecules
              'bin/mols_concat',
              'bin/mols_dedupl',
              'bin/mols_deglyco',
              'bin/mols_draw',
              'bin/mols_depict',
              'bin/mols_extract_murcko',
+             'bin/mols_fsearch',
              'bin/mols_load',
              'bin/mols_standardize',
              'bin/mols_subset',
-             'bin/mols_substruct',
-             'bin/fc_classify',
-             'bin/fgraph_generate',
-             'bin/fgraph_annotate_pnp',
+             # protocols
              'bin/report_protocol',
              'bin/run_protocol',
+             # helpers
              'bin/peek_hdf',
              ],
     # package_data={'npfc': ['data/mols_deglyco.knwf']},  # key: package name, value: list of data files

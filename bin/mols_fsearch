@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 
 """
-Script substruct_mols
+Script mols_fsearch
 ==========================
-This script is used for identifying substructures in molecules by generating a
-DataFrame that can be further processed.
+This script is used for searching for fragments in molecules.
 """
 
 # standard

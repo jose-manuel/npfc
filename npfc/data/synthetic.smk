@@ -95,7 +95,7 @@ rule FSEARCH:
         frags = frags_file
     output: "{WD}" + f"/{natref_subdir}/{frags_subdir}" + "/08_fsearch/data/{prefix}_{cid}_fsearch.csv.gz"
     log: "{WD}" + f"/{natref_subdir}/{frags_subdir}" + "/08_fsearch/log/{prefix}_{cid}_fsearch.log"
-    shell: "mols_substruct {input.mols} {input.frags} {output} >{log} 2>&1"
+    shell: "mols_fsearch {input.mols} {input.frags} {output} >{log} 2>&1"
 
 rule SUBSET:
     priority: 4
