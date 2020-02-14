@@ -204,7 +204,7 @@ def df_fc_overlap_9():
 
 
 def test_map_fc_simple(df_fc_simple):
-    """Check if """
+    """Compute a fragment graph from fragment combinations"""
     # default: 3 <= n <= 5
     df_map = fragment_graph.generate(df_fc_simple)
     result = df_map.iloc[0]
@@ -218,21 +218,21 @@ def test_map_fc_simple(df_fc_simple):
 
 
 def test_map_fc_redundant(df_fc_redundant):
-    """"""
+    """Compute a fragment graph from fragment combinations with multiple occurrences from a same fragment"""
     df_map = fragment_graph.generate(df_fc_redundant)
     result = df_map.iloc[0]
     assert result['fgraph_str'] == 'QA:0[cmo]QA:1' and result['nfrags'] == 2 and result['nfrags_u'] == 1
 
 
 def test_map_fc_circular(df_fc_circular):
-    """"""
+    """Compute a circular fragment graph from fragment combination"""
     df_map = fragment_graph.generate(df_fc_circular)
     result = df_map.iloc[0]
     assert result['fgraph_str'] == 'QA:0[cmo]QB:0-QA:0[cmo]QC:0-QA:0[cmo]QC:0' and result['nfrags'] == 3 and result['nfrags_u'] == 3
 
 
 def test_map_fc_independant(df_fc_independant):
-    """"""
+    """Compute 2 fragment graphs from 2 independent fragment combinations """
     df_map = fragment_graph.generate(df_fc_independant)
     assert len(df_map.index) == 2
     result1 = df_map.iloc[0]
@@ -242,13 +242,13 @@ def test_map_fc_independant(df_fc_independant):
 
 
 def test_map_fc_overlap_1(df_fc_overlap_1):
-    """"""
+    """Split 2 overlapping fragments that result in no fragment graphs"""
     df_map = fragment_graph.generate(df_fc_overlap_1)
     assert len(df_map.index) == 0
 
 
 def test_map_fc_overlap_2(df_fc_overlap_2):
-    """"""
+    """Split 2 overlapping fragments that result in 2 fragment graphs"""
     df_map = fragment_graph.generate(df_fc_overlap_2)
     assert len(df_map.index) == 2
     assert sorted(list(df_map['fgraph_str'].values)) == ['O1:0[cmo]O3:0',
@@ -256,7 +256,7 @@ def test_map_fc_overlap_2(df_fc_overlap_2):
                                                        ]
 
 def test_map_fc_overlap_3(df_fc_overlap_3):
-    """"""
+    """Split 2 overlapping fragments that result in longer 2 fragment graphs"""
     df_map = fragment_graph.generate(df_fc_overlap_3)
     assert len(df_map.index) == 2
     assert sorted(list(df_map['fgraph_str'].values)) == ['O3:0[cmo]O4:0-O1:0[cmo]O3:0',
@@ -264,13 +264,13 @@ def test_map_fc_overlap_3(df_fc_overlap_3):
                                                        ]
 
 def test_map_fc_overlap_4(df_fc_overlap_4):
-    """"""
+    """Split 2x2 overlapping fragments that result in 0 fragment graphs"""
     df_map = fragment_graph.generate(df_fc_overlap_4)
     assert len(df_map.index) == 0
 
 
 def test_map_fc_overlap_5(df_fc_overlap_5):
-    """"""
+    """Split 2x2 overlapping fragments that result in 4 fragment graphs"""
     df_map = fragment_graph.generate(df_fc_overlap_5)
     assert len(df_map.index) == 4
     # test each of the fgraphs
@@ -283,7 +283,7 @@ def test_map_fc_overlap_5(df_fc_overlap_5):
                                                        ]
 
 def test_map_fc_overlap_6(df_fc_overlap_6):
-    """"""
+    """Split 2x2 overlapping fragments that result in 4 fragment graphs"""
     df_map = fragment_graph.generate(df_fc_overlap_6)
     assert len(df_map.index) == 4
     assert sorted(list(df_map['fgraph_str'].values)) == ['O6:0[cmo]O7:0-O1:0[cmo]O4:0-O1:0[cmo]O6:0',
@@ -294,7 +294,7 @@ def test_map_fc_overlap_6(df_fc_overlap_6):
 
 
 def test_map_fc_overlap_7(df_fc_overlap_7):
-    """"""
+    """Split 3x2 overlapping fragments that result in 3 fragment graphs"""
     df_map = fragment_graph.generate(df_fc_overlap_7)
     assert len(df_map.index) == 3
     assert sorted(list(df_map['fgraph_str'].values)) == ['O1:0[cmo]O6:0',
@@ -303,7 +303,7 @@ def test_map_fc_overlap_7(df_fc_overlap_7):
                                                        ]
 
 def test_map_fc_overlap_8(df_fc_overlap_8):
-    """"""
+    """Split 3x2 overlapping fragments that result in 3 longer fragment graphs"""
     df_map = fragment_graph.generate(df_fc_overlap_8)
     assert len(df_map.index) == 3
     assert sorted(list(df_map['fgraph_str'].values)) == ['O6:0[cmo]O7:0-O1:0[cmo]O6:0',
@@ -312,7 +312,7 @@ def test_map_fc_overlap_8(df_fc_overlap_8):
                                                        ]
 
 def test_map_fc_overlap_9(df_fc_overlap_9):
-    """"""
+    """Split 2x2x2 overlapping fragments that result in 8 fragment graphs"""
     df_map = fragment_graph.generate(df_fc_overlap_9)
     assert len(df_map.index) == 8
 
