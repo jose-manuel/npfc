@@ -47,7 +47,6 @@ def get_fragment_hits(df_mols: DataFrame,
     d = {}
     d['idm'] = []
     d['idf'] = []
-    d['idxf'] = []
     d['_aidxf'] = []
     d['mol_perc'] = []  # proportion of the molecule the substructure represents
     d['mol'] = []  # encode the molecule here so we don't have to combine multiple files when trying to have a look at the results
@@ -68,10 +67,12 @@ def get_fragment_hits(df_mols: DataFrame,
                     d['idm'].append(rowm.name)
                     d['idf'].append(rowq.name)
                     d['_aidxf'].append(frozenset(m))  # frozenset so we can use intersection, etc. and still remove dupl. easily
-                    d['idxf'].append(str(i))
                     d['mol_perc'].append(round(len(m)/hac, 2) * 100)
                     d['mol'].append(rowm[col_mol_mols])
                     d['inchikey'].append(rowm[col_mol_inchikey])
                     d['mol_frag'].append(rowq[col_mol_frags])
 
-    return DataFrame(d)
+    df_fs = DataFrame(d)
+    df_fs['idf_idx'] = df_fs.groupby(['idm', 'idf']).cumcount()  # rank seems to be working with np.float types only...
+
+    return df_fs
