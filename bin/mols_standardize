@@ -79,7 +79,9 @@ def main():
 
     parser = argparse.ArgumentParser(description=description, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('input_mols', type=str, default=None, help="Input file.")
-    parser.add_argument('output_template', type=str, default=None, help="Output name to use as template for outputs (i.e. tests/output.csv.gz would be tests/output_passed.csv.gz). If none is specified then input_mols is used instead.")
+    parser.add_argument('output_mols_std', type=str, default=None, help="Output file for standardized molecules.")
+    parser.add_argument('-f', '--filtered', type=str, default=None, help="Output file for filtered molecules.")
+    parser.add_argument('-e', '--error', type=str, default=None, help="Output file for molecules with errors.")
     parser.add_argument('-p', '--protocol', type=str, default=None, help="Configuration file in JSON for specifying a standardization protocol. See the docs for the default protocol.")
     parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
     args = parser.parse_args()
@@ -96,7 +98,7 @@ def main():
 
     # check on args values not already checked by argparse
     utils.check_arg_input_file(args.input_mols)
-    utils.check_arg_output_file(args.output_template)
+    utils.check_arg_output_file(args.output_mols_std)
     utils.check_arg_config_file(args.protocol)
     if args.protocol is None:
         logger.warning("PROTOCOL IS NOT DEFINED, USING DEFAULT")
@@ -105,16 +107,23 @@ def main():
     in_format, in_compression = utils.get_file_format(args.input_mols)
 
     # out infos
-    path_output_template = Path(args.output_template)
-    out_suffixes = path_output_template.suffixes
-    out_format, out_compression = utils.get_file_format(args.output_template)
+    # std
+    out_format_std, out_compression_std = utils.get_file_format(args.output_mols_std)
+    # filtered
+    if args.filtered is not None:
+        utils.check_arg_output_file(args.filtered)
+        out_format_filtered, out_compression_filtered = utils.get_file_format(args.filtered)
+    else:
+        out_format_filtered = None
+        out_compression_filtered = None
+    # output
+    if args.error is not None:
+        utils.check_arg_output_file(args.error)
+        out_format_error, out_compression_error = utils.get_file_format(args.error)
 
-    # define outputs
-    output_dir = Path(args.output_template).resolve().parent
-    output_basename = str(output_dir) + "/" + path_output_template.stem.split(".")[0]
-    output_passed = output_basename + "_passed" + ''.join(out_suffixes)
-    output_filtered = output_basename + "_filtered" + ''.join(out_suffixes)
-    output_error = output_basename + "_error" + ''.join(out_suffixes)
+    else:
+        out_format_error = None
+        out_compression_error = None
 
     # hard-coded variables
     csv_sep = "|"
@@ -134,37 +143,40 @@ def main():
     logger.info("npfc".ljust(pad) + f"{npfc.__version__}")
     # arguments
     logger.info("ARGUMENTS:")
-    logging.info("INPUT_MOLS".ljust(pad) + f"{args.input_mols}")
+    logger.info("INPUT_MOLS".ljust(pad) + f"{args.input_mols}")
 
     # input
-    logging.info("IN_ID".ljust(pad) + f"{in_id}")
-    logging.info("IN_MOL".ljust(pad) + f"{in_mol}")
-    logging.info("IN_FORMAT".ljust(pad) + f"{in_format}")
-    logging.info("IN_COMPRESSION".ljust(pad) + f"{in_compression}")
-    logging.info("DECODE".ljust(pad) + f"{decode}")
+    logger.info("IN_ID".ljust(pad) + f"{in_id}")
+    logger.info("IN_MOL".ljust(pad) + f"{in_mol}")
+    logger.info("IN_FORMAT".ljust(pad) + f"{in_format}")
+    logger.info("IN_COMPRESSION".ljust(pad) + f"{in_compression}")
+    logger.info("DECODE".ljust(pad) + f"{decode}")
     # outputs
-    logging.info("OUTPUT_DIR".ljust(pad) + f"{output_dir}")
-    logging.info("OUTPUT_TEMPLATE".ljust(pad) + f"{args.output_template}")
-    logging.info("OUT_MOL".ljust(pad) + f"{out_mol}")
-    logging.info("OUT_ID".ljust(pad) + f"{out_id}")
-    logging.info("OUT_FORMAT".ljust(pad) + f"{out_format}")
-    logging.info("OUT_COMPRESSION".ljust(pad) + f"{out_compression}")
-    logging.info("ENCODE".ljust(pad) + f"{encode}")
+
     logger.info("OUTPUT FILES:")
-    logger.info("OUTPUT_PASSED".ljust(pad) + f"{output_passed}")
-    logger.info("OUTPUT_FILTERED".ljust(pad) + f"{output_filtered}")
-    logger.info("OUTPUT_ERROR".ljust(pad) + f"{output_error}")
+    logger.info("OUTPUT_STD".ljust(pad) + f"{args.output_mols_std}")
+    logger.info("OUT_FORMAT_STD".ljust(pad) + f"{out_format_std}")
+    logger.info("OUT_COMPRESSION_STD".ljust(pad) + f"{out_compression_std}")
+    logger.info("OUTPUT_FILTERED".ljust(pad) + f"{args.filtered}")
+    logger.info("OUT_FORMAT_FILTERED".ljust(pad) + f"{out_format_filtered}")
+    logger.info("OUT_COMPRESSION_FILTERED".ljust(pad) + f"{out_compression_filtered}")
+    logger.info("OUTPUT_ERROR".ljust(pad) + f"{args.error}")
+    logger.info("OUT_FORMAT_ERROR".ljust(pad) + f"{out_format_error}")
+    logger.info("OUT_COMPRESSION_ERROR".ljust(pad) + f"{out_compression_error}")
+    logger.info("OUT_MOL".ljust(pad) + f"{out_mol}")
+    logger.info("OUT_ID".ljust(pad) + f"{out_id}")
+    logger.info("ENCODE".ljust(pad) + f"{encode}")
     # protocol
     if args.protocol is None:
-        logging.info("PROTOCOL".ljust(pad) + "DEFAULT")
+        logger.info("PROTOCOL".ljust(pad) + "DEFAULT")
     else:
-        logging.info("PROTOCOL".ljust(pad) + f"{args.protocol}")
-    logging.info("CSV_SEP".ljust(pad) + f"{csv_sep}")
-    logging.info("LOG".ljust(pad) + f"{args.log}")
+        logger.info("PROTOCOL".ljust(pad) + f"{args.protocol}")
+    logger.info("CSV_SEP".ljust(pad) + f"{csv_sep}")
+    logger.info("LOG".ljust(pad) + f"{args.log}")
 
     # begin
 
-    logging.info("BEGIN")
+    logger.info("BEGIN")
 
     # describe protocol
     logger.info(f"STANDARDIZING MOLECULES")
@@ -176,10 +188,10 @@ def main():
 
     # load mols
     d1 = datetime.now()
-    logging.info("LOADING MOLECULES")
+    logger.info("LOADING MOLECULES")
     df_mols = load.file(args.input_mols, csv_sep=csv_sep)
     num_failed = df_mols['mol'].isna().sum()
-    logging.info(f"LOADED {len(df_mols)} RECORDS WITH {num_failed} FAILURE(S)")
+    logger.info(f"LOADED {len(df_mols)} RECORDS WITH {num_failed} FAILURE(S)")
 
     # standardize molecules
     d2 = datetime.now()
@@ -194,26 +206,28 @@ def main():
 
     d3 = datetime.now()
     logger.info(f"SAVING OUTPUTS")
-    # passed
-    outputs = save.file(df_passed, output_passed, csv_sep=csv_sep)
-    logger.info(f"SAVED {outputs[0][1]} RECORDS AT {outputs[0][0]}")
+    # std
+    outputs = save.file(df_passed, args.output_mols_std, csv_sep=csv_sep)
+    logger.info(f"SAVED {outputs[0][1]:,} STD RECORDS AT {outputs[0][0]}")
     # filtered
-    outputs = save.file(df_filtered, output_filtered, csv_sep=csv_sep)
-    logger.info(f"SAVED {outputs[0][1]} RECORDS AT {outputs[0][0]}")
+    if args.filtered is not None:
+        outputs = save.file(df_filtered, args.filtered, csv_sep=csv_sep)
+        logger.info(f"SAVED {outputs[0][1]:,} FILTERED RECORDS AT {outputs[0][0]}")
     # error
-    outputs = save.file(df_error, output_error, csv_sep=csv_sep)
-    logger.info(f"SAVED {outputs[0][1]} RECORDS AT {outputs[0][0]}")
+    if args.error is not None:
+        outputs = save.file(df_error, args.error, csv_sep=csv_sep)
+        logger.info(f"SAVED {outputs[0][1]:,} ERROR RECORDS AT {outputs[0][0]}")
     d4 = datetime.now()
 
     # end
 
-    logging.info("SUMMARY")
+    logger.info("SUMMARY")
     logger.info("COMPUTATIONAL TIME: CONFIGURING JOB".ljust(pad * 2) + f"{d1-d0}")
     logger.info("COMPUTATIONAL TIME: LOADING MOLECULES".ljust(pad * 2) + f"{d2-d1}")
     logger.info("COMPUTATIONAL TIME: STANDARDIZING MOLECULES".ljust(pad * 2) + f"{d3-d2}")
     logger.info("COMPUTATIONAL TIME: SAVING OUTPUTS".ljust(pad * 2) + f"{d4-d3}")
     logger.info("COMPUTATIONAL TIME: TOTAL".ljust(pad * 2) + f"{d4-d0}")
-    logging.info("END")
+    logger.info("END")
     sys.exit(0)
 
 

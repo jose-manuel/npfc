@@ -115,7 +115,7 @@ rule DEPICT:
 
 rule DEDUPL:
     priority: 6
-    input: "{WD}/04_std/data/{prefix}_{cid}_passed.csv.gz"
+    input: "{WD}/04_std/data/{prefix}_{cid}_std.csv.gz"
     output: "{WD}/05_dedupl/data/{prefix}_{cid}_dedupl.csv.gz"
     log: "{WD}/05_dedupl/log/{prefix}_{cid}_dedupl.log"
     shell: "mols_dedupl {input} {output} -r {WD}/05_dedupl/{prefix}_ref.hdf --log DEBUG 2>{log}"
@@ -124,11 +124,11 @@ rule STD:
     priority: 7
     input: WD + "/03_deglyco/data/{prefix}_{cid}_deglyco.sdf.gz"
     output:
-        passed = "{WD}/04_std/data/{prefix}_{cid}_passed.csv.gz",
-        filtered = "{WD}/04_std/data/{prefix}_{cid}_filtered.csv.gz",
-        error = "{WD}/04_std/data/{prefix}_{cid}_error.csv.gz"
+        std = "{WD}/04_std/data/{prefix}_{cid}_std.csv.gz",
+        filtered = "{WD}/04_std/log/{prefix}_{cid}_filtered.csv.gz",
+        error = "{WD}/04_std/log/{prefix}_{cid}_error.csv.gz"
     log: "{WD}/04_std/log/{prefix}_{cid}_std.log"
-    shell: "mols_standardize {input} $(echo {output.passed} | rev | cut -d_ -f2- | rev).csv.gz >{log}  2>&1"  # {cid} unkown on this context
+    shell: "mols_standardize {input} {output.std} -f {output.filtered} -e {output.error} 2>{log}"  # mols_standardize takes a dir as output
 
 rule DGC:
     priority: 8

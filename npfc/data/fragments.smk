@@ -67,8 +67,8 @@ rule DEDUPL:
 rule CONCAT:
     priority: 102
     input:
-        "{WD}/04b_std/data/{prefix}_passed.csv.gz",  # first input takes priority for scaffolds with same hac
-        "{WD}/03a_std/data/{prefix}_passed.csv.gz"
+        "{WD}/04b_std/data/{prefix}_std.csv.gz",  # first input takes priority for scaffolds with same hac
+        "{WD}/03a_std/data/{prefix}_std.csv.gz"
     output: "{WD}/05_concat/data/{prefix}_concat.csv.gz"
     log: "{WD}/05_concat/log/{prefix}_concat.log"
     shell: "mols_concat {input[0]} {input[1]} {output} -s 'idm:a, hac:a, dataset:a' 2>{log}"
@@ -77,11 +77,11 @@ rule STDMS_A:
     priority: 103
     input: "{WD}/02a_murcko/data/{prefix}_murcko.csv.gz"
     output:
-        "{WD}/03a_std/data/{prefix}_passed.csv.gz",
-        "{WD}/03a_std/data/{prefix}_filtered.csv.gz",
-        "{WD}/03a_std/data/{prefix}_error.csv.gz"
+        std = "{WD}/03a_std/data/{prefix}_std.csv.gz",
+        filtered = "{WD}/03a_std/log/{prefix}_filtered.csv.gz",
+        error = "{WD}/03a_std/log/{prefix}_error.csv.gz"
     log: "{WD}/03a_std/log/{prefix}_std.log"
-    shell: "mols_standardize {input} {WD}/03a_std/data/{prefix}.csv.gz -p " + config_std_frags + " 2>{log}"  # mols_standardize takes a dir as output
+    shell: "mols_standardize {input} {output.std} -f {output.filtered} -e {output.error} -p " + config_std_frags + " 2>{log}"  # mols_standardize takes a dir as output
 
 rule MURCKO_A:
     priority: 104
@@ -94,15 +94,15 @@ rule STDMS_B:
     priority: 105
     input: "{WD}/03b_murcko/data/{prefix}_murcko.csv.gz"
     output:
-        "{WD}/04b_std/data/{prefix}_passed.csv.gz",
-        "{WD}/04b_std/data/{prefix}_filtered.csv.gz",
-        "{WD}/04b_std/data/{prefix}_error.csv.gz"
+        std = "{WD}/04b_std/data/{prefix}_std.csv.gz",
+        filtered = "{WD}/04b_std/log/{prefix}_filtered.csv.gz",
+        error = "{WD}/04b_std/log/{prefix}_error.csv.gz"
     log: "{WD}/04b_std/log/{prefix}_std.log"
-    shell: "mols_standardize {input} {WD}/04b_std/data/{prefix}.csv.gz -p " + config_std_frags + " 2>{log}"  # mols_standardize takes a dir as output
+    shell: "mols_standardize {input} {output.std} -f {output.filtered} -e {output.error} -p " + config_std_frags + " 2>{log}"  # mols_standardize takes a dir as output
 
 rule MURCKO_B:
     priority: 106
-    input: "{WD}/02b_std/data/{prefix}_passed.csv.gz"
+    input: "{WD}/02b_std/data/{prefix}_std.csv.gz"
     output: "{WD}/03b_murcko/data/{prefix}_murcko.csv.gz"
     log: "{WD}/03b_murcko/log/{prefix}_murcko.log"
     shell: "mols_extract_murcko {input} {output} 2>{log}"
@@ -111,11 +111,11 @@ rule STD_B:
     priority: 107
     input: "{WD}/01_load/data/{prefix}.csv.gz"
     output:
-        "{WD}/02b_std/data/{prefix}_passed.csv.gz",
-        "{WD}/02b_std/data/{prefix}_filtered.csv.gz",
-        "{WD}/02b_std/data/{prefix}_error.csv.gz"
+        std = "{WD}/02b_std/data/{prefix}_std.csv.gz",
+        filtered = "{WD}/02b_std/log/{prefix}_filtered.csv.gz",
+        error = "{WD}/02b_std/log/{prefix}_error.csv.gz"
     log: "{WD}/02b_std/log/{prefix}_std.log"
-    shell: "mols_standardize {input} {WD}/02b_std/data/{prefix}.csv.gz -p " + config_std_frags + " 2>{log}"  # mols_standardize takes a dir as output
+    shell: "mols_standardize {input} {output.std} -f {output.filtered} -e {output.error} -p " + config_std_frags + " 2>{log}"  # mols_standardize takes a dir as output
 
 rule LOAD:
     priority: 109
