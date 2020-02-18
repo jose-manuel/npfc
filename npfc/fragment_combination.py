@@ -93,29 +93,31 @@ def classify(mol: Mol,
     Possible classifications are:
 
     - fusion
-        - spiro (fsp)
-        - edge (fed)
-        - bridged (fbr)
-        - other (fot)
+        - spiro (fs)
+        - edge (fe)
+        - bridged (fb)
+        - linker (fl)
         - false_positive
             - substructure (ffs)
             - overlap (ffo)
     - connection
-        - monopodal (cmo)
+        - annulated (ca)
+        - monopodal (cm)
         - bipodal
             - spiro (cbs)
             - edge (cbe)
             - bridged (cbb)
-            - other (cbo)
+            - linker (cbl)
         - tripodal
             - spiro (cts)
             - edge (cte)
             - bridged (ctb)
-            - other (cto)
+            - linker (ctl)
         - other
             - spiro (cos)
             - edge (coe)
             - bridged (cob)
+            - linker (col)
         - false_positive
             - cutoff (cfc)
 
