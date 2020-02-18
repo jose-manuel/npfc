@@ -62,14 +62,45 @@ def df_aidxf_fl():
                          ['mol_fl', 'QD', 0, frozenset([2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]), 85.0, mol, Chem.MolFromSmiles('C1CCCCCOCCCC1')],
                         ], columns=['idm', 'idf', 'idf_idx', '_aidxf', 'mol_perc', 'mol', 'mol_frag']
                         )
+
 @pytest.fixture
-def df_aidxf_cm():
+def df_aidxf_ca():
+    """Example df_aidxf of a molecule with a annulated connection fragment combination."""
+    mol = Chem.MolFromSmiles('C1CC2C(CCC3C2CCC2CCOCC32)CN1')
+    return pd.DataFrame([
+                         ['mol_ca', 'QA', 0, frozenset([10, 11, 12, 13, 14, 15]), 33.0, mol, Chem.MolFromSmiles('C1CCNC1'), 'RRJUGKFDAVWIGB-UHFFFAOYNA-N'],
+                         ['mol_ca', 'QB', 0, frozenset([2, 1, 0, 17, 16, 3]), 33.0, mol, Chem.MolFromSmiles('C1CCOCC1'), 'RRJUGKFDAVWIGB-UHFFFAOYNA-N'],
+                        ], columns=['idm', 'idf', 'idf_idx', '_aidxf', 'mol_perc', 'mol', 'mol_frag', 'inchikey']
+                        )
+
+@pytest.fixture
+def df_aidxf_cm1():
     """Example df_aidxf of a molecule with a monopodal connection fragment combination."""
     mol = Chem.MolFromSmiles('C1COCC(C2CCNC2)C1')
     return pd.DataFrame([
                          ['mol_cm', 'QA', 0, frozenset([5, 6, 7, 8, 9]), 45.0, mol, Chem.MolFromSmiles('C1CCNC1')],
                          ['mol_cm', 'QB', 0, frozenset([0, 1 ,2, 3, 4 ,10]), 55.0, mol, Chem.MolFromSmiles('C1CCOCC1')],
                         ], columns=['idm', 'idf', 'idf_idx', '_aidxf', 'mol_perc', 'mol', 'mol_frag']
+                        )
+
+@pytest.fixture
+def df_aidxf_cm2():
+    """Example df_aidxf of a molecule with a monopodal connection fragment combination. One of the fragments has a ring attached to it in between fragments."""
+    mol = Chem.MolFromSmiles('C1CC(CCN1)C1CCC2CCOCC2C1')
+    return pd.DataFrame([
+                         ['mol_cm', 'QA', 0, frozenset([0, 1, 2, 3, 4, 5]), 38.0, mol, Chem.MolFromSmiles('C1CCNC1'), 'WXNLMLWVMZMRGS-UHFFFAOYNA-N'],
+                         ['mol_cm', 'QB', 0, frozenset([9, 10, 11, 12, 13, 14]), 38.0, mol, Chem.MolFromSmiles('C1CCOCC1'), 'WXNLMLWVMZMRGS-UHFFFAOYNA-N'],
+                        ], columns=['idm', 'idf', 'idf_idx', '_aidxf', 'mol_perc', 'mol', 'mol_frag', 'inchikey']
+                        )
+
+@pytest.fixture
+def df_aidxf_cm3():
+    """Example df_aidxf of a molecule with a monopodal connection fragment combination. The shortest path goes through another ring but does not form a ring system."""
+    mol = Chem.MolFromSmiles('C1C(CC1C1CCCOC1)C1CCNCC1')
+    return pd.DataFrame([
+                         ['mol_cm', 'QA', 0, frozenset([4, 5, 6, 7, 8, 9]), 38.0, mol, Chem.MolFromSmiles('C1CCNC1'), 'FRFCBPABRGKJMJ-UHFFFAOYNA-N'],
+                         ['mol_cm', 'QB', 0, frozenset([10, 11, 12, 13, 14, 15]), 38.0, mol, Chem.MolFromSmiles('C1CCOCC1'), 'FRFCBPABRGKJMJ-UHFFFAOYNA-N'],
+                        ], columns=['idm', 'idf', 'idf_idx', '_aidxf', 'mol_perc', 'mol', 'mol_frag', 'inchikey']
                         )
 
 @pytest.fixture
@@ -225,6 +256,37 @@ def df_aidxf_ffo():
                         )
 
 
+@pytest.fixture
+def df_aidxf_macro_cbs():
+    """Example df_aidxf of a macrocycle with a fragment combination of type cbs. This tests that redundant intermediary rings are filtered out."""
+    mol = Chem.MolFromSmiles('C1CCC2CCCC3(CCCOC3)CCC3NCCCC3CCCCC2C1')
+    return pd.DataFrame([
+                         ['macro_cbs', 'QA', 0, frozenset([15, 16, 17, 18, 19, 20]), 22.0, mol, Chem.MolFromSmiles('C1CCNCC1'), 'LGLPBIYRGSLKKJ-UHFFFAOYNA-N'],
+                         ['macro_cbs', 'QB', 1, frozenset([7, 8, 9, 10, 11, 12]), 22.0, mol, Chem.MolFromSmiles('C1CCOCC1'), 'LGLPBIYRGSLKKJ-UHFFFAOYNA-N'],
+                        ], columns=['idm', 'idf', 'idf_idx', '_aidxf', 'mol_perc', 'mol', 'mol_frag', 'inchikey']
+                        )
+
+@pytest.fixture
+def df_aidxf_macro_cbe():
+    """Example df_aidxf of a macrocycle with a fragment combination of type cbe. This tests that redundant intermediary rings are filtered out."""
+    mol = Chem.MolFromSmiles('C1CCC2CCCC3CCOCC3CCC3NCCCC3CCCCC2C1')
+    return pd.DataFrame([
+                         ['macro_cbe', 'QA', 0, frozenset([19, 18, 17, 16, 15, 20]), 22.0, mol, Chem.MolFromSmiles('C1NCC2CCCCC12'), 'FQSALWOQPKLPEO-UHFFFAOYNA-N'],
+                         ['macro_cbe', 'QB', 1, frozenset([7, 8, 9, 10, 11, 12]), 22.0, mol, Chem.MolFromSmiles('C1CCC2COCCC2C1'), 'FQSALWOQPKLPEO-UHFFFAOYNA-N'],
+                        ], columns=['idm', 'idf', 'idf_idx', '_aidxf', 'mol_perc', 'mol', 'mol_frag', 'inchikey']
+                        )
+
+@pytest.fixture
+def df_aidxf_macro_cbb():
+    """Example df_aidxf of a macrocycle with a fragment combination of type cbb. This tests that redundant intermediary rings are filtered out."""
+    mol = Chem.MolFromSmiles('C1CC2CC(CCC3CC(CCO3)CCCCC3CCC(CC3)CCCCCC2)N1')
+    return pd.DataFrame([
+                         ['macro_cbb', 'QA', 0, frozenset([2, 1, 0, 29, 4, 3]), 20.0, mol, Chem.MolFromSmiles('C1NCC2CCCCC12'), 'DYGMURSGZXWMST-UHFFFAOYNA-N'],
+                         ['macro_cbb', 'QB', 1, frozenset([9, 8, 7, 12, 11, 10]), 20.0, mol, Chem.MolFromSmiles('C1CCC2COCCC2C1'), 'DYGMURSGZXWMST-UHFFFAOYNA-N'],
+                        ], columns=['idm', 'idf', 'idf_idx', '_aidxf', 'mol_perc', 'mol', 'mol_frag', 'inchikey']
+                        )
+
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ TESTS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 
@@ -255,9 +317,21 @@ def test_classify_fl(df_aidxf_fl):
     result = df_fcc.iloc[0]
     assert result['category'] == 'fusion' and result['type'] == 'linker' and result['subtype'] == '' and result['abbrev'] == 'fl'
 
-def test_classify_cm(df_aidxf_cm):
+def test_classify_cm1(df_aidxf_cm1):
     """Check if connection monopodal fragment combinations are identified."""
-    df_fcc = fragment_combination.classify_df(df_aidxf_cm)
+    df_fcc = fragment_combination.classify_df(df_aidxf_cm1)
+    result = df_fcc.iloc[0]
+    assert result['category'] == 'connection' and result['type'] == 'monopodal' and result['subtype'] == '' and result['abbrev'] == 'cm'
+
+def test_classify_cm2(df_aidxf_cm2):
+    """Check if connection monopodal fragment combinations are identified."""
+    df_fcc = fragment_combination.classify_df(df_aidxf_cm2)
+    result = df_fcc.iloc[0]
+    assert result['category'] == 'connection' and result['type'] == 'monopodal' and result['subtype'] == '' and result['abbrev'] == 'cm'
+
+def test_classify_cm3(df_aidxf_cm3):
+    """Check if connection monopodal fragment combinations are identified."""
+    df_fcc = fragment_combination.classify_df(df_aidxf_cm3)
     result = df_fcc.iloc[0]
     assert result['category'] == 'connection' and result['type'] == 'monopodal' and result['subtype'] == '' and result['abbrev'] == 'cm'
 
@@ -365,3 +439,24 @@ def test_classify_cfc(df_aidxf_cfc):
     df_fcc = fragment_combination.classify_df(df_aidxf_cfc, clear_cfc=False)
     result = df_fcc.iloc[0]
     assert result['category'] == 'connection' and result['type'] == 'false_positive' and result['subtype'] == 'cutoff' and result['abbrev'] == 'cfc'
+
+
+def test_classify_cbs_in_macro(df_aidxf_macro_cbs):
+    """Check if cbs fragment combinations are correctly identified in macrocycles."""
+    df_fcc = fragment_combination.classify_df(df_aidxf_macro_cbs)
+    result = df_fcc.iloc[0]
+    assert result['category'] == 'connection' and result['type'] == 'bipodal' and result['subtype'] == 'spiro' and result['abbrev'] == 'cbs'
+
+
+def test_classify_cbe_in_macro(df_aidxf_macro_cbe):
+    """Check if cbe fragment combinations are correctly identified in macrocycles."""
+    df_fcc = fragment_combination.classify_df(df_aidxf_macro_cbe)
+    result = df_fcc.iloc[0]
+    assert result['category'] == 'connection' and result['type'] == 'bipodal' and result['subtype'] == 'edge' and result['abbrev'] == 'cbe'
+
+
+def test_classify_cbb_in_macro(df_aidxf_macro_cbb):
+    """Check if cbb fragment combinations are correctly identified in macrocycles."""
+    df_fcc = fragment_combination.classify_df(df_aidxf_macro_cbb)
+    result = df_fcc.iloc[0]
+    assert result['category'] == 'connection' and result['type'] == 'bipodal' and result['subtype'] == 'bridged' and result['abbrev'] == 'cbb'

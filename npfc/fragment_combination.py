@@ -69,6 +69,7 @@ def get_shortest_path_between_frags(mol: Mol, aidxf1: set, aidxf2: set) -> tuple
     # 1/ compute every pairwise atom combination between both fragments
     pairwise_combinations = itertools.product(tuple(aidxf1), tuple(aidxf2))
     # 2/ for each of those, compute the shortest path possible
+    pairwise_combinations = list(pairwise_combinations)
     all_paths = [AllChem.GetShortestPath(mol, pc[0], pc[1]) for pc in pairwise_combinations]
     # logging.debug(f"Looking for the shortest path shortest path among these:")
     # [logging.debug(f"Path ({str(i).zfill(3)}): {p}") for i, p in enumerate(all_paths)]
