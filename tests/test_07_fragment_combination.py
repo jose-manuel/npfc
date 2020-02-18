@@ -23,53 +23,53 @@ logging.basicConfig(level=logging.INFO)
 
 
 @pytest.fixture
-def df_aidxf_fsp():
+def df_aidxf_fs():
     """Example df_aidxf of a molecule with the fusion spiro fragment combination."""
     mol = Chem.MolFromSmiles('C1COCC2(C1)CCNC2')
     return pd.DataFrame([
-                         ['mol_fsp', 'QA', 0, frozenset([0, 1, 2, 3, 4]), 50.0, mol, Chem.MolFromSmiles('C1CCNC1')],
-                         ['mol_fsp', 'QB', 0, frozenset([2, 5, 6, 7, 8, 9]), 60.0, mol, Chem.MolFromSmiles('C1CCOCC1')],
-                        ], columns=['idm', 'idf', 'idxf', '_aidxf', 'mol_perc', 'mol', 'mol_frag']
+                         ['mol_fs', 'QA', 0, frozenset([0, 1, 2, 3, 4]), 50.0, mol, Chem.MolFromSmiles('C1CCNC1')],
+                         ['mol_fs', 'QB', 0, frozenset([2, 5, 6, 7, 8, 9]), 60.0, mol, Chem.MolFromSmiles('C1CCOCC1')],
+                        ], columns=['idm', 'idf', 'idf_idx', '_aidxf', 'mol_perc', 'mol', 'mol_frag']
                         )
 
 
 @pytest.fixture
-def df_aidxf_fed():
+def df_aidxf_fe():
     """Example df_aidxf of a molecule with the fusion edge fragment combination."""
     mol = Chem.MolFromSmiles('C1CC2CCOCC2N1')
     return pd.DataFrame([
-                         ['mol_fed', 'QA', 0, frozenset([0, 1, 2, 7, 8]), 56.0, mol, Chem.MolFromSmiles('C1CCNC1')],
-                         ['mol_fed', 'QB', 0, frozenset([2, 3, 4, 5, 6, 7]), 67.0, mol, Chem.MolFromSmiles('C1CCOCC1')],
-                        ], columns=['idm', 'idf', 'idxf', '_aidxf', 'mol_perc', 'mol', 'mol_frag']
+                         ['mol_fe', 'QA', 0, frozenset([0, 1, 2, 7, 8]), 56.0, mol, Chem.MolFromSmiles('C1CCNC1')],
+                         ['mol_fe', 'QB', 0, frozenset([2, 3, 4, 5, 6, 7]), 67.0, mol, Chem.MolFromSmiles('C1CCOCC1')],
+                        ], columns=['idm', 'idf', 'idf_idx', '_aidxf', 'mol_perc', 'mol', 'mol_frag']
                         )
 
 @pytest.fixture
-def df_aidxf_fbr():
+def df_aidxf_fb():
     """Example df_aidxf of a molecule with the fusion bridge fragment combination."""
     mol = Chem.MolFromSmiles('C1NC2COCC1C2')
     return pd.DataFrame([
-                         ['mol_fbr', 'QA', 0, frozenset([0, 1, 2, 3, 4]), 56.0, mol, Chem.MolFromSmiles('C1CCNC1')],
-                         ['mol_fbr', 'QB', 0, frozenset([2, 3, 4, 5, 6, 7]), 67.0, mol, Chem.MolFromSmiles('C1CCOCC1')],
-                        ], columns=['idm', 'idf', 'idxf', '_aidxf', 'mol_perc', 'mol', 'mol_frag']
+                         ['mol_fb', 'QA', 0, frozenset([0, 1, 2, 3, 4]), 56.0, mol, Chem.MolFromSmiles('C1CCNC1')],
+                         ['mol_fb', 'QB', 0, frozenset([2, 3, 4, 5, 6, 7]), 67.0, mol, Chem.MolFromSmiles('C1CCOCC1')],
+                        ], columns=['idm', 'idf', 'idf_idx', '_aidxf', 'mol_perc', 'mol', 'mol_frag']
                         )
 
 @pytest.fixture
-def df_aidxf_fli():
+def df_aidxf_fl():
     """Example df_aidxf of a molecule with the fusion linker fragment combination."""
     mol = Chem.MolFromSmiles('C1CCCC2COCC(CC1)CN2')
     return pd.DataFrame([
-                         ['mol_fli', 'QC', 0, frozenset([0, 1, 2, 3, 7, 8, 9, 10, 11, 12]), 77.0, mol, Chem.MolFromSmiles('C1CCCCNCCCC1')],
-                         ['mol_fli', 'QD', 0, frozenset([2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]), 85.0, mol, Chem.MolFromSmiles('C1CCCCCOCCCC1')],
-                        ], columns=['idm', 'idf', 'idxf', '_aidxf', 'mol_perc', 'mol', 'mol_frag']
+                         ['mol_fl', 'QC', 0, frozenset([0, 1, 2, 3, 7, 8, 9, 10, 11, 12]), 77.0, mol, Chem.MolFromSmiles('C1CCCCNCCCC1')],
+                         ['mol_fl', 'QD', 0, frozenset([2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]), 85.0, mol, Chem.MolFromSmiles('C1CCCCCOCCCC1')],
+                        ], columns=['idm', 'idf', 'idf_idx', '_aidxf', 'mol_perc', 'mol', 'mol_frag']
                         )
 @pytest.fixture
-def df_aidxf_cmo():
+def df_aidxf_cm():
     """Example df_aidxf of a molecule with a monopodal connection fragment combination."""
     mol = Chem.MolFromSmiles('C1COCC(C2CCNC2)C1')
     return pd.DataFrame([
-                         ['mol_cmo', 'QA', 0, frozenset([5, 6, 7, 8, 9]), 45.0, mol, Chem.MolFromSmiles('C1CCNC1')],
-                         ['mol_cmo', 'QB', 0, frozenset([0, 1 ,2, 3, 4 ,10]), 55.0, mol, Chem.MolFromSmiles('C1CCOCC1')],
-                        ], columns=['idm', 'idf', 'idxf', '_aidxf', 'mol_perc', 'mol', 'mol_frag']
+                         ['mol_cm', 'QA', 0, frozenset([5, 6, 7, 8, 9]), 45.0, mol, Chem.MolFromSmiles('C1CCNC1')],
+                         ['mol_cm', 'QB', 0, frozenset([0, 1 ,2, 3, 4 ,10]), 55.0, mol, Chem.MolFromSmiles('C1CCOCC1')],
+                        ], columns=['idm', 'idf', 'idf_idx', '_aidxf', 'mol_perc', 'mol', 'mol_frag']
                         )
 
 @pytest.fixture
@@ -79,7 +79,7 @@ def df_aidxf_cbs():
     return pd.DataFrame([
                          ['mol_cbs', 'QA', 0, frozenset([8, 9, 10, 11, 12]), 38.0, mol, Chem.MolFromSmiles('C1CCNC1')],
                          ['mol_cbs', 'QB', 0, frozenset([0, 1, 2 ,3 ,4, 5]), 46.0, mol, Chem.MolFromSmiles('C1CCOCC1')],
-                        ], columns=['idm', 'idf', 'idxf', '_aidxf', 'mol_perc', 'mol', 'mol_frag']
+                        ], columns=['idm', 'idf', 'idf_idx', '_aidxf', 'mol_perc', 'mol', 'mol_frag']
                         )
 
 
@@ -90,7 +90,7 @@ def df_aidxf_cbe():
     return pd.DataFrame([
                          ['mol_cbe', 'QA', 0, frozenset([0, 1 ,2 ,3 ,4]), 38.0, mol, Chem.MolFromSmiles('C1CCNC1')],
                          ['mol_cbe', 'QB', 0, frozenset([7, 8, 9, 10, 10, 12]), 46.0, mol, Chem.MolFromSmiles('C1CCOCC1')],
-                        ], columns=['idm', 'idf', 'idxf', '_aidxf', 'mol_perc', 'mol', 'mol_frag']
+                        ], columns=['idm', 'idf', 'idf_idx', '_aidxf', 'mol_perc', 'mol', 'mol_frag']
                         )
 
 @pytest.fixture
@@ -100,7 +100,7 @@ def df_aidxf_cbb():
     return pd.DataFrame([
                          ['mol_cbb', 'QA', 0, frozenset([4, 5, 6, 7, 8]), 45.0, mol, Chem.MolFromSmiles('C1CCNC1')],
                          ['mol_cbb', 'QB', 0, frozenset([0, 1, 2, 3, 9, 10]), 46.0, mol, Chem.MolFromSmiles('C1CCOCC1')],
-                        ], columns=['idm', 'idf', 'idxf', '_aidxf', 'mol_perc', 'mol', 'mol_frag']
+                        ], columns=['idm', 'idf', 'idf_idx', '_aidxf', 'mol_perc', 'mol', 'mol_frag']
                         )
 
 @pytest.fixture
@@ -110,7 +110,7 @@ def df_aidxf_cbl():
     return pd.DataFrame([
                          ['mol_cbl', 'QC', 0, frozenset([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]), 62.0, mol, Chem.MolFromSmiles('C1CCCCNCCCC1')],
                          ['mol_cbl', 'QB', 0, frozenset([10, 11, 12, 13, 14, 15]), 38.0, mol, Chem.MolFromSmiles('C1CCOCC1')],
-                        ], columns=['idm', 'idf', 'idxf', '_aidxf', 'mol_perc', 'mol', 'mol_frag']
+                        ], columns=['idm', 'idf', 'idf_idx', '_aidxf', 'mol_perc', 'mol', 'mol_frag']
                         )
 @pytest.fixture
 def df_aidxf_cts():
@@ -119,7 +119,7 @@ def df_aidxf_cts():
     return pd.DataFrame([
                          ['mol_cts', 'QA', 0, frozenset([5, 6, 7, 8, 13]), 36.0, mol, Chem.MolFromSmiles('C1CCNC1')],
                          ['mol_cts', 'QB', 0, frozenset([0, 1, 2, 10, 11, 12]), 43.0, mol, Chem.MolFromSmiles('C1CCOCC1')],
-                        ], columns=['idm', 'idf', 'idxf', '_aidxf', 'mol_perc', 'mol', 'mol_frag']
+                        ], columns=['idm', 'idf', 'idf_idx', '_aidxf', 'mol_perc', 'mol', 'mol_frag']
                         )
 
 
@@ -130,7 +130,7 @@ def df_aidxf_cte():
     return pd.DataFrame([
                          ['mol_cte', 'QA', 0, frozenset([5, 6, 7, 8, 14]), 33.0, mol, Chem.MolFromSmiles('C1CCNC1')],
                          ['mol_cte', 'QB', 0, frozenset([0, 1, 2, 11, 12, 13]), 40.0, mol, Chem.MolFromSmiles('C1CCOCC1')],
-                        ], columns=['idm', 'idf', 'idxf', '_aidxf', 'mol_perc', 'mol', 'mol_frag']
+                        ], columns=['idm', 'idf', 'idf_idx', '_aidxf', 'mol_perc', 'mol', 'mol_frag']
                         )
 
 @pytest.fixture
@@ -140,7 +140,7 @@ def df_aidxf_ctb():
     return pd.DataFrame([
                          ['mol_ctb', 'QA', 0, frozenset([5, 6, 7, 8, 9]), 38.0, mol, Chem.MolFromSmiles('C1CCNC1')],
                          ['mol_ctb', 'QB', 0, frozenset([0, 1, 2, 10, 11, 12]), 46.0, mol, Chem.MolFromSmiles('C1CCOCC1')],
-                        ], columns=['idm', 'idf', 'idxf', '_aidxf', 'mol_perc', 'mol', 'mol_frag']
+                        ], columns=['idm', 'idf', 'idf_idx', '_aidxf', 'mol_perc', 'mol', 'mol_frag']
                         )
 
 @pytest.fixture
@@ -150,7 +150,7 @@ def df_aidxf_ctl():
     return pd.DataFrame([
                          ['mol_ctl', 'QC', 0, frozenset([5, 6, 7, 8, 9, 10, 11, 12, 13, 14]), 56.0, mol, Chem.MolFromSmiles('C1CCCCNCCCC1')],
                          ['mol_ctl', 'QB', 0, frozenset([0, 1, 2, 15, 16, 17]), 33.0, mol, Chem.MolFromSmiles('C1CCOCC1')],
-                        ], columns=['idm', 'idf', 'idxf', '_aidxf', 'mol_perc', 'mol', 'mol_frag']
+                        ], columns=['idm', 'idf', 'idf_idx', '_aidxf', 'mol_perc', 'mol', 'mol_frag']
                         )
 
 
@@ -161,7 +161,7 @@ def df_aidxf_cos():
     return pd.DataFrame([
                          ['mol_cos', 'QA', 0, frozenset([5, 6, 7, 14, 15]), 38.0, mol, Chem.MolFromSmiles('C1CCNC1')],
                          ['mol_cos', 'QB', 0, frozenset([0, 1, 2, 9, 10, 11]), 46.0, mol, Chem.MolFromSmiles('C1CCOCC1')],
-                        ], columns=['idm', 'idf', 'idxf', '_aidxf', 'mol_perc', 'mol', 'mol_frag']
+                        ], columns=['idm', 'idf', 'idf_idx', '_aidxf', 'mol_perc', 'mol', 'mol_frag']
                         )
 
 @pytest.fixture
@@ -171,7 +171,7 @@ def df_aidxf_coe():
     return pd.DataFrame([
                          ['mol_coe', 'QA', 0, frozenset([5, 6, 7, 13, 14]), 31.0, mol, Chem.MolFromSmiles('C1CCNC1')],
                          ['mol_coe', 'QB', 0, frozenset([0, 1, 2, 9, 10, 15]), 38.0, mol, Chem.MolFromSmiles('C1CCOCC1')],
-                        ], columns=['idm', 'idf', 'idxf', '_aidxf', 'mol_perc', 'mol', 'mol_frag']
+                        ], columns=['idm', 'idf', 'idf_idx', '_aidxf', 'mol_perc', 'mol', 'mol_frag']
                         )
 
 @pytest.fixture
@@ -181,7 +181,7 @@ def df_aidxf_cob():
     return pd.DataFrame([
                          ['mol_cob', 'QB', 0, frozenset([5, 6, 7, 13, 14, 15]), 35.0, mol, Chem.MolFromSmiles('C1CCOCC1')],
                          ['mol_cob', 'QB', 1, frozenset([0, 1, 2, 9, 10, 16]), 35.0, mol, Chem.MolFromSmiles('C1CCOCC1')],
-                        ], columns=['idm', 'idf', 'idxf', '_aidxf', 'mol_perc', 'mol', 'mol_frag']
+                        ], columns=['idm', 'idf', 'idf_idx', '_aidxf', 'mol_perc', 'mol', 'mol_frag']
                         )
 
 @pytest.fixture
@@ -191,7 +191,7 @@ def df_aidxf_col():   # TODO: replace one QB with QC
     return pd.DataFrame([
                          ['mol_cob', 'QB', 0, frozenset([16, 15, 12, 11, 10, 21]), 35.0, mol, Chem.MolFromSmiles('C1CCOCC1')],
                          ['mol_cob', 'QB', 1, frozenset([19, 4, 5, 6, 7, 20]), 35.0, mol, Chem.MolFromSmiles('C1CCOCC1')],
-                        ], columns=['idm', 'idf', 'idxf', '_aidxf', 'mol_perc', 'mol', 'mol_frag']
+                        ], columns=['idm', 'idf', 'idf_idx', '_aidxf', 'mol_perc', 'mol', 'mol_frag']
                         )
 
 @pytest.fixture
@@ -201,7 +201,7 @@ def df_aidxf_ffs():
     return pd.DataFrame([
                          ['mol_ffs', 'QA', 0, frozenset([2, 3, 4, 5, 6]), 71.0, mol, Chem.MolFromSmiles('C1CCNC1')],
                          ['mol_ffs', 'QE', 1, frozenset([1, 2 ,3 ,4 ,5, 6]), 86.0, mol, Chem.MolFromSmiles('CC1CCNC1')],
-                        ], columns=['idm', 'idf', 'idxf', '_aidxf', 'mol_perc', 'mol', 'mol_frag']
+                        ], columns=['idm', 'idf', 'idf_idx', '_aidxf', 'mol_perc', 'mol', 'mol_frag']
                         )
 
 @pytest.fixture
@@ -211,7 +211,7 @@ def df_aidxf_cfc():
     return pd.DataFrame([
                          ['mol_ffs', 'QA', 0, frozenset([10, 11, 12, 13, 14]), 71.0, mol, Chem.MolFromSmiles('C1CCNC1')],
                          ['mol_ffs', 'QB', 1, frozenset([3, 4, 5, 6, 7, 8]), 86.0, mol, Chem.MolFromSmiles('C1CCOCC1')],
-                        ], columns=['idm', 'idf', 'idxf', '_aidxf', 'mol_perc', 'mol', 'mol_frag']
+                        ], columns=['idm', 'idf', 'idf_idx', '_aidxf', 'mol_perc', 'mol', 'mol_frag']
                         )
 
 @pytest.fixture
@@ -221,45 +221,45 @@ def df_aidxf_ffo():
     return pd.DataFrame([
                          ['mol_ffo', 'QG', 0, frozenset([0, 1, 2, 3, 4, 5, 10, 11, 12]), 69.0, mol, Chem.MolFromSmiles('C1NCC2CCCCC12')],
                          ['mol_ffo', 'QH', 1, frozenset([3, 4, 5, 6, 7, 8, 9, 10, 11, 12]), 77.0, mol, Chem.MolFromSmiles('C1CCC2COCCC2C1')],
-                        ], columns=['idm', 'idf', 'idxf', '_aidxf', 'mol_perc', 'mol', 'mol_frag']
+                        ], columns=['idm', 'idf', 'idf_idx', '_aidxf', 'mol_perc', 'mol', 'mol_frag']
                         )
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ TESTS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 
-def test_classify_fsp(df_aidxf_fsp):
+def test_classify_fs(df_aidxf_fs):
     """Check if fusion spiro fragment combinations are identified."""
-    df_fcc = fragment_combination.classify_df(df_aidxf_fsp)
+    df_fcc = fragment_combination.classify_df(df_aidxf_fs)
     result = df_fcc.iloc[0]
-    assert result['category'] == 'fusion' and result['type'] == 'spiro' and result['subtype'] == '' and result['abbrev'] == 'fsp'
+    assert result['category'] == 'fusion' and result['type'] == 'spiro' and result['subtype'] == '' and result['abbrev'] == 'fs'
 
 
-def test_classify_fed(df_aidxf_fed):
+def test_classify_fe(df_aidxf_fe):
     """Check if fusion edge fragment combinations are identified."""
-    df_fcc = fragment_combination.classify_df(df_aidxf_fed)
+    df_fcc = fragment_combination.classify_df(df_aidxf_fe)
     result = df_fcc.iloc[0]
-    assert result['category'] == 'fusion' and result['type'] == 'edge' and result['subtype'] == '' and result['abbrev'] == 'fed'
+    assert result['category'] == 'fusion' and result['type'] == 'edge' and result['subtype'] == '' and result['abbrev'] == 'fe'
 
 
-def test_classify_fbr(df_aidxf_fbr):
+def test_classify_fb(df_aidxf_fb):
     """Check if fusion edge fragment combinations are identified."""
-    df_fcc = fragment_combination.classify_df(df_aidxf_fbr)
+    df_fcc = fragment_combination.classify_df(df_aidxf_fb)
     result = df_fcc.iloc[0]
-    assert result['category'] == 'fusion' and result['type'] == 'bridged' and result['subtype'] == '' and result['abbrev'] == 'fbr'
+    assert result['category'] == 'fusion' and result['type'] == 'bridged' and result['subtype'] == '' and result['abbrev'] == 'fb'
 
 
-def test_classify_fli(df_aidxf_fli):
+def test_classify_fl(df_aidxf_fl):
     """Check if fusion edge fragment combinations are identified."""
-    df_fcc = fragment_combination.classify_df(df_aidxf_fli)
+    df_fcc = fragment_combination.classify_df(df_aidxf_fl)
     result = df_fcc.iloc[0]
-    assert result['category'] == 'fusion' and result['type'] == 'linker' and result['subtype'] == '' and result['abbrev'] == 'fli'
+    assert result['category'] == 'fusion' and result['type'] == 'linker' and result['subtype'] == '' and result['abbrev'] == 'fl'
 
-def test_classify_cmo(df_aidxf_cmo):
+def test_classify_cm(df_aidxf_cm):
     """Check if connection monopodal fragment combinations are identified."""
-    df_fcc = fragment_combination.classify_df(df_aidxf_cmo)
+    df_fcc = fragment_combination.classify_df(df_aidxf_cm)
     result = df_fcc.iloc[0]
-    assert result['category'] == 'connection' and result['type'] == 'monopodal' and result['subtype'] == '' and result['abbrev'] == 'cmo'
+    assert result['category'] == 'connection' and result['type'] == 'monopodal' and result['subtype'] == '' and result['abbrev'] == 'cm'
 
 def test_classify_cbs(df_aidxf_cbs):
     """Check if fragment combinations of type connection bipodal spiro are identified."""
