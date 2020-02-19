@@ -9,6 +9,7 @@ A special care was given to blending colors for overlapping fragments.
 # standard
 import logging
 from math import sqrt
+from copy import deepcopy
 # data handling
 import json
 import base64
@@ -192,6 +193,24 @@ def set_bonds_color(mol: Mol, bidxs: Set[int], color: Tuple[float]):
 def get_bonds_color(mol: Mol, bidxs: Set[int]) -> Dict:
     bonds = [mol.GetBondWithIdx(x) for x in bidxs]
     return {b.GetIdx(): get_atom_or_bond_color(b) for b in bonds}
+
+
+def clear_colors(mol: Mol, inplace: bool = True) -> Union[None, Mol]:
+    """Clear any color highlight (atoms and bonds) on a molecule.
+    This is equivalent to removing the _color and _num_colors atom and bond attributes.
+
+    :param mol: the molecule to clear colors from
+    :param inplace: if set to True, the molecule is directly modified. If set to False, a modified copy of the molecule is returned.
+    :return: the modified molecule or nothing
+    """
+    props_to_clear = ['_color', '_num_colors']
+    if not inplace:
+        mol = deepcopy(mol)
+    for p in props_to_clear:
+        [a.ClearProp(p) for a in mol.GetAtoms()]
+        [b.ClearProp(p) for b in mol.GetBonds()]
+    if not inplace:
+        return mol
 
 
 def scale_rgb(rgb_color: Tuple[int]) -> Tuple[float]:
@@ -524,15 +543,18 @@ class ColorMap:
     It is represented by the count of fragments, atom- and bond colors.
     """
 
-    def __init__(self, mol: Mol, d_aidxs: OrderedDict, colors: OrderedDict):
+    def __init__(self, mol: Mol, d_aidxs: OrderedDict, colors: OrderedDict = colors, reset_colors: bool = False):
         """
-        :param mol: the molecule to highlight
+        :param mol: the molecule to highlight. Atom/Bond properties '_color' and 'num_colors' are modified in place.
         :param d_aidxs: a dictionary containing fragment ids as keys and molecule atom indices as values ({fid: [aidxs]})
-        :param colors: the color palette to use
+        :param colors: the color palette to use, by default the draw.colors palette is used (red, green, blue, orange and purple).
+        :param reset_colors: clear any pre-existing colors in atoms and bonds. This ensures independent colorations using a same molecule.
         """
-        self.fragments, self.atoms, self.bonds = self._compute_colormap(mol, d_aidxs, colors)
+        self.fragments, self.atoms, self.bonds = self._compute_colormap(mol, d_aidxs, colors, reset_colors)
 
     def __repr__(self):
+        """Return a string representation of the ColorMap object
+        """
         # listing a huge dictionary of tuples is not great for representing data,
         # so I just list the number of different colors found
         num_frags = len(list(self.fragments.keys()))
@@ -540,14 +562,14 @@ class ColorMap:
         # bonds require special handling because of a hack
         bond_colors = set(self.bonds.values())
         try:
-            bond_colors.remove((1, 1, 1))  # do not count hard-coded white bonds, also white color cannot happen during blending
+            bond_colors.remove((1, 1, 1))  # do not count hard-coded white bonds, also white color should never happen during blending anyway
         except KeyError:
             pass
         num_bond_colors = len(bond_colors)
 
         return str(f"ColorMap(nf={num_frags}, nac={num_atom_colors}, nbc={num_bond_colors})")
 
-    def _compute_colormap(self, mol: Mol, d_aidxs: Dict, colors):
+    def _compute_colormap(self, mol: Mol, d_aidxs: Dict, colors, reset_colors):
         """
         Compute a colormap for highlighting a molecule given a dictionary of fragments {fid: [aidxs]} and specified RGB colors.
 
@@ -561,8 +583,10 @@ class ColorMap:
         :param mol: the molecule to highlight
         :param d_aidxs: a dictionary of fragments atom indices with fragment ids as keys and list of iterable as values
         :param colors: a color palette
+        :param reset_colors: reset colors found on a molecule (inplace only)
         """
-
+        if reset_colors:
+            clear_colors(mol, inplace=True)
         colors_k = list(colors.keys())  # colors is a OrderedDict, so no need for resorting colors
         aidxs_colored = set()  # atoms
         bidxs_colored = set()  # bonds
