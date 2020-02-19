@@ -7,6 +7,7 @@ This modules contains the functions for mapping fragments combinations.
 # standard
 import logging
 import itertools
+import toolz
 # data handling
 import pandas as pd
 from pandas import DataFrame
@@ -20,6 +21,7 @@ import networkx as nx
 from typing import List
 # dev
 from npfc import draw
+from npfc import utils
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
@@ -158,7 +160,10 @@ def _split_overlaps(df_fc: DataFrame, max_overlaps: int) -> DataFrame:
         df_variants_curr = df_variants[((~df_variants['fid1'].isin(to_remove)) & (~df_variants['fid2'].isin(to_remove)))]
         dfs_alt_curr.append(pd.concat([df_common, df_variants_curr]))
 
-    # clear duplicate dfs  #### no idea why they happen: done later in main func
+    # unfortunately, there are a lot of duplicates going on after splitting by overlaps
+    dfs_alt_curr = list(toolz.unique(dfs_alt_curr, key=lambda x: utils.encode_object(x)))
+
+    # clear duplicate dfs
     return (dfs_alt_curr, noverlaps)
 
 
@@ -330,5 +335,7 @@ def generate(df_fcc: DataFrame, min_frags: int = 2, max_frags: int = 5, max_over
             ncomb_u = len(comb_u)
             ds_map.append({'idm': gid, 'fmid': str(i+1).zfill(3), 'nfrags': nfrags, 'nfrags_u': nfrags_u, 'ncomb': ncomb, 'ncomb_u': ncomb_u, 'hac_mol': hac_mol, 'hac_frags': hac_frags, 'perc_mol_cov_frags': perc_mol_cov_frags, 'frags': frags, 'frags_u': frags_u, 'comb': comb, 'comb_u': comb_u, 'fgraph_str': frag_map_str, '_d_aidxs': d_aidxs, '_colormap': colormap, '_fgraph': graph, 'mol': mol, '_d_mol_frags': d_frags})
 
-    # df_map
-    return DataFrame(ds_map, columns=['idm', 'fmid', 'nfrags', 'nfrags_u', 'ncomb', 'ncomb_u', 'hac_mol', 'hac_frags', 'perc_mol_cov_frags', 'frags', 'frags_u', 'comb', 'comb_u', 'fgraph_str', '_d_aidxs', '_colormap', '_fgraph', 'mol', '_d_mol_frags']).drop_duplicates(subset=['fgraph_str'])
+    # concatenate all together
+    df_fg = DataFrame(ds_map, columns=['idm', 'fmid', 'nfrags', 'nfrags_u', 'ncomb', 'ncomb_u', 'hac_mol', 'hac_frags', 'perc_mol_cov_frags', 'frags', 'frags_u', 'comb', 'comb_u', 'fgraph_str', '_d_aidxs', '_colormap', '_fgraph', 'mol', '_d_mol_frags']).drop_duplicates(subset=['fgraph_str'])
+    df_fg['fmid'] = df_fg.groupby('idm').cumcount().map(lambda x: str(x+1).zfill(3))
+    return df_fg

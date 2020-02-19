@@ -1,0 +1,3 @@
+KeyError in line 30 of /home/gally/Software/anaconda3/envs/npfc/lib/python3.7/site-packages/npfc/data/synthetic.smk:
+'chunksize'
+  File "/home/gally/Software/anaconda3/envs/npfc/lib/python3.7/site-packages/npfc/data/synthetic.smk", line 30, in <module>
