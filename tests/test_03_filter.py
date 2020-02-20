@@ -25,6 +25,7 @@ def filter():
 def mol():
     return Chem.MolFromSmiles('C1CCCCC1')  # hac=6, molweight=84.0939, nrings=1, elements={'C'}
 
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ TESTS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 

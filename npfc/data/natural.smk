@@ -40,7 +40,6 @@ WD += '/data'
 chunk_ids = [str(i+1).zfill(3) for i in range(config['num_chunks'])]
 
 
-
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ PIPELINE ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 

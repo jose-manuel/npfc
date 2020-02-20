@@ -19,6 +19,7 @@ logging.basicConfig(level=logging.INFO)
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FIXTURES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
+
 # fragments for testing normal fgraphs
 mol_qa = Chem.MolFromSmiles('C1CCNC1')
 mol_qb = Chem.MolFromSmiles('C1CCNC1')
@@ -34,8 +35,6 @@ mol_o6 = Chem.MolFromSmiles('C1CCC1')
 mol_o7 = Chem.MolFromSmiles('C1CC1')
 mol_o8 = Chem.MolFromSmiles('NC1CCC1')
 mol_o9 = Chem.MolFromSmiles('OC1CCC1')
-
-
 
 
 @pytest.fixture
@@ -77,6 +76,7 @@ def df_fc_independant():
                       ['mol_fc_independant', 'QC', 0, 'QC:0', 'QD', 0, 'QD:0', 'fed', 'fusion', 'edge', '', frozenset([3, 4, 5, 6, 11, 12]), frozenset([6, 7, 8, 9, 10, 11]), 26, mol, mol_qc, mol_qd],
                       ], columns=['idm', 'idf1', 'idxf1', 'fid1', 'idf2', 'idxf2', 'fid2', 'abbrev', 'category', 'type', 'subtype', '_aidxf1', '_aidxf2', 'hac', 'mol', 'mol_frag_1', 'mol_frag_2'])
 
+
 @pytest.fixture
 def df_fc_overlap_1():
     """Scenario case with 2 fragments overlapping."""
@@ -84,6 +84,7 @@ def df_fc_overlap_1():
     return DataFrame([
                       ['mol_fc_overlap_1', 'O1', 0, 'O1:0', 'O2', 0, 'O2:0', 'ffo', 'fusion', 'false_positive', 'overlap', frozenset([0, 1, 2, 3, 4, 5, 6]), frozenset([1, 2, 3, 4, 5, 6, 7]), 8, mol, mol_o1, mol_o2],
                       ], columns=['idm', 'idf1', 'idxf1', 'fid1', 'idf2', 'idxf2', 'fid2', 'abbrev', 'category', 'type', 'subtype', '_aidxf1', '_aidxf2', 'hac', 'mol', 'mol_frag_1', 'mol_frag_2'])
+
 
 @pytest.fixture
 def df_fc_overlap_2():
@@ -106,6 +107,7 @@ def df_fc_overlap_3():
                       ['mol_fc_overlap_3', 'O2', 0, 'O2:0', 'O3', 0, 'O3:0', 'cmo', 'connection', 'monopodal', '', frozenset([1, 2, 3, 4, 5, 6, 7]), frozenset([8, 9, 10, 15]), 16, mol, mol_o2, mol_o3],
                       ['mol_fc_overlap_3', 'O3', 0, 'O3:0', 'O4', 0, 'O4:0', 'cmo', 'connection', 'monopodal', '', frozenset([8, 9, 10, 15]), frozenset([12, 13, 14]), 16, mol, mol_o3, mol_o4],
                       ], columns=['idm', 'idf1', 'idxf1', 'fid1', 'idf2', 'idxf2', 'fid2', 'abbrev', 'category', 'type', 'subtype', '_aidxf1', '_aidxf2', 'hac', 'mol', 'mol_frag_1', 'mol_frag_2'])
+
 
 @pytest.fixture
 def df_fc_overlap_4():
@@ -146,7 +148,6 @@ def df_fc_overlap_6():
                       ['mol_fc_overlap_6', 'O4', 0, 'O4:0', 'O5', 0, 'O5:0', 'ffo', 'fusion', 'false_positive', 'false_positive', frozenset([1, 2, 3, 4, 5, 6]), frozenset([0, 1, 2, 4, 5, 6]), 26, mol, mol_o4, mol_o5],
                       ['mol_fc_overlap_6', 'O6', 0, 'O6:0', 'O7', 0, 'O7:0', 'cmo', 'connection', 'monopodal', '', frozenset([17, 18, 19, 25]), frozenset([24, 22, 23]), 26, mol, mol_o6, mol_o7],
                   ], columns=['idm', 'idf1', 'idxf1', 'fid1', 'idf2', 'idxf2', 'fid2', 'abbrev', 'category', 'type', 'subtype', '_aidxf1', '_aidxf2', 'hac', 'mol', 'mol_frag_1', 'mol_frag_2'])
-
 
 
 @pytest.fixture
@@ -252,16 +253,18 @@ def test_map_fc_overlap_2(df_fc_overlap_2):
     df_map = fragment_graph.generate(df_fc_overlap_2)
     assert len(df_map.index) == 2
     assert sorted(list(df_map['fgraph_str'].values)) == ['O1:0[cmo]O3:0',
-                                                       'O2:0[cmo]O3:0'
-                                                       ]
+                                                         'O2:0[cmo]O3:0'
+                                                         ]
+
 
 def test_map_fc_overlap_3(df_fc_overlap_3):
     """Split 2 overlapping fragments that result in longer 2 fragment graphs"""
     df_map = fragment_graph.generate(df_fc_overlap_3)
     assert len(df_map.index) == 2
     assert sorted(list(df_map['fgraph_str'].values)) == ['O3:0[cmo]O4:0-O1:0[cmo]O3:0',
-                                                       'O3:0[cmo]O4:0-O2:0[cmo]O3:0'
-                                                       ]
+                                                         'O3:0[cmo]O4:0-O2:0[cmo]O3:0'
+                                                         ]
+
 
 def test_map_fc_overlap_4(df_fc_overlap_4):
     """Split 2x2 overlapping fragments that result in 0 fragment graphs"""
@@ -277,20 +280,21 @@ def test_map_fc_overlap_5(df_fc_overlap_5):
     # for i in range(len(df_map.index)):
     #     print(df_map.iloc[i]['fgraph_str'])
     assert sorted(list(df_map['fgraph_str'].values)) == ['O1:0[cmo]O4:0',
-                                                       'O1:0[cmo]O5:0',
-                                                       'O2:0[cmo]O4:0',
-                                                       'O2:0[cmo]O5:0'
-                                                       ]
+                                                         'O1:0[cmo]O5:0',
+                                                         'O2:0[cmo]O4:0',
+                                                         'O2:0[cmo]O5:0'
+                                                         ]
+
 
 def test_map_fc_overlap_6(df_fc_overlap_6):
     """Split 2x2 overlapping fragments that result in 4 fragment graphs"""
     df_map = fragment_graph.generate(df_fc_overlap_6)
     assert len(df_map.index) == 4
     assert sorted(list(df_map['fgraph_str'].values)) == ['O6:0[cmo]O7:0-O1:0[cmo]O4:0-O1:0[cmo]O6:0',
-                                                       'O6:0[cmo]O7:0-O1:0[cmo]O5:0-O1:0[cmo]O6:0',
-                                                       'O6:0[cmo]O7:0-O2:0[cmo]O4:0-O2:0[cmo]O6:0',
-                                                       'O6:0[cmo]O7:0-O2:0[cmo]O5:0-O2:0[cmo]O6:0'
-                                                       ]
+                                                         'O6:0[cmo]O7:0-O1:0[cmo]O5:0-O1:0[cmo]O6:0',
+                                                         'O6:0[cmo]O7:0-O2:0[cmo]O4:0-O2:0[cmo]O6:0',
+                                                         'O6:0[cmo]O7:0-O2:0[cmo]O5:0-O2:0[cmo]O6:0'
+                                                         ]
 
 
 def test_map_fc_overlap_7(df_fc_overlap_7):
@@ -298,18 +302,20 @@ def test_map_fc_overlap_7(df_fc_overlap_7):
     df_map = fragment_graph.generate(df_fc_overlap_7)
     assert len(df_map.index) == 3
     assert sorted(list(df_map['fgraph_str'].values)) == ['O1:0[cmo]O6:0',
-                                                       'O2:0[cmo]O6:0',
-                                                       'O3:0[cmo]O6:0',
-                                                       ]
+                                                         'O2:0[cmo]O6:0',
+                                                         'O3:0[cmo]O6:0',
+                                                         ]
+
 
 def test_map_fc_overlap_8(df_fc_overlap_8):
     """Split 3x2 overlapping fragments that result in 3 longer fragment graphs"""
     df_map = fragment_graph.generate(df_fc_overlap_8)
     assert len(df_map.index) == 3
     assert sorted(list(df_map['fgraph_str'].values)) == ['O6:0[cmo]O7:0-O1:0[cmo]O6:0',
-                                                       'O6:0[cmo]O7:0-O2:0[cmo]O6:0',
-                                                       'O6:0[cmo]O7:0-O3:0[cmo]O6:0',
-                                                       ]
+                                                         'O6:0[cmo]O7:0-O2:0[cmo]O6:0',
+                                                         'O6:0[cmo]O7:0-O3:0[cmo]O6:0',
+                                                         ]
+
 
 def test_map_fc_overlap_9(df_fc_overlap_9):
     """Split 2x2x2 overlapping fragments that result in 8 fragment graphs"""
@@ -317,11 +323,11 @@ def test_map_fc_overlap_9(df_fc_overlap_9):
     assert len(df_map.index) == 8
 
     assert sorted(list(df_map['fgraph_str'].values)) == ['O7:0[cmo]O7:1-O1:0[cmo]O4:0-O7:0[cmo]O8:0-O8:0[cmo]O4:0',
-                                                       'O7:0[cmo]O7:1-O1:0[cmo]O4:0-O7:0[cmo]O9:0-O9:0[cmo]O4:0',
-                                                       'O7:0[cmo]O7:1-O1:0[cmo]O5:0-O7:0[cmo]O8:0-O8:0[cmo]O5:0',
-                                                       'O7:0[cmo]O7:1-O1:0[cmo]O5:0-O7:0[cmo]O9:0-O9:0[cmo]O5:0',
-                                                       'O7:0[cmo]O7:1-O2:0[cmo]O4:0-O7:0[cmo]O8:0-O8:0[cmo]O4:0',
-                                                       'O7:0[cmo]O7:1-O2:0[cmo]O4:0-O7:0[cmo]O9:0-O9:0[cmo]O4:0',
-                                                       'O7:0[cmo]O7:1-O2:0[cmo]O5:0-O7:0[cmo]O8:0-O8:0[cmo]O5:0',
-                                                       'O7:0[cmo]O7:1-O2:0[cmo]O5:0-O7:0[cmo]O9:0-O9:0[cmo]O5:0',
-                                                       ]
+                                                         'O7:0[cmo]O7:1-O1:0[cmo]O4:0-O7:0[cmo]O9:0-O9:0[cmo]O4:0',
+                                                         'O7:0[cmo]O7:1-O1:0[cmo]O5:0-O7:0[cmo]O8:0-O8:0[cmo]O5:0',
+                                                         'O7:0[cmo]O7:1-O1:0[cmo]O5:0-O7:0[cmo]O9:0-O9:0[cmo]O5:0',
+                                                         'O7:0[cmo]O7:1-O2:0[cmo]O4:0-O7:0[cmo]O8:0-O8:0[cmo]O4:0',
+                                                         'O7:0[cmo]O7:1-O2:0[cmo]O4:0-O7:0[cmo]O9:0-O9:0[cmo]O4:0',
+                                                         'O7:0[cmo]O7:1-O2:0[cmo]O5:0-O7:0[cmo]O8:0-O8:0[cmo]O5:0',
+                                                         'O7:0[cmo]O7:1-O2:0[cmo]O5:0-O7:0[cmo]O9:0-O9:0[cmo]O5:0',
+                                                         ]

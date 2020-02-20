@@ -21,6 +21,7 @@ from npfc import save
 import logging
 logging.basicConfig(level=logging.ERROR)
 
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FIXTURES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 
@@ -49,6 +50,7 @@ def df_mols_dupl():
 
     df['mol'] = df['mol'].map(Chem.MolFromSmiles)
     return df
+
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ TESTS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 

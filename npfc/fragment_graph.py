@@ -139,7 +139,7 @@ def _split_overlaps(df_fc: DataFrame, max_overlaps: int) -> DataFrame:
     logging.debug(f"Identified {len(df_common.index):,} variant combinations:\n{df_common[['idm', 'fid1', 'fid2', 'abbrev']]}")
 
     # variants
-    df_variants = df_fc[ (df_fc['abbrev'] != 'ffo') & ((df_fc['fid1'].isin(d_incompatible.keys()) | (df_fc['fid2'].isin(d_incompatible.keys()))))]
+    df_variants = df_fc[(df_fc['abbrev'] != 'ffo') & ((df_fc['fid1'].isin(d_incompatible.keys()) | (df_fc['fid2'].isin(d_incompatible.keys()))))]
     logging.debug(f"Identified {len(df_variants.index):,} variant combinations:\n{df_variants[['idm', 'fid1', 'fid2', 'abbrev']]}")
 
     # define a list of sets of alternative fragments (i.e. [(A, B), (C, D)]) for computing all possible alternative fgraph possibilities
@@ -257,7 +257,6 @@ def generate(df_fcc: DataFrame, min_frags: int = 2, max_frags: int = 5, max_over
         # clear ffs
         if clear_ffs:
             dfs_fcc_ready = [_clear_ffs(df_fcc_ready) for df_fcc_ready in dfs_fcc_ready]
-
 
         # compute the entries of the df_map
         for i, df_fcc_clean in enumerate(dfs_fcc_ready):

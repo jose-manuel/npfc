@@ -35,7 +35,6 @@ def get_fragment_combination_categories(include_fp: bool = False) -> list:
     return cats
 
 
-
 def get_rings_between_two_fragments(mol: Mol, aidxf1: set, aidxf2: set) -> list:
     """Returns the atom indices of every ring that connects two fragments together, defined by atom indices.
 

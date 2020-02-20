@@ -16,7 +16,9 @@ from rdkit.Chem.rdinchi import MolToInchiKey
 from typing import Union
 from typing import List
 
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ GLOBALS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
 
 # allowed suffixes
 EXTS_INPUT = [['.sdf'], ['.sdf', '.gz'],
@@ -28,6 +30,7 @@ EXTS_CONFIG = [['.json']]
 # types
 Number = Union[int, float]
 Output_files = List[List[Union[str, int]]]
+
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 

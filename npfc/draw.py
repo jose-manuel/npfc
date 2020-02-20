@@ -46,6 +46,7 @@ from npfc import utils
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ GLOBALS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
+
 # OrderedDict so fragment 1 is always colored in red, fragment 2 in green, etc.
 colors = OrderedDict()
 colors["red"] = (1.0, 0.6, 0.6)
@@ -268,14 +269,14 @@ def highlight_mol(mol: Mol,
         highlightAtomColors = colormap.atoms
         highlightBondColors = colormap.bonds
     img = Draw.MolsToGridImage([mol],
-                                molsPerRow=1,
-                                subImgSize=img_size,
-                                highlightAtomLists=[highlightAtomList],
-                                highlightAtomColors=[highlightAtomColors],
-                                highlightBondColors=[highlightBondColors],
-                                useSVG=svg,
-                                legends=[legend],
-                                )
+                               molsPerRow=1,
+                               subImgSize=img_size,
+                               highlightAtomLists=[highlightAtomList],
+                               highlightAtomColors=[highlightAtomColors],
+                               highlightBondColors=[highlightBondColors],
+                               useSVG=svg,
+                               legends=[legend],
+                               )
     # export img
     if output_file is not None:
         output_ext = output_file.split('.')[-1].upper()
@@ -291,7 +292,7 @@ def highlight_mol(mol: Mol,
 
 def highlight_mols(mols: List[Mol],
                    colormaps: List['ColorMap'] = [],
-                   output_file:str = None,
+                   output_file: str = None,
                    sub_img_size: Tuple[int] = (300, 300),
                    max_mols_per_row: int = 5,
                    debug: bool = False,
@@ -351,6 +352,7 @@ def highlight_mols(mols: List[Mol],
         else:
             raise ValueError(f"Error! Unsupported extension '{output_ext}'!")
     return img
+
 
 def _get_edge_info(fc_graph: Graph) -> Dict:
     """

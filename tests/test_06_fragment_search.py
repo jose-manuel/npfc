@@ -20,6 +20,7 @@ logging.basicConfig(level=logging.ERROR)
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FIXTURES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
+
 @pytest.fixture
 def df_frags():
     """Two fragments used for most of substructue searches."""
@@ -31,10 +32,12 @@ def df_mols_match():
     """One molecule with multiple matches."""
     return pd.DataFrame({'mol': [Chem.MolFromSmiles('C(C1CC2CCCCC2N1)C1CCCOC1')], 'inchikey': ['UUKYKIBPEZXAON-UHFFFAOYSA-N']}, index=['MOL1'])
 
+
 @pytest.fixture
 def df_mols_no_match():
     """One molecule without any match"""
     return pd.DataFrame({'mol': [Chem.MolFromSmiles('C(C1CC2CCCCC2S1)C1CCCSC1')], 'inchikey': ['BMTGHHFFWCOFTB-UHFFFAOYSA-N']}, index=['MOL2'])
+
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ TESTS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
@@ -46,9 +49,8 @@ def test_find_fragments_hit(df_mols_match, df_frags):
     assert list(df_aidxf.index) == [0, 1]
     assert list(df_aidxf['idm']) == ['MOL1'] * 2
     assert list(df_aidxf['idf']) == ['QA', 'QB']
-    assert list(df_aidxf['_aidxf']) == [{1, 2 ,3 ,8 , 9}, {10, 11, 12, 13 ,14 ,15}]
+    assert list(df_aidxf['_aidxf']) == [{1, 2, 3, 8, 9}, {10, 11, 12, 13, 14, 15}]
     assert list(df_aidxf['mol_perc']) == [31.0, 38.0]
-
 
 
 def test_find_fragments_no_hit(df_mols_no_match, df_frags):
