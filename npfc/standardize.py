@@ -25,9 +25,12 @@ from rdkit.Chem.MolStandardize.tautomer import TautomerCanonicalizer
 from npfc import utils
 from npfc.filter import Filter
 
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ GLOBALS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
+
 TIMEOUT = 10  # TODO: find a way to specify a timeout value for a given Standardizer instance
+
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ CLASSES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 

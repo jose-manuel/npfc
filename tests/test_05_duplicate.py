@@ -32,6 +32,7 @@ def ref_file_hdf():
 def ref_file_feather():
     return 'tests/tmp/test_dupl_ref.feather'
 
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ TESTS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 

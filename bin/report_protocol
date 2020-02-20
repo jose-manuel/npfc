@@ -6,7 +6,394 @@ Script report_protocol
 This script is used for generating CSV files and their corresponding plots for
 reporting a NPFC run on a given dataset.
 
-The folder tree:
+The folder tree is as this:
+
+fragments/
+└── crms
+    ├── data
+    │   ├── 00_raw
+    │   │   └── data
+    │   │       └── cr.sdf.gz
+    │   ├── 01_load
+    │   │   ├── data
+    │   │   │   └── crms.csv.gz
+    │   │   └── log
+    │   │       └── crms.log
+    │   ├── 02a_murcko
+    │   │   ├── data
+    │   │   │   └── crms_murcko.csv.gz
+    │   │   └── log
+    │   │       └── crms_murcko.log
+    │   ├── 02b_std
+    │   │   ├── data
+    │   │   │   └── crms_std.csv.gz
+    │   │   └── log
+    │   │       ├── crms_error.csv.gz
+    │   │       ├── crms_filtered.csv.gz
+    │   │       └── crms_std.log
+    │   ├── 03a_std
+    │   │   ├── data
+    │   │   │   └── crms_std.csv.gz
+    │   │   └── log
+    │   │       ├── crms_error.csv.gz
+    │   │       ├── crms_filtered.csv.gz
+    │   │       └── crms_std.log
+    │   ├── 03b_murcko
+    │   │   ├── data
+    │   │   │   └── crms_murcko.csv.gz
+    │   │   └── log
+    │   │       └── crms_murcko.log
+    │   ├── 04b_std
+    │   │   ├── data
+    │   │   │   └── crms_std.csv.gz
+    │   │   └── log
+    │   │       ├── crms_error.csv.gz
+    │   │       ├── crms_filtered.csv.gz
+    │   │       └── crms_std.log
+    │   ├── 05_concat
+    │   │   ├── data
+    │   │   │   └── crms_concat.csv.gz
+    │   │   └── log
+    │   │       └── crms_concat.log
+    │   ├── 06_dedupl
+    │   │   ├── crms_ref.hdf
+    │   │   ├── data
+    │   │   │   └── crms_dedupl.csv.gz
+    │   │   └── log
+    │   │       └── crms_dedupl.log
+    │   └── 07_depict
+    │       ├── data
+    │       │   └── crms_depict.csv.gz
+    │       └── log
+    │           └── crms_depict.log
+    └── fragments_crms_tasktree.svg
+
+
+natural/
+└── dnp
+    ├── data
+    │   ├── 00_raw
+    │   │   └── data
+    │   │       └── dnp.sdf.gz
+    │   ├── 01_chunk
+    │   │   ├── data
+    │   │   │   ├── dnp_001.sdf.gz
+    │   │   │   ├── dnp_002.sdf.gz
+    │   │   │   ├── dnp_003.sdf.gz
+    │   │   │   ├── dnp_004.sdf.gz
+    │   │   │   ├── dnp_005.sdf.gz
+    │   │   │   └── dnp_006.sdf.gz
+    │   │   └── log
+    │   │       └── dnp_chunk.log
+    │   ├── 02_load
+    │   │   ├── data
+    │   │   │   ├── dnp_001.sdf.gz
+    │   │   │   ├── dnp_002.sdf.gz
+    │   │   │   ├── dnp_003.sdf.gz
+    │   │   │   ├── dnp_004.sdf.gz
+    │   │   │   ├── dnp_005.sdf.gz
+    │   │   │   └── dnp_006.sdf.gz
+    │   │   └── log
+    │   │       ├── dnp_001_load.log
+    │   │       ├── dnp_002_load.log
+    │   │       ├── dnp_003_load.log
+    │   │       ├── dnp_004_load.log
+    │   │       ├── dnp_005_load.log
+    │   │       └── dnp_006_load.log
+    │   ├── 03_deglyco
+    │   │   ├── data
+    │   │   │   ├── dnp_001_deglyco.sdf.gz
+    │   │   │   ├── dnp_002_deglyco.sdf.gz
+    │   │   │   ├── dnp_003_deglyco.sdf.gz
+    │   │   │   ├── dnp_004_deglyco.sdf.gz
+    │   │   │   ├── dnp_005_deglyco.sdf.gz
+    │   │   │   └── dnp_006_deglyco.sdf.gz
+    │   │   └── log
+    │   │       ├── dnp_001_deglyco.csv
+    │   │       ├── dnp_001_deglyco_knwf.log
+    │   │       ├── dnp_002_deglyco.csv
+    │   │       ├── dnp_002_deglyco_knwf.log
+    │   │       ├── dnp_003_deglyco.csv
+    │   │       ├── dnp_003_deglyco_knwf.log
+    │   │       ├── dnp_004_deglyco.csv
+    │   │       ├── dnp_004_deglyco_knwf.log
+    │   │       ├── dnp_005_deglyco.csv
+    │   │       ├── dnp_005_deglyco_knwf.log
+    │   │       ├── dnp_006_deglyco.csv
+    │   │       └── dnp_006_deglyco_knwf.log
+    │   ├── 04_std
+    │   │   ├── data
+    │   │   │   ├── dnp_001_std.csv.gz
+    │   │   │   ├── dnp_002_std.csv.gz
+    │   │   │   ├── dnp_003_std.csv.gz
+    │   │   │   ├── dnp_004_std.csv.gz
+    │   │   │   ├── dnp_005_std.csv.gz
+    │   │   │   └── dnp_006_std.csv.gz
+    │   │   └── log
+    │   │       ├── dnp_001_error.csv.gz
+    │   │       ├── dnp_001_filtered.csv.gz
+    │   │       ├── dnp_001_std.log
+    │   │       ├── dnp_002_error.csv.gz
+    │   │       ├── dnp_002_filtered.csv.gz
+    │   │       ├── dnp_002_std.log
+    │   │       ├── dnp_003_error.csv.gz
+    │   │       ├── dnp_003_filtered.csv.gz
+    │   │       ├── dnp_003_std.log
+    │   │       ├── dnp_004_error.csv.gz
+    │   │       ├── dnp_004_filtered.csv.gz
+    │   │       ├── dnp_004_std.log
+    │   │       ├── dnp_005_error.csv.gz
+    │   │       ├── dnp_005_filtered.csv.gz
+    │   │       ├── dnp_005_std.log
+    │   │       ├── dnp_006_error.csv.gz
+    │   │       ├── dnp_006_filtered.csv.gz
+    │   │       └── dnp_006_std.log
+    │   ├── 05_dedupl
+    │   │   ├── data
+    │   │   │   ├── dnp_001_dedupl.csv.gz
+    │   │   │   ├── dnp_002_dedupl.csv.gz
+    │   │   │   ├── dnp_003_dedupl.csv.gz
+    │   │   │   ├── dnp_004_dedupl.csv.gz
+    │   │   │   ├── dnp_005_dedupl.csv.gz
+    │   │   │   └── dnp_006_dedupl.csv.gz
+    │   │   ├── dnp_ref.hdf
+    │   │   └── log
+    │   │       ├── dnp_001_dedupl.log
+    │   │       ├── dnp_002_dedupl.log
+    │   │       ├── dnp_003_dedupl.log
+    │   │       ├── dnp_004_dedupl.log
+    │   │       ├── dnp_005_dedupl.log
+    │   │       └── dnp_006_dedupl.log
+    │   ├── 06_depict
+    │   │   ├── data
+    │   │   │   ├── dnp_001_depict.csv.gz
+    │   │   │   ├── dnp_002_depict.csv.gz
+    │   │   │   ├── dnp_003_depict.csv.gz
+    │   │   │   ├── dnp_004_depict.csv.gz
+    │   │   │   ├── dnp_005_depict.csv.gz
+    │   │   │   └── dnp_006_depict.csv.gz
+    │   │   └── log
+    │   │       ├── dnp_001_depict.log
+    │   │       ├── dnp_002_depict.log
+    │   │       ├── dnp_003_depict.log
+    │   │       ├── dnp_004_depict.log
+    │   │       ├── dnp_005_depict.log
+    │   │       └── dnp_006_depict.log
+    │   └── frags_crms
+    │       ├── 07_fsearch
+    │       │   ├── data
+    │       │   │   ├── dnp_001_fsearch.csv.gz
+    │       │   │   ├── dnp_002_fsearch.csv.gz
+    │       │   │   ├── dnp_003_fsearch.csv.gz
+    │       │   │   ├── dnp_004_fsearch.csv.gz
+    │       │   │   ├── dnp_005_fsearch.csv.gz
+    │       │   │   └── dnp_006_fsearch.csv.gz
+    │       │   └── log
+    │       │       ├── dnp_001_fsearch.log
+    │       │       ├── dnp_002_fsearch.log
+    │       │       ├── dnp_003_fsearch.log
+    │       │       ├── dnp_004_fsearch.log
+    │       │       ├── dnp_005_fsearch.log
+    │       │       └── dnp_006_fsearch.log
+    │       ├── 08_fcc
+    │       │   ├── data
+    │       │   │   ├── dnp_001_fcc.csv.gz
+    │       │   │   ├── dnp_002_fcc.csv.gz
+    │       │   │   ├── dnp_003_fcc.csv.gz
+    │       │   │   ├── dnp_004_fcc.csv.gz
+    │       │   │   ├── dnp_005_fcc.csv.gz
+    │       │   │   └── dnp_006_fcc.csv.gz
+    │       │   └── log
+    │       │       ├── dnp_001_fcc.log
+    │       │       ├── dnp_002_fcc.log
+    │       │       ├── dnp_003_fcc.log
+    │       │       ├── dnp_004_fcc.log
+    │       │       ├── dnp_005_fcc.log
+    │       │       └── dnp_006_fcc.log
+    │       └── 09_fgraph
+    │           ├── data
+    │           │   ├── dnp_001_fgraph.csv.gz
+    │           │   ├── dnp_002_fgraph.csv.gz
+    │           │   ├── dnp_003_fgraph.csv.gz
+    │           │   ├── dnp_004_fgraph.csv.gz
+    │           │   ├── dnp_005_fgraph.csv.gz
+    │           │   └── dnp_006_fgraph.csv.gz
+    │           └── log
+    │               ├── dnp_001_fgraph.log
+    │               ├── dnp_002_fgraph.log
+    │               ├── dnp_003_fgraph.log
+    │               ├── dnp_004_fgraph.log
+    │               ├── dnp_005_fgraph.log
+    │               └── dnp_006_fgraph.log
+    └── natural_dnp_tasktree.svg
+
+
+synthetic/
+└── chembl
+    ├── data
+    │   ├── 00_raw
+    │   │   └── data
+    │   │       ├── chembl_act_raw.csv.gz
+    │   │       └── chembl.sdf.gz
+    │   ├── 01_chunk
+    │   │   ├── data
+    │   │   │   ├── chembl_001.sdf.gz
+    │   │   │   ├── chembl_002.sdf.gz
+    │   │   │   ├── chembl_003.sdf.gz
+    │   │   │   ├── chembl_004.sdf.gz
+    │   │   │   └── chembl_005.sdf.gz
+    │   │   └── log
+    │   │       └── chembl_chunk.log
+    │   ├── 02_load
+    │   │   ├── data
+    │   │   │   ├── chembl_001.sdf.gz
+    │   │   │   ├── chembl_002.sdf.gz
+    │   │   │   ├── chembl_003.sdf.gz
+    │   │   │   ├── chembl_004.sdf.gz
+    │   │   │   └── chembl_005.sdf.gz
+    │   │   └── log
+    │   │       ├── chembl_001_load.log
+    │   │       ├── chembl_002_load.log
+    │   │       ├── chembl_003_load.log
+    │   │       ├── chembl_004_load.log
+    │   │       └── chembl_005_load.log
+    │   ├── 03_deglyco
+    │   │   ├── data
+    │   │   │   ├── chembl_001_deglyco.sdf.gz
+    │   │   │   ├── chembl_002_deglyco.sdf.gz
+    │   │   │   ├── chembl_003_deglyco.sdf.gz
+    │   │   │   ├── chembl_004_deglyco.sdf.gz
+    │   │   │   └── chembl_005_deglyco.sdf.gz
+    │   │   └── log
+    │   │       ├── chembl_001_deglyco.csv
+    │   │       ├── chembl_001_deglyco_knwf.log
+    │   │       ├── chembl_002_deglyco.csv
+    │   │       ├── chembl_002_deglyco_knwf.log
+    │   │       ├── chembl_003_deglyco.csv
+    │   │       ├── chembl_003_deglyco_knwf.log
+    │   │       ├── chembl_004_deglyco.csv
+    │   │       ├── chembl_004_deglyco_knwf.log
+    │   │       ├── chembl_005_deglyco.csv
+    │   │       └── chembl_005_deglyco_knwf.log
+    │   ├── 04_std
+    │   │   ├── data
+    │   │   │   ├── chembl_001_std.csv.gz
+    │   │   │   ├── chembl_002_std.csv.gz
+    │   │   │   ├── chembl_003_std.csv.gz
+    │   │   │   ├── chembl_004_std.csv.gz
+    │   │   │   └── chembl_005_std.csv.gz
+    │   │   └── log
+    │   │       ├── chembl_001_error.csv.gz
+    │   │       ├── chembl_001_filtered.csv.gz
+    │   │       ├── chembl_001_std.log
+    │   │       ├── chembl_002_error.csv.gz
+    │   │       ├── chembl_002_filtered.csv.gz
+    │   │       ├── chembl_002_std.log
+    │   │       ├── chembl_003_error.csv.gz
+    │   │       ├── chembl_003_filtered.csv.gz
+    │   │       ├── chembl_003_std.log
+    │   │       ├── chembl_004_error.csv.gz
+    │   │       ├── chembl_004_filtered.csv.gz
+    │   │       ├── chembl_004_std.log
+    │   │       ├── chembl_005_error.csv.gz
+    │   │       ├── chembl_005_filtered.csv.gz
+    │   │       └── chembl_005_std.log
+    │   ├── 05_dedupl
+    │   │   ├── chembl_ref.hdf
+    │   │   ├── data
+    │   │   │   ├── chembl_001_dedupl.csv.gz
+    │   │   │   ├── chembl_002_dedupl.csv.gz
+    │   │   │   ├── chembl_003_dedupl.csv.gz
+    │   │   │   ├── chembl_004_dedupl.csv.gz
+    │   │   │   └── chembl_005_dedupl.csv.gz
+    │   │   └── log
+    │   │       ├── chembl_001_dedupl.log
+    │   │       ├── chembl_002_dedupl.log
+    │   │       ├── chembl_003_dedupl.log
+    │   │       ├── chembl_004_dedupl.log
+    │   │       └── chembl_005_dedupl.log
+    │   ├── 06_depict
+    │   │   ├── data
+    │   │   │   ├── chembl_001_depict.csv.gz
+    │   │   │   ├── chembl_002_depict.csv.gz
+    │   │   │   ├── chembl_003_depict.csv.gz
+    │   │   │   ├── chembl_004_depict.csv.gz
+    │   │   │   └── chembl_005_depict.csv.gz
+    │   │   └── log
+    │   │       ├── chembl_001_depict.log
+    │   │       ├── chembl_002_depict.log
+    │   │       ├── chembl_003_depict.log
+    │   │       ├── chembl_004_depict.log
+    │   │       └── chembl_005_depict.log
+    │   └── natref_dnp
+    │       ├── 07_subset
+    │       │   ├── data
+    │       │   │   ├── chembl_001_subset.csv.gz
+    │       │   │   ├── chembl_002_subset.csv.gz
+    │       │   │   ├── chembl_003_subset.csv.gz
+    │       │   │   ├── chembl_004_subset.csv.gz
+    │       │   │   └── chembl_005_subset.csv.gz
+    │       │   └── log
+    │       │       ├── chembl_001_subset.log
+    │       │       ├── chembl_002_subset.log
+    │       │       ├── chembl_003_subset.log
+    │       │       ├── chembl_004_subset.log
+    │       │       └── chembl_005_subset.log
+    │       └── frags_crms
+    │           ├── 08_fsearch
+    │           │   ├── data
+    │           │   │   ├── chembl_001_fsearch.csv.gz
+    │           │   │   ├── chembl_002_fsearch.csv.gz
+    │           │   │   ├── chembl_003_fsearch.csv.gz
+    │           │   │   ├── chembl_004_fsearch.csv.gz
+    │           │   │   └── chembl_005_fsearch.csv.gz
+    │           │   └── log
+    │           │       ├── chembl_001_fsearch.log
+    │           │       ├── chembl_002_fsearch.log
+    │           │       ├── chembl_003_fsearch.log
+    │           │       ├── chembl_004_fsearch.log
+    │           │       └── chembl_005_fsearch.log
+    │           ├── 09_fcc
+    │           │   ├── data
+    │           │   │   ├── chembl_001_fcc.csv.gz
+    │           │   │   ├── chembl_002_fcc.csv.gz
+    │           │   │   ├── chembl_003_fcc.csv.gz
+    │           │   │   ├── chembl_004_fcc.csv.gz
+    │           │   │   └── chembl_005_fcc.csv.gz
+    │           │   └── log
+    │           │       ├── chembl_001_fcc.log
+    │           │       ├── chembl_002_fcc.log
+    │           │       ├── chembl_003_fcc.log
+    │           │       ├── chembl_004_fcc.log
+    │           │       └── chembl_005_fcc.log
+    │           ├── 10_fgraph
+    │           │   ├── data
+    │           │   │   ├── chembl_001_fgraph.csv.gz
+    │           │   │   ├── chembl_002_fgraph.csv.gz
+    │           │   │   ├── chembl_003_fgraph.csv.gz
+    │           │   │   ├── chembl_004_fgraph.csv.gz
+    │           │   │   └── chembl_005_fgraph.csv.gz
+    │           │   └── log
+    │           │       ├── chembl_001_fgraph.log
+    │           │       ├── chembl_002_fgraph.log
+    │           │       ├── chembl_003_fgraph.log
+    │           │       ├── chembl_004_fgraph.log
+    │           │       └── chembl_005_fgraph.log
+    │           └── 11_pnp
+    │               ├── data
+    │               │   ├── chembl_001_pnp.csv.gz
+    │               │   ├── chembl_002_pnp.csv.gz
+    │               │   ├── chembl_003_pnp.csv.gz
+    │               │   ├── chembl_004_pnp.csv.gz
+    │               │   └── chembl_005_pnp.csv.gz
+    │               └── log
+    │                   ├── chembl_001_pnp.log
+    │                   ├── chembl_002_pnp.log
+    │                   ├── chembl_003_pnp.log
+    │                   ├── chembl_004_pnp.log
+    │                   └── chembl_005_pnp.log
+    └── synthetic_chembl_tasktree.svg
+
 """
 
 # standard
@@ -46,17 +433,147 @@ from npfc import fragment_combination
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 
-def print_title(title: str, logger: logging.Logger, pad: int):
+def save_barplot(df: DataFrame,
+                 output_png: str,
+                 x_name: str,
+                 y_name: str,
+                 title: str,
+                 color: str,
+                 x_label: str = None,
+                 y_label: str = None,
+                 rotate_x: int = 0,
+                 perc_labels: str = None,
+                 perc_label_size: int = 15,
+                 fig_size: Tuple[int] = (24, 12),
+                 force_order: bool = True,
+                 ):
+    """This function helps for computing automated barplots using seaborn.
+    It sets up somewhat standardized figure output for a harmonized rendering.
+
+    :param df: the DataFrame with data to plot
+    :param output_png: the output png full file name
+    :param x_name: DF column name to use for x-axis
+    :param y_name: DF column name to use for y-axis
+    :param x_label: the name to display on the plot for x-axis
+    :param y_label: the name to display on the plot for y-axis
+    :param rotate_x: rotate the x-axis ticks anticlock-wise
+    :param perc_labels: DF column name to use display percentage labels above bars
+    :param perc_label_size: annotation text size for perc_labels
+    :param color: color to use for bars, theoritically could also be a list of colors
+    :param fig_size: tuple of integers defining the plot dimensions (x, y)
+    :param force_order: force the plot to display the bars in the provided order. I do not know why sometimes this is needed, sometimes not depending on the plot.
+    :return: the figure in searborn format
+    """
+    # delete existing file for preventing stacking of plots
+    p = Path(output_png)
+    if p.exists():
+        p.unlink()
+
+    # general style for plotting
+    # sns.set(rc={'figure.figsize': fig_size})
+    plt.figure(figsize=fig_size)
+    sns.set_style('whitegrid', {'axes.edgecolor': '0.2'})
+    sns.set_context("paper", font_scale=2)
+
+    # barplot
+    if force_order:
+        ax = sns.barplot(x=df[x_name], y=df[y_name], color=color, order=df[x_name])
+    else:
+        ax = sns.barplot(x=df[x_name], y=df[y_name], color=color)
+    ax.set_title(title, fontsize=24, y=1.02)
+    ax.tick_params(labelsize=20)
+    ax.tick_params(axis='x', rotation=rotate_x)
+    # ax.set_xticklabels(df[x_name])
+    ax.set_xlabel(x_label,fontsize=25, labelpad=20)
+    ax.set_ylabel(y_label,fontsize=25, labelpad=20)
+    # if no entry, then y ticks get all confused
+    if df[y_name].sum() == 0:
+        ax.set_yticks((0, 1, 2, 3, 4, 5))
+        ax.set_ylim((0, 5))
+
+    # format y labels
+    ylabels = ['{:,.0f}'.format(x) for x in ax.get_yticks()]
+    ax.set_yticklabels(ylabels)
+    # add percentage annotations
+    if perc_labels is not None:
+        for i in range(len(df.index)):
+            row = df.iloc[i]
+            ax.text(row.name, row[y_name], row[perc_labels], color='black', ha='center', fontdict={'fontsize': perc_label_size})
+    # save
+    figure = ax.get_figure()
+    if rotate_x > 0:
+        figure.subplots_adjust(bottom=0.2)
+    figure.savefig(output_png, dpi=600)
+    plt.clf()
+
+    return figure
+
+
+def save_kdeplot(df: DataFrame,
+                 output_png: str,
+                 x_name: str,
+                 title: str,
+                 color: str,
+                 x_label: str = None,
+                 y_label: str = None,
+                 normalize_x: bool = True,
+                 fig_size: Tuple[int] = (24, 12),
+                 ):
+    """This function helps for computing automated kdeplots using seaborn.
+    It sets up somewhat standardized figure output for a harmonized rendering.
+
+    :param df: the DataFrame with data to plot
+    :param output_png: the output png full file name
+    :param x_name: DF column name to use for x-axis
+    :param x_label: the name to display on the plot for x-axis
+    :param y_label: the name to display on the plot for y-axis
+    :param color: color to use for bars, theoritically could also be a list of colors
+    :param fig_size: tuple of integers defining the plot dimensions (x, y)
+    :return: the figure in searborn format
+    """
+    # general style for plotting
+    sns.set(rc={'figure.figsize': fig_size})
+    sns.set_style('whitegrid', {'axes.edgecolor': '0.2'})
+    sns.set_context("paper", font_scale=2)
+
+    ax = sns.kdeplot(df[x_name], shade=True, label='', color=color)
+    ax.set_title(title, fontsize=24, y=1.02)
+    ax.tick_params(labelsize=20)
+    ax.tick_params(axis='x', rotation=0)
+    ax.set_xlim(0, 1)
+    #ax.set_xticklabels(df[x_name])
+    ax.set_xticklabels(['{:,.0%}'.format(x) for x in ax.get_xticks()])
+    ax.set_xlabel(x_label,fontsize=25, labelpad=20)
+    ax.set_ylabel(y_label,fontsize=25, labelpad=20)
+
+    # save
+    figure = ax.get_figure()
+    figure.savefig(output_png, dpi=600)
+    plt.clf()
+
+    return figure
+
+
+def print_title(title: str, level: int = 2, pad: int = 160):
     """Print a title with padding.
 
     :param title: title to print
-    :param logger: the Logger object currently used for coherent display within the log
+    :param level: level of importance of the title (lower level is more important, min=1)
     :param pad: a padding added for highlighting the title ("="*pad)
     """
-    pad = pad * 2
-    logger.info("=" * pad)
-    logger.info(title.upper().center(pad))
-    logger.info("=" * pad)
+    if level == 1:
+        # super title
+        logging.info("=" * pad)
+        logging.info("=" * pad)
+        logging.info(title.upper().center(pad))
+        logging.info("=" * pad)
+        logging.info("=" * pad)
+    elif level == 2:
+        # normal title
+        logging.info("=" * pad)
+        logging.info(title.upper().center(pad))
+        logging.info("=" * pad)
+
 
 
 def find_wd_levels(WD: str, natref: str = None, frags: str = None) -> dict:
@@ -109,65 +626,323 @@ def find_wd_level_steps(wd_level: str, pattern: str = '[0-9][0-9]_.*') -> list:
     return [str(p) for p in list(Path(wd_level).glob('*')) if re.match(pattern, Path(p).name)]
 
 
-def _get_missing_chunkids(WD: Path, subfolders: list, chunks_ini_id: list, check_on: str) -> OrderedDict:
-    """Iterate over defined subfolders in WD and compare the number of chunks found in sub-subfolder check_on (data or log) to check
-    if files are missing. An OrderedDict is computed with for each key the subfolder and as values the list of missing chunk ids.
+def filter_wd_levels_with_missing_chunks(wd_levels: OrderedDict) -> OrderedDict:
+    """Each wd_level contains a list of subdirectories, i.e.:
+    wd_levels['frags'] = [synthetic/chembl/data/natref_dnp/frags_crms, synthetic/chembl/data/natref_dnp/frags_jlpq] .
+    In case at least one chunk is found missing in a level, then the level is renoved and thus
+    filtered out from the analysis.
 
-    :param WD: the WD
-    :param subfolders: the list of subfolders to check (02_load, 03_deglyco, etc.). For any subfolder with '_std' in its name, then number of counted chunks if checking on data will be a third (because there are 3 outputs per chunk: passed, filtered and error).
-    :param: chunks_ini_id: the list of chunk ids defined in the step chunk
+    :param wd_levels: an ordered dictionary with levels as keys and lists of subdir wds as values
+    :return: the updated wd_levels
     """
-    # init
-    errors = OrderedDict()
-    steps = [s.split('_')[1] for s in subfolders]
-    # no chunks
-    if len(chunks_ini_id) == 0:  # so no reference, just look if there are the expected number of outputs per subfolder
-        logger.info("NO CHUNK SUBFOLDER COULD BE FOUND, ASSUMING THIS IS A FRAGMENTS DATASET")
-        for step, sf in zip(steps, subfolders):
+    for wd_level in wd_levels:  # preprocess, natref, frags
+        errors = []
+        for wd_subdir in wd_levels[wd_level]:  # 'frags': [frags1, frags2, ...]
             error = False
-            sf_output_files = [s.name for s in WD.glob(f"{sf}/{check_on}/*")]
-            if len(sf_output_files) < 1:
-                error = True
-            if check_on == 'data':
-                if ('_std' in sf and len(sf_output_files) < 3) or (not '_std' in sf and len(sf_output_files) < 1):
+            wd_steps = find_wd_level_steps(wd_subdir)
+            for wd_step in wd_steps:  # 00_raw, 01_load, 02_load, etc.
+                # count chunks
+                p_subdir = Path(wd_step)
+                if p_subdir.name == '00_raw':
+                    continue
+                count = len(list(p_subdir.glob('data/*')))
+                if p_subdir.name.split('_')[0] == '01':  # 01_load for fragments, 01_chunk for natural and synthetic
+                    count_ref = count
+                    logging.debug(f"CHUNKS -- NUMBER OF REFERENCE CHUNKS: {count_ref}")
+                # compare chunks
+                if count < count_ref:
+                    logging.error(f"CHUNKS -- ERROR! MISSING CHUNKS IN '{wd_subdir}' ({count}/{count_ref})")
                     error = True
                 else:
-                    error = False
-            if error:
-                errors[step] = ["Missing output files!"]
-    else:
-        # chunks
-        for step, sf in zip(steps, subfolders):
-            sf_chunks = [s.name for s in WD.glob(f"{sf}/{check_on}/*")]
-            if sf == '02_load':
-                sf_chunks_id = sorted([s.split("_")[-1] for s in sf_chunks])
-            else:
-                sf_chunks_id = sorted([s.split("_")[-2] for s in sf_chunks])
-            # check number of chunks to see if there is a problem, 3 output chunks for std so speical case
-            if check_on == 'data':
-                if ('_std' in sf and (len(sf_chunks_id)/3) < len(chunks_ini_id)) or (not '_std' in sf and len(sf_chunks_id) < len(chunks_ini_id)):
-                    error = True
-                else:
-                    error = False
-            # no this problem with log files
-            else:
-                if len(sf_chunks_id) < len(chunks_ini_id):
-                    error = True
-                else:
-                    error = False
+                    logging.debug(f"CHUNKS -- CHUNKS: '{wd_subdir}' ({count}/{count_ref})")
+            errors.append(error)
+        print(f"errors={errors}")
+        # filter subdirs that raised an error based on index in list
+        wd_levels[wd_level] = [wd_levels[wd_level][i] for i, e in enumerate(errors) if not e]
+        print(f"wd_levels[wd_level]={wd_levels[wd_level]}")
+        # apply logical thinking: if the earlier step failed, it is better not to run the later step
+        if len(wd_levels['preprocess']) == 0:
+            wd_levels['natref'] = []
+            wd_levels['frags'] = []
+        elif len(wd_levels['natref']) == 0:
+            wd_levels['frags'] = []
 
-            if error:
-                errors[step] = [x for x in chunks_ini_id if x not in sf_chunks_id]
-
-    return errors
+    return wd_levels
 
 
-def get_chunk_ref_count(wd_levels):
-    wd = wd_levels['preprocess'][0]
-    chunks = [str(x) for x in list(Path(wd).glob('[0-9][0-9]_chunk/data/*'))]
-    logging.debug(f"GET_CHUNKS_REF_COUNT - IDENTIFIED CHUNKS:\n" + '\n'.join(chunks))
-    return len(chunks)
+def _get_chunks(WD: str, pattern: str) -> List[str]:
+    """This function returns the list of all chunks found in a given directory.
+    It does not use the _000_ notation because it can also be applied to fragments.
 
+    :param WD: the WD where all subfolders for each step are present (i.e. 'natural/dnp/data')
+    :param pattern: the pattern that desired chunks contain (i.e. '1_input/data/*([0-9][0-9][0-9])?.sdf.gz')
+    :return: the list of chunks
+    """
+    WD = Path(WD)
+    pattern = re.compile(pattern)
+
+    chunks = [str(x) for x in list(WD.glob("*"))]
+
+    return sorted(list(filter(pattern.match, chunks)))
+
+
+def _parse_std_chunks(chunks: List[str]) -> DataFrame:
+    """Parse all output files of a category (passed, filtered or error) for the std step and return a corresponding a results summary.
+
+    :param chunks: output files for a category of std results
+    :return: summary DF with counts
+    """
+    # parse all files
+    dfs = []
+    for c in chunks:
+        df = pd.read_csv(c, sep="|", compression="gzip").groupby("task").count()[['status']].rename({'status': 'Count'}, axis=1)
+        if len(df.index) > 0:
+            dfs.append(df)
+
+    # if no case was found, return an empty dataframe
+    if len(dfs) == 0:
+        df = pd.DataFrame([], columns=["Count", "Category"])
+        return df
+
+    # concatenate all dataframes and compute the sum of all counts
+    df = pd.concat(dfs)
+    df["Category"] = df.index  # I don't know how to group by index!
+    df = df.groupby("Category").sum()
+    df["Category"] = df.index.map(lambda x: x.replace('filter_', ''))
+    # df['Perc_status'] = df['Count'].map(lambda x: f"{x/tot_mols:.2%}")
+
+    return df
+
+
+def get_df_load(WD: str) -> DataFrame:
+    """Get a DF summarizing the load step.
+
+    :param WD: the directory of the load step
+    :return: a DF summarizing the load step
+    """
+    logger.info("PREP -- COMPUTING LOAD RESULTS")
+    # iterate over the log files to count status
+    pattern = ".*([0-9]{3})?.log"
+    chunks = _get_chunks(f"{WD}/log", pattern)
+    logger.info(f"FOUND {len(chunks):,d} CHUNKS")
+    # initiate counts
+    num_passed = 0
+    num_errors = 0
+    for c in chunks:
+        df = pd.read_csv(c, sep="@", header=None)  # char not found in the log file so we can extract all lines as one column
+        records = df[df[0].str.contains("FAILURE")].iloc[0][0].split()
+        total = int(records[6])
+        errors = int(records[9])
+        passed = int(df[df[0].str.contains("SAVED")].iloc[0][0].split()[6])
+        logger.debug(f"{c} => PASSED: {passed}/{total} ({errors} ERRORS)")
+        num_passed += passed
+        num_errors += errors
+    # create a dataframe with counts
+    df = pd.DataFrame({'Category': ['loaded', 'cannot_load'], 'Count': [num_passed, num_errors]})
+    logger.info(f"PREP -- RESULTS FOR LOADING MOLECULES:\n\n{df}\n")
+
+    return df
+
+
+def get_df_deglyco(WD: str) -> DataFrame:
+    """Get a DF summarizing the deglycoslyation step.
+
+    :param WD: the directory of the deglyco step
+    :return: a DF summarizing the deglycoslyation step
+    """
+    if WD.endswith('/'):
+        WD = WD[0:-1]
+    logger.info("PREP -- COMPUTING DEGLYCO RESULTS")
+    # iterate over the log files to count status
+    pattern = ".*([0-9]{3})?_deglyco\.csv"
+    chunks = _get_chunks(f"{WD}/log", pattern)
+    logger.info(f"PREP -- FOUND {len(chunks):,d} CHUNKS")
+    # initiate counts
+    num_tot = 0
+    num_unchanged = 0
+    num_deglycosylated = 0
+    num_failed = 0
+    num_error = 0
+    # count status
+    for c in chunks:
+        df = pd.read_csv(c, sep="|")
+        num_tot += len(df.index)
+        num_unchanged += len(df[df['status'] == 'unchanged'].index)
+        num_deglycosylated += len(df[df['status'] == 'deglycosylated'].index)
+        num_failed += len(df[df['status'] == 'failed'].index)
+        num_error += len(df[df['status'] == 'error'].index)
+    # create a dataframe with counts
+    df = pd.DataFrame({'Category': ['deglycosylated', 'unchanged', 'failed', 'error'], 'Count': [num_deglycosylated, num_unchanged, num_failed, num_error]})
+    logger.info(f"PREP -- RESULTS FOR DEGLYCO:\n\n{df}\n")
+
+    return df
+
+
+def get_df_std_passed(WD: str) -> DataFrame:
+    """Get a DF summarizing the passed results of the sandardization step.
+
+    :param WD: the directory of the std step
+    :return: a DF summarizing passed results of the sandardization step
+    """
+    logger.info("PREP -- COMPUTING STD PASSED RESULTS")
+    # iterate over the log files to count status
+    pattern = ".*([0-9]{3})?_passed\.csv.gz"
+    chunks = _get_chunks(f"{WD}/data", pattern)
+    logger.info(f"PREP -- FOUND {len(chunks):,d} CHUNKS")
+    # initiate counts
+    num_passed = 0
+    for c in chunks:
+        df = pd.read_csv(c, sep="|")
+        num_passed += len(df.index)
+    df = pd.DataFrame({"Category": ['passed'], 'Count': [num_passed]})
+    logger.info(f"PREP -- RESULTS FOR STD PASSED:\n\n{df}\n")
+
+    return df
+
+
+def get_df_std_filtered(WD: str) -> DataFrame:
+    """Get a DF summarizing the filtered results of the sandardization step.
+
+    :param WD: the directory of the std step
+    :return: a DF summarizing filtered results of the sandardization step
+    """
+    logger.info("PREP -- COMPUTING STD FILTERED RESULTS")
+    # iterate over the log files to count status
+    pattern = ".*([0-9]{3})?_filtered\.csv.gz"
+    chunks = _get_chunks(f"{WD}/log", pattern)
+    logger.info(f"PREP -- FOUND {len(chunks):,d} CHUNKS")
+    # initiate counts
+    df = _parse_std_chunks(chunks)
+    logger.info(f"RESULTS FOR STD FILTERED:\n\n{df}\n")
+
+    return df
+
+
+def get_df_std_error(WD: str) -> DataFrame:
+    """Get a DF summarizing the error results of the sandardization step.
+
+    :param WD: the directory of the std step
+    :return: a DF summarizing error results of the sandardization step
+    """
+    logger.info("PREP -- COMPUTING STD ERROR RESULTS")
+    # iterate over the log files to count status
+    pattern = ".*([0-9]{3})?_error\.csv.gz"
+    chunks = _get_chunks(f"{WD}/log", pattern)
+    logger.info(f"PREP -- FOUND {len(chunks):,d} CHUNKS")
+    # initiate counts
+    df = _parse_std_chunks(chunks)
+    logger.info(f"PREP -- RESULTS FOR STD ERROR:\n\n{df}\n")
+
+    return df
+
+
+def get_df_dedupl(WD: str) -> DataFrame:
+    """Get a DF summarizing the results of the deduplication step.
+
+    :param WD: the directory of the std step
+    :return: a DF summarizing results of the deduplication step
+    """
+    logger.info("PREP -- COMPUTING DEDUPL RESULTS")
+    # iterate over the log files to count status
+    pattern = ".*([0-9]{3})?_dedupl\.log"
+    chunks = _get_chunks(f"{WD}/log", pattern)
+    logger.info(f"PREP -- FOUND {len(chunks):,d} CHUNKS")
+    # initiate counts
+    num_tot = 0
+    num_passed = 0
+    num_filtered = 0
+    for c in chunks:
+        df = pd.read_csv(c, sep="@", header=None)  # char not found in the log file so we can extract all lines as one column
+        passed, total = [int(x) for x in df[df[0].str.contains("REMAINING MOLECULES")].iloc[0][0].split("MOLECULES:")[1].split("/")]
+        num_passed += passed
+        num_filtered += total - passed
+        num_tot += total
+    # create a dataframe with counts
+    df = pd.DataFrame({'Category': ['unique', 'duplicate'], 'Count': [num_passed, num_filtered]})
+    logger.info(f"PREP -- RESULTS FOR DEDUPL:\n\n{df}\n")
+
+    return df
+
+
+def get_dfs_prep_frags(WD: str) -> Tuple[DataFrame]:
+    pass
+
+
+def get_dfs_prep(WD: str) -> Tuple[DataFrame]:
+    """Get a list of DFs summarizing the whole preprocess superstep: load, deglyco, std and dedupl.
+
+    - DF_deglyco is the detailed summary of deglycosylation appended with the number of mols that did not get processed because they could not be loaded (NA).
+    - DF_prep_filtered is the detailed summary of std and dedupl
+    - DF_prep_error is the detailed summary of std and load
+    - DF_prep_all is the general summary with the final number of passed, filtered and error molecules.
+
+    :param WD: the main directory of the dataset data (i.e. 'natural/dnp/data')
+    :return: a list of DFs of interest: [DF_deglyco, DF_prep_filtered, DF_prep_error, DF_prep_all]
+    """
+
+    logger.info("PREP -- COMPUTE RESULTS FOR PREPROCESS")
+    logger.info("PREP -- PROPRESS CONTAINS LOAD, DEGLYCO, STD AND DEDUPL STEPS")
+
+    # define subfolders
+    p = Path(WD)
+    WD_LOAD = [str(x) for x in list(p.glob("*_load"))][0]
+    WD_DEGLYCO = [str(x) for x in list(p.glob("*_deglyco"))][0]
+    WD_STD = [str(x) for x in list(p.glob("*_std"))][0]
+    WD_DEDUPL = [str(x) for x in list(p.glob("*_dedupl"))][0]
+
+    # get dfs
+    df_load = get_df_load(WD_LOAD)
+    df_deglyco = get_df_deglyco(WD_DEGLYCO)
+    df_std_passed = get_df_std_passed(WD_STD)
+    df_std_filtered = get_df_std_filtered(WD_STD)
+    df_std_error = get_df_std_error(WD_STD)
+    df_dedupl = get_df_dedupl(WD_DEDUPL)
+
+    # get total of molecules in input
+    num_mols_tot = df_load['Count'].sum()
+    # count not loaded molecules as well in deglyco
+    num_mols_deglyco_na = df_load[df_load['Category'] == 'cannot_load']['Count']
+    df_deglyco = pd.concat([df_deglyco, pd.DataFrame({'Category': ['NA'], 'Count': [num_mols_deglyco_na]})])
+    df_deglyco.reset_index(inplace=True, drop=True)
+    df_deglyco['Count'] = df_deglyco['Count'].astype(int)
+    df_deglyco['Perc_Status'] = df_deglyco['Count'].map(lambda x: f"{x/num_mols_tot:.2%}")
+    logger.info(f"PREP -- RESULTS FOR DEGLYCOSYLATION:\n\n{df_deglyco}\n")
+
+    # gather all filtered molecules
+    df_dedupl_dupl = df_dedupl[df_dedupl['Category'] == 'duplicate']
+    num_dedupl_dupl = df_dedupl_dupl['Count'].sum()
+    df_std_filtered = pd.concat([df_std_filtered, df_dedupl_dupl], sort=True)
+    # count even unoccurred cases in df_std_filtered
+    filters = ['empty', 'hac', 'molweight', 'nrings', 'medchem', 'timeout', 'duplicate']
+    df_std_filtered.set_index('Category', inplace=True)
+    df_std_filtered = df_std_filtered.reindex(filters)
+    df_std_filtered.reset_index(inplace=True)
+    df_std_filtered.fillna(0, inplace=True)
+    df_std_filtered['Count'] = df_std_filtered['Count'].astype(int)
+    df_std_filtered['Perc_Status'] = df_std_filtered['Count'].map(lambda x: f"{x/num_mols_tot:.2%}")
+    logger.info(f"PREP -- RESULTS FOR STD_FILTERED:\n\n{df_std_filtered}\n")
+
+    # gather all molecules that raised an error
+    df_std_error = pd.concat([df_std_error, df_load[df_load['Category'] == 'cannot_load']], sort=True)
+    # count even unoccurred cases in df_std_error
+    errors = ['cannot_load', 'initiate_mol', 'disconnect_metal', 'sanitize', 'remove_isotopes', 'normalize', 'uncharge', 'canonicalize', 'remove_stereo']
+    df_std_error.set_index('Category', inplace=True)
+    df_std_error = df_std_error.reindex(errors)
+    df_std_error.reset_index(inplace=True)
+    df_std_error.fillna(0, inplace=True)
+    df_std_error['Count'] = df_std_error['Count'].astype(int)
+    df_std_error['Perc_Status'] = df_std_error['Count'].map(lambda x: f"{x/num_mols_tot:.2%}")
+    logger.info(f"PREP -- RESULTS FOR STD_ERRORS:\n\n{df_std_error}\n")
+
+    # general count for passed/filtered/errors
+    num_tot_filtered = df_std_filtered['Count'].sum()
+    num_tot_passed = df_std_passed['Count'].sum() - num_dedupl_dupl  # dedupl happens after std, so std contains passsed mols that get filtered
+    num_tot_errors = df_std_error['Count'].sum()
+    df_std_all = pd.DataFrame({'Category': ['passed', 'filtered', 'errors'], 'Count': [num_tot_passed, num_tot_filtered, num_tot_errors]})
+    df_std_all['Perc_Status'] = df_std_all['Count'].map(lambda x: f"{x/num_mols_tot:.2%}")
+    logger.info(f"PREP -- RESULTS FOR STD_ALL:\n\n{df_std_all}\n")
+
+    return (df_std_all, df_std_filtered, df_std_error, df_deglyco)
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ BEGIN ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
@@ -181,7 +956,7 @@ if __name__ == '__main__':
     parser.add_argument('-f', '--frags', type=str, default=None, help="The name of the frags subdir to focus the report on. If None, then all identified natref subdirs are considered for reporting. Requires the frags_ prefix.")
     parser.add_argument('-d', '--dataset', type=str, default=None, help="Dataset name for using in the csv/png outputs in the report folder.")
     parser.add_argument('-p', '--prefix', type=str, default=None, help="Prefix used for output files in the data/log folders.")
-    parser.add_argument('-c', '--color', type=str, default='', help="Prefix used for output files in the data/log folders.")
+    parser.add_argument('-c', '--color', type=str, default='black', help="Color to use for plots.")
     parser.add_argument('--csv', type=str, default=False, help="Generate only CSV output files")
     parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
     args = parser.parse_args()
@@ -227,9 +1002,6 @@ if __name__ == '__main__':
 
     # init variables
 
-    # Begin iteration on folder tree
-    chunk_ref_count = get_chunk_ref_count(wd_levels)
-
     # the color is applied to the dataset itself, but since the coloring will be performed during the processing of the
     # I like to have my very own palette of colors but have a hard time remembering hexadecimal codes
     if args.color == 'gray':
@@ -244,11 +1016,91 @@ if __name__ == '__main__':
         color = args.color
 
     # exclude folders to analyze
-
+    wd_levels = filter_wd_levels_with_missing_chunks(wd_levels)
 
     # preprocess - natref - frags
     for wd_level in wd_levels:
-        print(f"\n{wd_level}")
+        print_title(f"{wd_level.upper()}", 1, 80)
+        logging.info(f"CONSIDERED RUNS: {wd_levels[wd_level]}")
+        if wd_level == 'preprocess':
+            print("""
+            PREPROCESSING IS ABOUT PREPARING THE DATASET FOR FRAGMENT COMBINATION ANALYSIS.
+            FOR FRAGMENTS, IT CONSISTS IN EXTRACTING MURCKO SCAFFOLDS FROM STANDARDIZED AND
+            RAW STRUCTURES, AND THEN DEPICT THEM. FOR NATURAL AND SYNTHETIC DATASETS, IT
+            CONSISTS IN CHUNKING THE DATA, STANDARDIZING THE STRUCTURES AND THEN DEPICT THEM.
+            """)
+        elif wd_level == 'natref':
+            print("""
+            NATREF IS ABOUT USING A NATURAL DATASET REFERENCE FOR DEFINING SYNTHETIC COMPOUNDS
+            WITHIN THE SYNTHETIC DATASET. ANY NATURAL STRUCTURE IDENTIFIED IS FILTERED OUT.
+            """)
+        elif wd_level == 'frags':
+            print("""
+            FRAGS IS ABOUT USING THE PREPARED FRAGMENTS FOR FRAGMENT COMBINATION ANALYSIS.
+            PERFORMED TASKS INCLUDE FRAGMENT SEARCH, FRAGMENT COMBINATION CLASSIFICATION AND
+            FRAGMENT GRAPH GENERATION. FOR SYNTHETIC DATASETS, PNP ANNOTATION IS PERFORMED AS WELL.
+            """)
+
         for wd_subdir in wd_levels[wd_level]:
+            if wd_level != 'preprocess':
+                print_title(Path(wd_subdir).name, 2, 80)
+
+            if wd_level == 'preprocess':
+                output_folder = f"{wd_levels[wd_level]}/report"
+                print(wd_level)
+
+
+                _print_title("CHECKING RESULTS FROM PREP", logger, pad)
+                # check if data is complete
+                subdir = ['load', 'deglyco', 'std', 'dedupl']
+                if not _step_is_valid(subdir, errors_data, errors_log):
+                    logger.error(f"MISSING DATA OR LOG FOR PREP... SKIPPING THIS STEP!")
+                    continue
+
+                # define csv outputs
+                output_csv_prep_overview = f"{output_folder}/{args.dataset}_prep_overview.csv"
+                output_csv_prep_filtered = f"{output_folder}/{args.dataset}_prep_filtered.csv"
+                output_csv_prep_error = f"{output_folder}/{args.dataset}_prep_error.csv"
+                output_csv_prep_deglyco = f"{output_folder}/{args.dataset}_prep_deglyco.csv"
+                # define png outputs
+                output_png_prep_overview = output_csv_prep_overview.replace('.csv', '.png')
+                output_png_prep_filtered = output_csv_prep_filtered.replace('.csv', '.png')
+                output_png_prep_error = output_csv_prep_error.replace('.csv', '.png')
+                output_png_prep_deglyco = output_csv_prep_deglyco.replace('.csv', '.png')
+                logger.info("PREP -- OUTPUT_CSV_PREP_OVERVIEW".ljust(pad) + f"{output_csv_prep_overview}")
+                logger.info("PREP -- OUTPUT_CSV_PREP_FILTERED".ljust(pad) + f"{output_csv_prep_filtered}")
+                logger.info("PREP -- OUTPUT_CSV_PREP_ERROR".ljust(pad) + f"{output_csv_prep_error}")
+                logger.info("PREP -- OUTPUT_CSV_PREP_DEGLYCO".ljust(pad) + f"{output_csv_prep_deglyco}")
+                logger.info("PREP -- OUTPUT PNG FILES HAVE THE SAME FILE NAMES AS OUTPUT CSV FILES")
+                # retrieve data
+                output_csv_files = [output_csv_prep_overview, output_csv_prep_filtered,
+                                    output_csv_prep_error, output_csv_prep_deglyco,
+                                    ]
+                output_png_files = [output_png_prep_overview, output_png_prep_filtered,
+                                    output_png_prep_error, output_png_prep_deglyco,
+                                    ]
+                if all([Path(x).exists() for x in output_png_files]):
+                    logger.info(f"PREP -- ALL OUTPUT PNG FILES ARE ALREADY AVAILABLE, NOTHING TO DO!")
+                elif all([Path(x).exists() for x in output_csv_files]):
+                    logger.info(f"PREP -- PARSING OUTPUT CSV FILES INSTEAD OF COMPUTING THEM")
+                    df_prep_overview = load.file(output_csv_prep_overview)
+                    df_prep_filtered = load.file(output_csv_prep_filtered)
+                    df_prep_error = load.file(output_csv_prep_error)
+                    df_prep_deglyco = load.file(output_csv_prep_deglyco)
+                else:
+                    logger.info(f"PREP -- COMPUTING OUTPUT CSV FILES")
+                    dfs_prep =  get_dfs_prep(wd_subdir)
+                    for df_prep, output_csv_fs in zip(dfs_prep, output_csv_files):
+                        save.file(df_prep, output_csv_fs)
+                    df_prep_overview = dfs_prep[0]
+                    df_prep_filtered =  dfs_prep[1]
+                    df_prep_error =  dfs_prep[2]
+                    df_prep_deglyco =  dfs_prep[3]
+
+
+                dfs_prep = get_dfs_prep(wd_subdir)
+
+
+
+
             wd_steps = find_wd_level_steps(wd_subdir)
-            print('\n'.join(wd_steps))
