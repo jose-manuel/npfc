@@ -115,6 +115,7 @@ def file(input_file: str,
     utils.check_arg_input_file(input_file)
     format, compression = utils.get_file_format(input_file)
     logging.debug(f"Format: {format}, compression: {compression}")
+
     # read mols
     if format == 'SDF':
         df = _from_sdf(input_file, compression=compression)
@@ -166,7 +167,11 @@ def file(input_file: str,
                 df[col] = df[col].map(utils.decode_object)
 
     # consistent id comparison accross datasets
-    df[out_id] = df[out_id].astype(str)
+    # columns to convert to str
+    cols_str = [out_id, 'idf1', 'idf2']
+    for col in cols_str:
+        if col in df.columns:
+            df[col] = df[col].astype(str)
 
     logging.debug(f"Excerpt of the data as extracted with load.file function\n\n{df.head(3)}\n")
 

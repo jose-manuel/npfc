@@ -23,8 +23,9 @@ def get_fragment_combination_categories(include_fp: bool = False) -> list:
     :return: the list of all possible fragment combination categories
     """
 
-    cats = ['fsp', 'fed', 'fbr', 'fli',  # fusions
-            'cmo',                       # connection monopodal
+    cats = ['fs', 'fe', 'fb', 'fl',      # fusions
+            'ca',                        # connection annulated
+            'cm',                        # connection monopodal
             'cbs', 'cbe', 'cbb', 'cbl',  # connections bipodal
             'cts', 'cte', 'ctb', 'ctl',  # connections tripodal
             'cos', 'coe', 'cob', 'col',  # connections others
