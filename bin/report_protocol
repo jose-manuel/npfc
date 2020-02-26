@@ -13,11 +13,11 @@ import logging
 import argparse
 import sys
 from datetime import datetime
-from collections import Counter
 import re
 from pathlib import Path
 from collections import OrderedDict
 # data handling
+import numpy as np
 import json
 import pandas as pd
 from pandas import DataFrame
@@ -25,8 +25,7 @@ import networkx as nx
 # data visualization
 from matplotlib import pyplot as plt
 import seaborn as sns
-from matplotlib.ticker import FuncFormatter
-from pylab import savefig
+# from pylab import savefig
 from adjustText import adjust_text
 # chemoinformatics
 import rdkit
@@ -145,7 +144,6 @@ def save_lineplot(df: DataFrame,
                   perc_labels: str = None,
                   perc_label_size: int = 15,
                   fig_size: Tuple[int] = (24, 12),
-                  force_order: bool = True,
                   fill: bool = False,
                   ):
     """This function helps for computing automated lineplot using seaborn.
@@ -175,8 +173,6 @@ def save_lineplot(df: DataFrame,
     if p.exists():
         p.unlink()
 
-    print(df)
-
     # general style for plotting
     # sns.set(rc={'figure.figsize': fig_size})
     plt.figure(figsize=fig_size)
@@ -187,6 +183,7 @@ def save_lineplot(df: DataFrame,
     fig, ax = plt.subplots(figsize=fig_size)
     ax = sns.scatterplot(x=x_name, y=y_name, data=df, ax=ax, s=20)
     ax = sns.lineplot(x=df[x_name], y=df[y_name], color=color, ax=ax)
+    plt.xticks(np.arange(min(df[x_name]), max(df[x_name]) + 1, 1))
     # update all lines width
     for l in ax.lines:
         plt.setp(l, linewidth=3)
@@ -359,14 +356,14 @@ def print_title(title: str, level: int = 2, pad: int = 160):
         logging.info("=" * pad)
     elif level == 2:
         # normal title
-        logging.info("-" * pad)
+        logging.info("*" * pad)
         logging.info(title.upper().center(pad))
-        logging.info("-" * pad)
+        logging.info("*" * pad)
     elif level == 3:
         # subtitle
-        logging.info("*" * pad)
+        logging.info("-" * pad)
         logging.info(title.upper().center(pad))
-        logging.info("*" * pad)
+        logging.info("-" * pad)
     elif level == 4:
         # sub-subtitle
         logging.info("." * pad)
@@ -1822,9 +1819,11 @@ if __name__ == '__main__':
 
                     # plot output_plot_fcc_ffs
                     if Path(output_plot_fcc_ffs).exists():
-                        logger.info("FCC -- OUTPUT_PLOT_FCC_FFO".ljust(pad) + f"ALREADY DONE")
+                        logger.info("FCC -- OUTPUT_PLOT_FCC_FFS".ljust(pad) + f"ALREADY DONE")
                     else:
-                        logger.info("FCC -- OUTPUT_PLOT_FCC_FFO".ljust(pad) + f"COMPUTING...")  # for that one percentage labelling go crazy...!
+                        logger.info("FCC -- OUTPUT_PLOT_FCC_FFS".ljust(pad) + f"COMPUTING...")  # for that one percentage labelling go crazy...!
+                        print(df_fcc_ffs)
+                        df_fcc_ffs['NumSubstructures'] = df_fcc_ffs['NumSubstructures'].astype(int)
                         save_lineplot(df_fcc_ffs,
                                       output_plot_fcc_ffs,
                                       'NumSubstructures',
@@ -1836,6 +1835,7 @@ if __name__ == '__main__':
                                       perc_labels='Perc_Mols',
                                       )
 
+                    sys.exit(1)
                     # plot output_plot_fcc_ffo
                     if Path(output_plot_fcc_ffo).exists():
                         logger.info("FCC -- OUTPUT_PLOT_FCC_FFO".ljust(pad) + f"ALREADY DONE")
@@ -1978,16 +1978,16 @@ if __name__ == '__main__':
                         logger.info("FG -- OUTPUT_PLOT_FG_NFRAGPERMOL_U".ljust(pad) + f"ALREADY DONE")
                     else:
                         logger.info("FG -- OUTPUT_PLOT_FG_NFRAGPERMOL_U".ljust(pad) + f"COMPUTING...")
-                        save_barplot(df_fg_nfragpermol_u,
-                                     output_plot_fg_nfragpermol_u,
-                                     'NumFrags',
-                                     'Count',
-                                     f"Number of Unique Fragment Hits Per Molecule in {dataset}",
-                                     x_label='Number of Unique Fragment Hits Per Molecule',
-                                     y_label='Count',
-                                     color=color,
-                                     perc_labels='Perc_Mols',
-                                     )
+                        save_lineplot(df_fg_nfragpermol_u,
+                                      output_plot_fg_nfragpermol_u,
+                                      'NumFrags',
+                                      'Count',
+                                      f"Number of Unique Fragment Hits Per Molecule in {dataset}",
+                                      x_label='Number of Unique Fragment Hits Per Molecule',
+                                      y_label='Count',
+                                      color=color,
+                                      perc_labels='Perc_Mols',
+                                      )
 
                     # plot output_plot_fg_top10frags_u
                     if Path(output_plot_fg_top10frags_u).exists():
