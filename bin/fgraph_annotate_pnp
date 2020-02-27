@@ -115,7 +115,7 @@ def main():
         raise ValueError(f"ERROR! REF_DIR COULD NOT BE FOUND! ({args.ref_dir})")
     ref_files = [str(x) for x in list(p.glob("*_fgraph.csv.gz"))]
     ref_files.sort()
-    logging.info(f"FOUND {len(ref_files)} FRAGMENT MAP FILES AT {args.ref_dir}")
+    logger.info(f"FOUND {len(ref_files)} FRAGMENT MAP FILES AT {args.ref_dir}")
 
     # display infos
     logger.info("LIBRARY VERSIONS:")
@@ -123,34 +123,34 @@ def main():
     logger.info("pandas".ljust(pad) + f"{pd.__version__}")
     logger.info("npfc".ljust(pad) + f"{npfc.__version__}")
     logger.info("ARGUMENTS:")
-    logging.info("INPUT_FCC".ljust(pad) + f"{args.input_map}")
-    logging.info("INPUT_FORMAT".ljust(pad) + f"{input_format}")
-    logging.info("INPUT_COMPRESSION".ljust(pad) + f"{input_compression}")
-    logging.info("REF_DIR".ljust(pad) + f"{args.ref_dir}")
-    logging.info("NUM REF_DIR".ljust(pad) + f"{len(ref_files)}")
-    logging.info("OUTPUT_MAP".ljust(pad) + f"{args.output_map}")
-    logging.info("OUT_FORMAT".ljust(pad) + f"{out_format}")
-    logging.info("OUT_COMPRESSION".ljust(pad) + f"{out_compression}")
-    logging.info("LOG".ljust(pad) + f"{args.log}")
+    logger.info("INPUT_FCC".ljust(pad) + f"{args.input_map}")
+    logger.info("INPUT_FORMAT".ljust(pad) + f"{input_format}")
+    logger.info("INPUT_COMPRESSION".ljust(pad) + f"{input_compression}")
+    logger.info("REF_DIR".ljust(pad) + f"{args.ref_dir}")
+    logger.info("NUM REF_DIR".ljust(pad) + f"{len(ref_files)}")
+    logger.info("OUTPUT_MAP".ljust(pad) + f"{args.output_map}")
+    logger.info("OUT_FORMAT".ljust(pad) + f"{out_format}")
+    logger.info("OUT_COMPRESSION".ljust(pad) + f"{out_compression}")
+    logger.info("LOG".ljust(pad) + f"{args.log}")
 
     # begin
-    logging.info("BEGIN")
+    logger.info("BEGIN")
 
     # load map
-    logging.info("LOADING FRAGMENT MAPS")
+    logger.info("LOADING FRAGMENT MAPS")
     d1 = datetime.now()
     df_map = load.file(args.input_map, decode=True)
     print(df_map.head(1))
     # df_map.drop("Unnamed: 0", axis=1, inplace=True)
-    logging.info(f"FOUND {len(df_map.index)} FRAGMENT MAPS")
+    logger.info(f"FOUND {len(df_map.index)} FRAGMENT MAPS")
 
     # load map_refs
-    logging.info("LOADING ALL REFERENCE FRAGMENT MAPS")
+    logger.info("LOADING ALL REFERENCE FRAGMENT MAPS")
     d2 = datetime.now()
     df_map_ref = pd.concat([load.file(x) for x in ref_files])
     # df_map_ref.drop("Unnamed: 0", axis=1, inplace=True)
-    logging.info(f"FOUND {len(df_map_ref.index)} REFERENCE FRAGMENT MAPS")
-    logging.info(f"EXTRACTING EDGES FROM FRAGMENT MAPS")
+    logger.info(f"FOUND {len(df_map_ref.index)} REFERENCE FRAGMENT MAPS")
+    logger.info(f"EXTRACTING EDGES FROM FRAGMENT MAPS")
     df_map_ref["edges_ref"] = df_map_ref["_fgraph"].map(lambda x: x.edges(data="abbrev"))
 
     # mapping fragment combinations
@@ -165,13 +165,13 @@ def main():
     logger.info("=" * pad)
     logger.info(f"LIST OF PNPs ({len(df_pnps.index)})".center(pad))
     logger.info("=" * pad)
-    [logging.info(f"PNP: {df_pnps.iat[i, 0]}") for i in range(len(df_pnps.index))]
+    [logger.info(f"PNP: {df_pnps.iat[i, 0]}") for i in range(len(df_pnps.index))]
     # others
     df_others = df_map[~df_map["idm"].isin(df_pnps['idm'])].groupby("idm").first().reset_index()[["idm"]]
     logger.info("=" * pad)
     logger.info(f"LIST OF NON-PNPs ({len(df_others.index)})".center(pad))
     logger.info("=" * pad)
-    [logging.info(f"NON-PNP: {df_others.iat[i, 0]}") for i in range(len(df_others.index))]
+    [logger.info(f"NON-PNP: {df_others.iat[i, 0]}") for i in range(len(df_others.index))]
     logger.info("=" * pad)
 
     # curating results
@@ -186,7 +186,7 @@ def main():
 
     # end
     d6 = datetime.now()
-    logging.info("SUMMARY")
+    logger.info("SUMMARY")
     logger.info("COMPUTATIONAL TIME: CONFIGURING JOB".ljust(pad * 2) + f"{d1-d0}")
     logger.info("COMPUTATIONAL TIME: LOADING INPUT FRAGMENT MAPS".ljust(pad * 2) + f"{d2-d1}")
     logger.info("COMPUTATIONAL TIME: LOADING REFERENCE FRAGMENT MAPS".ljust(pad * 2) + f"{d3-d2}")
@@ -194,7 +194,7 @@ def main():
     logger.info("COMPUTATIONAL TIME: SAVING ANNOTATED FRAGMENT MAPS".ljust(pad * 2) + f"{d5-d4}")
     logger.info("COMPUTATIONAL TIME: DISPLAYING RESULTS".ljust(pad * 2) + f"{d6-d5}")
     logger.info("COMPUTATIONAL TIME: TOTAL".ljust(pad * 2) + f"{d6-d0}")
-    logging.info("END")
+    logger.info("END")
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ MAIN ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #

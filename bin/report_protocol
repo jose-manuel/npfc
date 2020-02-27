@@ -183,7 +183,8 @@ def save_lineplot(df: DataFrame,
     fig, ax = plt.subplots(figsize=fig_size)
     ax = sns.scatterplot(x=x_name, y=y_name, data=df, ax=ax, s=20)
     ax = sns.lineplot(x=df[x_name], y=df[y_name], color=color, ax=ax)
-    plt.xticks(np.arange(min(df[x_name]), max(df[x_name]) + 1, 1))
+    # fix xticks that would contain floats instead of ints
+    plt.xticks(np.arange(min(df[x_name]), max(df[x_name]) + 1, 1))  # https://stackoverflow.com/questions/30327153/seaborn-pylab-changing-xticks-from-float-to-int
     # update all lines width
     for l in ax.lines:
         plt.setp(l, linewidth=3)
@@ -342,6 +343,35 @@ def save_distplot(df: DataFrame,
     return figure
 
 
+def print_header(pad=160):
+    """
+    """
+
+    logger.info("RUNNING REPORT_PROTOCOL")
+
+    logger.info("LIBRARY VERSIONS:")
+    logger.info("rdkit".ljust(pad) + f"{rdkit.__version__}")
+    logger.info("pandas".ljust(pad) + f"{pd.__version__}")
+    logger.info("npfc".ljust(pad) + f"{npfc.__version__}")
+    logger.info("seaborn".ljust(pad) + f"{sns.__version__}")
+
+    logger.info("ARGUMENTS:")
+    logger.info("WD".ljust(pad) + f"{args.wd}")
+    logger.info("NATREF".ljust(pad) + f"{args.natref}")
+    logger.info("FRAGS".ljust(pad) + f"{args.frags}")
+    logger.info("DATASET".ljust(pad) + f"{dataset}")
+    if args.prefix is None:
+        logger.info("PREFIX".ljust(pad) + f"{prefix} (default)")
+    else:
+        logger.info("PREFIX".ljust(pad) + f"{prefix}")
+    if args.color in d_colors.keys():
+        logger.info("COLOR".ljust(pad) + f"{color} ('{args.color}')")
+    else:
+        logger.info("COLOR".ljust(pad) + f"{color}")
+    logger.info("PLOT FORMAT".ljust(pad) + f"{args.plotformat}")
+    logger.info("COMPUTE CSV ONLY".ljust(pad) + f"{args.csv}")
+
+
 def print_title(title: str, level: int = 2, pad: int = 160):
     """Print a title with padding.
 
@@ -351,24 +381,24 @@ def print_title(title: str, level: int = 2, pad: int = 160):
     """
     if level == 1:
         # super title
-        logging.info("=" * pad)
-        logging.info(title.upper().center(pad))
-        logging.info("=" * pad)
+        logger.info("=" * pad)
+        logger.info(title.upper().center(pad))
+        logger.info("=" * pad)
     elif level == 2:
         # normal title
-        logging.info("*" * pad)
-        logging.info(title.upper().center(pad))
-        logging.info("*" * pad)
+        logger.info("*" * pad)
+        logger.info(title.upper().center(pad))
+        logger.info("*" * pad)
     elif level == 3:
         # subtitle
-        logging.info("-" * pad)
-        logging.info(title.upper().center(pad))
-        logging.info("-" * pad)
+        logger.info("-" * pad)
+        logger.info(title.upper().center(pad))
+        logger.info("-" * pad)
     elif level == 4:
         # sub-subtitle
-        logging.info("." * pad)
-        logging.info(title.upper().center(pad))
-        logging.info("." * pad)
+        logger.info("." * pad)
+        logger.info(title.upper().center(pad))
+        logger.info("." * pad)
     else:
         raise ValueError(f"ERROR! UNKNOWN LEVEL! ({level})")
 
@@ -396,14 +426,15 @@ def find_wd_levels(WD: str, natref: str = None, frags: str = None) -> dict:
         wd_preprocess = [f"{WD}/data".replace('//', '/')]
     # find natref dirs
     if natref is None:
-        wd_natref = [str(p) for p in list(Path(WD).glob('**')) if re.match('natref_.*', Path(p).name)]
+        wd_natref = [str(p) for p in list(Path(WD).glob('**')) if p.name[0:7] == 'natref_']
     else:
-        wd_natref = [str(p) for p in list(Path(WD).glob('**')) if Path(p).name == natref]
+        wd_natref = [str(p) for p in list(Path(WD).glob('**')) if p.name == natref]
     # find frags dirs
     if frags is None:
-        wd_frags = [str(p) for p in list(Path(WD).glob('**')) if re.match('frags_.*', Path(p).name)]
+        wd_frags = [str(p) for p in list(Path(WD).glob('**')) if p.name[0:6] == 'frags_']
     else:
-        wd_frags = [str(p) for p in list(Path(WD).glob('**')) if Path(p).name == frags]
+        wd_frags = [str(p) for p in list(Path(WD).glob('**')) if p.name == frags]
+
     # consider only wanted natref subdirs
     if natref is not None:
         wd_frags = [wd for wd in wd_frags if Path(wd).parent.name == natref]
@@ -457,10 +488,11 @@ def filter_wd_levels_with_missing_chunks(wd_levels: OrderedDict) -> OrderedDict:
         wd_levels[wd_level] = [wd_levels[wd_level][i] for i, e in enumerate(errors) if not e]
         # apply logical thinking: if the earlier step failed, it is better not to run the later step
         if len(wd_levels['preprocess']) == 0:
+            logging.debug(f"CHUNKS -- ERROR! SINCE PREPROCESS IS NOT GOOD, ABORT PARSING OF NATREF AND FRAGS SUBDIRS.")
             wd_levels['natref'] = []
             wd_levels['frags'] = []
-        elif len(wd_levels['natref']) == 0:
-            wd_levels['frags'] = []
+        # elif len(wd_levels['natref']) == 0:  # this is way too simplistic, indeed need to iterate depth-wise to skip frags corresponding on incomplete natref
+        #     wd_levels['frags'] = []
 
     return wd_levels
 
@@ -581,7 +613,7 @@ def get_df_std_passed(WD: str) -> DataFrame:
     """
     logger.info("PREP -- COMPUTING STD PASSED RESULTS")
     # iterate over the log files to count status
-    pattern = ".*([0-9]{3})?_passed.csv.gz"
+    pattern = ".*([0-9]{3})?_std.csv.gz"
     chunks = _get_chunks(f"{WD}/data", pattern)
     logger.info(f"PREP -- FOUND {len(chunks):,d} CHUNKS")
     # initiate counts
@@ -1004,10 +1036,10 @@ def get_dfs_fcc(WD):
     if not isinstance(WD, Path):
         WD = Path(WD)
     # check if col with activity in dataframe, if so return top10 most active fcc
-    logger.info("FCC -- COMPUTING RESULTS FOR FRAGMENT COMBINATION CLASSIFICATION (FCC)")
+    logger.info("FC -- COMPUTING RESULTS FOR FRAGMENT COMBINATION CLASSIFICATION (FCC)")
 
     # parse results before fragment search
-    logger.info("FCC -- COMPUTING TOTAL NUMBER OF MOLECULES BEFORE FCC")
+    logger.info("FC -- COMPUTING TOTAL NUMBER OF MOLECULES BEFORE FCC")
     # find chunks
     WD_FCC = [str(x) for x in list(WD.glob("*_fcc"))][0]
     pattern = ".*([0-9]{3})?_fcc.csv.gz"
@@ -1321,18 +1353,10 @@ if __name__ == '__main__':
     parser.add_argument('-c', '--color', type=str, default='black', help="Color to use for plots.")
     parser.add_argument('--plotformat', type=str, default='svg', help="Format to use for plots. Possible values are 'svg' and 'png'.")
     parser.add_argument('--csv', type=str, default=False, help="Generate only CSV output files")
+    parser.add_argument('--clear', type=str, default=False, help="Force the generation of log, plot and CSV files by clearing all report files at any found specified levels.")
+    parser.add_argument('--regenplots', type=str, default=False, help="Force the geeration of plots by clearing any pre-existing plot at any specified levels.")
     parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
     args = parser.parse_args()
-
-    # logging
-
-    logger = utils._configure_logger(args.log)
-    logger.info("RUNNING REPORT_PROTOCOL")
-    warnings.filterwarnings('ignore', category=pd.io.pytables.PerformanceWarning)  # if None is returned instead of a molecule, do not complain about mixed types
-    pd.options.mode.chained_assignment = None  # disable pd.io.pytables.SettingWithCopyWarning
-    pad = 40
-    lg = RDLogger.logger()
-    lg.setLevel(RDLogger.INFO)
 
     # check arguments
 
@@ -1346,25 +1370,44 @@ if __name__ == '__main__':
         raise ValueError(f"ERROR! FRAGS PREFIX IS EITHER WRONG OR MISSING! ('{args.frags}')")
     # prefix
     if args.prefix is None:
-        logging.debug(f"PREFIX IS NOT SET, RESORTING TO WD DIRNAME.")
+        logging.warning(f"PREFIX IS NOT SET, RESORTING TO WD DIRNAME.")
         prefix = Path(args.wd).name
     else:
         prefix = args.prefix
     if args.dataset is None:
-        logging.debug(f"DATASET IS NOT SET, USING PREFIX INSTEAD.")
+        logging.warning(f"DATASET IS NOT SET, USING PREFIX INSTEAD.")
         dataset = prefix
     else:
         dataset = args.dataset
     # plotformat
     if args.plotformat not in ('svg', 'png'):
         raise ValueError(f"ERROR! UNKNOWN PLOT FORMAT! ('{args.plotformat}')")
+    # clear
+    if args.clear:
+        logging.warning("REMOVING PRE-EXISTING REPORTS")
+        for wd_level in wd_levels:
+            for dir in wd_levels[wd_level]:
+                [x.unlink() for x in Path(f"{dir}/report").glob('*')]
+    # regenplots
+    if args.regenplots:
+        logging.warning("REMOVING PRE-EXISTING PLOTS")
+        for wd_level in wd_levels:
+            for dir in wd_levels[wd_level]:
+                [x.unlink() for x in Path(f"{dir}/report/").glob(f"*.{args.plotformat}")]
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ INIT ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
-    # pandas rendering
+    # logging
+    pd.options.mode.chained_assignment = None  # disable pd.io.pytables.SettingWithCopyWarning
+    warnings.filterwarnings('ignore', category=pd.io.pytables.PerformanceWarning)  # if None is returned instead of a molecule, do not complain about mixed types
+    lg = RDLogger.logger()
+    lg.setLevel(RDLogger.INFO)
+    # display rendering
     pd.set_option('display.max_columns', 20)
     pd.set_option('display.max_rows', 20)
     pd.set_option('max_colwidth', 50)
+    pad_title = 80
+    pad = 40
 
     # the color is applied to the dataset itself, but since the coloring will be performed during the processing of the
     # I like to have my very own palette of colors but have a hard time remembering hexadecimal codes
@@ -1378,65 +1421,40 @@ if __name__ == '__main__':
     except KeyError:
         color = args.color
 
-    logger.info("LIBRARY VERSIONS:")
-    logger.info("rdkit".ljust(pad) + f"{rdkit.__version__}")
-    logger.info("pandas".ljust(pad) + f"{pd.__version__}")
-    logger.info("npfc".ljust(pad) + f"{npfc.__version__}")
-    logger.info("seaborn".ljust(pad) + f"{sns.__version__}")
-
-    logger.info("ARGUMENTS:")
-    logger.info("WD".ljust(pad) + f"{args.wd}")
-    logger.info("NATREF".ljust(pad) + f"{args.natref}")
-    logger.info("FRAGS".ljust(pad) + f"{args.frags}")
-    logger.info("DATASET".ljust(pad) + f"{dataset}")
-    if args.prefix is None:
-        logger.info("PREFIX".ljust(pad) + f"{prefix} (default)")
-    else:
-        logger.info("PREFIX".ljust(pad) + f"{prefix}")
-    if args.color in d_colors.keys():
-        logger.info("COLOR".ljust(pad) + f"{color} ('{args.color}')")
-    else:
-        logger.info("COLOR".ljust(pad) + f"{color}")
-    logger.info("PLOT FORMAT".ljust(pad) + f"{args.plotformat}")
-    logger.info("COMPUTE CSV ONLY".ljust(pad) + f"{args.csv}")
+    # desperate attempt
+    global logger
 
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~ DEFINE ITERATION  ~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
     # exclude folders to analyze
     wd_levels = filter_wd_levels_with_missing_chunks(wd_levels)
-
     # preprocess - natref - frags
     for wd_level in wd_levels:
-        print_title(f"{wd_level.upper()}", 1, 80)
-        logging.info(f"CONSIDERED RUNS: {wd_levels[wd_level]}")
-        if wd_level == 'preprocess':
-            print("""
-            PREPROCESSING IS ABOUT PREPARING THE DATASET FOR FRAGMENT COMBINATION ANALYSIS.
-            FOR FRAGMENTS, IT CONSISTS IN EXTRACTING MURCKO SCAFFOLDS FROM STANDARDIZED AND
-            RAW STRUCTURES, AND THEN DEPICT THEM. FOR NATURAL AND SYNTHETIC DATASETS, IT
-            CONSISTS IN CHUNKING THE DATA, STANDARDIZING THE STRUCTURES AND THEN DEPICT THEM.
-            """)
-        elif wd_level == 'natref':
-            print("""
-            NATREF IS ABOUT USING A NATURAL DATASET REFERENCE FOR DEFINING SYNTHETIC COMPOUNDS
-            WITHIN THE SYNTHETIC DATASET. ANY NATURAL STRUCTURE IDENTIFIED IS FILTERED OUT.
-            """)
-        elif wd_level == 'frags':
-            print("""
-            FRAGS IS ABOUT USING THE PREPARED FRAGMENTS FOR FRAGMENT COMBINATION ANALYSIS.
-            PERFORMED TASKS INCLUDE FRAGMENT SEARCH, FRAGMENT COMBINATION CLASSIFICATION AND
-            FRAGMENT GRAPH GENERATION. FOR SYNTHETIC DATASETS, PNP ANNOTATION IS PERFORMED AS WELL.
-            """)
-
         for wd_subdir in wd_levels[wd_level]:
-            # rint_title(Path(wd_subdir).name, 2, 80)
 
             # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ PREP ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
             if wd_level == 'preprocess':
                 for dir in wd_levels[wd_level]:
+                    d0 = datetime.now()
                     output_folder = f"{dir}/report"
-                    print_title(f"CHECKING RESULTS IN '{dir}'", 2, 80)
+                    log_file = f"{output_folder}/report_{wd_level}_{prefix}.log"
+                    Path(output_folder).mkdir(parents=True, exist_ok=True)
+                    if Path(log_file).exists():
+                        logging.warning(f"REPORT LOG ALREADY PRESENT, SKIPPING DIR='{dir}'.")
+                        continue
+                    logger = utils._configure_logger(log_level=args.log, log_file=log_file, logger_name=log_file)
+                    print_header(pad)
+                    print_title(f"{wd_level.upper()}", 1, pad_title)
+                    logger.info("""
+
+                    PREPROCESSING IS ABOUT PREPARING THE DATASET FOR FRAGMENT COMBINATION ANALYSIS.
+                    FOR FRAGMENTS, IT CONSISTS IN EXTRACTING MURCKO SCAFFOLDS FROM STANDARDIZED AND
+                    RAW STRUCTURES, AND THEN DEPICT THEM. FOR NATURAL AND SYNTHETIC DATASETS, IT
+                    CONSISTS IN CHUNKING THE DATA, STANDARDIZING THE STRUCTURES AND THEN DEPICT THEM.
+                    """)
+                    logger.info(f"CONSIDERED RUNS: {wd_levels[wd_level]}")
+                    print_title(f"CHECKING RESULTS IN '{dir}'", 2, pad_title)
 
                     # define csv outputs
                     output_csv_prep_overview = f"{output_folder}/{prefix}_prep_overview.csv"
@@ -1478,6 +1496,7 @@ if __name__ == '__main__':
                         df_prep_filtered = dfs_prep[1]
                         df_prep_error = dfs_prep[2]
                         df_prep_deglyco = dfs_prep[3]
+                    d1 = datetime.now()
 
                     # compute plots
                     # skip plots if computing only CSV output files
@@ -1545,14 +1564,34 @@ if __name__ == '__main__':
                                      perc_labels='Perc_Status',
                                      fig_size=(12, 12),
                                      )
+                    d2 = datetime.now()
+                    logger.info("-- END OF REPORT")
+                    logger.info("-- COMPUTATIONAL TIME")
+                    logger.info(f"PARSE OUTPUT FILES:".ljust(pad) + f"{d1 - d0}")
+                    logger.info(f"GENERATE PLOTS:".ljust(pad) + f"{d2 - d1}")
+                    logger.info(f"TOTAL:".ljust(pad) + f"{d2 - d0}")
 
             # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ SUBSET ~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
             if wd_level == 'natref':
-                for dir in wd_levels[wd_level]:
-                    output_folder = f"{dir}/report"
-                    print_title(f"CHECKING RESULTS IN '{dir}'", 2, 80)
 
+                for dir in wd_levels[wd_level]:
+                    d0 = datetime.now()
+                    output_folder = f"{dir}/report"
+                    log_file = f"{output_folder}/report_{wd_level}_{prefix}.log"
+                    Path(output_folder).mkdir(parents=True, exist_ok=True)
+                    if Path(log_file).exists():
+                        logging.warning(f"REPORT LOG ALREADY PRESENT, SKIPPING DIR='{dir}'.")
+                        continue
+                    logger = utils._configure_logger(log_level=args.log, log_file=log_file, logger_name=log_file)
+                    print_header(pad)
+                    print_title(f"{wd_level.upper()}", 1, pad_title)
+                    logger.info("""
+
+                    NATREF IS ABOUT USING A NATURAL DATASET REFERENCE FOR DEFINING SYNTHETIC COMPOUNDS
+                    WITHIN THE SYNTHETIC DATASET. ANY NATURAL STRUCTURE IDENTIFIED IS FILTERED OUT.
+                    """)
+                    print_title(f"CHECKING RESULTS IN '{dir}'", 2, pad_title)
                     # define outputs
                     output_csv_sub_subset = f"{output_folder}/{prefix}_sub_subset.csv"
                     output_plot_sub_subset = output_csv_sub_subset.replace('.csv', f".{args.plotformat}")
@@ -1570,6 +1609,7 @@ if __name__ == '__main__':
                         logger.info(f"SUB -- COMPUTING OUTPUT CSV FILES")
                         df_sub_subset = get_df_subset(dir)
                         save.file(df_sub_subset, output_csv_sub_subset)
+                    d1 = datetime.now()
 
                     # skip plots if computing only CSV output files
                     if args.csv:
@@ -1590,16 +1630,37 @@ if __name__ == '__main__':
                                      perc_labels='Perc_Status',
                                      fig_size=(12, 12),
                                      )
-
+                    d2 = datetime.now()
+                    logger.info("-- END OF REPORT")
+                    logger.info("-- COMPUTATIONAL TIME")
+                    logger.info(f"PARSE OUTPUT FILES:".ljust(pad) + f"{d1 - d0}")
+                    logger.info(f"GENERATE PLOTS:".ljust(pad) + f"{d2 - d1}")
+                    logger.info(f"TOTAL:".ljust(pad) + f"{d2 - d0}")
             # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FRAGS ~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
             if wd_level == 'frags':
+
                 for dir in wd_levels[wd_level]:
+                    d0 = datetime.now()
                     output_folder = f"{dir}/report"
-                    print_title(f"CHECKING RESULTS IN '{dir}'", 2, 80)
+                    log_file = f"{output_folder}/report_{wd_level}_{prefix}.log"
+                    Path(output_folder).mkdir(parents=True, exist_ok=True)
+                    if Path(log_file).exists():
+                        logging.warning(f"REPORT LOG ALREADY PRESENT, SKIPPING DIR='{dir}'.")
+                        continue
+                    logger = utils._configure_logger(log_level=args.log, log_file=log_file, logger_name=log_file)
+                    print_header(pad)
+                    print_title(f"{wd_level.upper()}", 1, pad_title)
+                    logger.info("""
+
+                    FRAGS IS ABOUT USING THE PREPARED FRAGMENTS FOR FRAGMENT COMBINATION ANALYSIS.
+                    PERFORMED TASKS INCLUDE FRAGMENT SEARCH, FRAGMENT COMBINATION CLASSIFICATION AND
+                    FRAGMENT GRAPH GENERATION. FOR SYNTHETIC DATASETS, PNP ANNOTATION IS PERFORMED AS WELL.
+                    """)
+                    print_title(f"CHECKING RESULTS IN '{dir}'", 2, pad_title)
 
                     # ~~~~~~~~~~~~~~~~~~~~~ FRAGMENT SEARCH ~~~~~~~~~~~~~~~~~~ #
-                    print_title(f"FRAGMENT SEARCH", 3, 80)
+                    print_title(f"FRAGMENT SEARCH", 3, pad_title)
 
                     # define outputs
                     output_csv_fs_nfragpermol = f"{output_folder}/{prefix}_fs_nfragpermol.csv"
@@ -1646,6 +1707,7 @@ if __name__ == '__main__':
                         df_fs_fragmolcov = dfs_fs[2]
                         df_fs_top10frags = dfs_fs[3].head(10)
                         df_fs_top10frags_u = dfs_fs[4].head(10)
+                    d1 = datetime.now()
 
                     # skip plots if computing only CSV output files
                     if args.csv:
@@ -1660,7 +1722,7 @@ if __name__ == '__main__':
                                       output_plot_fs_nfragpermol,
                                       'NumFrags',
                                       'Count',
-                                      f"Number of Fragment Hits Per Molecule in {dataset}",
+                                      f"FS - Number of Fragment Hits Per Molecule in {dataset}",
                                       x_label='Number of Fragment Hits Per Molecule',
                                       y_label='Count',
                                       color=color,
@@ -1675,7 +1737,7 @@ if __name__ == '__main__':
                         save_kdeplot(df_fs_fragmolcov,
                                      output_plot_fs_fragmolcov,
                                      x_name='frag_ratio',
-                                     title=f"Distribution of Molecule Coverage by Fragments in {dataset}",
+                                     title=f"FS - Distribution of Molecule Coverage by Fragments in {dataset}",
                                      x_label='Molecule Coverage by Fragments',
                                      y_label='Kernel Density Estimate of the Number of Molecules',
                                      color=color,
@@ -1690,7 +1752,7 @@ if __name__ == '__main__':
                                      output_plot_fs_top10frags,
                                      'idf',
                                      'Count',
-                                     f"Top 10 Fragments in {dataset}",
+                                     f"FS - Top 10 Fragments by Occurrence in {dataset}",
                                      x_label='Fragment ID',
                                      y_label='Count',
                                      color=color,
@@ -1710,7 +1772,7 @@ if __name__ == '__main__':
                                       output_plot_fs_nfragpermol_u,
                                       'NumFrags',
                                       'Count',
-                                      f"Number of Unique Fragment Hits Per Molecule in {dataset}",
+                                      f"FS - Number of Unique Fragment Hits Per Molecule in {dataset}",
                                       x_label='Number of Unique Fragment Hits Per Molecule',
                                       y_label='Count',
                                       color=color,
@@ -1727,7 +1789,7 @@ if __name__ == '__main__':
                                      output_plot_fs_top10frags_u,
                                      'idf',
                                      'Count',
-                                     f"Top 10 Unique Fragments in {dataset}",
+                                     f"FS - Top 10 Unique Fragments by Occurrence in {dataset}",
                                      x_label='Fragment ID',
                                      y_label='Count',
                                      color=color,
@@ -1736,9 +1798,10 @@ if __name__ == '__main__':
                                      force_order=True,
                                      fig_size=(12, 12),
                                      )
+                    d2 = datetime.now()
 
                     # ~~~~~~~~~~~~~~~~~~ FRAGMENT COMBINATIONS ~~~~~~~~~~~~~~~ #
-                    print_title(f"FRAGMENT COMBINATIONS", 3, 80)
+                    print_title(f"FRAGMENT COMBINATIONS", 3, pad_title)
 
                     # define outputs
                     output_csv_fcc_fcc = f"{output_folder}/{dataset}_fcc_fcc.csv"
@@ -1749,24 +1812,24 @@ if __name__ == '__main__':
                     output_plot_fcc_fc = output_csv_fcc_fc.replace('.csv', f".{args.plotformat}")
                     output_plot_fcc_ffo = output_csv_fcc_ffo.replace('.csv', f".{args.plotformat}")
                     output_plot_fcc_ffs = output_csv_fcc_ffs.replace('.csv', f".{args.plotformat}")
-                    logger.info("FCC -- OUTPUT_CSV_FCC_FCC".ljust(pad) + f"{output_csv_fcc_fcc}")
-                    logger.info("FCC -- OUTPUT_CSV_FCC_FC".ljust(pad) + f"{output_csv_fcc_fc}")
-                    logger.info("FCC -- OUTPUT_CSV_FCC_FFO".ljust(pad) + f"{output_csv_fcc_ffo}")
-                    logger.info("FCC -- OUTPUT_CSV_FCC_FFS".ljust(pad) + f"{output_csv_fcc_ffs}")
-                    logger.info("FCC -- OUTPUT PLOT FILES HAVE THE SAME FILE NAMES AS OUTPUT CSV FILES")
+                    logger.info("FC -- OUTPUT_CSV_FCC_FCC".ljust(pad) + f"{output_csv_fcc_fcc}")
+                    logger.info("FC -- OUTPUT_CSV_FCC_FC".ljust(pad) + f"{output_csv_fcc_fc}")
+                    logger.info("FC -- OUTPUT_CSV_FCC_FFO".ljust(pad) + f"{output_csv_fcc_ffo}")
+                    logger.info("FC -- OUTPUT_CSV_FCC_FFS".ljust(pad) + f"{output_csv_fcc_ffs}")
+                    logger.info("FC -- OUTPUT PLOT FILES HAVE THE SAME FILE NAMES AS OUTPUT CSV FILES")
                     # retrieve data
                     output_csv_files = [output_csv_fcc_fcc, output_csv_fcc_fc, output_csv_fcc_ffs, output_csv_fcc_ffo]
                     output_plot_files = [output_plot_fcc_fcc, output_plot_fcc_fc, output_plot_fcc_ffs, output_plot_fcc_ffo]
                     if all([Path(x).exists() for x in output_plot_files]):
-                        logger.info(f"FCC -- ALL OUTPUT PLOT FILES ARE ALREADY AVAILABLE, NOTHING TO DO!")
+                        logger.info(f"FC -- ALL OUTPUT PLOT FILES ARE ALREADY AVAILABLE, NOTHING TO DO!")
                     elif all([Path(x).exists() for x in output_csv_files]):
-                        logger.info(f"FCC -- PARSING OUTPUT CSV FILES INSTEAD OF COMPUTING THEM")
+                        logger.info(f"FC -- PARSING OUTPUT CSV FILES INSTEAD OF COMPUTING THEM")
                         df_fcc_fcc = load.file(output_csv_fcc_fcc)
                         df_fcc_fc = load.file(output_csv_fcc_fc, decode=False).head(10)  # plot top 10 and no need for mol objects at the moment
                         df_fcc_ffs = load.file(output_csv_fcc_ffs)
                         df_fcc_ffo = load.file(output_csv_fcc_ffo)
                     else:
-                        logger.info(f"FCC -- COMPUTING OUTPUT CSV FILES")
+                        logger.info(f"FC -- COMPUTING OUTPUT CSV FILES")
                         d_fcc = get_dfs_fcc(dir)
                         df_fcc_fcc = d_fcc['df_fcc']
                         df_fcc_fc = d_fcc['df_fc']
@@ -1777,6 +1840,7 @@ if __name__ == '__main__':
                         save.file(df_fcc_ffs, output_csv_fcc_ffs)
                         save.file(df_fcc_ffo, output_csv_fcc_ffo)
                         df_fcc_fc = df_fcc_fc.head(10)  # use only top 10 for plotting
+                    d3 = datetime.now()
 
                     # skip plots if computing only CSV output files
                     if args.csv:
@@ -1784,14 +1848,14 @@ if __name__ == '__main__':
 
                     # plot output_plot_fcc_fcc
                     if Path(output_plot_fcc_fcc).exists():
-                        logger.info("FCC -- OUTPUT_PLOT_FCC_COUNTS".ljust(pad) + f"ALREADY DONE")
+                        logger.info("FC -- OUTPUT_PLOT_FCC_COUNTS".ljust(pad) + f"ALREADY DONE")
                     else:
-                        logger.info("FCC -- OUTPUT_PLOT_FCC_COUNTS".ljust(pad) + f"COMPUTING...")
+                        logger.info("FC -- OUTPUT_PLOT_FCC_COUNTS".ljust(pad) + f"COMPUTING...")
                         save_barplot(df_fcc_fcc,
                                      output_plot_fcc_fcc,
                                      'Category',
                                      'Count',
-                                     f"Fragment Combination Classification in {dataset}",
+                                     f"FCC - Fragment Combination Classification in {dataset}",
                                      x_label='Fragment Combination Categories',
                                      y_label='Count',
                                      color=color,
@@ -1800,15 +1864,15 @@ if __name__ == '__main__':
 
                     # plot output_plot_fcc_fc
                     if Path(output_plot_fcc_fc).exists():
-                        logger.info("FCC -- OUTPUT_PLOT_FC_COUNTS".ljust(pad) + f"ALREADY DONE")
+                        logger.info("FC -- OUTPUT_PLOT_FC_COUNTS".ljust(pad) + f"ALREADY DONE")
                     else:
                         df_fcc_fc['fc'] = df_fcc_fc['fc'].map(lambda x: x.replace('[', '\n').replace(']', '\n'))
-                        logger.info("FCC -- OUTPUT_PLOT_FC_COUNTS".ljust(pad) + f"COMPUTING...")  # for that one percentage labelling go crazy...!
+                        logger.info("FC -- OUTPUT_PLOT_FC_COUNTS".ljust(pad) + f"COMPUTING...")  # for that one percentage labelling go crazy...!
                         save_barplot(df_fcc_fc,
                                      output_plot_fcc_fc,
                                      'fc',
                                      'Count',
-                                     f"Top 10 Fragment Combinations in {dataset}",
+                                     f"FCC - Top 10 Fragment Combinations by Occurrence in {dataset}",
                                      x_label='Fragment Combinations',
                                      y_label='Count',
                                      color=color,
@@ -1819,42 +1883,41 @@ if __name__ == '__main__':
 
                     # plot output_plot_fcc_ffs
                     if Path(output_plot_fcc_ffs).exists():
-                        logger.info("FCC -- OUTPUT_PLOT_FCC_FFS".ljust(pad) + f"ALREADY DONE")
+                        logger.info("FC -- OUTPUT_PLOT_FCC_FFS".ljust(pad) + f"ALREADY DONE")
                     else:
-                        logger.info("FCC -- OUTPUT_PLOT_FCC_FFS".ljust(pad) + f"COMPUTING...")  # for that one percentage labelling go crazy...!
-                        print(df_fcc_ffs)
+                        logger.info("FC -- OUTPUT_PLOT_FCC_FFS".ljust(pad) + f"COMPUTING...")  # for that one percentage labelling go crazy...!
                         df_fcc_ffs['NumSubstructures'] = df_fcc_ffs['NumSubstructures'].astype(int)
                         save_lineplot(df_fcc_ffs,
                                       output_plot_fcc_ffs,
                                       'NumSubstructures',
                                       'Count',
-                                      f"Number of Substructures Fragment Combinations (ffs) per Molecule in {dataset}",
+                                      f"FCC - Number of Substructures Fragment Combinations (ffs) per Molecule in {dataset}",
                                       x_label='Number of Overlaps',
                                       y_label='Count',
                                       color=color,
                                       perc_labels='Perc_Mols',
                                       )
 
-                    sys.exit(1)
                     # plot output_plot_fcc_ffo
                     if Path(output_plot_fcc_ffo).exists():
-                        logger.info("FCC -- OUTPUT_PLOT_FCC_FFO".ljust(pad) + f"ALREADY DONE")
+                        logger.info("FC -- OUTPUT_PLOT_FCC_FFO".ljust(pad) + f"ALREADY DONE")
                     else:
-                        logger.info("FCC -- OUTPUT_PLOT_FCC_FFO".ljust(pad) + f"COMPUTING...")  # for that one percentage labelling go crazy...!
+                        logger.info("FC -- OUTPUT_PLOT_FCC_FFO".ljust(pad) + f"COMPUTING...")  # for that one percentage labelling go crazy...!
                         save_lineplot(df_fcc_ffo,
                                       output_plot_fcc_ffo,
                                       'NumOverlaps',
                                       'Count',
-                                      f"Number of Overlap Fragment Combinations (ffo) per Molecule in {dataset}",
+                                      f"FCC - Number of Overlap Fragment Combinations (ffo) per Molecule in {dataset}",
                                       x_label='Number of Overlaps',
                                       y_label='Count',
                                       color=color,
                                       perc_labels='Perc_Mols',
                                       )
+                    d4 = datetime.now()
 
                     # ~~~~~~~~~~~~~~ FRAGMENT GRAPH GENERATION ~~~~~~~~~~~~~~~ #
 
-                    print_title(f"FRAGMENT GRAPH GENERATION", 3, 80)
+                    print_title(f"FRAGMENT GRAPH GENERATION", 3, pad_title)
                     # define outputs
                     output_csv_fg_nfragpermol = f"{output_folder}/{prefix}_fg_nfragpermol.csv"
                     output_csv_fg_nfragpermol_u = f"{output_folder}/{prefix}_fg_nfragpermol_u.csv"
@@ -1919,6 +1982,7 @@ if __name__ == '__main__':
                         df_fg_fcc = dfs_fg[5]
                         df_fg_top10fc = dfs_fg[6].head(10)
                         df_fg_nfgpermol = dfs_fg[7]
+                    d5 = datetime.now()
 
                     # skip plots if computing only CSV output files
                     if args.csv:
@@ -1933,7 +1997,7 @@ if __name__ == '__main__':
                                       output_plot_fg_nfragpermol,
                                       'NumFrags',
                                       'Count',
-                                      f"Number of Fragment Hits Per Molecule in {dataset}",
+                                      f"FG - Number of Fragment Hits Per Molecule in {dataset}",
                                       x_label='Number of Fragment Hits Per Molecule',
                                       y_label='Count',
                                       color=color,
@@ -1948,7 +2012,7 @@ if __name__ == '__main__':
                         save_kdeplot(df_fg_fragmolcov,
                                      output_plot_fg_fragmolcov,
                                      x_name='frag_ratio',
-                                     title=f"Distribution of Molecule Coverage by Fragments in {dataset}",
+                                     title=f"FG - Distribution of Molecule Coverage by Fragments in {dataset}",
                                      x_label='Molecule Coverage by Fragments',
                                      y_label='Kernel Density Estimate of the Number of Molecules',
                                      color=color,
@@ -1963,7 +2027,7 @@ if __name__ == '__main__':
                                      output_plot_fg_top10frags,
                                      'idf',
                                      'Count',
-                                     f"Top 10 Fragments in {dataset}",
+                                     f"FG - Top 10 Fragments by Occurrence in {dataset}",
                                      x_label='Fragment ID',
                                      y_label='Count',
                                      color=color,
@@ -1982,7 +2046,7 @@ if __name__ == '__main__':
                                       output_plot_fg_nfragpermol_u,
                                       'NumFrags',
                                       'Count',
-                                      f"Number of Unique Fragment Hits Per Molecule in {dataset}",
+                                      f"FG - Number of Unique Fragment Hits Per Molecule in {dataset}",
                                       x_label='Number of Unique Fragment Hits Per Molecule',
                                       y_label='Count',
                                       color=color,
@@ -1998,7 +2062,7 @@ if __name__ == '__main__':
                                      output_plot_fg_top10frags_u,
                                      'idf',
                                      'Count',
-                                     f"Top 10 Unique Fragments in {dataset}",
+                                     f"FG - Top 10 Unique Fragments by Occurrence in {dataset}",
                                      x_label='Fragment ID',
                                      y_label='Count',
                                      color=color,
@@ -2017,7 +2081,7 @@ if __name__ == '__main__':
                                      output_plot_fg_fcc,
                                      'Category',
                                      'Count',
-                                     f"Fragment Combination Classification in {dataset}",
+                                     f"FG - Fragment Combination Classification in {dataset}",
                                      x_label='Fragment Combination Categories',
                                      y_label='Count',
                                      color=color,
@@ -2034,7 +2098,7 @@ if __name__ == '__main__':
                                      output_plot_fg_top10fc,
                                      'fc',
                                      'Count',
-                                     f"Top 10 Fragment Combinations in {dataset}",
+                                     f"FG - Top 10 Fragment Combinations by Occurence in {dataset}",
                                      x_label='Fragment Combinations',
                                      y_label='Count',
                                      color=color,
@@ -2052,21 +2116,29 @@ if __name__ == '__main__':
                                       output_plot_fg_nfgpermol,
                                       'NumFG',
                                       'Count',
-                                      f"Number of Fragment Graphs Per Molecule in {dataset}",
+                                      f"FG - Number of Fragment Graphs Per Molecule in {dataset}",
                                       x_label='Number of Fragment Graphs Per Molecule',
                                       y_label='Count',
                                       color=color,
                                       perc_labels='Perc_Mols',
                                       )
+                    d6 = datetime.now()
 
                     # ~~~~~~~~~ PSEUDO-NATURAL PRODUCTS ANNOTATIONS ~~~~~~~~~~ #
 
-                    print_title(f"PSEUDO-NATURAL PRODCUTS ANNOTATION", 3, 80)
+                    print_title(f"PSEUDO-NATURAL PRODCUTS ANNOTATION", 3, pad_title)
+                    WD_PNP = [str(x) for x in list(Path(dir).glob("*_pnp"))]
+                    if len(WD_PNP) == 0:
+                        logger.info(f"NO PNP FOLDER COULD BE FOUND AT '{dir}', SKIPPING THIS STEP.")
+                        continue
+                    else:
+                        WD_PNP = WD_PNP[0]
+                        logger.info(f"INVESTIGATING PNP ANNOTATION IN '{WD_PNP}'")
 
                     # define outputs
                     output_csv_pnp_pnp = f"{output_folder}/{prefix}_pnp_pnp.csv"
                     output_plot_pnp_pnp = output_csv_pnp_pnp.replace('.csv', f".{args.plotformat}")
-                    logger.info("FCC -- OUTPUT PLOT FILES HAVE THE SAME FILE NAMES AS OUTPUT CSV FILES")
+                    logger.info("FC -- OUTPUT PLOT FILES HAVE THE SAME FILE NAMES AS OUTPUT CSV FILES")
                     # retrieve data
                     output_csv_files = [output_csv_pnp_pnp]
                     output_plot_files = [output_plot_pnp_pnp]
@@ -2079,6 +2151,7 @@ if __name__ == '__main__':
                         logger.info(f"PNP -- COMPUTING OUTPUT CSV FILES")
                         df_pnp_pnp = get_df_pnp(dir)
                         save.file(df_pnp_pnp, output_csv_pnp_pnp)
+                    d7 = datetime.now()
 
                     # skip plots if computing only CSV output files
                     if args.csv:
@@ -2099,3 +2172,15 @@ if __name__ == '__main__':
                                      perc_labels='Perc_Mols',
                                      fig_size=(12, 12),
                                      )
+                    d8 = datetime.now()
+                    logger.info("-- END OF REPORT")
+                    logger.info("-- COMPUTATIONAL TIME")
+                    logger.info(f"FS - PARSE OUTPUT FILES:".ljust(pad) + f"{d1 - d0}")
+                    logger.info(f"FS - GENERATE PLOTS:".ljust(pad) + f"{d2 - d1}")
+                    logger.info(f"FC - PARSE OUTPUT FILES:".ljust(pad) + f"{d3 - d2}")
+                    logger.info(f"FC - GENERATE PLOTS:".ljust(pad) + f"{d4 - d3}")
+                    logger.info(f"FG - PARSE OUTPUT FILES:".ljust(pad) + f"{d5 - d4}")
+                    logger.info(f"FG - GENERATE PLOTS:".ljust(pad) + f"{d6 - d5}")
+                    logger.info(f"PNP - PARSE OUTPUT FILES:".ljust(pad) + f"{d7 - d6}")
+                    logger.info(f"PNP - GENERATE PLOTS:".ljust(pad) + f"{d8 - d7}")
+                    logger.info(f"TOTAL:".ljust(pad) + f"{d8 - d0}")

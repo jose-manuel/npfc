@@ -80,7 +80,7 @@ def main():
     utils.check_arg_output_file(args.output)
     oformat, ocompression = utils.get_file_format(args.output)
     if oformat == ".csv" and not args.oencode:
-        logging.warning(f"Output format is {oformat} but oencode is set to {args.oencode}, setting it to True")
+        logger.warning(f"Output format is {oformat} but oencode is set to {args.oencode}, setting it to True")
         oencode = True
     else:
         oencode = args.oencode
@@ -94,39 +94,39 @@ def main():
     logger.info("npfc".ljust(pad) + f"{npfc.__version__}")
     # arguments
     logger.info("ARGUMENTS:")
-    logging.info("MINPUT".ljust(pad) + f"{args.minput}")
-    logging.info("MFORMAT".ljust(pad) + f"{mformat}")
-    logging.info("MCOMPRESSION".ljust(pad) + f"{mcompression}")
-    logging.info("MID".ljust(pad) + f"{args.mid}")
-    logging.info("MMOL".ljust(pad) + f"{args.mmol}")
+    logger.info("MINPUT".ljust(pad) + f"{args.minput}")
+    logger.info("MFORMAT".ljust(pad) + f"{mformat}")
+    logger.info("MCOMPRESSION".ljust(pad) + f"{mcompression}")
+    logger.info("MID".ljust(pad) + f"{args.mid}")
+    logger.info("MMOL".ljust(pad) + f"{args.mmol}")
     if mformat == '.csv':
-        logging.info("MSEP".ljust(pad) + f"{args.msep}")
+        logger.info("MSEP".ljust(pad) + f"{args.msep}")
     if mformat != '.sdf':
-        logging.info("MDECODE".ljust(pad) + f"{args.msep}")
-    logging.info("FINPUT".ljust(pad) + f"{args.finput}")
-    logging.info("FFORMAT".ljust(pad) + f"{fformat}")
-    logging.info("FCOMPRESSION".ljust(pad) + f"{fcompression}")
-    logging.info("FID".ljust(pad) + f"{args.fid}")
-    logging.info("FMOL".ljust(pad) + f"{args.fmol}")
+        logger.info("MDECODE".ljust(pad) + f"{args.msep}")
+    logger.info("FINPUT".ljust(pad) + f"{args.finput}")
+    logger.info("FFORMAT".ljust(pad) + f"{fformat}")
+    logger.info("FCOMPRESSION".ljust(pad) + f"{fcompression}")
+    logger.info("FID".ljust(pad) + f"{args.fid}")
+    logger.info("FMOL".ljust(pad) + f"{args.fmol}")
     if fformat == '.csv':
-        logging.info("FSEP".ljust(pad) + f"{args.fsep}")
+        logger.info("FSEP".ljust(pad) + f"{args.fsep}")
     if fformat != '.sdf':
-        logging.info("FDECODE".ljust(pad) + f"{args.fdecode}")
-    logging.info("OUTPUT".ljust(pad) + f"{args.output}")
-    logging.info("OFORMAT".ljust(pad) + f"{oformat}")
-    logging.info("OCOMPRESSION".ljust(pad) + f"{ocompression}")
-    logging.info("OENCODE".ljust(pad) + f"{oencode}")
-    logging.info("OMOL".ljust(pad) + f"{args.omol}")
-    logging.info("OFRAG".ljust(pad) + f"{args.ofrag}")
-    logging.info("OSEP".ljust(pad) + f"{args.osep}")
-    logging.info("LOG".ljust(pad) + f"{args.log}")
+        logger.info("FDECODE".ljust(pad) + f"{args.fdecode}")
+    logger.info("OUTPUT".ljust(pad) + f"{args.output}")
+    logger.info("OFORMAT".ljust(pad) + f"{oformat}")
+    logger.info("OCOMPRESSION".ljust(pad) + f"{ocompression}")
+    logger.info("OENCODE".ljust(pad) + f"{oencode}")
+    logger.info("OMOL".ljust(pad) + f"{args.omol}")
+    logger.info("OFRAG".ljust(pad) + f"{args.ofrag}")
+    logger.info("OSEP".ljust(pad) + f"{args.osep}")
+    logger.info("LOG".ljust(pad) + f"{args.log}")
 
     # begin
 
-    logging.info("BEGIN")
+    logger.info("BEGIN")
 
     # load mols
-    logging.info("LOADING MOLECULES")
+    logger.info("LOADING MOLECULES")
     d1 = datetime.now()
     df_mols = load.file(args.minput,
                         in_id=args.mid,
@@ -139,10 +139,10 @@ def main():
                         )
     df_mols.index = df_mols[args.mid]
     num_failed = df_mols['mol'].isna().sum()
-    logging.info(f"LOADED {len(df_mols)} RECORDS WITH {num_failed} FAILURE(S)")
+    logger.info(f"LOADED {len(df_mols)} RECORDS WITH {num_failed} FAILURE(S)")
 
     # load frags
-    logging.info("LOADING FRAGMENTS")
+    logger.info("LOADING FRAGMENTS")
     d2 = datetime.now()
     df_frags = load.file(args.finput,
                          in_id=args.fid,
@@ -155,7 +155,7 @@ def main():
                          )
     df_frags.index = df_frags[args.fid]
     num_failed = df_frags['mol'].isna().sum()
-    logging.info(f"LOADED {len(df_frags)} RECORDS WITH {num_failed} FAILURE(S)")
+    logger.info(f"LOADED {len(df_frags)} RECORDS WITH {num_failed} FAILURE(S)")
 
     # substructure search
     logger.info(f"SUBSTRUCTURE SEARCH")
@@ -171,14 +171,14 @@ def main():
 
     # end
     d5 = datetime.now()
-    logging.info("SUMMARY")
+    logger.info("SUMMARY")
     logger.info("COMPUTATIONAL TIME: CONFIGURING JOB".ljust(pad * 2) + f"{d1-d0}")
     logger.info("COMPUTATIONAL TIME: LOADING MOLECULES".ljust(pad * 2) + f"{d2-d1}")
     logger.info("COMPUTATIONAL TIME: LOADING FRAGMNENTS".ljust(pad * 2) + f"{d3-d2}")
     logger.info("COMPUTATIONAL TIME: SUBSTRUCTURE SEARCH".ljust(pad * 2) + f"{d4-d3}")
     logger.info("COMPUTATIONAL TIME: SAVING OUTPUT".ljust(pad * 2) + f"{d5-d4}")
     logger.info("COMPUTATIONAL TIME: TOTAL".ljust(pad * 2) + f"{d5-d0}")
-    logging.info("END")
+    logger.info("END")
     sys.exit(0)
 
 

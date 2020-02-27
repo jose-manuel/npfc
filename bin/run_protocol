@@ -89,10 +89,10 @@ def main():
     logger.info("pandas".ljust(pad) + f"{pd.__version__}")
     logger.info("npfc".ljust(pad) + f"{npfc.__version__}")
     logger.info("ARGUMENTS".center(pad))
-    logging.info("PROTOCOL".ljust(pad) + f"{args.protocol}")
-    logging.info("CONFIG".ljust(pad) + f"{args.config}")
-    logging.info("ENV".ljust(pad) + f"{args.env}")
-    logging.info("JOBS".ljust(pad) + f"{args.jobs}")
+    logger.info("PROTOCOL".ljust(pad) + f"{args.protocol}")
+    logger.info("CONFIG".ljust(pad) + f"{args.config}")
+    logger.info("ENV".ljust(pad) + f"{args.env}")
+    logger.info("JOBS".ljust(pad) + f"{args.jobs}")
 
     # default keys set to None
     config = ['molid', 'prefix', 'WD', 'input_file', 'frags_file', 'chunksize', 'natref', 'act_file']
@@ -100,15 +100,15 @@ def main():
 
     # begin
     ds.append(('CONFIGURE', datetime.now()))
-    logging.info("BEGIN")
+    logger.info("BEGIN")
 
     # configure job by updating config with config_parsed
     if args.config is not None:
         config_file = args.config
-        logging.info(f"PARSING SPECIFIED CONFIG FILE")
+        logger.info(f"PARSING SPECIFIED CONFIG FILE")
     else:
         config_file = pkg_resources.resource_filename('npfc', f"data/{args.protocol}.json")
-        logging.info(f"NO SPECIFIED CONFIG FILE, PARSING DEFAULT CONFIG FILE AT '{config_file}'")
+        logger.info(f"NO SPECIFIED CONFIG FILE, PARSING DEFAULT CONFIG FILE AT '{config_file}'")
     with open(config_file, 'r') as CONFIG:
         config_parsed = json.load(CONFIG)
     config.update(config_parsed)
@@ -256,12 +256,12 @@ def main():
 
     # end
     ds.append((f"END", datetime.now()))
-    logging.info("SUMMARY")
+    logger.info("SUMMARY")
     for i in range(len(ds) - 1):
         if ds[i+1] != 'END':
             logger.info(f"COMPUTATIONAL TIME: {ds[i+1][0]}".ljust(pad * 2) + f"{ds[i+1][1] - ds[i][1]}")
     logger.info("COMPUTATIONAL TIME: TOTAL".ljust(pad * 2) + f"{ds[-1][1] - ds[0][1]}")
-    logging.info("END")
+    logger.info("END")
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ MAIN ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #

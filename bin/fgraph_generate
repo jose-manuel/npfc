@@ -72,25 +72,25 @@ def main():
     logger.info("pandas".ljust(pad) + f"{pd.__version__}")
     logger.info("npfc".ljust(pad) + f"{npfc.__version__}")
     logger.info("ARGUMENTS:")
-    logging.info("INPUT_FCC".ljust(pad) + f"{args.input_fcc}")
-    logging.info("FCC_FORMAT".ljust(pad) + f"{fcc_format}")
-    logging.info("FCC_COMPRESSION".ljust(pad) + f"{fcc_compression}")
-    logging.info("OUTPUT_MAP".ljust(pad) + f"{args.output_map}")
-    logging.info("OUT_FORMAT".ljust(pad) + f"{out_format}")
-    logging.info("OUT_COMPRESSION".ljust(pad) + f"{out_compression}")
-    logging.info("MIN_FRAGS".ljust(pad) + f"{args.min_frags}")
-    logging.info("MAX_FRAGS".ljust(pad) + f"{args.max_frags}")
-    logging.info("MAX_OVERLAPS".ljust(pad) + f"{args.max_overlaps}")
-    logging.info("LOG".ljust(pad) + f"{args.log}")
+    logger.info("INPUT_FCC".ljust(pad) + f"{args.input_fcc}")
+    logger.info("FCC_FORMAT".ljust(pad) + f"{fcc_format}")
+    logger.info("FCC_COMPRESSION".ljust(pad) + f"{fcc_compression}")
+    logger.info("OUTPUT_MAP".ljust(pad) + f"{args.output_map}")
+    logger.info("OUT_FORMAT".ljust(pad) + f"{out_format}")
+    logger.info("OUT_COMPRESSION".ljust(pad) + f"{out_compression}")
+    logger.info("MIN_FRAGS".ljust(pad) + f"{args.min_frags}")
+    logger.info("MAX_FRAGS".ljust(pad) + f"{args.max_frags}")
+    logger.info("MAX_OVERLAPS".ljust(pad) + f"{args.max_overlaps}")
+    logger.info("LOG".ljust(pad) + f"{args.log}")
 
     # begin
-    logging.info("RUNNING FRAGMENT GRAPH GENERATION")
+    logger.info("RUNNING FRAGMENT GRAPH GENERATION")
 
     # load fcc
-    logging.info("LOADING FRAGMENT COMBINATIONS")
+    logger.info("LOADING FRAGMENT COMBINATIONS")
     d1 = datetime.now()
     df_fcc = load.file(args.input_fcc)
-    logging.info(f"FOUND {len(df_fcc.index)} FRAGMENT COMBINATIONS")
+    logger.info(f"FOUND {len(df_fcc.index)} FRAGMENT COMBINATIONS")
 
     # mapping fragment combinations
     logger.info(f"MAPPING REMAINING FRAGMENT COMBINATIONS")
@@ -105,13 +105,13 @@ def main():
 
     # end
     d4 = datetime.now()
-    logging.info("SUMMARY")
+    logger.info("SUMMARY")
     logger.info("COMPUTATIONAL TIME: CONFIGURING JOB".ljust(pad * 2) + f"{d1-d0}")
     logger.info("COMPUTATIONAL TIME: LOADING FRAGMENT COMBINATIONS".ljust(pad * 2) + f"{d2-d1}")
     logger.info("COMPUTATIONAL TIME: MAPPING COMBINATIONS".ljust(pad * 2) + f"{d3-d2}")
     logger.info("COMPUTATIONAL TIME: SAVING FRAGMENT COMBINATIONS NETWORKS".ljust(pad * 2) + f"{d4-d3}")
     logger.info("COMPUTATIONAL TIME: TOTAL".ljust(pad * 2) + f"{d4-d0}")
-    logging.info("END")
+    logger.info("END")
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ MAIN ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #

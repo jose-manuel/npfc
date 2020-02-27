@@ -135,35 +135,35 @@ def main():
     # arguments
     # replace many vars with defined names for simplifying the whole pipeline, these variables might be added back when the structure of npfc does not change anymore
     logger.info("ARGUMENTS:")
-    logging.info("INPUT_MOLS_1".ljust(pad) + f"{args.input_mols_1}")
-    logging.info("IN_ID_1".ljust(pad) + f"{in_id}")
-    logging.info("IN_MOL_1".ljust(pad) + f"{in_mol}")
-    logging.info("IN_FORMAT_1".ljust(pad) + f"{in_format_1}")
-    logging.info("IN_COMPRESSION_1".ljust(pad) + f"{in_compression_1}")
-    logging.info("INPUT_MOLS_2".ljust(pad) + f"{args.input_mols_1}")
-    logging.info("IN_ID_2".ljust(pad) + f"{in_id}")
-    logging.info("IN_MOL_2".ljust(pad) + f"{in_mol}")
-    logging.info("IN_FORMAT_2".ljust(pad) + f"{in_format_1}")
-    logging.info("IN_COMPRESSION_2".ljust(pad) + f"{in_compression_1}")
-    logging.info("DECODE".ljust(pad) + f"{decode}")
-    logging.info("OUTPUT_MOLS".ljust(pad) + f"{args.output_mols}")
-    logging.info("OUT_ID".ljust(pad) + f"{out_id}")
-    logging.info("OUT_MOL".ljust(pad) + f"{out_mol}")
-    logging.info("OUT_FORMAT".ljust(pad) + f"{out_format}")
-    logging.info("OUT_COMPRESSION".ljust(pad) + f"{out_compression}")
-    logging.info("ENCODE".ljust(pad) + f"{encode}")
-    logging.info("CSV_SEP".ljust(pad) + f"{csv_sep}")
-    logging.info("SORTBY".ljust(pad) + f"{args.sortby}")
-    logging.info("GROUPBY".ljust(pad) + f"{args.groupby}")
+    logger.info("INPUT_MOLS_1".ljust(pad) + f"{args.input_mols_1}")
+    logger.info("IN_ID_1".ljust(pad) + f"{in_id}")
+    logger.info("IN_MOL_1".ljust(pad) + f"{in_mol}")
+    logger.info("IN_FORMAT_1".ljust(pad) + f"{in_format_1}")
+    logger.info("IN_COMPRESSION_1".ljust(pad) + f"{in_compression_1}")
+    logger.info("INPUT_MOLS_2".ljust(pad) + f"{args.input_mols_1}")
+    logger.info("IN_ID_2".ljust(pad) + f"{in_id}")
+    logger.info("IN_MOL_2".ljust(pad) + f"{in_mol}")
+    logger.info("IN_FORMAT_2".ljust(pad) + f"{in_format_1}")
+    logger.info("IN_COMPRESSION_2".ljust(pad) + f"{in_compression_1}")
+    logger.info("DECODE".ljust(pad) + f"{decode}")
+    logger.info("OUTPUT_MOLS".ljust(pad) + f"{args.output_mols}")
+    logger.info("OUT_ID".ljust(pad) + f"{out_id}")
+    logger.info("OUT_MOL".ljust(pad) + f"{out_mol}")
+    logger.info("OUT_FORMAT".ljust(pad) + f"{out_format}")
+    logger.info("OUT_COMPRESSION".ljust(pad) + f"{out_compression}")
+    logger.info("ENCODE".ljust(pad) + f"{encode}")
+    logger.info("CSV_SEP".ljust(pad) + f"{csv_sep}")
+    logger.info("SORTBY".ljust(pad) + f"{args.sortby}")
+    logger.info("GROUPBY".ljust(pad) + f"{args.groupby}")
 
-    logging.info("LOG".ljust(pad) + f"{args.log}")
+    logger.info("LOG".ljust(pad) + f"{args.log}")
 
     # begin
-    logging.info("BEGIN")
+    logger.info("BEGIN")
 
     # load mols 1
     d1 = datetime.now()
-    logging.info("LOADING MOLECULES 1")
+    logger.info("LOADING MOLECULES 1")
     df_mols_1 = load.file(args.input_mols_1, csv_sep=csv_sep)
     df_mols_1['dataset'] = 'dataset_1'
     df_mols_1['idm'] = df_mols_1['idm'].astype(str)
@@ -171,11 +171,11 @@ def main():
     num_mols_1 = len(df_mols_1)
     num_failed_1 = df_mols_1['mol'].isna().sum()
     logger.debug(f"DF_MOLS_1:\n\n{df_mols_1}\n")
-    logging.info(f"LOADED {num_mols_1:,} RECORDS WITH {num_failed_1:,} FAILURE(S)")
+    logger.info(f"LOADED {num_mols_1:,} RECORDS WITH {num_failed_1:,} FAILURE(S)")
 
     # load mols 2
     d2 = datetime.now()
-    logging.info("LOADING MOLECULES 2")
+    logger.info("LOADING MOLECULES 2")
     df_mols_2 = load.file(args.input_mols_2, csv_sep=csv_sep)
     df_mols_2['idm'] = df_mols_2['idm'].astype(str)
     df_mols_2['dataset'] = 'dataset_2'
@@ -183,7 +183,7 @@ def main():
     num_mols_2 = len(df_mols_2)
     num_failed_2 = df_mols_2['mol'].isna().sum()
     logger.debug(f"DF_MOLS_2:\n\n{df_mols_2}\n")
-    logging.info(f"LOADED {num_mols_2:,} RECORDS WITH {num_failed_2:,} FAILURE(S)")
+    logger.info(f"LOADED {num_mols_2:,} RECORDS WITH {num_failed_2:,} FAILURE(S)")
 
 
     # filter out duplicate molecules
@@ -215,20 +215,20 @@ def main():
     d4 = datetime.now()
     logger.info(f"SAVING OUTPUT")
     save.file(df_mols, output_file=args.output_mols, csv_sep=csv_sep)
-    logging.info(f"SAVED {len(df_mols.index):,} RECORDS")
+    logger.info(f"SAVED {len(df_mols.index):,} RECORDS")
     d5 = datetime.now()
 
 
     # end
 
-    logging.info("SUMMARY")
+    logger.info("SUMMARY")
     logger.info("COMPUTATIONAL TIME: CONFIGURING JOB".ljust(pad * 2) + f"{d1-d0}")
     logger.info("COMPUTATIONAL TIME: LOADING MOLECULES 1".ljust(pad * 2) + f"{d2-d1}")
     logger.info("COMPUTATIONAL TIME: LOADING MOLECULES 2".ljust(pad * 2) + f"{d3-d2}")
     logger.info("COMPUTATIONAL TIME: CONCATENATING DUPLICATES".ljust(pad * 2) + f"{d4-d3}")
     logger.info("COMPUTATIONAL TIME: SAVING OUTPUTS".ljust(pad * 2) + f"{d5-d4}")
     logger.info("COMPUTATIONAL TIME: TOTAL".ljust(pad * 2) + f"{d5-d0}")
-    logging.info("END")
+    logger.info("END")
     sys.exit(0)
 
 

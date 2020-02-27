@@ -52,17 +52,17 @@ if __name__ == '__main__':
     # logging
     logging.basicConfig(level=logging.INFO, format='%(asctime)s -- %(levelname)s -- %(message)s')
     logger = logging.getLogger(__name__)
-    logging.info("STARTING PEEK_HDF.PY")
-    logging.info("INITIALIZE")
+    logger.info("STARTING PEEK_HDF.PY")
+    logger.info("INITIALIZE")
 
     # define padding for logging
     pad = 30
 
     # versions
-    logging.info("LIBRARY VERSIONS")
-    logging.info("rdkit".ljust(pad) + f"{rdkit.__version__}")
-    logging.info("pandas".ljust(pad) + f"{pd.__version__}")
-    logging.info("npfc".ljust(pad) + f"{npfc.__version__}")
+    logger.info("LIBRARY VERSIONS")
+    logger.info("rdkit".ljust(pad) + f"{rdkit.__version__}")
+    logger.info("pandas".ljust(pad) + f"{pd.__version__}")
+    logger.info("npfc".ljust(pad) + f"{npfc.__version__}")
 
     # input_file
     if args.input_hdf is None:
@@ -83,24 +83,24 @@ if __name__ == '__main__':
     # describe current job
 
     # arguments
-    logging.info("INPUT_HDF".ljust(pad) + f"{args.input_hdf}")
-    logging.info("MOL_COL".ljust(pad) + f"{args.mol_col}")
-    logging.info("DECODE_MOLS".ljust(pad) + f"{args.decode_mols}")
-    logging.info("NRECORDS".ljust(pad) + f"{args.nrecords}")
+    logger.info("INPUT_HDF".ljust(pad) + f"{args.input_hdf}")
+    logger.info("MOL_COL".ljust(pad) + f"{args.mol_col}")
+    logger.info("DECODE_MOLS".ljust(pad) + f"{args.decode_mols}")
+    logger.info("NRECORDS".ljust(pad) + f"{args.nrecords}")
 
     # run
 
-    logging.info("BEGIN")
+    logger.info("BEGIN")
     # load
     d0 = datetime.datetime.now()
-    logging.info("LOADING INPUT_HDF")
+    logger.info("LOADING INPUT_HDF")
     df = load.file(args.input_hdf, decode=args.decode, in_mol=args.col_mol, out_mol=args.col_mol)
     num_failed = df[args.col_mol].isna().sum()
-    logging.info(f"LOADED {len(df)} RECORDS WITH {num_failed} FAILURE(S)")
-    logging.info("DESCRIBING INPUT_HDF:")
-    logging.info(f"COLUMNS\n\n{df.dtypes}\n")
-    logging.info(f"DISPLAYING THE {args.nrecords} FIRST RECORD(S):\n")
+    logger.info(f"LOADED {len(df)} RECORDS WITH {num_failed} FAILURE(S)")
+    logger.info("DESCRIBING INPUT_HDF:")
+    logger.info(f"COLUMNS\n\n{df.dtypes}\n")
+    logger.info(f"DISPLAYING THE {args.nrecords} FIRST RECORD(S):\n")
     print(f"\n{df.head(args.nrecords)}\n")
     d2 = datetime.datetime.now()
     # end
-    logging.info("END")
+    logger.info("END")

@@ -77,31 +77,31 @@ def main():
     # arguments
     # replace many vars with defined names for simplifying the whole pipeline, these variables might be added back when the structure of npfc does not change anymore
     logger.info("ARGUMENTS:")
-    logging.info("INPUT_MOLS".ljust(pad) + f"{args.input_mols}")
-    logging.info("IN_ID".ljust(pad) + f"idm")
-    logging.info("IN_MOL".ljust(pad) + f"mol")
-    logging.info("IN_FORMAT".ljust(pad) + f"{in_format}")
-    logging.info("IN_COMPRESSION".ljust(pad) + f"{in_compression}")
-    logging.info("DECODE".ljust(pad) + f"True")
-    logging.info("OUTPUT_MOLS".ljust(pad) + f"{args.output_mols}")
-    logging.info("OUT_ID".ljust(pad) + f"idm")
-    logging.info("OUT_MOL".ljust(pad) + f"mol")
-    logging.info("OUT_FORMAT".ljust(pad) + f"{out_format}")
-    logging.info("OUT_COMPRESSION".ljust(pad) + f"{out_compression}")
-    logging.info("ENCODE".ljust(pad) + f"True")
-    logging.info("CSV_SEP".ljust(pad) + f"|")
-    logging.info("METHODS".ljust(pad) + f"{args.methods}")
-    logging.info("LOG".ljust(pad) + f"{args.log}")
+    logger.info("INPUT_MOLS".ljust(pad) + f"{args.input_mols}")
+    logger.info("IN_ID".ljust(pad) + f"idm")
+    logger.info("IN_MOL".ljust(pad) + f"mol")
+    logger.info("IN_FORMAT".ljust(pad) + f"{in_format}")
+    logger.info("IN_COMPRESSION".ljust(pad) + f"{in_compression}")
+    logger.info("DECODE".ljust(pad) + f"True")
+    logger.info("OUTPUT_MOLS".ljust(pad) + f"{args.output_mols}")
+    logger.info("OUT_ID".ljust(pad) + f"idm")
+    logger.info("OUT_MOL".ljust(pad) + f"mol")
+    logger.info("OUT_FORMAT".ljust(pad) + f"{out_format}")
+    logger.info("OUT_COMPRESSION".ljust(pad) + f"{out_compression}")
+    logger.info("ENCODE".ljust(pad) + f"True")
+    logger.info("CSV_SEP".ljust(pad) + f"|")
+    logger.info("METHODS".ljust(pad) + f"{args.methods}")
+    logger.info("LOG".ljust(pad) + f"{args.log}")
 
     # begin
-    logging.info("BEGIN")
+    logger.info("BEGIN")
 
     # load mols
     d1 = datetime.now()
-    logging.info("LOADING MOLECULES")
+    logger.info("LOADING MOLECULES")
     df_mols = load.file(args.input_mols)
     num_failed = df_mols['mol'].isna().sum()
-    logging.info(f"LOADED {len(df_mols)} RECORDS WITH {num_failed} FAILURE(S)")
+    logger.info(f"LOADED {len(df_mols)} RECORDS WITH {num_failed} FAILURE(S)")
 
     # extract Murcko scaffolds
     d2 = datetime.now()
@@ -116,13 +116,13 @@ def main():
 
     # end
 
-    logging.info("SUMMARY")
+    logger.info("SUMMARY")
     logger.info("COMPUTATIONAL TIME: CONFIGURING JOB".ljust(pad * 2) + f"{d1-d0}")
     logger.info("COMPUTATIONAL TIME: LOADING MOLECULES".ljust(pad * 2) + f"{d2-d1}")
     logger.info("COMPUTATIONAL TIME: COMPUTING 2D".ljust(pad * 2) + f"{d3-d2}")
     logger.info("COMPUTATIONAL TIME: SAVING OUTPUTS".ljust(pad * 2) + f"{d4-d3}")
     logger.info("COMPUTATIONAL TIME: TOTAL".ljust(pad * 2) + f"{d4-d0}")
-    logging.info("END")
+    logger.info("END")
     sys.exit(0)
 
 

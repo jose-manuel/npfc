@@ -68,13 +68,13 @@ def main():
 
     if args.clear:
         if args.ref_file is None:
-            logging.warning("WARNING! NO REFERENCE FILE IS DEFINED FOR CLEARING")
+            logger.warning("WARNING! NO REFERENCE FILE IS DEFINED FOR CLEARING")
         else:
             p = Path(args.ref_file)
             if p.exists():
-                logging.info(f"CLEARING EXISTING REF_FILE AT '{args.ref_file}'")
+                logger.info(f"CLEARING EXISTING REF_FILE AT '{args.ref_file}'")
             else:
-                logging.warning(f"REF_FILE COULD NOT BE FOUND AT '{args.ref_file}', SO NOTHING TO CLEAR")
+                logger.warning(f"REF_FILE COULD NOT BE FOUND AT '{args.ref_file}', SO NOTHING TO CLEAR")
 
     # IO infos
     in_format, in_compression = utils.get_file_format(args.input_mols)
@@ -102,34 +102,34 @@ def main():
     # arguments
     # replace many vars with defined names for simplifying the whole pipeline, these variables might be added back when the structure of npfc does not change anymore
     logger.info("ARGUMENTS:")
-    logging.info("INPUT_MOLS".ljust(pad) + f"{args.input_mols}")
-    logging.info("IN_ID".ljust(pad) + f"{in_id}")
-    logging.info("IN_MOL".ljust(pad) + f"{in_mol}")
-    logging.info("IN_FORMAT".ljust(pad) + f"{in_format}")
-    logging.info("IN_COMPRESSION".ljust(pad) + f"{in_compression}")
-    logging.info("DECODE".ljust(pad) + f"{decode}")
-    logging.info("OUTPUT_MOLS".ljust(pad) + f"{args.output_mols}")
-    logging.info("OUT_ID".ljust(pad) + f"{out_id}")
-    logging.info("OUT_MOL".ljust(pad) + f"{out_mol}")
-    logging.info("OUT_FORMAT".ljust(pad) + f"{out_format}")
-    logging.info("OUT_COMPRESSION".ljust(pad) + f"{out_compression}")
-    logging.info("ENCODE".ljust(pad) + f"{encode}")
-    logging.info("CSV_SEP".ljust(pad) + f"{csv_sep}")
-    logging.info("GROUP_ON".ljust(pad) + f"{args.group_on}")
-    logging.info("RECOMPUTE_GROUP".ljust(pad) + f"{args.recompute_group}")
-    logging.info("REF_FILE".ljust(pad) + f"{args.ref_file}")
-    logging.info("LOG".ljust(pad) + f"{args.log}")
+    logger.info("INPUT_MOLS".ljust(pad) + f"{args.input_mols}")
+    logger.info("IN_ID".ljust(pad) + f"{in_id}")
+    logger.info("IN_MOL".ljust(pad) + f"{in_mol}")
+    logger.info("IN_FORMAT".ljust(pad) + f"{in_format}")
+    logger.info("IN_COMPRESSION".ljust(pad) + f"{in_compression}")
+    logger.info("DECODE".ljust(pad) + f"{decode}")
+    logger.info("OUTPUT_MOLS".ljust(pad) + f"{args.output_mols}")
+    logger.info("OUT_ID".ljust(pad) + f"{out_id}")
+    logger.info("OUT_MOL".ljust(pad) + f"{out_mol}")
+    logger.info("OUT_FORMAT".ljust(pad) + f"{out_format}")
+    logger.info("OUT_COMPRESSION".ljust(pad) + f"{out_compression}")
+    logger.info("ENCODE".ljust(pad) + f"{encode}")
+    logger.info("CSV_SEP".ljust(pad) + f"{csv_sep}")
+    logger.info("GROUP_ON".ljust(pad) + f"{args.group_on}")
+    logger.info("RECOMPUTE_GROUP".ljust(pad) + f"{args.recompute_group}")
+    logger.info("REF_FILE".ljust(pad) + f"{args.ref_file}")
+    logger.info("LOG".ljust(pad) + f"{args.log}")
 
     # begin
-    logging.info("BEGIN")
+    logger.info("BEGIN")
 
     # load mols
     d1 = datetime.now()
-    logging.info("LOADING MOLECULES")
+    logger.info("LOADING MOLECULES")
     df_mols = load.file(args.input_mols, csv_sep=csv_sep)
     num_mols = len(df_mols)
     num_failed = df_mols['mol'].isna().sum()
-    logging.info(f"LOADED {num_mols} RECORDS WITH {num_failed} FAILURE(S)")
+    logger.info(f"LOADED {num_mols} RECORDS WITH {num_failed} FAILURE(S)")
 
     # filter out duplicate molecules
     d2 = datetime.now()
@@ -137,13 +137,13 @@ def main():
     # recomputing group_on column
     if args.recompute_group:
         if args.group_on in df_mols.columns:
-            logging.info(f"RECOMPUTING GROUP_ON COLUMN ('{args.group_on}')")
+            logger.info(f"RECOMPUTING GROUP_ON COLUMN ('{args.group_on}')")
             df_mols.drop(args.group_on, axis=1, inplace=True)
         else:
-            logging.warning(f"GROUP_ON COLUMN ('{args.group_on}') WAS NOT FOUND IN DATAFRAME, NO NEED FOR RECOMPUTING IT")
+            logger.warning(f"GROUP_ON COLUMN ('{args.group_on}') WAS NOT FOUND IN DATAFRAME, NO NEED FOR RECOMPUTING IT")
     # filtering duplicate molecules
     df_mols = duplicate.filter_duplicates(df_mols, group_on=args.group_on, ref_file=args.ref_file)
-    logging.info(f"REMAINING MOLECULES: {len(df_mols.index)}/{num_mols}")
+    logger.info(f"REMAINING MOLECULES: {len(df_mols.index)}/{num_mols}")
 
     # save results
     d3 = datetime.now()
@@ -153,13 +153,13 @@ def main():
 
     # end
 
-    logging.info("SUMMARY")
+    logger.info("SUMMARY")
     logger.info("COMPUTATIONAL TIME: CONFIGURING JOB".ljust(pad * 2) + f"{d1-d0}")
     logger.info("COMPUTATIONAL TIME: LOADING MOLECULES".ljust(pad * 2) + f"{d2-d1}")
     logger.info("COMPUTATIONAL TIME: FILTERING DUPLICATES".ljust(pad * 2) + f"{d3-d2}")
     logger.info("COMPUTATIONAL TIME: SAVING OUTPUTS".ljust(pad * 2) + f"{d4-d3}")
     logger.info("COMPUTATIONAL TIME: TOTAL".ljust(pad * 2) + f"{d4-d0}")
-    logging.info("END")
+    logger.info("END")
     sys.exit(0)
 
 

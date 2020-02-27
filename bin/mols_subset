@@ -84,24 +84,24 @@ def main():
     logger.info("npfc".ljust(pad) + f"{npfc.__version__}")
     # arguments
     logger.info("ARGUMENTS:")
-    logging.info("mols".ljust(pad) + f"{args.mols}")
-    logging.info("synref".ljust(pad) + f"{args.synref}")
-    logging.info("output".ljust(pad) + f"{args.output}")
-    logging.info("LOG".ljust(pad) + f"{args.log}")
+    logger.info("mols".ljust(pad) + f"{args.mols}")
+    logger.info("synref".ljust(pad) + f"{args.synref}")
+    logger.info("output".ljust(pad) + f"{args.output}")
+    logger.info("LOG".ljust(pad) + f"{args.log}")
 
     # begin
 
-    logging.info("BEGIN")
+    logger.info("BEGIN")
 
     # loading synref
     synref_key = Path(args.synref).stem
-    logging.info(f"LOADING SYNREF WITH KEY={synref_key}")
+    logger.info(f"LOADING SYNREF WITH KEY={synref_key}")
     d1 = datetime.now()
     df_synref = pd.read_hdf(args.synref, decode=False)
-    logging.info(f"NUMBER OF RECORDS IN SYNREF: {len(df_synref.index)}")
+    logger.info(f"NUMBER OF RECORDS IN SYNREF: {len(df_synref.index)}")
 
     # load mols
-    logging.info("LOADING MOLS")
+    logger.info("LOADING MOLS")
     d2 = datetime.now()
     df_mols = pd.read_csv(args.mols, sep="|", compression="gzip")  # no need for decoding mols
     # subset mols
@@ -109,7 +109,7 @@ def main():
     d3 = datetime.now()
     num_ini = len(df_mols.index)
     df_mols_subset = df_mols[~df_mols['inchikey'].isin(df_synref['inchikey'])]
-    logging.info(f"NUMBER OF REMAINING RECORDS IN SUBSET: {len(df_mols_subset.index)}/{num_ini}")
+    logger.info(f"NUMBER OF REMAINING RECORDS IN SUBSET: {len(df_mols_subset.index)}/{num_ini}")
 
     # save results
     logger.info(f"SAVING RESULTS")
@@ -118,14 +118,14 @@ def main():
 
     # end
     d5 = datetime.now()
-    logging.info("SUMMARY")
+    logger.info("SUMMARY")
     logger.info("COMPUTATIONAL TIME: CONFIGURING JOB".ljust(pad * 2) + f"{d1-d0}")
     logger.info("COMPUTATIONAL TIME: LOADING SYNREF".ljust(pad * 2) + f"{d2-d1}")
     logger.info("COMPUTATIONAL TIME: LOADING INPUT_MOL".ljust(pad * 2) + f"{d3-d2}")
     logger.info("COMPUTATIONAL TIME: SUBSETIING MOLS".ljust(pad * 2) + f"{d4-d3}")
     logger.info("COMPUTATIONAL TIME: SAVING SUBSET".ljust(pad * 2) + f"{d5-d4}")
     logger.info("COMPUTATIONAL TIME: TOTAL".ljust(pad * 2) + f"{d5-d0}")
-    logging.info("END")
+    logger.info("END")
     sys.exit(0)
 
 

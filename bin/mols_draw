@@ -96,25 +96,25 @@ def main():
     logger.info("pandas".ljust(pad) + f"{pd.__version__}")
     logger.info("npfc".ljust(pad) + f"{npfc.__version__}")
     logger.info("ARGUMENTS:")
-    logging.info("INPUT_FILE".ljust(pad) + f"{args.input_file}")
-    logging.info("INPUT_FORMAT".ljust(pad) + f"{input_format}")
-    logging.info("INPUT_COMPRESSION".ljust(pad) + f"{input_compression}")
-    logging.info("OUTPUT_DIR".ljust(pad) + f"{args.output_dir}")
-    logging.info("SIZE".ljust(pad) + f"{size}")
-    logging.info("FORMAT".ljust(pad) + f"{format}")
+    logger.info("INPUT_FILE".ljust(pad) + f"{args.input_file}")
+    logger.info("INPUT_FORMAT".ljust(pad) + f"{input_format}")
+    logger.info("INPUT_COMPRESSION".ljust(pad) + f"{input_compression}")
+    logger.info("OUTPUT_DIR".ljust(pad) + f"{args.output_dir}")
+    logger.info("SIZE".ljust(pad) + f"{size}")
+    logger.info("FORMAT".ljust(pad) + f"{format}")
     if format == 'PNG':
-        logging.info("ROUND".ljust(pad) + f"{args.round}")
-    logging.info("RESCALE".ljust(pad) + f"{args.rescale}")
-    logging.info("LOG".ljust(pad) + f"{args.log}")
+        logger.info("ROUND".ljust(pad) + f"{args.round}")
+    logger.info("RESCALE".ljust(pad) + f"{args.rescale}")
+    logger.info("LOG".ljust(pad) + f"{args.log}")
 
     # begin
-    logging.info("BEGIN")
+    logger.info("BEGIN")
 
-    logging.info("SETTING DRAWING OPTIONS")
+    logger.info("SETTING DRAWING OPTIONS")
     ds.append(('CONFIGURING JOB', datetime.now()))
 
     # load input_file
-    logging.info("LOADING INPUT FILE")
+    logger.info("LOADING INPUT FILE")
     df = load.file(args.input_file)
     if 'mol' not in df.columns:
         logger.error(f"ERROR! COLUMN 'mol' NOT FOUND IN INPUT FILE, ABORTING!")
@@ -124,7 +124,7 @@ def main():
     if args.rescale != 1.0:
         logger.info(f"RESCALING MOLECULES WITH f={args.rescale}")
         df['mol'].map(lambda x: draw.rescale(x, f=args.rescale))  # modification takes inplace
-    logging.info(f"FOUND {nentries:,d} MOLS IN {len(df.index):,d} ENTRIES")
+    logger.info(f"FOUND {nentries:,d} MOLS IN {len(df.index):,d} ENTRIES")
     ds.append(('LOADING INPUT FILE', datetime.now()))
 
     # configuring the drawer
@@ -179,12 +179,12 @@ def main():
 
     # end
     ds.append((f"END", datetime.now()))
-    logging.info("SUMMARY")
+    logger.info("SUMMARY")
     for i in range(len(ds) - 1):
         if ds[i+1][0] != 'END':
             logger.info(f"COMPUTATIONAL TIME: {ds[i+1][0]}".ljust(pad * 2) + f"{ds[i+1][1] - ds[i][1]}")
     logger.info("COMPUTATIONAL TIME: TOTAL".ljust(pad * 2) + f"{ds[-1][1] - ds[0][1]}")
-    logging.info("END")
+    logger.info("END")
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ MAIN ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #

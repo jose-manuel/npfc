@@ -6,6 +6,7 @@ Module utils
 # standard
 import logging
 from pathlib import Path
+import sys
 # data handling
 import pickle
 import base64
@@ -190,16 +191,49 @@ def check_arg_config_file(config_file: str) -> bool:
     return True
 
 
-def _configure_logger(log_level: str) -> logging:
+def _configure_logger(log_level: str, logger_name: str = None, log_file: str = None, reset_handlers: bool = True) -> logging:
     """Configure the logging in a centralized way. This is useful for scripts mostly.
 
     :param log_level: the logging level to use, accepted values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.
+    :param logger_name: specify a name for the logger. If none, __name__ is used. If within a loop, better speficy a logger name, as logging messages would otherwise stack.
+    :param log_file: if specified, the logging messages will be written to the corresponding file, in addition to stdout.
+    :return: a logger object that can be reset
     """
+    if reset_handlers:
+        for handler in logging.root.handlers[:]:
+            logging.root.removeHandler(handler)
+    if logger_name is None:
+        logger_name = __name__
+    # define level with DEBUG instead of logging.DEBUG or numbers
     numeric_level = getattr(logging, log_level.upper(), None)
     if not isinstance(numeric_level, int):
         raise ValueError(f'Invalid log level: {log_level}')
-    logging.basicConfig(level=numeric_level, format='%(asctime)s -- %(levelname)s -- %(message)s')
-    logger = logging.getLogger(__name__)
+
+    # create the logger
+    logger = logging.getLogger(logger_name)
+    if len(logger.handlers) > 0:
+        logger.handlers.clear()
+    logger.setLevel(numeric_level)
+    # define format
+    if log_level == 'DEBUG':
+        format_string = ("%(asctime)s -- %(levelname)s -- %(funcName)s:%(lineno)d -- %(message)s")
+    else:
+        format_string = ("%(asctime)s -- %(levelname)s -- %(message)s")
+    log_format = logging.Formatter(format_string)
+
+    # Creating and adding the console handler
+    console_handler = logging.StreamHandler(sys.stderr)
+    console_handler.setFormatter(log_format)
+    logger.addHandler(console_handler)
+
+    # Creating and adding the file handler
+    file_handler = logging.FileHandler(logger_name, mode='w')
+    file_handler.setFormatter(log_format)
+    logger.addHandler(file_handler)
+
+    # avoid tons of duplicated log messages when executing code from modules
+    logger.propagate = False
+
     return logger
 
 

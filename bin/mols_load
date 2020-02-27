@@ -71,8 +71,8 @@ def main():
     logger.info("RUNNING LOAD_MOLS")
     warnings.filterwarnings('ignore', category=pd.io.pytables.PerformanceWarning)  # if None is returned instead of a molecule, do not complain about mixed types
     pad = 40
-    lg = RDLogger.logger()
-    lg.setLevel(RDLogger.CRITICAL)
+    #lg = RDLogger.logger()
+    #lg.setLevel(RDLogger.CRITICAL)
 
     # parse arguments
 
@@ -94,28 +94,28 @@ def main():
     logger.info("npfc".ljust(pad) + f"{npfc.__version__}")
     # arguments
     logger.info("ARGUMENTS")
-    logging.info("INPUT_MOLS".ljust(pad) + f"{args.input_mols}")
-    logging.info("OUTPUT_MOLS".ljust(pad) + f"{args.output_mols}")
-    logging.info("NRECORDS".ljust(pad) + f"{args.nrecords}")
-    logging.info("SHUFFLE".ljust(pad) + f"{args.shuffle}")
-    logging.info("KEEP_PROPS".ljust(pad) + f"{args.keep_props}")
-    logging.info("ENCODE".ljust(pad) + f"{args.encode}")
-    logging.info("DECODE".ljust(pad) + f"{args.decode}")
-    logging.info("IN_ID".ljust(pad) + f"{args.in_id}")
-    logging.info("IN_MOL".ljust(pad) + f"{args.in_mol}")
-    logging.info("IN_FORMAT".ljust(pad) + f"{in_format}")
-    logging.info("IN_COMPRESSION".ljust(pad) + f"{in_compression}")
-    logging.info("OUT_MOL".ljust(pad) + f"{args.out_mol}")
-    logging.info("OUT_ID".ljust(pad) + f"{args.out_id}")
-    logging.info("OUT_FORMAT".ljust(pad) + f"{out_format}")
-    logging.info("OUT_COMPRESSION".ljust(pad) + f"{out_compression}")
-    logging.info("LOG".ljust(pad) + f"{args.log}")
+    logger.info("INPUT_MOLS".ljust(pad) + f"{args.input_mols}")
+    logger.info("OUTPUT_MOLS".ljust(pad) + f"{args.output_mols}")
+    logger.info("NRECORDS".ljust(pad) + f"{args.nrecords}")
+    logger.info("SHUFFLE".ljust(pad) + f"{args.shuffle}")
+    logger.info("KEEP_PROPS".ljust(pad) + f"{args.keep_props}")
+    logger.info("ENCODE".ljust(pad) + f"{args.encode}")
+    logger.info("DECODE".ljust(pad) + f"{args.decode}")
+    logger.info("IN_ID".ljust(pad) + f"{args.in_id}")
+    logger.info("IN_MOL".ljust(pad) + f"{args.in_mol}")
+    logger.info("IN_FORMAT".ljust(pad) + f"{in_format}")
+    logger.info("IN_COMPRESSION".ljust(pad) + f"{in_compression}")
+    logger.info("OUT_MOL".ljust(pad) + f"{args.out_mol}")
+    logger.info("OUT_ID".ljust(pad) + f"{args.out_id}")
+    logger.info("OUT_FORMAT".ljust(pad) + f"{out_format}")
+    logger.info("OUT_COMPRESSION".ljust(pad) + f"{out_compression}")
+    logger.info("LOG".ljust(pad) + f"{args.log}")
 
     # begin
-    logging.info("BEGIN")
+    logger.info("BEGIN")
 
     # load mols
-    logging.info("LOADING MOLECULES")
+    logger.info("LOADING MOLECULES")
     d1 = datetime.now()
     df_mols = load.file(args.input_mols,
                         in_id=args.in_id,
@@ -130,12 +130,12 @@ def main():
     d2 = datetime.now()
     df_failed = df_mols[df_mols['mol'].isna()]
     num_failed = len(df_failed.index)
-    logging.info(f"LOADED {len(df_mols)} RECORDS WITH {num_failed} FAILURE(S)")
+    logger.info(f"LOADED {len(df_mols)} RECORDS WITH {num_failed} FAILURE(S)")
     df_mols = df_mols[~ df_mols.index.isin(df_failed.index)]
 
     # save mols
     d3 = datetime.now()
-    logging.info("SAVING MOLECULES")
+    logger.info("SAVING MOLECULES")
     outputs_files = save.file(df_mols,
                               args.output_mols,
                               col_mol=args.out_mol,
@@ -148,18 +148,18 @@ def main():
                               )
     # display results
     for output in outputs_files:
-        logging.info(f"SAVED {output[1]} RECORDS AT {output[0]}")
+        logger.info(f"SAVED {output[1]} RECORDS AT {output[0]}")
     d4 = datetime.now()
 
     # end
 
-    logging.info("SUMMARY")
+    logger.info("SUMMARY")
     logger.info("COMPUTATIONAL TIME: CONFIGURING JOB".ljust(pad * 2) + f"{d1-d0}")
     logger.info("COMPUTATIONAL TIME: LOADING MOLECULES".ljust(pad * 2) + f"{d2-d1}")
     logger.info("COMPUTATIONAL TIME: FILTERING OUT FAILED".ljust(pad * 2) + f"{d3-d2}")
     logger.info("COMPUTATIONAL TIME: SAVING MOLECULES".ljust(pad * 2) + f"{d4-d3}")
     logger.info("COMPUTATIONAL TIME: TOTAL".ljust(pad * 2) + f"{d4-d0}")
-    logging.info("END")
+    logger.info("END")
     sys.exit(0)
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ RUN ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 

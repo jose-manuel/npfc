@@ -74,28 +74,28 @@ def main():
     logger.info("pandas".ljust(pad) + f"{pd.__version__}")
     logger.info("npfc".ljust(pad) + f"{npfc.__version__}")
     logger.info("ARGUMENTS:")
-    logging.info("INPUT_SUB".ljust(pad) + f"{args.input_sub}")
-    logging.info("SUB_FORMAT".ljust(pad) + f"{sub_format}")
-    logging.info("SUB_COMPRESSION".ljust(pad) + f"{sub_compression}")
-    logging.info("OUTPUT_FCC".ljust(pad) + f"{args.output_fcc}")
+    logger.info("INPUT_SUB".ljust(pad) + f"{args.input_sub}")
+    logger.info("SUB_FORMAT".ljust(pad) + f"{sub_format}")
+    logger.info("SUB_COMPRESSION".ljust(pad) + f"{sub_compression}")
+    logger.info("OUTPUT_FCC".ljust(pad) + f"{args.output_fcc}")
     if args.keep_raw:
-        logging.info("OUTPUT_RAW".ljust(pad) + f"{output_raw}")
-    logging.info("OUTPUT_FCC".ljust(pad) + f"{args.output_fcc}")
-    logging.info("OUT_FORMAT".ljust(pad) + f"{out_format}")
-    logging.info("OUT_COMPRESSION".ljust(pad) + f"{out_compression}")
-    logging.info("CUTOFF".ljust(pad) + f"{args.cutoff}")
-    logging.info("LOG".ljust(pad) + f"{args.log}")
+        logger.info("OUTPUT_RAW".ljust(pad) + f"{output_raw}")
+    logger.info("OUTPUT_FCC".ljust(pad) + f"{args.output_fcc}")
+    logger.info("OUT_FORMAT".ljust(pad) + f"{out_format}")
+    logger.info("OUT_COMPRESSION".ljust(pad) + f"{out_compression}")
+    logger.info("CUTOFF".ljust(pad) + f"{args.cutoff}")
+    logger.info("LOG".ljust(pad) + f"{args.log}")
 
     # begin
-    logging.info("BEGIN")
+    logger.info("BEGIN")
 
     # load sub
-    logging.info("LOADING SUBSTRUCTURE MATCHES")
+    logger.info("LOADING SUBSTRUCTURE MATCHES")
     d1 = datetime.now()
     df_sub = load.file(args.input_sub,
                        keep_props=True,
                        )
-    logging.info(f"FOUND {len(df_sub.index)} SUBSTRUCTURE MATCHES")
+    logger.info(f"FOUND {len(df_sub.index)} SUBSTRUCTURE MATCHES")
 
     # run fcc
     logger.info(f"CLASSIFYING FRAGMENT COMBINATIONS")
@@ -119,7 +119,7 @@ def main():
         logger.info(f"CLEANING COMBINATIONS")
         d5 = datetime.now()
         df_fcc = df_fcc[df_fcc['abbrev'] != 'cfc']
-        logging.info(f"NUMBER OF FRAGMENT COMBINATIONS REMAINING: {len(df_fcc.index)}")
+        logger.info(f"NUMBER OF FRAGMENT COMBINATIONS REMAINING: {len(df_fcc.index)}")
     logging.warning(f"OVERLAPPING FRAGMENTS ARE STILL CONSIDERED A FRAGMENT COMBINATION HERE,")
     logging.warning("THIS IS NEEDED FOR ALTERNATIVE MAPPING FRAGMENT COMBINATIONS.")
 
@@ -130,7 +130,7 @@ def main():
 
     # end
     d7 = datetime.now()
-    logging.info("SUMMARY")
+    logger.info("SUMMARY")
     logger.info("COMPUTATIONAL TIME: CONFIGURING JOB".ljust(pad * 2) + f"{d1-d0}")
     logger.info("COMPUTATIONAL TIME: LOADING SUBSTRUCTURE MATCHES".ljust(pad * 2) + f"{d2-d1}")
     if args.keep_raw:
@@ -142,7 +142,7 @@ def main():
 
     logger.info("COMPUTATIONAL TIME: SAVING CLEAN COMBINATIONS".ljust(pad * 2) + f"{d6-d5}")
     logger.info("COMPUTATIONAL TIME: TOTAL".ljust(pad * 2) + f"{d7-d0}")
-    logging.info("END")
+    logger.info("END")
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ MAIN ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
