@@ -104,6 +104,17 @@ def mols_bad():
     return d
 
 
+@pytest.fixture
+def df_fragments():
+    """An example of a DataFrame with molecules from which to extract Murcko Scaffolds."""
+    df = pd.DataFrame([['simple', 'Oc1ccccc1'],
+                       ['minor_cpd', 'Oc1ccccc1.O'],
+                       ], columns=['idm', 'mol'])
+    df['mol'] = df['mol'].map(Chem.MolFromSmiles)
+
+    return df
+
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ TESTS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 
@@ -232,3 +243,12 @@ def test_standardizer_timeout(mols_timeout, standardizer):
     assert isinstance(mol, Mol) is True
     assert status == 'filtered'
     assert task == 'timeout'
+
+
+def test_standardizer_murcko_scaffolds(df_fragments, standardizer):
+    """Run Murcko Scaffold Extraction on fragment dataset. Protocols A and B are performed within the same function."""
+    df_passed, df_filtered, df_error = standardizer.run_df(df_fragments)
+    expected_smiles = 'Oc1ccccc1'
+    assert len(df_filtered) == 0
+    assert len(df_error) == 0
+    assert df_passed['mol'].map(Chem.MolToSmiles).unique() == [expected_smiles]

@@ -185,12 +185,10 @@ def main():
     logger.debug(f"DF_MOLS_2:\n\n{df_mols_2}\n")
     logger.info(f"LOADED {num_mols_2:,} RECORDS WITH {num_failed_2:,} FAILURE(S)")
 
-
     # filter out duplicate molecules
     d3 = datetime.now()
     logger.info(f"CONCATENATING MOLECULES")
     df_mols = pd.concat([df_mols_1, df_mols_2], sort=True)
-
 
     # attempt to consider idm as int, if possible
     try:

@@ -21,6 +21,7 @@ from rdkit.Chem.MolStandardize.metal import MetalDisconnector
 from rdkit.Chem.MolStandardize.charge import Uncharger
 from rdkit.Chem.MolStandardize.normalize import Normalizer
 from rdkit.Chem.MolStandardize.tautomer import TautomerCanonicalizer
+from rdkit.Chem.Scaffolds import MurckoScaffold
 # dev library
 from npfc import utils
 from npfc.filter import Filter
@@ -378,6 +379,65 @@ class Standardizer(Filter):
 
         return best_submol
 
+    def extract_murcko_scaffold(self, mol: Mol, keep_best_minor_compound: bool = True) -> tuple:
+        """Extract Murcko Scaffolds.
+        This function apply two protocols on the molecule to extract the "best" Murcko Scaffold:
+
+            - A: mol > murcko > standardize
+            - B: mol > standardize > murcko > standardize
+
+        The "best" Murcko Scaffold is the smaller of both solutions. In case both are of same size (hac),
+        solution from protocol B is preferred.
+
+        .. warning:: In case keep_largest is not performed in Standardizer protocol, protocol B might return minor compounds.
+
+        :param mol: the molecule where to extract Murcko Scaffolds from
+        :param keep_best_minor_compound: if True, then the keep_best method is applied before extracting the Murcko Scaffold. Makes a difference only for protocol A if keep_best is defined in Standardizer protocol.
+        :return: a tuple (murcko scaffold, status, task)
+        """
+        # init
+        hac_max = 9999999  # large atom count to deprioritize failures
+
+        # protocol A
+        mol = self.keep_best(mol)
+        ms_a = MurckoScaffold.GetScaffoldForMol(mol)  # molecule could be loaded so should be usable as received in pipeline
+        ms_a_std, status_a, task_a = self.run(ms_a)
+        if status_a == 'passed':
+            hac_a = ms_a_std.GetNumHeavyAtoms()
+        else:
+            hac_a = hac_max  # I am looking for the smaller murcko scaffold, so deprioritize failures
+
+        # protocol B
+        mol_b_std, status_b, task_b = self.run(mol)
+        if status_b == 'passed':
+            ms_b_std = MurckoScaffold.GetScaffoldForMol(mol_b_std)
+            ms_b_std, status_b, task_b = self.run(ms_b_std)
+            if status_b == 'passed':
+                hac_b = ms_b_std.GetNumHeavyAtoms()
+            else:
+                hac_b = hac_max
+        else:
+            hac_b = hac_max
+
+        # decide what solution to keep
+
+        # case 1: both have the same hac...
+        if hac_a == hac_b:
+            # because both failed
+            if hac_a == 9999999:
+                return (ms_b_std, 'error', 'murcko')
+            # because both succeeded
+            else:
+                return (ms_b_std, 'passed_protocols_B', 'murcko')
+
+        # case 2: A is smaller than B
+        elif hac_a < hac_b:
+            return (ms_a_std, 'passed_protocol_A', 'murcko')
+        elif hac_a > hac_b:
+            return (ms_b_std, 'passed_protocol_B', 'murcko')
+        else:
+            raise ValueError(f"Error! Unknown situation encountered during Murcko Scaffold Extraction! (hac_a={hac_a},hac_b={hac_b} , mol='{Chem.MolToSmiles(mol)}')")
+
     @timeout_decorator.timeout(TIMEOUT)
     def _run(self, mol: Mol) -> tuple:
         """Helper function for run.
@@ -491,7 +551,7 @@ class Standardizer(Filter):
         except timeout_decorator.TimeoutError:
             return (mol, 'filtered', 'timeout')
 
-    def run_df(self, df: DataFrame) -> tuple:
+    def run_df(self, df: DataFrame, extract_murcko_scaffolds: bool = False) -> tuple:
         """Apply the standardization protocol on a DataFrame, with the possibility of directly filtering duplicate entries as well.
         This can be very useful as the standardization process can expose duplicate entries due to salts removal, neutralization,
         canonical tautomer enumeration, and stereochemistry centers unlabelling
@@ -507,14 +567,21 @@ class Standardizer(Filter):
             - error
 
         .. note:: As a side effect, the output DataFrames get indexed by idm. The 'inchikey' col is not returned, but the values can be accessed using the reference file.
+
+        :param df: The DataFrame with molecules to standardize
+        :param extract_murcko_scaffolds: instead of running a normal standardization run, extract murcko scaffolds using two different protocols.
+        :param return: a tuple of 3 DataFrames: standardized, filtered and error.
         """
         # run standardization protocol
         df.index = df[self.col_id]
-        df.loc[:, self.col_mol], df.loc[:, 'status'], df.loc[:, 'task'] = zip(*df[self.col_mol].map(self.run))
+        if extract_murcko_scaffolds:
+            df.loc[:, self.col_mol], df.loc[:, 'status'], df.loc[:, 'task'] = zip(*df[self.col_mol].map(self.extract_murcko_scaffold))
+        else:
+            df.loc[:, self.col_mol], df.loc[:, 'status'], df.loc[:, 'task'] = zip(*df[self.col_mol].map(self.run))
         # do not apply filter duplicates on molecules with errors or that were already filtered for x reasons
         df_error = df[df['status'] == 'error']
         df_filtered = df[df['status'] == 'filtered']
-        df = df[df['status'] == 'passed']
+        df = df[df['status'].str.contains('passed')]
         df = df.copy()  # only way I found to suppress pandas warnings in a "clean" way
 
         # compute InChiKeys
