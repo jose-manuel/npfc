@@ -387,7 +387,7 @@ class Standardizer(Filter):
             - B: mol > standardize > murcko > standardize
 
         The "best" Murcko Scaffold is the smaller of both solutions. In case both are of same size (hac),
-        solution from protocol B is preferred.
+        solution from protocol B is preferred, as it was extracted from a standardized molecule.
 
         .. warning:: In case keep_largest is not performed in Standardizer protocol, protocol B might return minor compounds.
 
@@ -428,13 +428,13 @@ class Standardizer(Filter):
                 return (ms_b_std, 'error', 'murcko')
             # because both succeeded
             else:
-                return (ms_b_std, 'passed_protocols_B', 'murcko')
+                return (ms_b_std, 'passed_protB=A', 'murcko')
 
         # case 2: A is smaller than B
         elif hac_a < hac_b:
-            return (ms_a_std, 'passed_protocol_A', 'murcko')
+            return (ms_a_std, 'passed_protA>B', 'murcko')
         elif hac_a > hac_b:
-            return (ms_b_std, 'passed_protocol_B', 'murcko')
+            return (ms_b_std, 'passed_protB>A', 'murcko')
         else:
             raise ValueError(f"Error! Unknown situation encountered during Murcko Scaffold Extraction! (hac_a={hac_a},hac_b={hac_b} , mol='{Chem.MolToSmiles(mol)}')")
 

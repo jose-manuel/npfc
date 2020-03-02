@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.standardize &mdash; npfc 0.5.16-23-g31416bc documentation</title>
+  <title>npfc.standardize &mdash; npfc 0.5.16-24-g6cedaef documentation</title>
   
 
   
@@ -58,7 +58,7 @@
             
             
               <div class="version">
-                0.5.16-23-g31416bc
+                0.5.16-24-g6cedaef
               </div>
             
           
@@ -180,6 +180,7 @@
 <span class="kn">from</span> <span class="nn">rdkit.Chem.MolStandardize.charge</span> <span class="k">import</span> <span class="n">Uncharger</span>
 <span class="kn">from</span> <span class="nn">rdkit.Chem.MolStandardize.normalize</span> <span class="k">import</span> <span class="n">Normalizer</span>
 <span class="kn">from</span> <span class="nn">rdkit.Chem.MolStandardize.tautomer</span> <span class="k">import</span> <span class="n">TautomerCanonicalizer</span>
+<span class="kn">from</span> <span class="nn">rdkit.Chem.Scaffolds</span> <span class="k">import</span> <span class="n">MurckoScaffold</span>
 <span class="c1"># dev library</span>
 <span class="kn">from</span> <span class="nn">npfc</span> <span class="k">import</span> <span class="n">utils</span>
 <span class="kn">from</span> <span class="nn">npfc.filter</span> <span class="k">import</span> <span class="n">Filter</span>
@@ -537,6 +538,65 @@
 
         <span class="k">return</span> <span class="n">best_submol</span></div>
 
+<div class="viewcode-block" id="Standardizer.extract_murcko_scaffold"><a class="viewcode-back" href="../../standardize.html#npfc.standardize.Standardizer.extract_murcko_scaffold">[docs]</a>    <span class="k">def</span> <span class="nf">extract_murcko_scaffold</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mol</span><span class="p">:</span> <span class="n">Mol</span><span class="p">,</span> <span class="n">keep_best_minor_compound</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Extract Murcko Scaffolds.</span>
+<span class="sd">        This function apply two protocols on the molecule to extract the &quot;best&quot; Murcko Scaffold:</span>
+
+<span class="sd">            - A: mol &gt; murcko &gt; standardize</span>
+<span class="sd">            - B: mol &gt; standardize &gt; murcko &gt; standardize</span>
+
+<span class="sd">        The &quot;best&quot; Murcko Scaffold is the smaller of both solutions. In case both are of same size (hac),</span>
+<span class="sd">        solution from protocol B is preferred.</span>
+
+<span class="sd">        .. warning:: In case keep_largest is not performed in Standardizer protocol, protocol B might return minor compounds.</span>
+
+<span class="sd">        :param mol: the molecule where to extract Murcko Scaffolds from</span>
+<span class="sd">        :param keep_best_minor_compound: if True, then the keep_best method is applied before extracting the Murcko Scaffold. Makes a difference only for protocol A if keep_best is defined in Standardizer protocol.</span>
+<span class="sd">        :return: a tuple (murcko scaffold, status, task)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># init</span>
+        <span class="n">hac_max</span> <span class="o">=</span> <span class="mi">9999999</span>  <span class="c1"># large atom count to deprioritize failures</span>
+
+        <span class="c1"># protocol A</span>
+        <span class="n">mol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">keep_best</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
+        <span class="n">ms_a</span> <span class="o">=</span> <span class="n">MurckoScaffold</span><span class="o">.</span><span class="n">GetScaffoldForMol</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>  <span class="c1"># molecule could be loaded so should be usable as received in pipeline</span>
+        <span class="n">ms_a_std</span><span class="p">,</span> <span class="n">status_a</span><span class="p">,</span> <span class="n">task_a</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">ms_a</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">status_a</span> <span class="o">==</span> <span class="s1">&#39;passed&#39;</span><span class="p">:</span>
+            <span class="n">hac_a</span> <span class="o">=</span> <span class="n">ms_a_std</span><span class="o">.</span><span class="n">GetNumHeavyAtoms</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">hac_a</span> <span class="o">=</span> <span class="n">hac_max</span>  <span class="c1"># I am looking for the smaller murcko scaffold, so deprioritize failures</span>
+
+        <span class="c1"># protocol B</span>
+        <span class="n">mol_b_std</span><span class="p">,</span> <span class="n">status_b</span><span class="p">,</span> <span class="n">task_b</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">status_b</span> <span class="o">==</span> <span class="s1">&#39;passed&#39;</span><span class="p">:</span>
+            <span class="n">ms_b_std</span> <span class="o">=</span> <span class="n">MurckoScaffold</span><span class="o">.</span><span class="n">GetScaffoldForMol</span><span class="p">(</span><span class="n">mol_b_std</span><span class="p">)</span>
+            <span class="n">ms_b_std</span><span class="p">,</span> <span class="n">status_b</span><span class="p">,</span> <span class="n">task_b</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">ms_b_std</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">status_b</span> <span class="o">==</span> <span class="s1">&#39;passed&#39;</span><span class="p">:</span>
+                <span class="n">hac_b</span> <span class="o">=</span> <span class="n">ms_b_std</span><span class="o">.</span><span class="n">GetNumHeavyAtoms</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">hac_b</span> <span class="o">=</span> <span class="n">hac_max</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">hac_b</span> <span class="o">=</span> <span class="n">hac_max</span>
+
+        <span class="c1"># decide what solution to keep</span>
+
+        <span class="c1"># case 1: both have the same hac...</span>
+        <span class="k">if</span> <span class="n">hac_a</span> <span class="o">==</span> <span class="n">hac_b</span><span class="p">:</span>
+            <span class="c1"># because both failed</span>
+            <span class="k">if</span> <span class="n">hac_a</span> <span class="o">==</span> <span class="mi">9999999</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">(</span><span class="n">ms_b_std</span><span class="p">,</span> <span class="s1">&#39;error&#39;</span><span class="p">,</span> <span class="s1">&#39;murcko&#39;</span><span class="p">)</span>
+            <span class="c1"># because both succeeded</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">(</span><span class="n">ms_b_std</span><span class="p">,</span> <span class="s1">&#39;passed_protB=A&#39;</span><span class="p">,</span> <span class="s1">&#39;murcko&#39;</span><span class="p">)</span>
+
+        <span class="c1"># case 2: A is smaller than B</span>
+        <span class="k">elif</span> <span class="n">hac_a</span> <span class="o">&lt;</span> <span class="n">hac_b</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">ms_a_std</span><span class="p">,</span> <span class="s1">&#39;passed_protA&gt;B&#39;</span><span class="p">,</span> <span class="s1">&#39;murcko&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">hac_a</span> <span class="o">&gt;</span> <span class="n">hac_b</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">ms_b_std</span><span class="p">,</span> <span class="s1">&#39;passed_protB&gt;A&#39;</span><span class="p">,</span> <span class="s1">&#39;murcko&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Error! Unknown situation encountered during Murcko Scaffold Extraction! (hac_a=</span><span class="si">{hac_a}</span><span class="s2">,hac_b=</span><span class="si">{hac_b}</span><span class="s2"> , mol=&#39;{Chem.MolToSmiles(mol)}&#39;)&quot;</span><span class="p">)</span></div>
+
     <span class="nd">@timeout_decorator</span><span class="o">.</span><span class="n">timeout</span><span class="p">(</span><span class="n">TIMEOUT</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mol</span><span class="p">:</span> <span class="n">Mol</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Helper function for run.</span>
@@ -650,7 +710,7 @@
         <span class="k">except</span> <span class="n">timeout_decorator</span><span class="o">.</span><span class="n">TimeoutError</span><span class="p">:</span>
             <span class="k">return</span> <span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="s1">&#39;filtered&#39;</span><span class="p">,</span> <span class="s1">&#39;timeout&#39;</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Standardizer.run_df"><a class="viewcode-back" href="../../standardize.html#npfc.standardize.Standardizer.run_df">[docs]</a>    <span class="k">def</span> <span class="nf">run_df</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+<div class="viewcode-block" id="Standardizer.run_df"><a class="viewcode-back" href="../../standardize.html#npfc.standardize.Standardizer.run_df">[docs]</a>    <span class="k">def</span> <span class="nf">run_df</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">,</span> <span class="n">extract_murcko_scaffolds</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Apply the standardization protocol on a DataFrame, with the possibility of directly filtering duplicate entries as well.</span>
 <span class="sd">        This can be very useful as the standardization process can expose duplicate entries due to salts removal, neutralization,</span>
 <span class="sd">        canonical tautomer enumeration, and stereochemistry centers unlabelling</span>
@@ -666,14 +726,21 @@
 <span class="sd">            - error</span>
 
 <span class="sd">        .. note:: As a side effect, the output DataFrames get indexed by idm. The &#39;inchikey&#39; col is not returned, but the values can be accessed using the reference file.</span>
+
+<span class="sd">        :param df: The DataFrame with molecules to standardize</span>
+<span class="sd">        :param extract_murcko_scaffolds: instead of running a normal standardization run, extract murcko scaffolds using two different protocols.</span>
+<span class="sd">        :param return: a tuple of 3 DataFrames: standardized, filtered and error.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># run standardization protocol</span>
         <span class="n">df</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">col_id</span><span class="p">]</span>
-        <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="bp">self</span><span class="o">.</span><span class="n">col_mol</span><span class="p">],</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s1">&#39;status&#39;</span><span class="p">],</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s1">&#39;task&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">df</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">col_mol</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">run</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">extract_murcko_scaffolds</span><span class="p">:</span>
+            <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="bp">self</span><span class="o">.</span><span class="n">col_mol</span><span class="p">],</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s1">&#39;status&#39;</span><span class="p">],</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s1">&#39;task&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">df</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">col_mol</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">extract_murcko_scaffold</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="bp">self</span><span class="o">.</span><span class="n">col_mol</span><span class="p">],</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s1">&#39;status&#39;</span><span class="p">],</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s1">&#39;task&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">df</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">col_mol</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">run</span><span class="p">))</span>
         <span class="c1"># do not apply filter duplicates on molecules with errors or that were already filtered for x reasons</span>
         <span class="n">df_error</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;error&#39;</span><span class="p">]</span>
         <span class="n">df_filtered</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;filtered&#39;</span><span class="p">]</span>
-        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;passed&#39;</span><span class="p">]</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="s1">&#39;passed&#39;</span><span class="p">)]</span>
         <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>  <span class="c1"># only way I found to suppress pandas warnings in a &quot;clean&quot; way</span>
 
         <span class="c1"># compute InChiKeys</span>

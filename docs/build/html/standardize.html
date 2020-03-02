@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Module standardize &mdash; npfc 0.5.16-23-g31416bc documentation</title>
+  <title>Module standardize &mdash; npfc 0.5.16-24-g6cedaef documentation</title>
   
 
   
@@ -60,7 +60,7 @@
             
             
               <div class="version">
-                0.5.16-23-g31416bc
+                0.5.16-24-g6cedaef
               </div>
             
           
@@ -257,6 +257,39 @@ To achieve this, a scoring function is assigned to each depiction to retrieve th
 </div>
 <p>Create a Standardizer object.</p>
 <dl class="method">
+<dt id="npfc.standardize.Standardizer.extract_murcko_scaffold">
+<code class="sig-name descname">extract_murcko_scaffold</code><span class="sig-paren">(</span><em class="sig-param">mol</em>, <em class="sig-param">keep_best_minor_compound=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#Standardizer.extract_murcko_scaffold"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.Standardizer.extract_murcko_scaffold" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract Murcko Scaffolds.
+This function apply two protocols on the molecule to extract the “best” Murcko Scaffold:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>A: mol &gt; murcko &gt; standardize</p></li>
+<li><p>B: mol &gt; standardize &gt; murcko &gt; standardize</p></li>
+</ul>
+</div></blockquote>
+<p>The “best” Murcko Scaffold is the smaller of both solutions. In case both are of same size (hac),
+solution from protocol B is preferred.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>In case keep_largest is not performed in Standardizer protocol, protocol B might return minor compounds.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mol</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Mol</span></code>) – the molecule where to extract Murcko Scaffolds from</p></li>
+<li><p><strong>keep_best_minor_compound</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>) – if True, then the keep_best method is applied before extracting the Murcko Scaffold. Makes a difference only for protocol A if keep_best is defined in Standardizer protocol.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a></p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>a tuple (murcko scaffold, status, task)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
 <dt id="npfc.standardize.Standardizer.keep_best">
 <code class="sig-name descname">keep_best</code><span class="sig-paren">(</span><em class="sig-param">mol</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#Standardizer.keep_best"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.Standardizer.keep_best" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the “best” molecule found in a molecular structure.</p>
@@ -326,7 +359,7 @@ Molecule that exceed the timeout value are filtered with a task=’timeout’.</
 
 <dl class="method">
 <dt id="npfc.standardize.Standardizer.run_df">
-<code class="sig-name descname">run_df</code><span class="sig-paren">(</span><em class="sig-param">df</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#Standardizer.run_df"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.Standardizer.run_df" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">run_df</code><span class="sig-paren">(</span><em class="sig-param">df</em>, <em class="sig-param">extract_murcko_scaffolds=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#Standardizer.run_df"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.Standardizer.run_df" title="Permalink to this definition">¶</a></dt>
 <dd><p>Apply the standardization protocol on a DataFrame, with the possibility of directly filtering duplicate entries as well.
 This can be very useful as the standardization process can expose duplicate entries due to salts removal, neutralization,
 canonical tautomer enumeration, and stereochemistry centers unlabelling</p>
@@ -352,6 +385,15 @@ canonical tautomer enumeration, and stereochemistry centers unlabelling</p>
 <p class="admonition-title">Note</p>
 <p>As a side effect, the output DataFrames get indexed by idm. The ‘inchikey’ col is not returned, but the values can be accessed using the reference file.</p>
 </div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> – The DataFrame with molecules to standardize</p></li>
+<li><p><strong>extract_murcko_scaffolds</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>) – instead of running a normal standardization run, extract murcko scaffolds using two different protocols.</p></li>
+<li><p><strong>return</strong> – a tuple of 3 DataFrames: standardized, filtered and error.</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>

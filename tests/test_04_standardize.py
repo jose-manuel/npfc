@@ -109,8 +109,10 @@ def df_fragments():
     """An example of a DataFrame with molecules from which to extract Murcko Scaffolds."""
     df = pd.DataFrame([['simple', 'Oc1ccccc1'],
                        ['minor_cpd', 'Oc1ccccc1.O'],
+                       ['protB_crms_19', 'CCC12CCCCC1[N+](=O)CCC2']
                        ], columns=['idm', 'mol'])
     df['mol'] = df['mol'].map(Chem.MolFromSmiles)
+    df.index = df['idm']
 
     return df
 
@@ -247,8 +249,13 @@ def test_standardizer_timeout(mols_timeout, standardizer):
 
 def test_standardizer_murcko_scaffolds(df_fragments, standardizer):
     """Run Murcko Scaffold Extraction on fragment dataset. Protocols A and B are performed within the same function."""
-    df_passed, df_filtered, df_error = standardizer.run_df(df_fragments)
-    expected_smiles = 'Oc1ccccc1'
+    df_passed, df_filtered, df_error = standardizer.run_df(df_fragments, extract_murcko_scaffolds=True)
     assert len(df_filtered) == 0
     assert len(df_error) == 0
-    assert df_passed['mol'].map(Chem.MolToSmiles).unique() == [expected_smiles]
+
+    # simple
+    assert Chem.MolToSmiles(df_passed.loc['simple']['mol']) == 'c1ccccc1'
+    # minor_cpd
+    assert Chem.MolToSmiles(df_passed.loc['minor_cpd']['mol']) == 'c1ccccc1'
+    # protB
+    assert Chem.MolToSmiles(df_passed.loc['protB_crms_19']['mol']) == 'C1=[NH+]C2CCCCC2CC1'  # #### this is a bug from neutralization

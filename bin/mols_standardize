@@ -83,6 +83,7 @@ def main():
     parser.add_argument('-f', '--filtered', type=str, default=None, help="Output file for filtered molecules.")
     parser.add_argument('-e', '--error', type=str, default=None, help="Output file for molecules with errors.")
     parser.add_argument('-p', '--protocol', type=str, default=None, help="Configuration file in JSON for specifying a standardization protocol. See the docs for the default protocol.")
+    parser.add_argument('-m', '--murcko', type=bool, default=False, help="Instead of running the normal protocol, extract Murcko Scaffolds. The latter are selected among 2 solutions, i.e. prototcols A (mol>murcko>std) and B (mol>std>murcko>std). Each protocol is applied to the molecule, then the result with the smallest hac is chosen. In case of ties, protocol B is preferred, because the molecule was standardized first.")
     parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
     args = parser.parse_args()
 
@@ -144,35 +145,35 @@ def main():
     # arguments
     logger.info("ARGUMENTS:")
     logger.info("INPUT_MOLS".ljust(pad) + f"{args.input_mols}")
-
-    # input
-    logger.info("IN_ID".ljust(pad) + f"{in_id}")
-    logger.info("IN_MOL".ljust(pad) + f"{in_mol}")
-    logger.info("IN_FORMAT".ljust(pad) + f"{in_format}")
-    logger.info("IN_COMPRESSION".ljust(pad) + f"{in_compression}")
-    logger.info("DECODE".ljust(pad) + f"{decode}")
-    # outputs
-
-    logger.info("OUTPUT FILES:")
     logger.info("OUTPUT_STD".ljust(pad) + f"{args.output_mols_std}")
-    logger.info("OUT_FORMAT_STD".ljust(pad) + f"{out_format_std}")
-    logger.info("OUT_COMPRESSION_STD".ljust(pad) + f"{out_compression_std}")
     logger.info("OUTPUT_FILTERED".ljust(pad) + f"{args.filtered}")
-    logger.info("OUT_FORMAT_FILTERED".ljust(pad) + f"{out_format_filtered}")
-    logger.info("OUT_COMPRESSION_FILTERED".ljust(pad) + f"{out_compression_filtered}")
     logger.info("OUTPUT_ERROR".ljust(pad) + f"{args.error}")
-    logger.info("OUT_FORMAT_ERROR".ljust(pad) + f"{out_format_error}")
-    logger.info("OUT_COMPRESSION_ERROR".ljust(pad) + f"{out_compression_error}")
-    logger.info("OUT_MOL".ljust(pad) + f"{out_mol}")
-    logger.info("OUT_ID".ljust(pad) + f"{out_id}")
-    logger.info("ENCODE".ljust(pad) + f"{encode}")
     # protocol
     if args.protocol is None:
         logger.info("PROTOCOL".ljust(pad) + "DEFAULT")
     else:
         logger.info("PROTOCOL".ljust(pad) + f"{args.protocol}")
-    logger.info("CSV_SEP".ljust(pad) + f"{csv_sep}")
+    # murcko
+    logger.info("EXTRACT MURCKO".ljust(pad) + f"{args.murcko}")
     logger.info("LOG".ljust(pad) + f"{args.log}")
+
+    # input
+    logger.info("HARD-CODED OR DEDUCED VALUES:")
+    logger.info("IN_ID".ljust(pad) + f"{in_id}")
+    logger.info("IN_MOL".ljust(pad) + f"{in_mol}")
+    logger.info("IN_FORMAT".ljust(pad) + f"{in_format}")
+    logger.info("IN_COMPRESSION".ljust(pad) + f"{in_compression}")
+    logger.info("DECODE".ljust(pad) + f"{decode}")
+    logger.info("OUT_FORMAT_STD".ljust(pad) + f"{out_format_std}")
+    logger.info("OUT_COMPRESSION_STD".ljust(pad) + f"{out_compression_std}")
+    logger.info("OUT_FORMAT_FILTERED".ljust(pad) + f"{out_format_filtered}")
+    logger.info("OUT_COMPRESSION_FILTERED".ljust(pad) + f"{out_compression_filtered}")
+    logger.info("OUT_FORMAT_ERROR".ljust(pad) + f"{out_format_error}")
+    logger.info("OUT_COMPRESSION_ERROR".ljust(pad) + f"{out_compression_error}")
+    logger.info("OUT_MOL".ljust(pad) + f"{out_mol}")
+    logger.info("OUT_ID".ljust(pad) + f"{out_id}")
+    logger.info("ENCODE".ljust(pad) + f"{encode}")
+    logger.info("CSV_SEP".ljust(pad) + f"{csv_sep}")
 
     # begin
 
@@ -196,7 +197,7 @@ def main():
     # standardize molecules
     d2 = datetime.now()
     logger.info(f"RUN STANDARDIZATION")
-    df_passed, df_filtered, df_error = s.run_df(df_mols)
+    df_passed, df_filtered, df_error = s.run_df(df_mols, extract_murcko_scaffolds=args.murcko)
     logger.info(f"RESULTS:")
     num_passed = len(df_passed.index)
     num_filtered = len(df_filtered.index)

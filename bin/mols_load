@@ -71,8 +71,8 @@ def main():
     logger.info("RUNNING LOAD_MOLS")
     warnings.filterwarnings('ignore', category=pd.io.pytables.PerformanceWarning)  # if None is returned instead of a molecule, do not complain about mixed types
     pad = 40
-    #lg = RDLogger.logger()
-    #lg.setLevel(RDLogger.CRITICAL)
+    lg = RDLogger.logger()
+    lg.setLevel(RDLogger.CRITICAL)
 
     # parse arguments
 
