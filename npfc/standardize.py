@@ -193,6 +193,17 @@ class Standardizer(Filter):
         self.full_uncharger = FullUncharger()
         self.canonicalizer = TautomerCanonicalizer()
 
+    def __repr__(self):
+        tasks = ' -> '.join([f"{task}" for task in self._protocol['tasks']])
+        opts = [f"{opt}: {value}" for opt, value in self._protocol.items() if opt != 'tasks']
+        return "STANDARDIZER{" + f"prot={tasks}" + f", opt={opts}" + "}"
+
+        # PROTOCOL:
+        # [logger.info(f"TASK #{str(i+1).zfill(2)} {task}") for i, task in enumerate(s._protocol['tasks'])]
+        # [f"OPTION {opt}".ljust(pad) + f"{value}" for opt, value in s._protocol.items() if opt != 'tasks']
+        # logger.info("TIMEOUT FOR ABOVE TASKS".ljust(pad) + f"{standardize.TIMEOUT} SEC")
+        # """
+
     @property
     def protocol(self):
         return self._protocol

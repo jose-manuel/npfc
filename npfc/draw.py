@@ -540,6 +540,10 @@ def depict_mol(mol: Mol, methods: List[str] = ["CoordGen", "rdDepictor"], consid
 
 def draw_reaction(mol1: Mol, mol2: Mol, sub_img_size=(200, 200), svg=True):
     """Wrapper function around RDKit ReactionToImage function.
+    If the molecules are Mol objects, they are converted to Smiles. If not, they are
+    assumed to be already Smiles.
+
+    .. warning:: There is currently no way of not displaying aromatic rings instead of kekulized rings. The original SMILES for the reaction can be displayed using a DEBUG logging level.
 
     :param mol1: the molecule to display left
     :param mol2: the molecule to display right
