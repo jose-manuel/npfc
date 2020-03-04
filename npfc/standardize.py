@@ -90,6 +90,11 @@ class FullUncharger(Uncharger):
                 atom.SetNumExplicitHs(atom.GetNumExplicitHs() + 1)
                 atom.SetFormalCharge(atom.GetFormalCharge() + 1)
 
+        # clean-up
+        mol.ClearComputedProps()
+        mol.UpdatePropertyCache()
+        Chem.GetSymmSSSR(mol)
+
         # mol.ClearComputedProps()  # not testes but might solved the -O-H2 issue
         # mol.UpdatePropertyCache()
         return mol
@@ -196,7 +201,7 @@ class Standardizer(Filter):
     def __repr__(self):
         tasks = ' -> '.join([f"{task}" for task in self._protocol['tasks']])
         opts = [f"{opt}: {value}" for opt, value in self._protocol.items() if opt != 'tasks']
-        return "STANDARDIZER{" + f"prot={tasks}" + f", opt={opts}" + "}"
+        return "STANDARDIZER{" + f"prot={tasks}" + f", opts={opts}" + "}"
 
         # PROTOCOL:
         # [logger.info(f"TASK #{str(i+1).zfill(2)} {task}") for i, task in enumerate(s._protocol['tasks'])]
@@ -393,54 +398,52 @@ class Standardizer(Filter):
 
         return best_submol
 
+    def remove_side_chains(self, mol: Mol, smarts: str = '[!#1;R0;D1]') -> Mol:
+        """This funcion removes side chains from molecules iteratively.
 
-def remove_side_chains(self, mol: Mol, smarts: str = '[!#1;R0;D1]') -> Mol:
-    """This funcion removes side chains from molecules iteratively.
+        :param mol: the molecule to simplify
+        :param smarts: the smarts to use to detect removable atoms.
+        :return: a simplified copy of the molecule
+        """
+        smarts = Chem.MolFromSmarts(smarts)
+        mol = Chem.RemoveHs(mol)
+        mol = deepcopy(mol)  # do not modify the molecule in place
+        Chem.Kekulize(mol, clearAromaticFlags=True)  # I added this line and this removes the errors with aromaticity
+        # onion-peeling of terminal atoms
+        while mol.HasSubstructMatch(smarts):
+            mol = Chem.DeleteSubstructs(mol, smarts)
+            # clean-up for next iteration
+            mol.ClearComputedProps()
+            mol.UpdatePropertyCache()
+            Chem.GetSymmSSSR(mol)
 
-    :param mol: the molecule to simplify
-    :param smarts: the smarts to use to detect removable atoms.
-    :return: a simplified copy of the molecule
-    """
-    smarts = Chem.MolFromSmarts(smarts)
-    mol = Chem.RemoveHs(mol)
-    mol = deepcopy(mol)  # do not modify the molecule in place
-    Chem.Kekulize(mol, clearAromaticFlags=True)  # I added this line and this removes the errors with aromaticity
-    # onion-peeling of terminal atoms
-    while mol.HasSubstructMatch(smarts):
-        mol = Chem.DeleteSubstructs(mol, smarts)
-        # clean-up for next iteration
-        mol.ClearComputedProps()
-        mol.UpdatePropertyCache()
-        Chem.GetSymmSSSR(mol)
+        return mol
 
-    return mol
+    def extract_murcko_scaffold(self, mol: Mol, simplify: bool = True, debug: bool = False) -> tuple:
+        """Extract the Murcko Scaffold from a molecule.
 
+        This function is a wrapper around the RDKit method:
+        rdkit.Chem.Scaffolds.MurckoScaffold.GetScaffoldForMol
 
-def extract_murcko_scaffold(self, mol: Mol, simplify: bool = True, debug: bool = False) -> tuple:
-    """Extract the Murcko Scaffold from a molecule.
+        It allows further simplification of the structures by removing side chains.
+        This is done iteratively by removing any terminal atom not in a ring.
 
-    This function is a wrapper around the RDKit method:
-    rdkit.Chem.Scaffolds.MurckoScaffold.GetScaffoldForMol
-
-    It allows further simplification of the structures by removing side chains.
-    This is done iteratively by removing any terminal atom not in a ring.
-
-    .. warning:: the option debug is suited for interactive debugging, not for use in pipelines!
+        .. warning:: the option debug is suited for interactive debugging, not for use in pipelines!
 
 
-    :param mol: the molecule where to extract Murcko Scaffolds from
-    :param keep_best_minor_compound: if True, then the keep_best method is applied before extracting the Murcko Scaffold. Makes a difference only for protocol A if keep_best is defined in Standardizer protocol.
-    :return: a tuple (murcko scaffold, status, task)
-    """
-    mol = self.keep_best(mol)
-    mol_m = MurckoScaffold.GetScaffoldForMol(mol)
-    mol_s = self.remove_side_chains(mol_m)
+        :param mol: the molecule where to extract Murcko Scaffolds from
+        :param keep_best_minor_compound: if True, then the keep_best method is applied before extracting the Murcko Scaffold. Makes a difference only for protocol A if keep_best is defined in Standardizer protocol.
+        :return: a tuple (murcko scaffold, status, task)
+        """
+        mol = self.keep_best(mol)
+        mol_m = MurckoScaffold.GetScaffoldForMol(mol)
+        mol_s = self.remove_side_chains(mol_m)
 
-    # in case of interactive debugging, return a tuple to represent the transformation of the molecules.
-    if debug:
-        return (mol, mol_m, mol_s)
+        # in case of interactive debugging, return a tuple to represent the transformation of the molecules.
+        if debug:
+            return (mol, mol_m, mol_s)
 
-    return mol_s
+        return mol_s
 
     # def extract_murcko_scaffold(self, mol: Mol, keep_best_minor_compound: bool = True) -> tuple:
     #     """Extract Murcko Scaffolds.

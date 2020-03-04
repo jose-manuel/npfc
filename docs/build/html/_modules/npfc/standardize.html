@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.standardize &mdash; npfc 0.5.17-1-g42615a1 documentation</title>
+  <title>npfc.standardize &mdash; npfc 0.5.17-2-g5e994db documentation</title>
   
 
   
@@ -58,7 +58,7 @@
             
             
               <div class="version">
-                0.5.17-1-g42615a1
+                0.5.17-2-g5e994db
               </div>
             
           
@@ -351,6 +351,17 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">normalizer</span> <span class="o">=</span> <span class="n">Normalizer</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">full_uncharger</span> <span class="o">=</span> <span class="n">FullUncharger</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">canonicalizer</span> <span class="o">=</span> <span class="n">TautomerCanonicalizer</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">tasks</span> <span class="o">=</span> <span class="s1">&#39; -&gt; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">f</span><span class="s2">&quot;</span><span class="si">{task}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_protocol</span><span class="p">[</span><span class="s1">&#39;tasks&#39;</span><span class="p">]])</span>
+        <span class="n">opts</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span><span class="s2">&quot;</span><span class="si">{opt}</span><span class="s2">: </span><span class="si">{value}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">opt</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_protocol</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">opt</span> <span class="o">!=</span> <span class="s1">&#39;tasks&#39;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="s2">&quot;STANDARDIZER{&quot;</span> <span class="o">+</span> <span class="n">f</span><span class="s2">&quot;prot=</span><span class="si">{tasks}</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">f</span><span class="s2">&quot;, opt=</span><span class="si">{opts}</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="s2">&quot;}&quot;</span>
+
+        <span class="c1"># PROTOCOL:</span>
+        <span class="c1"># [logger.info(f&quot;TASK #{str(i+1).zfill(2)} {task}&quot;) for i, task in enumerate(s._protocol[&#39;tasks&#39;])]</span>
+        <span class="c1"># [f&quot;OPTION {opt}&quot;.ljust(pad) + f&quot;{value}&quot; for opt, value in s._protocol.items() if opt != &#39;tasks&#39;]</span>
+        <span class="c1"># logger.info(&quot;TIMEOUT FOR ABOVE TASKS&quot;.ljust(pad) + f&quot;{standardize.TIMEOUT} SEC&quot;)</span>
+        <span class="c1"># &quot;&quot;&quot;</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">protocol</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
