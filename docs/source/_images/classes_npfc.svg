@@ -95,34 +95,31 @@
 <!-- 4 -->
 <g id="node5" class="node">
 <title>4</title>
-<polygon fill="none" stroke="#000000" points="0,-219 0,-528 239,-528 239,-219 0,-219"/>
-<text text-anchor="middle" x="119.5" y="-512.8" font-family="Times,serif" font-size="14.00" fill="#000000">npfc.standardize.Standardizer</text>
-<polyline fill="none" stroke="#000000" points="0,-505 239,-505 "/>
-<text text-anchor="start" x="8" y="-489.8" font-family="Times,serif" font-size="14.00" fill="#000000">canonicalizer : TautomerCanonicalizer</text>
-<text text-anchor="start" x="8" y="-474.8" font-family="Times,serif" font-size="14.00" fill="#000000">col_id</text>
-<text text-anchor="start" x="8" y="-459.8" font-family="Times,serif" font-size="14.00" fill="#000000">col_mol</text>
-<text text-anchor="start" x="8" y="-444.8" font-family="Times,serif" font-size="14.00" fill="#000000">compute_2D</text>
-<text text-anchor="start" x="8" y="-429.8" font-family="Times,serif" font-size="14.00" fill="#000000">elements_medchem</text>
-<text text-anchor="start" x="8" y="-414.8" font-family="Times,serif" font-size="14.00" fill="#000000">filter_duplicates</text>
-<text text-anchor="start" x="8" y="-399.8" font-family="Times,serif" font-size="14.00" fill="#000000">full_uncharger</text>
-<text text-anchor="start" x="8" y="-384.8" font-family="Times,serif" font-size="14.00" fill="#000000">metal_disconnector : MetalDisconnector</text>
-<text text-anchor="start" x="8" y="-369.8" font-family="Times,serif" font-size="14.00" fill="#000000">normalizer : Normalizer</text>
-<text text-anchor="start" x="8" y="-354.8" font-family="Times,serif" font-size="14.00" fill="#000000">on</text>
-<text text-anchor="start" x="8" y="-339.8" font-family="Times,serif" font-size="14.00" fill="#000000">protocol</text>
-<text text-anchor="start" x="8" y="-324.8" font-family="Times,serif" font-size="14.00" fill="#000000">ref_file</text>
-<text text-anchor="start" x="8" y="-309.8" font-family="Times,serif" font-size="14.00" fill="#000000">suffix</text>
-<polyline fill="none" stroke="#000000" points="0,-302 239,-302 "/>
-<text text-anchor="start" x="8" y="-286.8" font-family="Times,serif" font-size="14.00" fill="#000000">extract_murcko_scaffold()</text>
-<text text-anchor="start" x="8" y="-271.8" font-family="Times,serif" font-size="14.00" fill="#000000">keep_best()</text>
-<text text-anchor="start" x="8" y="-256.8" font-family="Times,serif" font-size="14.00" fill="#000000">remove_isotopes()</text>
-<text text-anchor="start" x="8" y="-241.8" font-family="Times,serif" font-size="14.00" fill="#000000">run()</text>
-<text text-anchor="start" x="8" y="-226.8" font-family="Times,serif" font-size="14.00" fill="#000000">run_df()</text>
+<polygon fill="none" stroke="#000000" points="0,-241.5 0,-505.5 239,-505.5 239,-241.5 0,-241.5"/>
+<text text-anchor="middle" x="119.5" y="-490.3" font-family="Times,serif" font-size="14.00" fill="#000000">npfc.standardize.Standardizer</text>
+<polyline fill="none" stroke="#000000" points="0,-482.5 239,-482.5 "/>
+<text text-anchor="start" x="8" y="-467.3" font-family="Times,serif" font-size="14.00" fill="#000000">canonicalizer : TautomerCanonicalizer</text>
+<text text-anchor="start" x="8" y="-452.3" font-family="Times,serif" font-size="14.00" fill="#000000">col_id</text>
+<text text-anchor="start" x="8" y="-437.3" font-family="Times,serif" font-size="14.00" fill="#000000">col_mol</text>
+<text text-anchor="start" x="8" y="-422.3" font-family="Times,serif" font-size="14.00" fill="#000000">compute_2D</text>
+<text text-anchor="start" x="8" y="-407.3" font-family="Times,serif" font-size="14.00" fill="#000000">elements_medchem</text>
+<text text-anchor="start" x="8" y="-392.3" font-family="Times,serif" font-size="14.00" fill="#000000">filter_duplicates</text>
+<text text-anchor="start" x="8" y="-377.3" font-family="Times,serif" font-size="14.00" fill="#000000">full_uncharger</text>
+<text text-anchor="start" x="8" y="-362.3" font-family="Times,serif" font-size="14.00" fill="#000000">metal_disconnector : MetalDisconnector</text>
+<text text-anchor="start" x="8" y="-347.3" font-family="Times,serif" font-size="14.00" fill="#000000">normalizer : Normalizer</text>
+<text text-anchor="start" x="8" y="-332.3" font-family="Times,serif" font-size="14.00" fill="#000000">on</text>
+<text text-anchor="start" x="8" y="-317.3" font-family="Times,serif" font-size="14.00" fill="#000000">protocol</text>
+<text text-anchor="start" x="8" y="-302.3" font-family="Times,serif" font-size="14.00" fill="#000000">ref_file</text>
+<text text-anchor="start" x="8" y="-287.3" font-family="Times,serif" font-size="14.00" fill="#000000">suffix</text>
+<polyline fill="none" stroke="#000000" points="0,-279.5 239,-279.5 "/>
+<text text-anchor="start" x="8" y="-264.3" font-family="Times,serif" font-size="14.00" fill="#000000">keep_best()</text>
+<text text-anchor="start" x="8" y="-249.3" font-family="Times,serif" font-size="14.00" fill="#000000">remove_isotopes()</text>
 </g>
 <!-- 3&#45;&gt;4 -->
 <g id="edge4" class="edge">
 <title>3&#45;&gt;4</title>
-<path fill="none" stroke="#000000" d="M252.2208,-114.6653C247.7399,-120.7261 243.4175,-126.9042 239.5,-133 224.3794,-156.5285 209.7611,-182.2231 196.2388,-207.7796"/>
-<polygon fill="#000000" stroke="#000000" points="196.0783,-208.0862 196.839,-215.2571 190.5123,-218.7173 189.7516,-211.5464 196.0783,-208.0862"/>
+<path fill="none" stroke="#000000" d="M252.2208,-114.6653C247.7399,-120.7261 243.4175,-126.9042 239.5,-133 219.8946,-163.507 201.1338,-197.6555 184.5114,-230.4232"/>
+<polygon fill="#000000" stroke="#000000" points="184.3458,-230.7529 185.2262,-237.9101 178.9582,-241.4755 178.0778,-234.3183 184.3458,-230.7529"/>
 <text text-anchor="middle" x="279.5" y="-136.8" font-family="Times,serif" font-size="14.00" fill="#00ff00">full_uncharger</text>
 </g>
 <!-- 6 -->
@@ -143,8 +140,8 @@
 <!-- 4&#45;&gt;1 -->
 <g id="edge3" class="edge">
 <title>4&#45;&gt;1</title>
-<path fill="none" stroke="#000000" d="M119.5,-528.3723C119.5,-557.621 119.5,-585.9756 119.5,-608.2302"/>
-<polygon fill="none" stroke="#000000" points="116.0001,-608.324 119.5,-618.324 123.0001,-608.324 116.0001,-608.324"/>
+<path fill="none" stroke="#000000" d="M119.5,-505.8834C119.5,-542.667 119.5,-580.133 119.5,-608.0502"/>
+<polygon fill="none" stroke="#000000" points="116.0001,-608.2608 119.5,-618.2608 123.0001,-608.2609 116.0001,-608.2608"/>
 </g>
 </g>
 </svg>

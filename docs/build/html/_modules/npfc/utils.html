@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.utils &mdash; npfc 0.5.16-25-g174dcb2 documentation</title>
+  <title>npfc.utils &mdash; npfc 0.5.17 documentation</title>
   
 
   
@@ -58,7 +58,7 @@
             
             
               <div class="version">
-                0.5.16-25-g174dcb2
+                0.5.17
               </div>
             
           
@@ -245,6 +245,20 @@
         <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Error! Expected a boolean but got {type(value)} instead (</span><span class="si">{value}</span><span class="s2">).&quot;</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="kc">True</span></div>
+
+
+<div class="viewcode-block" id="parse_argparse_boolstring"><a class="viewcode-back" href="../../utils.html#npfc.utils.parse_argparse_boolstring">[docs]</a><span class="k">def</span> <span class="nf">parse_argparse_boolstring</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Return True or False given the provided string. If the string is actually not a boolean, raise a TypeError.</span>
+
+<span class="sd">    :param value: the argument to test</span>
+<span class="sd">    :return: the parsed boolean as type bool</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">value</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;yes&quot;</span><span class="p">,</span> <span class="s2">&quot;true&quot;</span><span class="p">,</span> <span class="s2">&quot;t&quot;</span><span class="p">,</span> <span class="s2">&quot;1&quot;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">elif</span> <span class="n">value</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;no&quot;</span><span class="p">,</span> <span class="s2">&quot;false&quot;</span><span class="p">,</span> <span class="s2">&quot;f&quot;</span><span class="p">,</span> <span class="s2">&quot;0&quot;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Error! Could not parse provided boolean string (</span><span class="si">{value}</span><span class="s2">).&quot;</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="check_arg_positive_number"><a class="viewcode-back" href="../../utils.html#npfc.utils.check_arg_positive_number">[docs]</a><span class="k">def</span> <span class="nf">check_arg_positive_number</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">Number</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>

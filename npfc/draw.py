@@ -19,6 +19,7 @@ from itertools import chain
 from collections import Counter
 # chemoinformatics
 from rdkit.Chem import AllChem as Chem
+from rdkit.Chem import rdChemReactions
 from rdkit.Chem import Mol
 from rdkit.Chem import Atom
 from rdkit.Chem import Bond
@@ -535,6 +536,27 @@ def depict_mol(mol: Mol, methods: List[str] = ["CoordGen", "rdDepictor"], consid
     best_depiction_mol.SetProp("_2D", best_method)
 
     return best_depiction_mol
+
+
+def draw_reaction(mol1: Mol, mol2: Mol, sub_img_size=(200, 200), svg=True):
+    """Wrapper function around RDKit ReactionToImage function.
+
+    :param mol1: the molecule to display left
+    :param mol2: the molecule to display right
+    :param sub_img_size: the size of the molecules
+    :param svg: return the image in SVG text, return a PIL Image otherwise.
+    :return: the reaction as an image.
+    """
+    if isinstance(mol1, Mol):
+        mol1 = Chem.MolToSmiles(mol1)
+    if isinstance(mol2, Mol):
+        mol2 = Chem.MolToSmiles(mol2)
+    rxn_str = f"{mol1}>>{mol2}"
+    logging.debug(f"rxn_str={rxn_str}")
+    rxn = rdChemReactions.ReactionFromSmarts(rxn_str, useSmiles=True)
+    img = Draw.ReactionToImage(rxn, subImgSize=sub_img_size, useSVG=svg)
+
+    return img
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ CLASSES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
