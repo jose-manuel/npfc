@@ -1,1 +1,12 @@
-2020-02-27 15:51:52,709 -- INFO -- RUNNING STANDARDIZE_MOLS
+2020-03-02 15:55:08,201 -- INFO -- RUNNING NPFC PROTOCOL
+2020-03-02 15:55:08,201 -- INFO --             LIBRARY VERSIONS            
+2020-03-02 15:55:08,201 -- INFO -- rdkit                                   2019.03.4
+2020-03-02 15:55:08,201 -- INFO -- pandas                                  0.25.1
+2020-03-02 15:55:08,201 -- INFO -- npfc                                    0.5.16-24-g6cedaef
+2020-03-02 15:55:08,201 -- INFO --                ARGUMENTS                
+2020-03-02 15:55:08,201 -- INFO -- PROTOCOL                                fragments
+2020-03-02 15:55:08,201 -- INFO -- CONFIG                                  None
+2020-03-02 15:55:08,201 -- INFO -- ENV                                     local
+2020-03-02 15:55:08,202 -- INFO -- JOBS                                    6
+2020-03-02 15:55:08,202 -- INFO -- BEGIN
+2020-03-02 15:55:08,202 -- INFO -- NO SPECIFIED CONFIG FILE, PARSING DEFAULT CONFIG FILE AT '/home/gally/Software/anaconda3/envs/npfc/lib/python3.7/site-packages/npfc/data/fragments.json'

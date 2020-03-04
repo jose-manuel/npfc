@@ -68,6 +68,10 @@ Inside of the package root folder:
 >>> cd dist
 >>> pip install pdbeccdutils-0.4.tar.gz
 
+Or much more easier:
+
+>>> pip install git+https://gitlab.ebi.ac.uk/pdbe/ccdutils.git
+
 #### networkx
 
 I don't know why networkx is a special case. It is installed using conda install.

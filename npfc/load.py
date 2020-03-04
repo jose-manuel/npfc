@@ -22,7 +22,7 @@ from typing import List
 from typing import Union
 # dev
 from npfc import utils
-
+import warnings
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ GLOBALS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 
@@ -30,7 +30,6 @@ CONVERTERS = {'molblock': lambda x: Chem.MolFromMolBlock(x),
               'smiles': lambda x: Chem.MolFromSmiles(x),
               'rdkit': lambda x: x,  # nothing to do here, but removes the needs for more if/elif
               }
-
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 

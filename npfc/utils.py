@@ -88,6 +88,20 @@ def check_arg_bool(value: bool) -> bool:
     return True
 
 
+def parse_argparse_boolstring(value: str) -> bool:
+    """Return True or False given the provided string. If the string is actually not a boolean, raise a TypeError.
+
+    :param value: the argument to test
+    :return: the parsed boolean as type bool
+    """
+    if value.lower() in ("yes", "true", "t", "1"):
+        return True
+    elif value.lower() in ("no", "false", "f", "0"):
+        return False
+    else:
+        raise TypeError(f"Error! Could not parse provided boolean string ({value}).")
+
+
 def check_arg_positive_number(value: Number) -> bool:
     """Return True of the value is indeed a positive number (>0), raise a TypeError otherwise.
 

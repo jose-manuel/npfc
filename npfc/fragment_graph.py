@@ -181,7 +181,7 @@ def _split_unconnected(dfs_fcc_clean: List[DataFrame]) -> List[DataFrame]:
     for i, df_fcc_clean in enumerate(dfs_fcc_clean):
         # compute a graph with each fid as a node, one row means an edge between 2 fid
         fc_graph = nx.from_pandas_edgelist(df_fcc_clean, "fid1", "fid2")
-        fc_subgraphs = list(nx.connected_component_subgraphs(fc_graph))
+        fc_subgraphs = list(fc_graph.subgraph(c) for c in nx.connected_components(fc_graph))
         num_fc_subgraphs = len(fc_subgraphs)
         # splitting up subgraphs
         if num_fc_subgraphs > 1:

@@ -1,0 +1,4 @@
+Building DAG of jobs...
+MissingInputException in line 81 of /home/gally/Software/anaconda3/envs/npfc/lib/python3.7/site-packages/npfc/data/fragments.smk:
+Missing input files for rule LOAD:
+fragments/crms/data/00_raw/data/cr.sdf.gz

@@ -7,7 +7,7 @@ This modules is used to standardize molecules and molecular DataFrames.
 # standard
 import logging
 import timeout_decorator
-import copy
+from copy import deepcopy
 # data handling
 import json
 from pandas import DataFrame
@@ -71,7 +71,7 @@ class FullUncharger(Uncharger):
         :return: the uncharged molecule
         """
         logging.debug(f"Uncharging a molecule")
-        mol = copy.deepcopy(mol)
+        mol = deepcopy(mol)
         # Get atom ids for matches
         p = [x[0] for x in mol.GetSubstructMatches(self.q_pos_1)]   # +1
         p += [x[0] for x in mol.GetSubstructMatches(self.q_pos_2)]  # +2
@@ -89,6 +89,9 @@ class FullUncharger(Uncharger):
             while atom.GetFormalCharge() < 0:
                 atom.SetNumExplicitHs(atom.GetNumExplicitHs() + 1)
                 atom.SetFormalCharge(atom.GetFormalCharge() + 1)
+
+        # mol.ClearComputedProps()  # not testes but might solved the -O-H2 issue
+        # mol.UpdatePropertyCache()
         return mol
 
 
@@ -379,64 +382,113 @@ class Standardizer(Filter):
 
         return best_submol
 
-    def extract_murcko_scaffold(self, mol: Mol, keep_best_minor_compound: bool = True) -> tuple:
-        """Extract Murcko Scaffolds.
-        This function apply two protocols on the molecule to extract the "best" Murcko Scaffold:
 
-            - A: mol > murcko > standardize
-            - B: mol > standardize > murcko > standardize
+def remove_side_chains(self, mol: Mol, smarts: str = '[!#1;R0;D1]') -> Mol:
+    """This funcion removes side chains from molecules iteratively.
 
-        The "best" Murcko Scaffold is the smaller of both solutions. In case both are of same size (hac),
-        solution from protocol B is preferred, as it was extracted from a standardized molecule.
+    :param mol: the molecule to simplify
+    :param smarts: the smarts to use to detect removable atoms.
+    :return: a simplified copy of the molecule
+    """
+    smarts = Chem.MolFromSmarts(smarts)
+    mol = Chem.RemoveHs(mol)
+    mol = deepcopy(mol)  # do not modify the molecule in place
+    Chem.Kekulize(mol, clearAromaticFlags=True)  # I added this line and this removes the errors with aromaticity
+    # onion-peeling of terminal atoms
+    while mol.HasSubstructMatch(smarts):
+        mol = Chem.DeleteSubstructs(mol, smarts)
+        # clean-up for next iteration
+        mol.ClearComputedProps()
+        mol.UpdatePropertyCache()
+        Chem.GetSymmSSSR(mol)
 
-        .. warning:: In case keep_largest is not performed in Standardizer protocol, protocol B might return minor compounds.
+    return mol
 
-        :param mol: the molecule where to extract Murcko Scaffolds from
-        :param keep_best_minor_compound: if True, then the keep_best method is applied before extracting the Murcko Scaffold. Makes a difference only for protocol A if keep_best is defined in Standardizer protocol.
-        :return: a tuple (murcko scaffold, status, task)
-        """
-        # init
-        hac_max = 9999999  # large atom count to deprioritize failures
 
-        # protocol A
-        mol = self.keep_best(mol)
-        ms_a = MurckoScaffold.GetScaffoldForMol(mol)  # molecule could be loaded so should be usable as received in pipeline
-        ms_a_std, status_a, task_a = self.run(ms_a)
-        if status_a == 'passed':
-            hac_a = ms_a_std.GetNumHeavyAtoms()
-        else:
-            hac_a = hac_max  # I am looking for the smaller murcko scaffold, so deprioritize failures
+def extract_murcko_scaffold(self, mol: Mol, simplify: bool = True, debug: bool = False) -> tuple:
+    """Extract the Murcko Scaffold from a molecule.
 
-        # protocol B
-        mol_b_std, status_b, task_b = self.run(mol)
-        if status_b == 'passed':
-            ms_b_std = MurckoScaffold.GetScaffoldForMol(mol_b_std)
-            ms_b_std, status_b, task_b = self.run(ms_b_std)
-            if status_b == 'passed':
-                hac_b = ms_b_std.GetNumHeavyAtoms()
-            else:
-                hac_b = hac_max
-        else:
-            hac_b = hac_max
+    This function is a wrapper around the RDKit method:
+    rdkit.Chem.Scaffolds.MurckoScaffold.GetScaffoldForMol
 
-        # decide what solution to keep
+    It allows further simplification of the structures by removing side chains.
+    This is done iteratively by removing any terminal atom not in a ring.
 
-        # case 1: both have the same hac...
-        if hac_a == hac_b:
-            # because both failed
-            if hac_a == 9999999:
-                return (ms_b_std, 'error', 'murcko')
-            # because both succeeded
-            else:
-                return (ms_b_std, 'passed_protB=A', 'murcko')
+    .. warning:: the option debug is suited for interactive debugging, not for use in pipelines!
 
-        # case 2: A is smaller than B
-        elif hac_a < hac_b:
-            return (ms_a_std, 'passed_protA>B', 'murcko')
-        elif hac_a > hac_b:
-            return (ms_b_std, 'passed_protB>A', 'murcko')
-        else:
-            raise ValueError(f"Error! Unknown situation encountered during Murcko Scaffold Extraction! (hac_a={hac_a},hac_b={hac_b} , mol='{Chem.MolToSmiles(mol)}')")
+
+    :param mol: the molecule where to extract Murcko Scaffolds from
+    :param keep_best_minor_compound: if True, then the keep_best method is applied before extracting the Murcko Scaffold. Makes a difference only for protocol A if keep_best is defined in Standardizer protocol.
+    :return: a tuple (murcko scaffold, status, task)
+    """
+    mol = self.keep_best(mol)
+    mol_m = MurckoScaffold.GetScaffoldForMol(mol)
+    mol_s = self.remove_side_chains(mol_m)
+
+    # in case of interactive debugging, return a tuple to represent the transformation of the molecules.
+    if debug:
+        return (mol, mol_m, mol_s)
+
+    return mol_s
+
+    # def extract_murcko_scaffold(self, mol: Mol, keep_best_minor_compound: bool = True) -> tuple:
+    #     """Extract Murcko Scaffolds.
+    #     This function apply two protocols on the molecule to extract the "best" Murcko Scaffold:
+    #
+    #         - A: mol > murcko > standardize
+    #         - B: mol > standardize > murcko > standardize
+    #
+    #     The "best" Murcko Scaffold is the smaller of both solutions. In case both are of same size (hac),
+    #     solution from protocol B is preferred, as it was extracted from a standardized molecule.
+    #
+    #     .. warning:: In case keep_largest is not performed in Standardizer protocol, protocol B might return minor compounds.
+    #
+    #     :param mol: the molecule where to extract Murcko Scaffolds from
+    #     :param keep_best_minor_compound: if True, then the keep_best method is applied before extracting the Murcko Scaffold. Makes a difference only for protocol A if keep_best is defined in Standardizer protocol.
+    #     :return: a tuple (murcko scaffold, status, task)
+    #     """
+    #     # init
+    #     hac_max = 9999999  # large atom count to deprioritize failures
+    #
+    #     # protocol A
+    #     mol = self.keep_best(mol)
+    #     ms_a = MurckoScaffold.GetScaffoldForMol(mol)  # molecule could be loaded so should be usable as received in pipeline
+    #     ms_a_std, status_a, task_a = self.run(ms_a)
+    #     if status_a == 'passed':
+    #         hac_a = ms_a_std.GetNumHeavyAtoms()
+    #     else:
+    #         hac_a = hac_max  # I am looking for the smaller murcko scaffold, so deprioritize failures
+    #
+    #     # protocol B
+    #     mol_b_std, status_b, task_b = self.run(mol)
+    #     if status_b == 'passed':
+    #         ms_b_std = MurckoScaffold.GetScaffoldForMol(mol_b_std)
+    #         ms_b_std, status_b, task_b = self.run(ms_b_std)
+    #         if status_b == 'passed':
+    #             hac_b = ms_b_std.GetNumHeavyAtoms()
+    #         else:
+    #             hac_b = hac_max
+    #     else:
+    #         hac_b = hac_max
+    #
+    #     # decide what solution to keep
+    #
+    #     # case 1: both have the same hac...
+    #     if hac_a == hac_b:
+    #         # because both failed
+    #         if hac_a == 9999999:
+    #             return (ms_b_std, 'error', 'murcko')
+    #         # because both succeeded
+    #         else:
+    #             return (ms_b_std, 'passed_protB=A', 'murcko')
+    #
+    #     # case 2: A is smaller than B
+    #     elif hac_a < hac_b:
+    #         return (ms_a_std, 'passed_protA>B', 'murcko')
+    #     elif hac_a > hac_b:
+    #         return (ms_b_std, 'passed_protB>A', 'murcko')
+    #     else:
+    #         raise ValueError(f"Error! Unknown situation encountered during Murcko Scaffold Extraction! (hac_a={hac_a},hac_b={hac_b} , mol='{Chem.MolToSmiles(mol)}')")
 
     @timeout_decorator.timeout(TIMEOUT)
     def _run(self, mol: Mol) -> tuple:
@@ -455,7 +507,7 @@ class Standardizer(Filter):
             return (mol, 'error', 'initiate_mol')
 
         # begin protocol
-        mol = copy.deepcopy(mol)
+        mol = deepcopy(mol)
         for task in self._protocol['tasks']:
             # filter_empty
             if task == 'filter_empty':
