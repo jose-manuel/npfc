@@ -538,7 +538,7 @@ def depict_mol(mol: Mol, methods: List[str] = ["CoordGen", "rdDepictor"], consid
     return best_depiction_mol
 
 
-def draw_reaction(mol1: Mol, mol2: Mol, sub_img_size=(200, 200), svg=True):
+def draw_reaction(mol1: Mol, mol2: Mol, sub_img_size: tuple = (200, 200), svg: bool = True, output_file: str = None):
     """Wrapper function around RDKit ReactionToImage function.
     If the molecules are Mol objects, they are converted to Smiles. If not, they are
     assumed to be already Smiles.
@@ -560,6 +560,16 @@ def draw_reaction(mol1: Mol, mol2: Mol, sub_img_size=(200, 200), svg=True):
     rxn = rdChemReactions.ReactionFromSmarts(rxn_str, useSmiles=True)
     img = Draw.ReactionToImage(rxn, subImgSize=sub_img_size, useSVG=svg)
 
+    # export img
+    if output_file is not None:
+        output_ext = output_file.split('.')[-1].upper()
+        if output_ext == 'SVG' and not svg:
+            raise ValueError(f"Error! output file extension is SVG but image format is PNG!")
+        if output_ext == 'SVG':
+            with open(output_file, 'w') as SVG:
+                SVG.write(img)  # inconsistent svg attributes between mols and reactions
+        else:
+            raise ValueError(f"Error! Unsupported extension '{output_ext}'!")
     return img
 
 

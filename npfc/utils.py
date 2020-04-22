@@ -7,13 +7,14 @@ Module utils
 import logging
 from pathlib import Path
 import sys
+import itertools
 # data handling
 import pickle
 import base64
-# docstrings
+# typing
+from rdkit.Chem import AllChem
 from rdkit.Chem import Mol
-from rdkit.Chem import MolFromSmiles
-from rdkit.Chem.rdinchi import MolToInchiKey
+# chemoinformatics
 from typing import Union
 from typing import List
 
@@ -298,3 +299,26 @@ def decode_mol(string: str) -> Mol:
         return Mol(base64.b64decode(string))
     except TypeError:
         return None
+
+
+def get_shortest_path_between_frags(mol: Mol, aidxf1: set, aidxf2: set) -> tuple:
+    """Return the shortest path within a molecule between two fragments defined by atom indices.
+    First and last atom indices are part of respectively fragment 1 and fragment 2, so they should not
+    be considered when estimating the distance between fragments.
+
+    (i.e. distance = len(shortest_path) - 2)
+
+    :param mol: The input molecule.
+    :param aidxf1: the atom indices of the first fragment found in the molecule
+    :param aidxf2: the atom indices of the second fragment found in the molecule
+    :return: the atom indices of the shortest path between both fragments. The first index is the attachment point from fragment 1 whereas the last index is the attachment point from fragment 2
+    """
+    # 1/ compute every pairwise atom combination between both fragments
+    pairwise_combinations = itertools.product(tuple(aidxf1), tuple(aidxf2))
+    # 2/ for each of those, compute the shortest path possible
+    pairwise_combinations = list(pairwise_combinations)
+    all_paths = [AllChem.GetShortestPath(mol, pc[0], pc[1]) for pc in pairwise_combinations]
+    # logging.debug(f"Looking for the shortest path shortest path among these:")
+    # [logging.debug(f"Path ({str(i).zfill(3)}): {p}") for i, p in enumerate(all_paths)]
+    # 3/ return one of the shortest pathes
+    return min(all_paths, key=lambda x: len(x))

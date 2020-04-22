@@ -6,6 +6,7 @@ This modules is used to standardize molecules and molecular DataFrames.
 
 # standard
 import logging
+from collections import Counter
 import timeout_decorator
 from copy import deepcopy
 # data handling
@@ -22,6 +23,10 @@ from rdkit.Chem.MolStandardize.charge import Uncharger
 from rdkit.Chem.MolStandardize.normalize import Normalizer
 from rdkit.Chem.MolStandardize.tautomer import TautomerCanonicalizer
 from rdkit.Chem.Scaffolds import MurckoScaffold
+# graph
+from networkx import Graph
+# docs
+from typing import Union
 # dev library
 from npfc import utils
 from npfc.filter import Filter
@@ -110,15 +115,16 @@ class Standardizer(Filter):
         2) **filter_empty**: filter molecules with empty structures
         3) **disconnect_metal**: break bonds involving metallic atoms, resulting in potentially several molecules per structure.
         4) **keep_best**: retrieve only the "best" molecule from a mixture, which might not always be the largest one.
-        5) **filter_hac**: filter molecules with a heavy atom count not in the accepted range. By default: hac > 3.
-        6) **filter_molweight**: filter molecules with a molecular weight not in the accepted range. By default: molweight <= 1000.0.
-        7) **filter_nrings**: filter molecules with a number of rings (Smallest Sets of Smallest Rings or SSSR) not in the accepted range. By default: nrings > 0.
-        8) **filter_medchem**: filter molecules with elements not considered as medchem. By default: elements in H, B, C, N, O, F, P, S, Cl, Br, I.
-        9) **remove_isotopes**: set all atoms to their most common isotope (i.e. 14C becomes 12C which is C).
-        10) **normalize**: always write the same functional groups in the same manner.
-        11) **uncharge**: remove all charges on a molecule when it is possible. This is different from rdkit.Chem.MolStandardize.charge module as there is no attempt for reaching the zwitterion.
-        12) **canonicalize**: enumerate the canonical tautomer.
-        13) **remove_stereo**: remove all remaining stereochemistry flags on the molecule.
+        5) **deglycosylate**: remove all external sugars-like rings from the molecule and return the remaining non-linear entity.
+        6) **filter_hac**: filter molecules with a heavy atom count not in the accepted range. By default: hac > 3.
+        7) **filter_molweight**: filter molecules with a molecular weight not in the accepted range. By default: molweight <= 1000.0.
+        8) **filter_nrings**: filter molecules with a number of rings (Smallest Sets of Smallest Rings or SSSR) not in the accepted range. By default: nrings > 0.
+        9) **filter_medchem**: filter molecules with elements not considered as medchem. By default: elements in H, B, C, N, O, F, P, S, Cl, Br, I.
+        10) **clear_isotopes**: set all atoms to their most common isotope (i.e. 14C becomes 12C which is C).
+        11) **normalize**: always write the same functional groups in the same manner.
+        12) **uncharge**: remove all charges on a molecule when it is possible. This is different from rdkit.Chem.MolStandardize.charge module as there is no attempt for reaching the zwitterion.
+        13) **canonicalize**: enumerate the canonical tautomer.
+        14) **clear_stereo**: remove all remaining stereochemistry flags on the molecule.
 
     Finally, duplicate entries can be filtered using InChiKeys when postprocessing the DataFrame with molecules (argument in the run_df method).
 
@@ -170,15 +176,16 @@ class Standardizer(Filter):
         self._default_protocol = {'tasks': ['filter_empty',
                                             'disconnect_metal',
                                             'keep_best',
+                                            'deglycosylate',
                                             'filter_hac',
                                             'filter_molweight',
                                             'filter_nrings',
                                             'filter_medchem',
-                                            'remove_isotopes',
+                                            'clear_isotopes',
                                             'normalize',
                                             'uncharge',
                                             'canonicalize',
-                                            'remove_stereo',
+                                            'clear_stereo',
                                             ],
                                   'filter_hac': 'hac > 3',
                                   'filter_molweight': 'molweight <= 1000.0',
@@ -309,7 +316,7 @@ class Standardizer(Filter):
             raise ValueError(f"Error! Either None or a str are expected for ref_file, not '{value}' ({type(value)}).")
         self._ref_file = value
 
-    def remove_isotopes(self, mol: Mol) -> Mol:
+    def clear_isotopes(self, mol: Mol) -> Mol:
         """Return a molecule without any isotopes.
 
         :param mol: the input molecule
@@ -398,52 +405,45 @@ class Standardizer(Filter):
 
         return best_submol
 
-    def remove_side_chains(self, mol: Mol, smarts: str = '[!#1;R0;D1]') -> Mol:
-        """This funcion removes side chains from molecules iteratively.
+    def clear_side_chains(self, mol: Mol, debug: bool = False) -> Mol:
+        """Clear the side chains of a molecule.
+
+        This method operates in 3 steps:
+
+            1. Remove quickly all atoms in side chains but the one attached to a ring, starting from the terminal atom. (would certainly fail in case of linear molecules)
+            2. Iterate over each remaining exocyclic atoms to remove only atoms when it does not break the ring aromaticity. Simple and double bonds can be broken and the atoms in rings which were attached to removed atoms are neutralized.
+            3. Remove eventual nitrogen radicals by Smiles editing.
+
+        .. warning:: I found only nitrogen radicals in my dataset, this might be insufficient on a larger scale.
 
         :param mol: the molecule to simplify
-        :param smarts: the smarts to use to detect removable atoms.
         :return: a simplified copy of the molecule
         """
-        smarts = Chem.MolFromSmarts(smarts)
-        mol = Chem.RemoveHs(mol)
-        mol = deepcopy(mol)  # do not modify the molecule in place
-        Chem.Kekulize(mol, clearAromaticFlags=True)  # I added this line and this removes the errors with aromaticity
-        # onion-peeling of terminal atoms
+        # 1st peeling: fast, chunks of terminal chains
+        smarts = Chem.MolFromSmarts('[!#1;R0;D1]~[!#1;R0;D{1-2}]')  # terminal exocyclic atom linked to another exocyclic atom, neighbour atom is not allowed more than 2 degrees, so branches (i.e. CC(=O)C) are not cut out
         while mol.HasSubstructMatch(smarts):
             mol = Chem.DeleteSubstructs(mol, smarts)
-            # clean-up for next iteration
             mol.ClearComputedProps()
             mol.UpdatePropertyCache()
             Chem.GetSymmSSSR(mol)
+        # 2nd peeling: slow, atom per atom of the remaining termninal atoms
+        rwmol = Chem.RWMol(mol)
+        smarts = Chem.MolFromSmarts('[!#1;R0;D1]')  # remaining terminal exocyclic atoms require cautious handling
+        matches = sorted([item for sublist in rwmol.GetSubstructMatches(smarts) for item in sublist], reverse=True)  # reverse order so that remaining atom indices from matches are still valid after removing an atom
+        for m in matches:
+            try:
+                rwmol_tmp = deepcopy(rwmol)
+                neighbor = rwmol_tmp.GetAtomWithIdx(m).GetNeighbors()[0]  # terminal atom so only 1 neighbor
+                rwmol_tmp.RemoveAtom(m)
+                neighbor.SetFormalCharge(0)  # neutralize in case of previously quaternary nitrogens
+                neighbor.SetNumRadicalElectrons(0)  # remove radicals,this does not work as expected
+                Chem.SanitizeMol(rwmol_tmp)  # will fail in case of break in aromaticity
+                rwmol = rwmol_tmp  # if it went ok
+            except Chem.rdchem.KekulizeException:
+                pass  # we should not have tried to remove this atom, so just leave it be
 
-        return mol
-
-    def extract_murcko_scaffold(self, mol: Mol, simplify: bool = True, debug: bool = False) -> tuple:
-        """Extract the Murcko Scaffold from a molecule.
-
-        This function is a wrapper around the RDKit method:
-        rdkit.Chem.Scaffolds.MurckoScaffold.GetScaffoldForMol
-
-        It allows further simplification of the structures by removing side chains.
-        This is done iteratively by removing any terminal atom not in a ring.
-
-        .. warning:: the option debug is suited for interactive debugging, not for use in pipelines!
-
-
-        :param mol: the molecule where to extract Murcko Scaffolds from
-        :param keep_best_minor_compound: if True, then the keep_best method is applied before extracting the Murcko Scaffold. Makes a difference only for protocol A if keep_best is defined in Standardizer protocol.
-        :return: a tuple (murcko scaffold, status, task)
-        """
-        mol = self.keep_best(mol)
-        mol_m = MurckoScaffold.GetScaffoldForMol(mol)
-        mol_s = self.remove_side_chains(mol_m)
-
-        # in case of interactive debugging, return a tuple to represent the transformation of the molecules.
-        if debug:
-            return (mol, mol_m, mol_s)
-
-        return mol_s
+        # I could not figure out how to remove radicals, so I just convert the mol to Smiles and edit the string
+        return Chem.MolFromSmiles(Chem.MolToSmiles(rwmol).replace('[N]', 'N').replace('[n]', 'n'))
 
     # def extract_murcko_scaffold(self, mol: Mol, keep_best_minor_compound: bool = True) -> tuple:
     #     """Extract Murcko Scaffolds.
@@ -504,6 +504,238 @@ class Standardizer(Filter):
     #     else:
     #         raise ValueError(f"Error! Unknown situation encountered during Murcko Scaffold Extraction! (hac_a={hac_a},hac_b={hac_b} , mol='{Chem.MolToSmiles(mol)}')")
 
+    def _fuse_rings(self, rings: tuple) -> list:
+        """
+        Check for atom indices in common between rings to aggregate them into fused rings.
+
+        :param rings: the ring atoms as provided by the RDKit function mol.GetRingInfo().AtomRings() (iteratble of iteratable of atom indices).
+        :return: the fused ring atoms (list of lists of atom indices)
+        """
+        # condition to exit from recursive fusion of ring atom indices
+        done = False
+
+        while not done:
+            fused_rings = []
+            num_rings = len(rings)
+            # pairwise check for common atoms between rings
+            for i in range(num_rings):
+                # define a core
+                fused_ring = set(rings[i])
+                for j in range(i+1, num_rings):
+                    # detect if ring is fused
+                    if set(rings[i]) & set(rings[j]):
+                        # add fused ring to our rign atom list
+                        fused_ring = fused_ring.union(rings[j])
+                # either lone or fused ring, first check if not already in fused_rings
+                if any([fused_ring.issubset(x) for x in fused_rings]):
+                    continue
+                fused_rings.append(list(fused_ring))
+            rings = list(fused_rings)
+            # there are no rings to fuse anymore
+            if num_rings == len(rings):
+                done = True
+
+        return rings
+
+    def _is_sugar_like(self, ring_aidx: list, mol: Mol):
+        """Indicate whether a ring (defined by its atom indices) in a molecule is sugar-like or not.
+
+        Several conditions are to be met for a ring to be considered sugar-like:
+
+            1. size: either 5 or 6 atoms
+            2. elements: 1 oxygen and the rest carbons
+            3. hybridization: ring atoms need have single bonds only
+            4. connection points (next to the ring oxygen): at least 1 has an oxygen as neighbor
+            5. subsituents (not next tot the ring oxygen): at least 1/2 (for 5-6-membered rings) have an oxygen as neighbor
+
+        :param ring_aidx: the molecule indices of the ring to investigate
+        :param mol: the molecule that contain the ring
+        :return: True if the ring complies to the 5 conditions above, False otherwise.
+        """
+        # ring size: only 5-6 membered rings, rings are already fused when this function is called
+        ring_size = len(ring_aidx)
+        if ring_size != 5 and ring_size != 6:
+            return False
+
+        # access the actual atom objects quickier
+        ring_atoms = [mol.GetAtomWithIdx(x) for x in ring_aidx]  # ring atoms are in the same order as ring_aidx
+
+        # atom composition
+        elements = [x.GetAtomicNum() for x in ring_atoms]
+        element_counter = Counter(elements)
+        if not ((ring_size == 5 and element_counter[6] == 4 and element_counter[8] == 1) or (ring_size == 6 and element_counter[6] == 5 and element_counter[8] == 1)):
+            return False
+
+        # hybridization of carbon atoms (check if only single bonds attached to the ring)
+        carbon_atoms = [x for x in ring_atoms if x.GetAtomicNum() == 6]
+        if any([x for x in carbon_atoms if x.GetHybridization() != 4]):  # to check if no H attached in case of the * position
+            return False
+
+        # to define connection points and substituents, we first need to identify the position of the ring oxygen
+        oxygen_aidx = [x for x in ring_atoms if x not in carbon_atoms][0].GetIdx()  # only 1 oxygen in ring
+
+        # connection points: 1 need at least 1 oxygen as neighbor
+        cps = []
+        cps_ok = False
+        for carbon_atom in carbon_atoms:
+            neighbors = carbon_atom.GetNeighbors()
+            # if the ring oxygen is next to this atom, this atom is a connection point
+            if any([n.GetIdx() == oxygen_aidx for n in neighbors]):
+                cps.append(carbon_atom)
+                # at least 1 of the connection points has to have an oxygen as side chain
+                if any([n.GetAtomicNum() == 8 and n.GetIdx() != oxygen_aidx for n in neighbors]):
+                    cps_ok = True
+        if not cps_ok:
+            return False
+
+        # substituents
+        substituents = [x for x in carbon_atoms if x.GetIdx() not in [y.GetIdx() for y in cps]]
+        count_oxygens = 0
+        for substituent in substituents:
+            side_chain_atoms = [x for x in substituent.GetNeighbors() if x.GetIdx() not in ring_aidx]
+            if len(side_chain_atoms) > 0:
+                if not side_chain_atoms[0].GetAtomicNum() == 8:  # do not check for the degree here because there are connections on substituents too!
+                    return False
+                count_oxygens += 1
+        # at least 1 oxygen for 5-membered rigns and 2 for 6-membered rings
+        if (ring_size == 6 and count_oxygens < 2) or (ring_size == 5 and count_oxygens < 1):
+            return False
+
+        return True
+
+    def deglycosylate(self, mol: Mol, mode: str = 'run') -> Union[Mol, Graph]:
+        """Function to deglycosylate molecules.
+
+        Several rules are applied for removing Sugar-Like Rings (SLRs) from molecules:
+
+            1. Only external SLRs are removed, so a molecule with aglycan-SLR-aglycan is not modified
+            2. Only molecules with both aglycans and SLRs are modified (so only SLRs or none are left untouched)
+            3. Linear aglycans are considered to be part of linkers and are thus never returned as results
+            4. Glycosidic bonds are defined as either O or CO and can be linked to larger linear linker. So from a SLR side, either nothing or only 1 C are allowed before the glycosidic bond oxygen
+            5. Linker atoms until the glycosidic bond oxygen atom are appended to the definition of the SLR, so that any extra methyl is also removed.
+
+
+        .. image:: _images/std_deglyco_algo.svg
+            :align: center
+
+        :param mol: the input molecule
+        :param mode: either 'run' for actually deglycosylating the molecule or 'graph' for returning a graph of rings instead (useful for presentations or debugging)
+        :return: the deglycosylated molecule or a graph of rings
+        """
+
+        if len(Chem.GetMolFrags(mol)) > 1:
+            raise ValueError("Error! Deglycosylation is designed to work on single molecules, not mixtures!")
+
+        if mode not in ('run', 'graph'):
+            raise AttributeError(f"Error! Unauthorized value for parameter 'mode'! ('{mode}')")
+
+        # avoid inplace modifications
+        mol = Chem.Mol(mol)
+
+        # define rings
+        rings = mol.GetRingInfo().AtomRings()
+        rings = self._fuse_rings(rings)
+        # try to deglycosylate only if the molecule has at least 2 rings:
+        # - leave linear compounds out
+        # - leave sugars in case they are the only ring on the molecule
+        if len(rings) < 2:
+            return mol
+
+        # annotate sugar-like rings
+        are_sugar_like = [self._is_sugar_like(x, mol) for x in rings]
+        logging.debug('RINGS: %s', [(rings[i], are_sugar_like[i]) for i in range(len(rings))])
+        # remove sugars only when the molecule has some sugar rings and is not entirely composed of sugars
+        if not any(are_sugar_like) or all(are_sugar_like):
+            return mol
+        ring_atoms = set([item for sublist in rings for item in sublist])
+
+        # init sugar graph
+        G = Graph()
+        # init linkers parts from left and right the glycosidic bond oxygen: one of the side is required to have either C or nothing
+        authorized_linker_parts = [[], ['C']]  # R1-OxxxxR2 or R1-COxxxxR2 with xxxx being any sequence of linear atoms (same for R2->R1)
+
+        # define linker atoms as shortest path between 2 rings that do not include other rings
+        for i in range(len(rings)):
+            ring1 = rings[i]
+            for j in range(i+1, len(rings)):
+                ring2 = rings[j]
+                logging.debug('NEW RING PAIR -- R1: %s; R2: %s', ring1, ring2)
+
+                # shortest path between the two rings that do not include the current rings themselves
+                shortest_path = [x for x in Chem.GetShortestPath(mol, ring1[0], ring2[0]) if x not in ring1 + ring2]
+                # define the other ring atoms
+                other_ring_atoms = ring_atoms.symmetric_difference(set(ring1 + ring2))
+                # shortest path for going from the left (ring1) to the right (ring2)
+                shortest_path_elements = [mol.GetAtomWithIdx(x).GetSymbol() for x in shortest_path]
+
+                # in case ring1 (left) or/and ring2 (right) is sugar-like, append the side chains left and right
+                # to the oxygen to the corresponding ring atoms to avoid left-overs (the O remains is not removed)
+                glycosidic_bond = False
+                if 'O' in shortest_path_elements:  # not expected to be common enough for a try/catch statement
+                    # from the left side
+                    aidx_oxygen_left = shortest_path_elements.index('O')  # first O found in list
+                    logging.debug('R1 -> R2 -- pos of O: %s; R1 is sugar_like: %s; linker part from R1: %s', aidx_oxygen_left, are_sugar_like[i], shortest_path_elements[:aidx_oxygen_left])
+                    if are_sugar_like[i] and shortest_path_elements[:aidx_oxygen_left] in authorized_linker_parts:
+                        glycosidic_bond = True
+                        ring1 += shortest_path[:aidx_oxygen_left]
+
+                    # from the right side
+                    shortest_path_elements.reverse()
+                    shortest_path.reverse()
+                    aidx_oxygen_right = shortest_path_elements.index('O')  # first O found in list
+                    logging.debug('R2 -> R1 -- pos of O: %s; R2 is sugar_like: %s; linker part from R2: %s', aidx_oxygen_right, are_sugar_like[j], shortest_path_elements[:aidx_oxygen_right])
+                    if are_sugar_like[j] and shortest_path_elements[:aidx_oxygen_right] in authorized_linker_parts:
+                        glycosidic_bond = True
+                        ring2 += shortest_path[:aidx_oxygen_right]
+                logging.debug('R1 and R2 are linked through a glycosidic bond: %s', glycosidic_bond)
+
+                # in case the 2 rings are directly connected, append a new edge to G
+                if not set(shortest_path).intersection(other_ring_atoms):
+                    G.add_edge(i, j, atoms=''.join(shortest_path_elements), glycosidic_bond=glycosidic_bond)
+                    # annotate nodes with the ring atoms (+ relevent linker atoms) and if they are sugar-like
+                    G.node[i]['atoms'] = ring1
+                    G.node[i]['sugar_like'] = are_sugar_like[i]
+                    G.node[j]['atoms'] = ring2
+                    G.node[j]['sugar_like'] = are_sugar_like[j]
+
+        # draw the graph
+        if mode == 'graph':
+            # colormap_nodes = [(0.7,0.7,0.7) if x['sugar_like'] else (1,0,0) for i, x in G.nodes(data=True)]
+            # return draw.fc_graph(G, colormap_nodes=colormap_nodes)
+            return G
+
+        # iterative recording of terminal sugar rings (atoms) that are linked with a glycosidic bond
+        ring_atoms_to_remove = []
+        nodes_to_remove = [node for node in G.nodes(data=True) if node[1]['sugar_like'] and G.degree(node[0]) == 1 and list(G.edges(node[0], data=True))[0][2]['glycosidic_bond']]
+        while len(nodes_to_remove) > 0:
+            # record atoms indices to remove from the molecule
+            [ring_atoms_to_remove.append(n[1]['atoms']) for n in nodes_to_remove]
+            # remove nodes from current layer for next iteration
+            [G.remove_node(n[0]) for n in nodes_to_remove]
+            nodes_to_remove = [node for node in G.nodes(data=True) if node[1]['sugar_like'] and G.degree(node[0]) == 1 and list(G.edges(node[0], data=True))[0][2]['glycosidic_bond']]
+        logging.debug('Ring atoms to remove: %s', ring_atoms_to_remove)
+
+        # edit the molecule
+        if ring_atoms_to_remove:
+            # flatten the atom indices of each ring to remove in reverse order so that atom indices do not change when removing atoms
+            ring_atoms_to_remove = sorted([item for sublist in ring_atoms_to_remove for item in sublist], reverse=True)
+            emol = Chem.EditableMol(mol)
+            [emol.RemoveAtom(x) for x in ring_atoms_to_remove]
+            mol = emol.GetMol()
+            logging.debug('Obtained fragments: %s', Chem.MolToSmiles(mol))
+
+        # clean-up
+        frags = Chem.GetMolFrags(mol, asMols=True)
+        # avoid counting the number of rings in each fragment if only 1 fragment left anyway
+        if len(frags) < 2:
+            logging.debug('Only one fragment obtained, returning it')
+            return frags[0]
+        # the substituents of the deleted terminal sugar-like rings remain in the structure,
+        # these are obligatory linear because they were not in the graph,
+        # so we just have to retrieve the one fragment that is not linear
+        logging.debug('Returning only the non-linear obtained fragment')
+        return [x for x in frags if Descriptors.rdMolDescriptors.CalcNumRings(x) > 0][0]
+
     @timeout_decorator.timeout(TIMEOUT)
     def _run(self, mol: Mol) -> tuple:
         """Helper function for run.
@@ -545,6 +777,13 @@ class Standardizer(Filter):
                 except ValueError:
                     return (mol, 'error', task)
 
+            # deglycosylate
+            elif task == 'deglycosylate':
+                try:
+                    mol = self.deglycosylate(mol)
+                except ValueError:
+                    return (mol, 'error', task)
+
             # filters
             elif task == 'filter_medchem' or task == 'filter_hac' or task == 'filter_molweight' or task == 'filter_nrings':
                 try:
@@ -560,10 +799,10 @@ class Standardizer(Filter):
                 except ValueError:
                     return (mol, 'error', task)
 
-            # remove_isotopes
-            elif task == 'remove_isotopes':
+            # clear_isotopes
+            elif task == 'clear_isotopes':
                 try:
-                    mol = self.remove_isotopes(mol)
+                    mol = self.clear_isotopes(mol)
                 except ValueError:
                     return (mol, 'error', task)
 
@@ -589,10 +828,24 @@ class Standardizer(Filter):
                 except (ValueError, RuntimeError):
                     return (mol, 'error', task)
 
-            # remove_stereo
-            elif task == 'remove_stereo':
+            # clear_stereo
+            elif task == 'clear_stereo':
                 try:
                     rdmolops.RemoveStereochemistry(mol)
+                except ValueError:
+                    return (mol, 'error', task)
+
+            # extract Murcko Scaffolds
+            elif task == 'extract_murcko':
+                try:
+                    mol = MurckoScaffold.GetScaffoldForMol(mol)
+                except ValueError:
+                    return (mol, 'error', task)
+
+            # clear side chains
+            elif task == 'clear_side_chains':
+                try:
+                    mol = self.clear_side_chains(mol)
                 except ValueError:
                     return (mol, 'error', task)
 
@@ -617,7 +870,7 @@ class Standardizer(Filter):
         except timeout_decorator.TimeoutError:
             return (mol, 'filtered', 'timeout')
 
-    def run_df(self, df: DataFrame, extract_murcko_scaffolds: bool = False) -> tuple:
+    def run_df(self, df: DataFrame) -> tuple:
         """Apply the standardization protocol on a DataFrame, with the possibility of directly filtering duplicate entries as well.
         This can be very useful as the standardization process can expose duplicate entries due to salts removal, neutralization,
         canonical tautomer enumeration, and stereochemistry centers unlabelling
@@ -635,21 +888,16 @@ class Standardizer(Filter):
         .. note:: As a side effect, the output DataFrames get indexed by idm. The 'inchikey' col is not returned, but the values can be accessed using the reference file.
 
         :param df: The DataFrame with molecules to standardize
-        :param extract_murcko_scaffolds: instead of running a normal standardization run, extract murcko scaffolds using two different protocols.
         :param return: a tuple of 3 DataFrames: standardized, filtered and error.
         """
         # run standardization protocol
         df.index = df[self.col_id]
-        if extract_murcko_scaffolds:
-            df.loc[:, self.col_mol], df.loc[:, 'status'], df.loc[:, 'task'] = zip(*df[self.col_mol].map(self.extract_murcko_scaffold))
-        else:
-            df.loc[:, self.col_mol], df.loc[:, 'status'], df.loc[:, 'task'] = zip(*df[self.col_mol].map(self.run))
+        df.loc[:, self.col_mol], df.loc[:, 'status'], df.loc[:, 'task'] = zip(*df[self.col_mol].map(self.run))
         # do not apply filter duplicates on molecules with errors or that were already filtered for x reasons
         df_error = df[df['status'] == 'error']
         df_filtered = df[df['status'] == 'filtered']
         df = df[df['status'].str.contains('passed')]
         df = df.copy()  # only way I found to suppress pandas warnings in a "clean" way
-
         # compute InChiKeys
         df.loc[:, 'inchikey'] = df.loc[:, self.col_mol].map(rdinchi.MolToInchiKey)
 

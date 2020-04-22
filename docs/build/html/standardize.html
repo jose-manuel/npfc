@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Module standardize &mdash; npfc 0.5.17-2-g5e994db documentation</title>
+  <title>Module standardize &mdash; npfc 0.5.17-3-g5ecdde5 documentation</title>
   
 
   
@@ -60,7 +60,7 @@
             
             
               <div class="version">
-                0.5.17-2-g5e994db
+                0.5.17-3-g5ecdde5
               </div>
             
           
@@ -257,6 +257,34 @@ To achieve this, a scoring function is assigned to each depiction to retrieve th
 </div>
 <p>Create a Standardizer object.</p>
 <dl class="method">
+<dt id="npfc.standardize.Standardizer.extract_murcko_scaffold">
+<code class="sig-name descname">extract_murcko_scaffold</code><span class="sig-paren">(</span><em class="sig-param">mol</em>, <em class="sig-param">simplify=True</em>, <em class="sig-param">debug=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#Standardizer.extract_murcko_scaffold"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.Standardizer.extract_murcko_scaffold" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract the Murcko Scaffold from a molecule.</p>
+<p>This function is a wrapper around the RDKit method:
+rdkit.Chem.Scaffolds.MurckoScaffold.GetScaffoldForMol</p>
+<p>It allows further simplification of the structures by removing side chains.
+This is done iteratively by removing any terminal atom not in a ring.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>the option debug is suited for interactive debugging, not for use in pipelines!</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mol</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Mol</span></code>) – the molecule where to extract Murcko Scaffolds from</p></li>
+<li><p><strong>keep_best_minor_compound</strong> – if True, then the keep_best method is applied before extracting the Murcko Scaffold. Makes a difference only for protocol A if keep_best is defined in Standardizer protocol.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a></p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>a tuple (murcko scaffold, status, task)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
 <dt id="npfc.standardize.Standardizer.keep_best">
 <code class="sig-name descname">keep_best</code><span class="sig-paren">(</span><em class="sig-param">mol</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#Standardizer.keep_best"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.Standardizer.keep_best" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the “best” molecule found in a molecular structure.</p>
@@ -305,39 +333,9 @@ On the contrary, this long aliphatic chain would be kept in a mixture with a non
 </dl>
 </dd></dl>
 
-</dd></dl>
-
-<dl class="function">
-<dt id="npfc.standardize.extract_murcko_scaffold">
-<code class="sig-prename descclassname">npfc.standardize.</code><code class="sig-name descname">extract_murcko_scaffold</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">mol</em>, <em class="sig-param">simplify=True</em>, <em class="sig-param">debug=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#extract_murcko_scaffold"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.extract_murcko_scaffold" title="Permalink to this definition">¶</a></dt>
-<dd><p>Extract the Murcko Scaffold from a molecule.</p>
-<p>This function is a wrapper around the RDKit method:
-rdkit.Chem.Scaffolds.MurckoScaffold.GetScaffoldForMol</p>
-<p>It allows further simplification of the structures by removing side chains.
-This is done iteratively by removing any terminal atom not in a ring.</p>
-<div class="admonition warning">
-<p class="admonition-title">Warning</p>
-<p>the option debug is suited for interactive debugging, not for use in pipelines!</p>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>mol</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Mol</span></code>) – the molecule where to extract Murcko Scaffolds from</p></li>
-<li><p><strong>keep_best_minor_compound</strong> – if True, then the keep_best method is applied before extracting the Murcko Scaffold. Makes a difference only for protocol A if keep_best is defined in Standardizer protocol.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a></p>
-</dd>
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>a tuple (murcko scaffold, status, task)</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="function">
-<dt id="npfc.standardize.remove_side_chains">
-<code class="sig-prename descclassname">npfc.standardize.</code><code class="sig-name descname">remove_side_chains</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">mol</em>, <em class="sig-param">smarts='[!#1;R0;D1]'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#remove_side_chains"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.remove_side_chains" title="Permalink to this definition">¶</a></dt>
+<dl class="method">
+<dt id="npfc.standardize.Standardizer.remove_side_chains">
+<code class="sig-name descname">remove_side_chains</code><span class="sig-paren">(</span><em class="sig-param">mol</em>, <em class="sig-param">smarts='[!#1;R0;D1]'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#Standardizer.remove_side_chains"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.Standardizer.remove_side_chains" title="Permalink to this definition">¶</a></dt>
 <dd><p>This funcion removes side chains from molecules iteratively.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -353,6 +351,66 @@ This is done iteratively by removing any terminal atom not in a ring.</p>
 <dd class="field-odd"><p>a simplified copy of the molecule</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="npfc.standardize.Standardizer.run">
+<code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param">mol</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#Standardizer.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.Standardizer.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute the standardization protocol on a molecule.
+Molecule that exceed the timeout value are filtered with a task=’timeout’.</p>
+<p>As a final step of the protocol, InChiKeys (‘inchikey’) are computed for identifying molecules.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>mol</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Mol</span></code>) – the input molecule</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a></p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>a tuple containing the molecule, its status and the further task name it reached</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="npfc.standardize.Standardizer.run_df">
+<code class="sig-name descname">run_df</code><span class="sig-paren">(</span><em class="sig-param">df</em>, <em class="sig-param">extract_murcko_scaffolds=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#Standardizer.run_df"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.Standardizer.run_df" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply the standardization protocol on a DataFrame, with the possibility of directly filtering duplicate entries as well.
+This can be very useful as the standardization process can expose duplicate entries due to salts removal, neutralization,
+canonical tautomer enumeration, and stereochemistry centers unlabelling</p>
+<p>If a reference file is specified, duplicate removals becomes possible accross chunks.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>df</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code>) – the input DataFrame</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a></p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><p>three DataFrames separated by status:</p>
+<ul class="simple">
+<li><p>passed</p></li>
+<li><p>filtered</p></li>
+<li><p>error</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>As a side effect, the output DataFrames get indexed by idm. The ‘inchikey’ col is not returned, but the values can be accessed using the reference file.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> – The DataFrame with molecules to standardize</p></li>
+<li><p><strong>extract_murcko_scaffolds</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>) – instead of running a normal standardization run, extract murcko scaffolds using two different protocols.</p></li>
+<li><p><strong>return</strong> – a tuple of 3 DataFrames: standardized, filtered and error.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 </div>

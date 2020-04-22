@@ -83,7 +83,6 @@ def main():
     parser.add_argument('-f', '--filtered', type=str, default=None, help="Output file for filtered molecules.")
     parser.add_argument('-e', '--error', type=str, default=None, help="Output file for molecules with errors.")
     parser.add_argument('-p', '--protocol', type=str, default=None, help="Configuration file in JSON for specifying a standardization protocol. See the docs for the default protocol.")
-    parser.add_argument('-m', '--murcko', type=utils.parse_argparse_boolstring, default=False, help="Instead of running the normal protocol, extract Murcko Scaffolds. The latter are selected among 2 solutions, i.e. prototcols A (mol>murcko>std) and B (mol>std>murcko>std). Each protocol is applied to the molecule, then the result with the smallest hac is chosen. In case of ties, protocol B is preferred, because the molecule was standardized first.")
     parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
     args = parser.parse_args()
 
@@ -155,8 +154,6 @@ def main():
         logger.info("PROTOCOL".ljust(pad) + "DEFAULT")
     else:
         logger.info("PROTOCOL".ljust(pad) + f"{args.protocol}")
-    # murcko
-    logger.info("EXTRACT MURCKO".ljust(pad) + f"{args.murcko}")
     logger.info("LOG".ljust(pad) + f"{args.log}")
 
     # input
@@ -199,7 +196,7 @@ def main():
     # standardize molecules
     d2 = datetime.now()
     logger.info(f"RUN STANDARDIZATION")
-    df_passed, df_filtered, df_error = s.run_df(df_mols, extract_murcko_scaffolds=args.murcko)
+    df_passed, df_filtered, df_error = s.run_df(df_mols)
     logger.info(f"RESULTS:")
     num_passed = len(df_passed.index)
     num_filtered = len(df_filtered.index)

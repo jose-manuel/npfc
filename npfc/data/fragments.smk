@@ -19,11 +19,6 @@ WD = config['WD']
 molid = config['molid']
 prefix = config['prefix']
 input_file = config['input_file']
-# extract_murcko_scaffolds set to True by default
-try:
-    extract_murcko_scaffolds = config['extract_murcko_scaffolds']
-except KeyError:
-    extract_murcko_scaffolds = True
 
 fallback_default_std_frags = False
 try:
@@ -77,7 +72,7 @@ rule STD_MURCKO:
         filtered = "{WD}/02_std/log/{prefix}_filtered.csv.gz",
         error = "{WD}/02_std/log/{prefix}_error.csv.gz"
     log: "{WD}/02_std/log/{prefix}_std.log"
-    shell: "mols_standardize {input} {output.std} -f {output.filtered} -e {output.error} -p " + config_std_frags + f" -m {extract_murcko_scaffolds}" + " 2>{log}"
+    shell: "mols_standardize {input} {output.std} -f {output.filtered} -e {output.error} -p " + config_std_frags + "2>{log}"
 
 rule LOAD:
     priority: 103
