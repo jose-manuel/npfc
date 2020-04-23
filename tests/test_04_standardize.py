@@ -117,6 +117,48 @@ def df_fragments():
     return df
 
 
+@pytest.fixture
+def df_deglyco_scaffold_hunter():
+    """Examples of molecules to deglycosylate as described in the SCONP paper SI."""
+    df = pd.DataFrame([['CC(C)=CC1CC(C)(O)C2C3CCC4C5(C)CCC(O)C(C)(C)C5CCC4(C)C33COC2(C3)O1'],
+                       ['CC(C)=CC1CC(C)(O)C2C3CCC4C5(C)CCC(OC6OCC(O)C(O)C6O)C(C)(C)C5CCC4(C)C33COC2(C3)O1'],
+                       ['CC1OC(OC2(C)CC(OC34CC5(CO3)C(CCC3C6(C)CCC(OC7OC(CO)C(O)C(O)C7O)C(C)(C)C6CCC53C)C24)C=C(C)C)C(O)C(O)C1O'],
+                       ['CC1OC(OC2C(O)C(CO)OC(OC3C(O)COC(OC4CCC5(C)C(CCC6(C)C5CCC5C7C8(CC65CO8)OC(CC7(C)O)C=C(C)C)C4(C)C)C3O)C2O)C(O)C(OC(C)=O)C1O'],
+                       ['CC(=O)OC1C(OC2CCC3(C)C(CCC4(C)C3CCC3C5C6(CC43CO6)OC(CC5(C)O)C=C(C)C)C2(C)C)OCC(O)C1OC1OC(CO)C(O)C(O)C1OC1OCC(O)C(O)C1O'],
+                       ['CC1OC(OC2C(OC3CCC4(C)C(CCC5(C)C4CCC4C6C7(CC54CO7)OC(CC6(C)O)C=C(C)C)C3(C)C)OCC(O)C2OC2OC(COC3OC(CO)C(O)C(O)C3O)C(O)C(O)C2OC2OC(CO)C(O)C(O)C2O)C(O)C(O)C1O'],
+                       ['CC1OC(OC2C(OC3CCC4(C)C(CCC5(C)C4CCC4C6C7(CC54CO7)OC(CC6(C)OC4OC(C)C(O)C(O)C4O)C=C(C)C)C3(C)C)OCC(O)C2O)C(O)C(O)C1O'],
+                       ['CC(C)=CC1CC(C)(OC2OCC(O)C(O)C2O)C2C3CCC4C5(C)CCC(OC6OCC(O)C(OC7OC(CO)C(O)C(O)C7O)C6OC6OC(CO)C(O)C6O)C(C)(C)C5CCC4(C)C33COC2(C3)O1'],
+                       ['CC(=O)OC1C(O)C(CO)OC(OC2C(O)COC(OC3CCC4(C)C(CCC5(C)C4CCC4C6C7(CC54CO7)OC(CC6(C)O)C=C(C)C)C3(C)C)C2OC(C)=O)C1OC1OCC(O)C(O)C1O'],
+                       ], columns=['mol'])
+    df['smiles_ref'] = 'CC(C)=CC1CC(C)(O)C2C3CCC4C5(C)CCC(O)C(C)(C)C5CCC4(C)C34COC2(C4)O1'
+    df['mol'] = df['mol'].map(Chem.MolFromSmiles)
+    return df
+
+
+@pytest.fixture
+def df_deglyco_extra_tests():
+    """Examples of molecules to deglycosylate."""
+    df = pd.DataFrame([['OC1COC(CC1O)OC1CC2C(CCCC2)CC1', 'OC1CCC2CCCCC2C1', '1 aglycan, 1 glycan'],
+                       ['OC1CCC(OC2CC3C(CCCC3)CC2)OC1', 'OC1CCC(OC2CCC3CCCCC3C2)OC1', '2 aglycans'],
+                       ['OCC1OC(OC2CC(O)C(O)CO2)C(O)C(O)C1O', 'OCC1OC(OC2CC(O)C(O)CO2)C(O)C(O)C1O', '2 glycans'],
+                       ['OC1COC(CC2CC3C(CCCC3)CC2)CC1O', 'OC1COC(CC2CCC3CCCCC3C2)CC1O', '1 aglycan, 1 glycan but no glycosidic bond'],
+                       ['OC1COC(OC2CCC3CCCCC3C2)C1O', 'OC1CCC2CCCCC2C1', '1 aglycan, 1 5-glycan'],
+                       ['OC1CCOC1OC1CCC2CCCCC2C1', 'OC1CCC2CCCCC2C1', '1 aglycan, 1 5-glycan'],
+                       ['OCC1CCOC1OC1CCC2CCCCC2C1', 'OCC1CCOC1OC1CCC2CCCCC2C1', '2 aglycans'],
+                       ['OC1COCC(O)C1OC1CCC2CCCCC2C1', 'OC1COCC(O)C1OC1CCC2CCCCC2C1', '2 aglycans, but one could be matched for a glycan if one looks only for side chains'],
+                       ['OC1CC(OC2CCC3CCCCC3C2)OCC1OC1CC2C(CCCC2)CC1', 'OC1CC(OC2CCC3CCCCC3C2)OCC1OC1CCC2CCCCC2C1', '2 aglycans, 1 glycan with glycosidic bonds but glycan is not terminal'],
+                       ['OC1CC(COCC2CCC3CCCCC3C2)OC(O)C1O', 'OCC1CCC2CCCCC2C1', '1 glycan with glycosidic bond (COC)'],
+                       ['OC1OC(COC2CCC3CCCCC3C2)C(O)C(O)C1O', 'OC1CCC2CCCCC2C1', '1 glycan with glycosidic bond (CO)'],
+                       ['OC1COC(CC1O)OCC1CCC2CCCCC2C1', 'OCC1CCC2CCCCC2C1', '1 glycan with glycosidic bond (OC)'],
+                       ['N[C@H]1C(O)O[C@H](COC2CCC3CCCCC3C2)[C@@H](O)[C@@H]1O', 'N[C@H]1C(O)O[C@H](COC2CCC3CCCCC3C2)[C@@H](O)[C@@H]1O', 'aglycan with sugar derivative (glycosamine)'],
+                       ['CC(=O)C[C@H]1C(O)O[C@H](COC2CCC3CCCCC3C2)[C@@H](O)[C@@H]1O', 'CC(=O)C[C@H]1C(O)O[C@H](COC2CCC3CCCCC3C2)[C@@H](O)[C@@H]1O', 'aglycan with sugar another derivative'],
+                       ['CCCC(CC)OC[C@H]1OC(O)C(O)C(O)C1O', 'CCCC(CC)OC[C@H]1OC(O)C(O)C(O)C1O', 'linear glycan with 1 glycan'],
+                       ['CC(=O)OC1C(O)OC(COC2CCC3CCCCC3C2)C(OC(C)=O)C1OC(C)=O', 'OC1CCC2CCCCC2C1', 'aglycan with a less typical glycan (maybe false positive?)'],
+                       ['CC(=O)OCC1OC(OC2CCC3(C)C(CCC4(C)C3CC(O)C3C(C(O)(CCC=C(C)C)COC5OC(CO)C(O)C(O)C5O)CCC34C)C2(C)C)C(OC2OC(C)C(O)C(O)C2O)C(OC2OCC(O)C(O)C2O)C1O', 'CC(C)=CCCC(O)(CO)C1CCC2(C)C1C(O)CC1C3(C)CCC(O)C(C)(C)C3CCC12C', 'aglycan with 4 glycans, one of those having a CCO linker'],
+                       ], columns=['mol', 'smiles_deglyco', 'description'])
+    df['mol'] = df['mol'].map(Chem.MolFromSmiles)
+    return df
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ TESTS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 
@@ -144,15 +186,16 @@ def test_std_init(standardizer):
     assert standardizer.protocol['tasks'] == ['filter_empty',
                                               'disconnect_metal',
                                               'keep_best',
+                                              'deglycosylate',
                                               'filter_hac',
                                               'filter_molweight',
                                               'filter_nrings',
                                               'filter_medchem',
-                                              'remove_isotopes',
+                                              'clear_isotopes',
                                               'normalize',
                                               'uncharge',
                                               'canonicalize',
-                                              'remove_stereo',
+                                              'clear_stereo',
                                               ]
     # workers
     assert isinstance(standardizer.metal_disconnector, MetalDisconnector)
@@ -249,7 +292,8 @@ def test_standardizer_timeout(mols_timeout, standardizer):
 
 def test_standardizer_murcko_scaffolds(df_fragments, standardizer):
     """Run Murcko Scaffold Extraction on fragment dataset. Protocols A and B are performed within the same function."""
-    df_passed, df_filtered, df_error = standardizer.run_df(df_fragments, extract_murcko_scaffolds=True)
+    standardizer.protocol = {"tasks": ['keep_best', 'extract_murcko']}
+    df_passed, df_filtered, df_error = standardizer.run_df(df_fragments)
     assert len(df_filtered) == 0
     assert len(df_error) == 0
 
@@ -258,4 +302,18 @@ def test_standardizer_murcko_scaffolds(df_fragments, standardizer):
     # minor_cpd
     assert Chem.MolToSmiles(df_passed.loc['minor_cpd']['mol']) == 'c1ccccc1'
     # protB
-    assert Chem.MolToSmiles(df_passed.loc['protB_crms_19']['mol']) == 'C1=[NH+]C2CCCCC2CC1'  # #### this is a bug from neutralization
+    assert Chem.MolToSmiles(df_passed.loc['protB_crms_19']['mol']) == 'O=[N+]1CCCC2CCCCC21'
+
+
+def test_standardizer_deglycosylate_scaffold_hunter(df_deglyco_scaffold_hunter, standardizer):
+    """Deglycosylate examples molecules from the SCONP paper. All molecules should give the same result."""
+    for i in range(len(df_deglyco_scaffold_hunter)):
+        row = df_deglyco_scaffold_hunter.iloc[i]
+        assert Chem.MolToSmiles(standardizer.deglycosylate(row['mol'])) == row['smiles_ref']
+
+
+def test_standardizer_deglycosylate_extra_tests(df_deglyco_extra_tests, standardizer):
+    """Deglycosylate extra examples molecules. Results should match expected smiles."""
+    for i in range(len(df_deglyco_extra_tests)):
+        row = df_deglyco_extra_tests.iloc[i]
+        assert Chem.MolToSmiles(standardizer.deglycosylate(row['mol'])) == row['smiles_deglyco']

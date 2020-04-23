@@ -112,10 +112,10 @@
 <text text-anchor="start" x="8" y="-332.3" font-family="Times,serif" font-size="14.00" fill="#000000">ref_file</text>
 <text text-anchor="start" x="8" y="-317.3" font-family="Times,serif" font-size="14.00" fill="#000000">suffix</text>
 <polyline fill="none" stroke="#000000" points="0,-309.5 239,-309.5 "/>
-<text text-anchor="start" x="8" y="-294.3" font-family="Times,serif" font-size="14.00" fill="#000000">extract_murcko_scaffold()</text>
-<text text-anchor="start" x="8" y="-279.3" font-family="Times,serif" font-size="14.00" fill="#000000">keep_best()</text>
-<text text-anchor="start" x="8" y="-264.3" font-family="Times,serif" font-size="14.00" fill="#000000">remove_isotopes()</text>
-<text text-anchor="start" x="8" y="-249.3" font-family="Times,serif" font-size="14.00" fill="#000000">remove_side_chains()</text>
+<text text-anchor="start" x="8" y="-294.3" font-family="Times,serif" font-size="14.00" fill="#000000">clear_isotopes()</text>
+<text text-anchor="start" x="8" y="-279.3" font-family="Times,serif" font-size="14.00" fill="#000000">clear_side_chains()</text>
+<text text-anchor="start" x="8" y="-264.3" font-family="Times,serif" font-size="14.00" fill="#000000">deglycosylate()</text>
+<text text-anchor="start" x="8" y="-249.3" font-family="Times,serif" font-size="14.00" fill="#000000">keep_best()</text>
 <text text-anchor="start" x="8" y="-234.3" font-family="Times,serif" font-size="14.00" fill="#000000">run()</text>
 <text text-anchor="start" x="8" y="-219.3" font-family="Times,serif" font-size="14.00" fill="#000000">run_df()</text>
 </g>

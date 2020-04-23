@@ -44,66 +44,59 @@ chunk_ids = [str(i+1).zfill(3) for i in range(config['num_chunks'])]
 
 
 rule all:
-    input: expand(f"{WD}/{frags_subdir}/09_fgraph/data/{prefix}" + '_{cid}_fgraph.csv.gz', cid=chunk_ids)
+    input: expand(f"{WD}/{frags_subdir}/08_fgraph/data/{prefix}" + '_{cid}_fgraph.csv.gz', cid=chunk_ids)
 
 rule FGRAPH:
     priority: 11
-    input: "{WD}" + f"/{frags_subdir}" + "/08_fcc/data/{prefix}_{cid}_fcc.csv.gz"
-    output: "{WD}" + f"/{frags_subdir}" + "/09_fgraph/data/{prefix}_{cid}_fgraph.csv.gz"
-    log: "{WD}" + f"/{frags_subdir}" + "/09_fgraph/log/{prefix}_{cid}_fgraph.log"
+    input: "{WD}" + f"/{frags_subdir}" + "/07_fcc/data/{prefix}_{cid}_fcc.csv.gz"
+    output: "{WD}" + f"/{frags_subdir}" + "/08_fgraph/data/{prefix}_{cid}_fgraph.csv.gz"
+    log: "{WD}" + f"/{frags_subdir}" + "/08_fgraph/log/{prefix}_{cid}_fgraph.log"
     shell: "fgraph_generate {input} {output} --min-frags 2 --max-frags 9999 --max-overlaps 5 --log DEBUG >{log} 2>&1"
 
 rule FCC:
     priority: 12
-    input: "{WD}" + f"/{frags_subdir}" + "/07_fsearch/data/{prefix}_{cid}_fsearch.csv.gz"
-    output: "{WD}" + f"/{frags_subdir}" + "/08_fcc/data/{prefix}_{cid}_fcc.csv.gz"
-    log: "{WD}" + f"/{frags_subdir}" + "/08_fcc/log/{prefix}_{cid}_fcc.log"
+    input: "{WD}" + f"/{frags_subdir}" + "/06_fsearch/data/{prefix}_{cid}_fsearch.csv.gz"
+    output: "{WD}" + f"/{frags_subdir}" + "/07_fcc/data/{prefix}_{cid}_fcc.csv.gz"
+    log: "{WD}" + f"/{frags_subdir}" + "/07_fcc/log/{prefix}_{cid}_fcc.log"
     shell: "fc_classify {input} {output} -c 3 >{log} 2>&1"
 
 rule FSEARCH:
     priority: 13
     input:
-        mols = "{WD}/06_depict/data/{prefix}_{cid}_depict.csv.gz",
+        mols = "{WD}/05_depict/data/{prefix}_{cid}_depict.csv.gz",
         frags = frags_file
-    output: "{WD}" + f"/{frags_subdir}" + "/07_fsearch/data/{prefix}_{cid}_fsearch.csv.gz"
-    log: "{WD}" + f"/{frags_subdir}" + "/07_fsearch/log/{prefix}_{cid}_fsearch.log"
+    output: "{WD}" + f"/{frags_subdir}" + "/06_fsearch/data/{prefix}_{cid}_fsearch.csv.gz"
+    log: "{WD}" + f"/{frags_subdir}" + "/06_fsearch/log/{prefix}_{cid}_fsearch.log"
     shell: "mols_fsearch {input.mols} {input.frags} {output} >{log} 2>&1"
 
 rule DEPICT:
     priority: 14
-    input: "{WD}/05_dedupl/data/{prefix}_{cid}_dedupl.csv.gz"
-    output: "{WD}/06_depict/data/{prefix}_{cid}_depict.csv.gz"
-    log: "{WD}/06_depict/log/{prefix}_{cid}_depict.log"
+    input: "{WD}/04_dedupl/data/{prefix}_{cid}_dedupl.csv.gz"
+    output: "{WD}/05_depict/data/{prefix}_{cid}_depict.csv.gz"
+    log: "{WD}/05_depict/log/{prefix}_{cid}_depict.log"
     shell: "mols_depict {input} {output} 2>{log}"
 
 rule DEDUPL:
     priority: 15
-    input: "{WD}/04_std/data/{prefix}_{cid}_std.csv.gz"
-    output: "{WD}/05_dedupl/data/{prefix}_{cid}_dedupl.csv.gz"
-    log: "{WD}/05_dedupl/log/{prefix}_{cid}_dedupl.log"
-    shell: "mols_dedupl {input} {output} -r {WD}/05_dedupl/{prefix}_ref.hdf --log DEBUG 2>{log}"
+    input: "{WD}/03_std/data/{prefix}_{cid}_std.csv.gz"
+    output: "{WD}/04_dedupl/data/{prefix}_{cid}_dedupl.csv.gz"
+    log: "{WD}/04_dedupl/log/{prefix}_{cid}_dedupl.log"
+    shell: "mols_dedupl {input} {output} -r {WD}/04_dedupl/{prefix}_ref.hdf --log DEBUG 2>{log}"
 
 rule STD:
     priority: 16
-    input: WD + "/03_deglyco/data/{prefix}_{cid}_deglyco.sdf.gz"
+    input: WD + "/02_load/data/{prefix}_{cid}.csv.gz"
     output:
-        std = "{WD}/04_std/data/{prefix}_{cid}_std.csv.gz",
-        filtered = "{WD}/04_std/log/{prefix}_{cid}_filtered.csv.gz",
-        error = "{WD}/04_std/log/{prefix}_{cid}_error.csv.gz"
-    log: "{WD}/04_std/log/{prefix}_{cid}_std.log"
+        std = "{WD}/03_std/data/{prefix}_{cid}_std.csv.gz",
+        filtered = "{WD}/03_std/log/{prefix}_{cid}_filtered.csv.gz",
+        error = "{WD}/03_std/log/{prefix}_{cid}_error.csv.gz"
+    log: "{WD}/03_std/log/{prefix}_{cid}_std.log"
     shell: "mols_standardize {input} {output.std} -f {output.filtered} -e {output.error} 2>{log}"  # mols_standardize takes a dir as output
-
-rule DGC:
-    priority: 17
-    input: "{WD}/02_load/data/{prefix}_{cid}.sdf.gz"
-    output: "{WD}/03_deglyco/data/{prefix}_{cid}_deglyco.sdf.gz"
-    log: "{WD}/03_deglyco/log/{prefix}_{cid}_deglyco_knwf.log"  # log not from the job but from the workflow execution, useful for checking if everything went fine
-    shell: "mols_deglyco -s {input} -i {molid} -o {WD}/03_deglyco -w {file_knwf} >{log} 2>&1"   # 1>{log} 2>&1" #/dev/null"
 
 rule LOAD:
     priority: 18
-    input: "{WD}/01_chunk/data/{prefix}_{cid}.sdf.gz"
-    output: "{WD}/02_load/data/{prefix}_{cid}.sdf.gz"
+    input: "{WD}/01_chunk/data/{prefix}_{cid}.csv.gz"
+    output: "{WD}/02_load/data/{prefix}_{cid}.csv.gz"
     log: "{WD}/02_load/log/{prefix}_{cid}_load.log"
     shell: "mols_load {input} {output} --in_id {molid} >{log} 2>&1"
 

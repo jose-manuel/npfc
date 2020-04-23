@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Module standardize &mdash; npfc 0.5.17-3-g5ecdde5 documentation</title>
+  <title>Module standardize &mdash; npfc 0.6.0 documentation</title>
   
 
   
@@ -60,7 +60,7 @@
             
             
               <div class="version">
-                0.5.17-3-g5ecdde5
+                0.6.0
               </div>
             
           
@@ -216,15 +216,16 @@ on a protocol that the user can modify.</p>
 <li><p><strong>filter_empty</strong>: filter molecules with empty structures</p></li>
 <li><p><strong>disconnect_metal</strong>: break bonds involving metallic atoms, resulting in potentially several molecules per structure.</p></li>
 <li><p><strong>keep_best</strong>: retrieve only the “best” molecule from a mixture, which might not always be the largest one.</p></li>
+<li><p><strong>deglycosylate</strong>: remove all external sugars-like rings from the molecule and return the remaining non-linear entity.</p></li>
 <li><p><strong>filter_hac</strong>: filter molecules with a heavy atom count not in the accepted range. By default: hac &gt; 3.</p></li>
 <li><p><strong>filter_molweight</strong>: filter molecules with a molecular weight not in the accepted range. By default: molweight &lt;= 1000.0.</p></li>
 <li><p><strong>filter_nrings</strong>: filter molecules with a number of rings (Smallest Sets of Smallest Rings or SSSR) not in the accepted range. By default: nrings &gt; 0.</p></li>
 <li><p><strong>filter_medchem</strong>: filter molecules with elements not considered as medchem. By default: elements in H, B, C, N, O, F, P, S, Cl, Br, I.</p></li>
-<li><p><strong>remove_isotopes</strong>: set all atoms to their most common isotope (i.e. 14C becomes 12C which is C).</p></li>
+<li><p><strong>clear_isotopes</strong>: set all atoms to their most common isotope (i.e. 14C becomes 12C which is C).</p></li>
 <li><p><strong>normalize</strong>: always write the same functional groups in the same manner.</p></li>
 <li><p><strong>uncharge</strong>: remove all charges on a molecule when it is possible. This is different from rdkit.Chem.MolStandardize.charge module as there is no attempt for reaching the zwitterion.</p></li>
 <li><p><strong>canonicalize</strong>: enumerate the canonical tautomer.</p></li>
-<li><p><strong>remove_stereo</strong>: remove all remaining stereochemistry flags on the molecule.</p></li>
+<li><p><strong>clear_stereo</strong>: remove all remaining stereochemistry flags on the molecule.</p></li>
 </ol>
 </div></blockquote>
 <p>Finally, duplicate entries can be filtered using InChiKeys when postprocessing the DataFrame with molecules (argument in the run_df method).</p>
@@ -257,29 +258,78 @@ To achieve this, a scoring function is assigned to each depiction to retrieve th
 </div>
 <p>Create a Standardizer object.</p>
 <dl class="method">
-<dt id="npfc.standardize.Standardizer.extract_murcko_scaffold">
-<code class="sig-name descname">extract_murcko_scaffold</code><span class="sig-paren">(</span><em class="sig-param">mol</em>, <em class="sig-param">simplify=True</em>, <em class="sig-param">debug=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#Standardizer.extract_murcko_scaffold"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.Standardizer.extract_murcko_scaffold" title="Permalink to this definition">¶</a></dt>
-<dd><p>Extract the Murcko Scaffold from a molecule.</p>
-<p>This function is a wrapper around the RDKit method:
-rdkit.Chem.Scaffolds.MurckoScaffold.GetScaffoldForMol</p>
-<p>It allows further simplification of the structures by removing side chains.
-This is done iteratively by removing any terminal atom not in a ring.</p>
+<dt id="npfc.standardize.Standardizer.clear_isotopes">
+<code class="sig-name descname">clear_isotopes</code><span class="sig-paren">(</span><em class="sig-param">mol</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#Standardizer.clear_isotopes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.Standardizer.clear_isotopes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a molecule without any isotopes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>mol</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Mol</span></code>) – the input molecule</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Mol</span></code></p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>the molecule without isotope</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="npfc.standardize.Standardizer.clear_side_chains">
+<code class="sig-name descname">clear_side_chains</code><span class="sig-paren">(</span><em class="sig-param">mol</em>, <em class="sig-param">debug=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#Standardizer.clear_side_chains"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.Standardizer.clear_side_chains" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clear the side chains of a molecule.</p>
+<p>This method operates in 3 steps:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p>Remove quickly all atoms in side chains but the one attached to a ring, starting from the terminal atom. (would certainly fail in case of linear molecules)</p></li>
+<li><p>Iterate over each remaining exocyclic atoms to remove only atoms when it does not break the ring aromaticity. Simple and double bonds can be broken and the atoms in rings which were attached to removed atoms are neutralized.</p></li>
+<li><p>Remove eventual nitrogen radicals by Smiles editing.</p></li>
+</ol>
+</div></blockquote>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
-<p>the option debug is suited for interactive debugging, not for use in pipelines!</p>
+<p>I found only nitrogen radicals in my dataset, this might be insufficient on a larger scale.</p>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>mol</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Mol</span></code>) – the molecule to simplify</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Mol</span></code></p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>a simplified copy of the molecule</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="npfc.standardize.Standardizer.deglycosylate">
+<code class="sig-name descname">deglycosylate</code><span class="sig-paren">(</span><em class="sig-param">mol</em>, <em class="sig-param">mode='run'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#Standardizer.deglycosylate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.Standardizer.deglycosylate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to deglycosylate molecules.</p>
+<p>Several rules are applied for removing Sugar-Like Rings (SLRs) from molecules:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p>Only external SLRs are removed, so a molecule with aglycan-SLR-aglycan is not modified</p></li>
+<li><p>Only molecules with both aglycans and SLRs are modified (so only SLRs or none are left untouched)</p></li>
+<li><p>Linear aglycans are considered to be part of linkers and are thus never returned as results</p></li>
+<li><p>Glycosidic bonds are defined as either O or CO and can be linked to larger linear linker. So from a SLR side, either nothing or only 1 C are allowed before the glycosidic bond oxygen</p></li>
+<li><p>Linker atoms until the glycosidic bond oxygen atom are appended to the definition of the SLR, so that any extra methyl is also removed.</p></li>
+</ol>
+</div></blockquote>
+<div align="center" class="align-center"><img alt="_images/std_deglyco_algo.svg" src="_images/std_deglyco_algo.svg" /></div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>mol</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Mol</span></code>) – the molecule where to extract Murcko Scaffolds from</p></li>
-<li><p><strong>keep_best_minor_compound</strong> – if True, then the keep_best method is applied before extracting the Murcko Scaffold. Makes a difference only for protocol A if keep_best is defined in Standardizer protocol.</p></li>
+<li><p><strong>mol</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Mol</span></code>) – the input molecule</p></li>
+<li><p><strong>mode</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – either ‘run’ for actually deglycosylating the molecule or ‘graph’ for returning a graph of rings instead (useful for presentations or debugging)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a></p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Union" title="(in Python v3.8)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Mol</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Graph</span></code>]</p>
 </dd>
 <dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>a tuple (murcko scaffold, status, task)</p>
+<dd class="field-odd"><p>the deglycosylated molecule or a graph of rings</p>
 </dd>
 </dl>
 </dd></dl>
@@ -317,43 +367,6 @@ On the contrary, this long aliphatic chain would be kept in a mixture with a non
 </dd></dl>
 
 <dl class="method">
-<dt id="npfc.standardize.Standardizer.remove_isotopes">
-<code class="sig-name descname">remove_isotopes</code><span class="sig-paren">(</span><em class="sig-param">mol</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#Standardizer.remove_isotopes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.Standardizer.remove_isotopes" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a molecule without any isotopes.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>mol</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Mol</span></code>) – the input molecule</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Mol</span></code></p>
-</dd>
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>the molecule without isotope</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="npfc.standardize.Standardizer.remove_side_chains">
-<code class="sig-name descname">remove_side_chains</code><span class="sig-paren">(</span><em class="sig-param">mol</em>, <em class="sig-param">smarts='[!#1;R0;D1]'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#Standardizer.remove_side_chains"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.Standardizer.remove_side_chains" title="Permalink to this definition">¶</a></dt>
-<dd><p>This funcion removes side chains from molecules iteratively.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>mol</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Mol</span></code>) – the molecule to simplify</p></li>
-<li><p><strong>smarts</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the smarts to use to detect removable atoms.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Mol</span></code></p>
-</dd>
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>a simplified copy of the molecule</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
 <dt id="npfc.standardize.Standardizer.run">
 <code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param">mol</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#Standardizer.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.Standardizer.run" title="Permalink to this definition">¶</a></dt>
 <dd><p>Execute the standardization protocol on a molecule.
@@ -374,7 +387,7 @@ Molecule that exceed the timeout value are filtered with a task=’timeout’.</
 
 <dl class="method">
 <dt id="npfc.standardize.Standardizer.run_df">
-<code class="sig-name descname">run_df</code><span class="sig-paren">(</span><em class="sig-param">df</em>, <em class="sig-param">extract_murcko_scaffolds=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#Standardizer.run_df"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.Standardizer.run_df" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">run_df</code><span class="sig-paren">(</span><em class="sig-param">df</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#Standardizer.run_df"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.Standardizer.run_df" title="Permalink to this definition">¶</a></dt>
 <dd><p>Apply the standardization protocol on a DataFrame, with the possibility of directly filtering duplicate entries as well.
 This can be very useful as the standardization process can expose duplicate entries due to salts removal, neutralization,
 canonical tautomer enumeration, and stereochemistry centers unlabelling</p>
@@ -404,7 +417,6 @@ canonical tautomer enumeration, and stereochemistry centers unlabelling</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>df</strong> – The DataFrame with molecules to standardize</p></li>
-<li><p><strong>extract_murcko_scaffolds</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>) – instead of running a normal standardization run, extract murcko scaffolds using two different protocols.</p></li>
 <li><p><strong>return</strong> – a tuple of 3 DataFrames: standardized, filtered and error.</p></li>
 </ul>
 </dd>

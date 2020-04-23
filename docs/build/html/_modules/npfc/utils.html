@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.utils &mdash; npfc 0.5.17-3-g5ecdde5 documentation</title>
+  <title>npfc.utils &mdash; npfc 0.6.0 documentation</title>
   
 
   
@@ -58,7 +58,7 @@
             
             
               <div class="version">
-                0.5.17-3-g5ecdde5
+                0.6.0
               </div>
             
           
@@ -166,13 +166,14 @@
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="k">import</span> <span class="n">Path</span>
 <span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">itertools</span>
 <span class="c1"># data handling</span>
 <span class="kn">import</span> <span class="nn">pickle</span>
 <span class="kn">import</span> <span class="nn">base64</span>
-<span class="c1"># docstrings</span>
+<span class="c1"># typing</span>
+<span class="kn">from</span> <span class="nn">rdkit.Chem</span> <span class="k">import</span> <span class="n">AllChem</span>
 <span class="kn">from</span> <span class="nn">rdkit.Chem</span> <span class="k">import</span> <span class="n">Mol</span>
-<span class="kn">from</span> <span class="nn">rdkit.Chem</span> <span class="k">import</span> <span class="n">MolFromSmiles</span>
-<span class="kn">from</span> <span class="nn">rdkit.Chem.rdinchi</span> <span class="k">import</span> <span class="n">MolToInchiKey</span>
+<span class="c1"># chemoinformatics</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">Union</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">List</span>
 
@@ -457,6 +458,29 @@
         <span class="k">return</span> <span class="n">Mol</span><span class="p">(</span><span class="n">base64</span><span class="o">.</span><span class="n">b64decode</span><span class="p">(</span><span class="n">string</span><span class="p">))</span>
     <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="get_shortest_path_between_frags"><a class="viewcode-back" href="../../utils.html#npfc.utils.get_shortest_path_between_frags">[docs]</a><span class="k">def</span> <span class="nf">get_shortest_path_between_frags</span><span class="p">(</span><span class="n">mol</span><span class="p">:</span> <span class="n">Mol</span><span class="p">,</span> <span class="n">aidxf1</span><span class="p">:</span> <span class="nb">set</span><span class="p">,</span> <span class="n">aidxf2</span><span class="p">:</span> <span class="nb">set</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Return the shortest path within a molecule between two fragments defined by atom indices.</span>
+<span class="sd">    First and last atom indices are part of respectively fragment 1 and fragment 2, so they should not</span>
+<span class="sd">    be considered when estimating the distance between fragments.</span>
+
+<span class="sd">    (i.e. distance = len(shortest_path) - 2)</span>
+
+<span class="sd">    :param mol: The input molecule.</span>
+<span class="sd">    :param aidxf1: the atom indices of the first fragment found in the molecule</span>
+<span class="sd">    :param aidxf2: the atom indices of the second fragment found in the molecule</span>
+<span class="sd">    :return: the atom indices of the shortest path between both fragments. The first index is the attachment point from fragment 1 whereas the last index is the attachment point from fragment 2</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># 1/ compute every pairwise atom combination between both fragments</span>
+    <span class="n">pairwise_combinations</span> <span class="o">=</span> <span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">aidxf1</span><span class="p">),</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">aidxf2</span><span class="p">))</span>
+    <span class="c1"># 2/ for each of those, compute the shortest path possible</span>
+    <span class="n">pairwise_combinations</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">pairwise_combinations</span><span class="p">)</span>
+    <span class="n">all_paths</span> <span class="o">=</span> <span class="p">[</span><span class="n">AllChem</span><span class="o">.</span><span class="n">GetShortestPath</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">pc</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">pc</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="k">for</span> <span class="n">pc</span> <span class="ow">in</span> <span class="n">pairwise_combinations</span><span class="p">]</span>
+    <span class="c1"># logging.debug(f&quot;Looking for the shortest path shortest path among these:&quot;)</span>
+    <span class="c1"># [logging.debug(f&quot;Path ({str(i).zfill(3)}): {p}&quot;) for i, p in enumerate(all_paths)]</span>
+    <span class="c1"># 3/ return one of the shortest pathes</span>
+    <span class="k">return</span> <span class="nb">min</span><span class="p">(</span><span class="n">all_paths</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">))</span></div>
 </pre></div>
 
            </div>

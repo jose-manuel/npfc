@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Module utils &mdash; npfc 0.5.17-3-g5ecdde5 documentation</title>
+  <title>Module utils &mdash; npfc 0.6.0 documentation</title>
   
 
   
@@ -60,7 +60,7 @@
             
             
               <div class="version">
-                0.5.17-3-g5ecdde5
+                0.6.0
               </div>
             
           
@@ -365,6 +365,30 @@ work (see example below).</p>
 </dd>
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p>a tuple with syntax (format, compression)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="npfc.utils.get_shortest_path_between_frags">
+<code class="sig-prename descclassname">npfc.utils.</code><code class="sig-name descname">get_shortest_path_between_frags</code><span class="sig-paren">(</span><em class="sig-param">mol</em>, <em class="sig-param">aidxf1</em>, <em class="sig-param">aidxf2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/utils.html#get_shortest_path_between_frags"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.utils.get_shortest_path_between_frags" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the shortest path within a molecule between two fragments defined by atom indices.
+First and last atom indices are part of respectively fragment 1 and fragment 2, so they should not
+be considered when estimating the distance between fragments.</p>
+<p>(i.e. distance = len(shortest_path) - 2)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mol</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Mol</span></code>) – The input molecule.</p></li>
+<li><p><strong>aidxf1</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#set" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">set</span></code></a>) – the atom indices of the first fragment found in the molecule</p></li>
+<li><p><strong>aidxf2</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#set" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">set</span></code></a>) – the atom indices of the second fragment found in the molecule</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a></p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>the atom indices of the shortest path between both fragments. The first index is the attachment point from fragment 1 whereas the last index is the attachment point from fragment 2</p>
 </dd>
 </dl>
 </dd></dl>

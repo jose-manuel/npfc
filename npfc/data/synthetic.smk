@@ -100,47 +100,40 @@ rule FSEARCH:
 rule SUBSET:
     priority: 4
     input:
-        mols = "{WD}/06_depict/data/{prefix}_{cid}_depict.csv.gz",
-        ref = natref + "/data/05_dedupl/dnp_ref.hdf"
+        mols = "{WD}/05_dedupl/data/{prefix}_{cid}_depict.csv.gz",
+        ref = natref + "/data/04_dedupl/dnp_ref.hdf"
     output: "{WD}" + f"/{natref_subdir}" + "/07_subset/data/{prefix}_{cid}_subset.csv.gz"
     log: "{WD}" + f"/{natref_subdir}" + "/07_subset/log/{prefix}_{cid}_subset.log"
     shell: "mols_subset {input.mols} {input.ref} {output} >{log} 2>&1"
 
 rule DEPICT:
     priority: 5
-    input: "{WD}/05_dedupl/data/{prefix}_{cid}_dedupl.csv.gz"
-    output: "{WD}/06_depict/data/{prefix}_{cid}_depict.csv.gz"
-    log: "{WD}/06_depict/log/{prefix}_{cid}_depict.log"
+    input: "{WD}/04_dedupl/data/{prefix}_{cid}_dedupl.csv.gz"
+    output: "{WD}/05_dedupl/data/{prefix}_{cid}_depict.csv.gz"
+    log: "{WD}/05_dedupl/log/{prefix}_{cid}_depict.log"
     shell: "mols_depict {input} {output} 2>{log}"
 
 rule DEDUPL:
     priority: 6
-    input: "{WD}/04_std/data/{prefix}_{cid}_std.csv.gz"
-    output: "{WD}/05_dedupl/data/{prefix}_{cid}_dedupl.csv.gz"
-    log: "{WD}/05_dedupl/log/{prefix}_{cid}_dedupl.log"
-    shell: "mols_dedupl {input} {output} -r {WD}/05_dedupl/{prefix}_ref.hdf --log DEBUG 2>{log}"
+    input: "{WD}/03_std/data/{prefix}_{cid}_std.csv.gz"
+    output: "{WD}/04_dedupl/data/{prefix}_{cid}_dedupl.csv.gz"
+    log: "{WD}/04_dedupl/log/{prefix}_{cid}_dedupl.log"
+    shell: "mols_dedupl {input} {output} -r {WD}/04_dedupl/{prefix}_ref.hdf --log DEBUG 2>{log}"
 
 rule STD:
     priority: 7
-    input: WD + "/03_deglyco/data/{prefix}_{cid}_deglyco.sdf.gz"
+    input: WD + "/02_load/data/{prefix}_{cid}.csv.gz"
     output:
-        std = "{WD}/04_std/data/{prefix}_{cid}_std.csv.gz",
-        filtered = "{WD}/04_std/log/{prefix}_{cid}_filtered.csv.gz",
-        error = "{WD}/04_std/log/{prefix}_{cid}_error.csv.gz"
-    log: "{WD}/04_std/log/{prefix}_{cid}_std.log"
+        std = "{WD}/03_std/data/{prefix}_{cid}_std.csv.gz",
+        filtered = "{WD}/03_std/log/{prefix}_{cid}_filtered.csv.gz",
+        error = "{WD}/03_std/log/{prefix}_{cid}_error.csv.gz"
+    log: "{WD}/03_std/log/{prefix}_{cid}_std.log"
     shell: "mols_standardize {input} {output.std} -f {output.filtered} -e {output.error} 2>{log}"  # mols_standardize takes a dir as output
-
-rule DGC:
-    priority: 8
-    input: "{WD}/02_load/data/{prefix}_{cid}.sdf.gz"
-    output: "{WD}/03_deglyco/data/{prefix}_{cid}_deglyco.sdf.gz"
-    log: "{WD}/03_deglyco/log/{prefix}_{cid}_deglyco_knwf.log"  # log not from the job but from the workflow execution, useful for checking if everything went fine
-    shell: "mols_deglyco -s {input} -i {molid} -o {WD}/03_deglyco -w {file_knwf} >{log} 2>&1"   # 1>{log} 2>&1" #/dev/null"
 
 rule LOAD:
     priority: 9
-    input: "{WD}/01_chunk/data/{prefix}_{cid}.sdf.gz"
-    output: "{WD}/02_load/data/{prefix}_{cid}.sdf.gz"
+    input: "{WD}/01_chunk/data/{prefix}_{cid}.csv.gz"
+    output: "{WD}/02_load/data/{prefix}_{cid}.csv.gz"
     log: "{WD}/02_load/log/{prefix}_{cid}_load.log"
     shell: "mols_load {input} {output} --in_id {molid} >{log} 2>&1"
 
