@@ -43,7 +43,6 @@ setuptools.setup(
              # molecules
              'bin/mols_concat',
              'bin/mols_dedupl',
-             'bin/mols_deglyco',
              'bin/mols_draw',
              'bin/mols_depict',
              'bin/mols_extract_murcko',
