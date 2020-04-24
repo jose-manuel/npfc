@@ -40,7 +40,6 @@ from typing import Set
 from typing import List
 from typing import Tuple
 from typing import Dict
-from pandas import Series
 # dev
 from npfc import utils
 
@@ -236,13 +235,13 @@ def scale_rgb_colormap(colormap: Dict) -> Dict:
     return {k: scale_rgb(colormap[k]) for k in colormap.keys()}
 
 
-def highlight_mol(mol: Mol,
-                  colormap: 'ColorMap' = None,
-                  output_file: str = None,
-                  img_size: Tuple[int] = (300, 300),
-                  debug: bool = False,
-                  svg: bool = True,
-                  legend: str = '') -> Image:
+def mol(mol: Mol,
+        colormap: 'ColorMap' = None,
+        output_file: str = None,
+        img_size: Tuple[int] = (300, 300),
+        debug: bool = False,
+        svg: bool = True,
+        legend: str = '') -> Image:
     """
     Draw an Image of a molecule with highlighted atoms and bonds according to a colormap.
     If no Colormap object is provided, no highlighting is done.
@@ -291,15 +290,15 @@ def highlight_mol(mol: Mol,
     return img
 
 
-def highlight_mols(mols: List[Mol],
-                   colormaps: List['ColorMap'] = [],
-                   output_file: str = None,
-                   sub_img_size: Tuple[int] = (300, 300),
-                   max_mols_per_row: int = 5,
-                   debug: bool = False,
-                   svg: bool = True,
-                   legends: List[str] = None,
-                   ):
+def mols(mols: List[Mol],
+         colormaps: List['ColorMap'] = [],
+         output_file: str = None,
+         sub_img_size: Tuple[int] = (300, 300),
+         max_mols_per_row: int = 5,
+         debug: bool = False,
+         svg: bool = True,
+         legends: List[str] = None,
+         ):
     """
     Draw an Image of a list of molecules with highlighted atoms and bonds
     according to a list of colormaps.
@@ -355,38 +354,40 @@ def highlight_mols(mols: List[Mol],
     return img
 
 
-def _get_edge_info(fc_graph: Graph) -> Dict:
+def _get_edge_info(G: Graph) -> Dict:
     """
     Use the first associated data of edges for edge labelling of a networkx graph.
 
-    :param fc_graph: a Fragment Combination graph
+    :param G: a Fragment Combination graph
     :return: a Dict of syntax {(node1, node2): data}
     """
     d = {}
-    for edge in list(fc_graph.edges(data=True)):
+    for edge in list(G.edges(data=True)):
         d[(edge[0], edge[1])] = list(edge[2].values())[0]
     return d
 
 
-def fc_graph(fc_graph: Graph, colormap_nodes: List[Tuple[float]] = None, output_file: str = None) -> Figure:
+def graph(G: Graph, colormap_nodes: List[Tuple[float]] = None, output_file: str = None) -> Figure:
     """
     Return a matplotlib Figure of a networkx graph.
 
-    :param fc_graph: a networkx Graph object of the fragment combinations
+    :param G: a networkx Graph object of the fragment combinations
     :param colormap_nodes: a colormap of RGB values for the nodes (i.e. [(0, 0, 1), (0, 1, 0)])
     :return: a matplotlib Figure object
     """
-    if isinstance(fc_graph, base64.bytes_types):
-        fc_graph = utils.decode_object(fc_graph)
+    if isinstance(G, base64.bytes_types):
+        G = utils.decode_object(G)
 
     if colormap_nodes is None:
         # define a 2D list instead of a single tuple to avoid matplotlib warning
-        colormap_nodes = [(0.7, 0.7, 0.7)] * len(list(fc_graph.nodes()))
+        colormap_nodes = [(0.7, 0.7, 0.7)] * len(list(G.nodes()))
+    elif isinstance(colormap_nodes, ColorMap):
+        colormap_nodes = list(colormap_nodes.fragments.values())
 
-    pos = nx.spring_layout(fc_graph)
-    edges_info = _get_edge_info(fc_graph)
+    pos = nx.spring_layout(G)
+    edges_info = _get_edge_info(G)
     figure = plt.figure()
-    nx.draw(fc_graph,
+    nx.draw(G,
             pos,
             edge_color='black',
             width=1,
@@ -398,7 +399,7 @@ def fc_graph(fc_graph: Graph, colormap_nodes: List[Tuple[float]] = None, output_
             with_labels=True,
             connectionstyle='arc3,rad=0.9',
             )
-    nx.draw_networkx_edge_labels(fc_graph,
+    nx.draw_networkx_edge_labels(G,
                                  pos,
                                  edge_labels=edges_info,
                                  font_color='red',
@@ -411,21 +412,21 @@ def fc_graph(fc_graph: Graph, colormap_nodes: List[Tuple[float]] = None, output_
     return figure
 
 
-def fc_graph_from_series(row: Series, colormap_nodes_name: str = None) -> Figure:
-    """
-    Return a matplotlib Figure of a networkx graph.
-
-    :param row: a row from a Fragment Map DataFrame (df_map)
-    :param colormap_nodes_name: the name of the Series axe (column) from which to retrieve the nodes colormap
-    :return: a matplotlib Figure object
-    """
-    if colormap_nodes_name is None:
-        colormap_nodes = None
-    elif colormap_nodes_name == "fid":
-        colormap = row["colormap"]
-        colormap_nodes = list(colormap.fragments.values())
-
-    return fc_graph(row["fc_graph"], colormap_nodes=colormap_nodes)
+# def graph_fc_from_series(row: Series, colormap_nodes_name: str = None) -> Figure:
+#     """
+#     Return a matplotlib Figure of a networkx graph.
+#
+#     :param row: a row from a Fragment Map DataFrame (df_map)
+#     :param colormap_nodes_name: the name of the Series axe (column) from which to retrieve the nodes colormap
+#     :return: a matplotlib Figure object
+#     """
+#     if colormap_nodes_name is None:
+#         colormap_nodes = None
+#     elif colormap_nodes_name == "fid":
+#         colormap = row["colormap"]
+#         colormap_nodes = list(colormap.fragments.values())
+#
+#     return G(row["G"], colormap_nodes=colormap_nodes)
 
 
 def rescale(mol: Mol, f: float = 1.4):
@@ -538,7 +539,7 @@ def depict_mol(mol: Mol, methods: List[str] = ["CoordGen", "rdDepictor"], consid
     return best_depiction_mol
 
 
-def draw_reaction(mol1: Mol, mol2: Mol, sub_img_size: tuple = (200, 200), svg: bool = True, output_file: str = None):
+def reaction(mol1: Mol, mol2: Mol, sub_img_size: tuple = (200, 200), svg: bool = True, output_file: str = None):
     """Wrapper function around RDKit ReactionToImage function.
     If the molecules are Mol objects, they are converted to Smiles. If not, they are
     assumed to be already Smiles.

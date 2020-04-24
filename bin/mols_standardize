@@ -90,7 +90,6 @@ def main():
 
     logger = utils._configure_logger(args.log)
     logger.info("RUNNING MOLS_STANDARDIZE")
-    logger.info("this is a test")
     warnings.filterwarnings('ignore', category=pd.io.pytables.PerformanceWarning)  # if None is returned instead of a molecule, do not complain about mixed types
     pad = 40
     disable_rdkit_logging()  # does not work... known issue... nothing much to do apart from editing the log file content. will do in smk directly
