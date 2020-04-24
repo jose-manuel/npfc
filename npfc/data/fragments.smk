@@ -72,7 +72,7 @@ rule STD_MURCKO:
         filtered = "{WD}/02_std/log/{prefix}_filtered.csv.gz",
         error = "{WD}/02_std/log/{prefix}_error.csv.gz"
     log: "{WD}/02_std/log/{prefix}_std.log"
-    shell: "mols_standardize {input} {output.std} -f {output.filtered} -e {output.error} -p " + config_std_frags + "2>{log}"
+    shell: "mols_standardize {input} {output.std} -f {output.filtered} -e {output.error} -p " + config_std_frags + " 2>{log}"
 
 rule LOAD:
     priority: 103

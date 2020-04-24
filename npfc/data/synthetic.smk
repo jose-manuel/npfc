@@ -65,52 +65,52 @@ chunk_ids = [str(i+1).zfill(3) for i in range(num_chunks)]
 
 
 rule all:
-    input: expand(f"{WD}/{natref_subdir}/{frags_subdir}/11_pnp/data/{prefix}" + '_{cid}_pnp.csv.gz', cid=chunk_ids)
+    input: expand(f"{WD}/{natref_subdir}/{frags_subdir}/10_pnp/data/{prefix}" + '_{cid}_pnp.csv.gz', cid=chunk_ids)
 
 rule PNP:
     priority: 0
-    input: "{WD}" + f"/{natref_subdir}/{frags_subdir}" + "/10_fgraph/data/{prefix}_{cid}_fgraph.csv.gz"
-    output: "{WD}" + f"/{natref_subdir}/{frags_subdir}" + "/11_pnp/data/{prefix}_{cid}_pnp.csv.gz"
-    log: "{WD}" + f"/{natref_subdir}/{frags_subdir}" + "/11_pnp/log/{prefix}_{cid}_pnp.log"
+    input: "{WD}" + f"/{natref_subdir}/{frags_subdir}" + "/09_fgraph/data/{prefix}_{cid}_fgraph.csv.gz"
+    output: "{WD}" + f"/{natref_subdir}/{frags_subdir}" + "/10_pnp/data/{prefix}_{cid}_pnp.csv.gz"
+    log: "{WD}" + f"/{natref_subdir}/{frags_subdir}" + "/10_pnp/log/{prefix}_{cid}_pnp.log"
     shell: "fgraph_annotate_pnp {input} {natref_fgraph_dir} {output} >{log} 2>&1"
 
 rule FGRAPH:
     priority: 1
-    input: "{WD}" + f"/{natref_subdir}/{frags_subdir}" + "/09_fcc/data/{prefix}_{cid}_fcc.csv.gz"
-    output: "{WD}" + f"/{natref_subdir}/{frags_subdir}" + "/10_fgraph/data/{prefix}_{cid}_fgraph.csv.gz"
-    log: "{WD}" + f"/{natref_subdir}/{frags_subdir}" + "/10_fgraph/log/{prefix}_{cid}_fgraph.log"
+    input: "{WD}" + f"/{natref_subdir}/{frags_subdir}" + "/08_fcc/data/{prefix}_{cid}_fcc.csv.gz"
+    output: "{WD}" + f"/{natref_subdir}/{frags_subdir}" + "/09_fgraph/data/{prefix}_{cid}_fgraph.csv.gz"
+    log: "{WD}" + f"/{natref_subdir}/{frags_subdir}" + "/09_fgraph/log/{prefix}_{cid}_fgraph.log"
     shell: "fgraph_generate {input} {output} --min-frags 2 --max-frags 9999 --max-overlaps 5 >{log} 2>&1"
 
 rule FCC:
     priority: 2
-    input: "{WD}" + f"/{natref_subdir}/{frags_subdir}" + "/08_fsearch/data/{prefix}_{cid}_fsearch.csv.gz"
-    output: "{WD}" + f"/{natref_subdir}/{frags_subdir}" + "/09_fcc/data/{prefix}_{cid}_fcc.csv.gz"
-    log: "{WD}" + f"/{natref_subdir}/{frags_subdir}" + "/09_fcc/log/{prefix}_{cid}_fcc.log"
+    input: "{WD}" + f"/{natref_subdir}/{frags_subdir}" + "/07_fsearch/data/{prefix}_{cid}_fsearch.csv.gz"
+    output: "{WD}" + f"/{natref_subdir}/{frags_subdir}" + "/08_fcc/data/{prefix}_{cid}_fcc.csv.gz"
+    log: "{WD}" + f"/{natref_subdir}/{frags_subdir}" + "/08_fcc/log/{prefix}_{cid}_fcc.log"
     shell: "fc_classify {input} {output} -c 3 >{log} 2>&1"
 
 rule FSEARCH:
     priority: 3
     input:
-        mols = "{WD}" + f"/{natref_subdir}" + "/07_subset/data/{prefix}_{cid}_subset.csv.gz",
+        mols = "{WD}" + f"/{natref_subdir}" + "/06_subset/data/{prefix}_{cid}_subset.csv.gz",
         frags = frags_file
-    output: "{WD}" + f"/{natref_subdir}/{frags_subdir}" + "/08_fsearch/data/{prefix}_{cid}_fsearch.csv.gz"
-    log: "{WD}" + f"/{natref_subdir}/{frags_subdir}" + "/08_fsearch/log/{prefix}_{cid}_fsearch.log"
+    output: "{WD}" + f"/{natref_subdir}/{frags_subdir}" + "/07_fsearch/data/{prefix}_{cid}_fsearch.csv.gz"
+    log: "{WD}" + f"/{natref_subdir}/{frags_subdir}" + "/07_fsearch/log/{prefix}_{cid}_fsearch.log"
     shell: "mols_fsearch {input.mols} {input.frags} {output} >{log} 2>&1"
 
 rule SUBSET:
     priority: 4
     input:
-        mols = "{WD}/05_dedupl/data/{prefix}_{cid}_depict.csv.gz",
+        mols = "{WD}/05_depict/data/{prefix}_{cid}_depict.csv.gz",
         ref = natref + "/data/04_dedupl/dnp_ref.hdf"
-    output: "{WD}" + f"/{natref_subdir}" + "/07_subset/data/{prefix}_{cid}_subset.csv.gz"
-    log: "{WD}" + f"/{natref_subdir}" + "/07_subset/log/{prefix}_{cid}_subset.log"
+    output: "{WD}" + f"/{natref_subdir}" + "/06_subset/data/{prefix}_{cid}_subset.csv.gz"
+    log: "{WD}" + f"/{natref_subdir}" + "/06_subset/log/{prefix}_{cid}_subset.log"
     shell: "mols_subset {input.mols} {input.ref} {output} >{log} 2>&1"
 
 rule DEPICT:
     priority: 5
     input: "{WD}/04_dedupl/data/{prefix}_{cid}_dedupl.csv.gz"
-    output: "{WD}/05_dedupl/data/{prefix}_{cid}_depict.csv.gz"
-    log: "{WD}/05_dedupl/log/{prefix}_{cid}_depict.log"
+    output: "{WD}/05_depict/data/{prefix}_{cid}_depict.csv.gz"
+    log: "{WD}/05_depict/log/{prefix}_{cid}_depict.log"
     shell: "mols_depict {input} {output} 2>{log}"
 
 rule DEDUPL:
@@ -132,7 +132,7 @@ rule STD:
 
 rule LOAD:
     priority: 9
-    input: "{WD}/01_chunk/data/{prefix}_{cid}.csv.gz"
+    input: "{WD}/01_chunk/data/{prefix}_{cid}.sdf.gz"
     output: "{WD}/02_load/data/{prefix}_{cid}.csv.gz"
     log: "{WD}/02_load/log/{prefix}_{cid}_load.log"
     shell: "mols_load {input} {output} --in_id {molid} >{log} 2>&1"

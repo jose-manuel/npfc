@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>&lt;no title&gt; &mdash; npfc 0.6.0-1-gd6c0f02 documentation</title>
+  <title>Module save &mdash; npfc 0.6.0-2-gc26b608 documentation</title>
   
 
   
@@ -35,8 +35,8 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="&lt;no title&gt;" href="filter.html" />
-    <link rel="prev" title="&lt;no title&gt;" href="load.html" /> 
+    <link rel="next" title="Module filter" href="filter.html" />
+    <link rel="prev" title="Module load" href="load.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -60,7 +60,7 @@
             
             
               <div class="version">
-                0.6.0-1-gd6c0f02
+                0.6.0-2-gc26b608
               </div>
             
           
@@ -84,10 +84,20 @@
               
             
             
-              <!-- Local TOC -->
-              <div class="local-toc"><ul class="simple">
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="utils.html">Module utils</a></li>
+<li class="toctree-l1"><a class="reference internal" href="load.html">Module load</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Module save</a></li>
+<li class="toctree-l1"><a class="reference internal" href="filter.html">Module filter</a></li>
+<li class="toctree-l1"><a class="reference internal" href="standardize.html">Module standardize</a></li>
+<li class="toctree-l1"><a class="reference internal" href="duplicate.html">Module duplicate</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fragment_search.html">Module fragment_search</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fragment_combination.html">Module fragment_combination</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fragment_graph.html">Module fragment_map</a></li>
+<li class="toctree-l1"><a class="reference internal" href="draw.html">Module draw</a></li>
 </ul>
-</div>
+
             
           
         </div>
@@ -131,7 +141,7 @@
     
       <li><a href="index.html">Docs</a> &raquo;</li>
         
-      <li>&lt;no title&gt;</li>
+      <li>Module save</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -150,7 +160,63 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  
+  <span class="target" id="module-npfc.save"></span><div class="section" id="module-save">
+<h1>Module save<a class="headerlink" href="#module-save" title="Permalink to this headline">¶</a></h1>
+<p>A module containing the Saver class, used for storing DataFrames with molecules
+on disk.</p>
+<dl class="class">
+<dt id="npfc.save.SafeHDF5Store">
+<em class="property">class </em><code class="sig-prename descclassname">npfc.save.</code><code class="sig-name descname">SafeHDF5Store</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/save.html#SafeHDF5Store"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.save.SafeHDF5Store" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implement safe HDFStore by obtaining file lock. Multiple writes will queue if lock is not obtained.</p>
+<p>Edited after:
+<a class="reference external" href="https://stackoverflow.com/questions/41231678/obtaining-a-exclusive-lock-when-writing-to-an-hdf5-file">https://stackoverflow.com/questions/41231678/obtaining-a-exclusive-lock-when-writing-to-an-hdf5-file</a></p>
+<p>Initialize and obtain file lock.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="npfc.save.file">
+<code class="sig-prename descclassname">npfc.save.</code><code class="sig-name descname">file</code><span class="sig-paren">(</span><em class="sig-param">df</em>, <em class="sig-param">output_file</em>, <em class="sig-param">shuffle=False</em>, <em class="sig-param">random_seed=None</em>, <em class="sig-param">chunk_size=None</em>, <em class="sig-param">encode=True</em>, <em class="sig-param">col_mol='mol'</em>, <em class="sig-param">col_id='idm'</em>, <em class="sig-param">csv_sep='|'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/save.html#file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.save.file" title="Permalink to this definition">¶</a></dt>
+<dd><p>A method for saving DataFrames with molecules to different file types.
+This is handy way of using the Saver class without having to keep a Saver object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code>) – the input DataFrame</p></li>
+<li><p><strong>output_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the output file</p></li>
+<li><p><strong>shuffle</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>) – randomize records</p></li>
+<li><p><strong>random_seed</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.8)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>]) – a number for reproducing the shuffling</p></li>
+<li><p><strong>chunk_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.8)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>]) – the maximum number of records per chunk. If this value is unset, no chunking is performed, otherwise each chunk filename gets appended with a suffix: file_XXX.ext.</p></li>
+<li><p><strong>encode</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>) – encode RDKit Mol objects and other objects in predefined columns as base64 strings.</p></li>
+<li><p><strong>col_mol</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – if molecules need to be encoded, then the encoding is perfomed on this column.</p></li>
+<li><p><strong>csv_sep</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – separator to use in case of csv output</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the list of output files with their number of records</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="npfc.save.random">
+<code class="sig-prename descclassname">npfc.save.</code><code class="sig-name descname">random</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; x in the interval [0, 1).<a class="headerlink" href="#npfc.save.random" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="npfc.save.write_sdf">
+<code class="sig-prename descclassname">npfc.save.</code><code class="sig-name descname">write_sdf</code><span class="sig-paren">(</span><em class="sig-param">df</em>, <em class="sig-param">out</em>, <em class="sig-param">molColName='ROMol'</em>, <em class="sig-param">idName=None</em>, <em class="sig-param">properties=None</em>, <em class="sig-param">allNumeric=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/save.html#write_sdf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.save.write_sdf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Redefinition of PandasTools.WriteSDF because RDKit 2019.03.1 is incompatible with Pandas 25.1.</p>
+<p>Write an SD file for the molecules in the dataframe. Dataframe columns can be exported as
+SDF tags if specified in the “properties” list. “properties=list(df.columns)” would export
+all columns.
+The “allNumeric” flag allows to automatically include all numeric columns in the output.
+User has to make sure that correct data type is assigned to column.
+“idName” can be used to select a column to serve as molecule title. It can be set to
+“RowID” to use the dataframe row key as title.</p>
+</dd></dl>
+
+</div>
+
 
            </div>
            
@@ -159,10 +225,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="filter.html" class="btn btn-neutral float-right" title="&lt;no title&gt;" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="filter.html" class="btn btn-neutral float-right" title="Module filter" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="load.html" class="btn btn-neutral float-left" title="&lt;no title&gt;" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="load.html" class="btn btn-neutral float-left" title="Module load" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

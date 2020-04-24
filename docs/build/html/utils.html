@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>&lt;no title&gt; &mdash; npfc 0.6.0-1-gd6c0f02 documentation</title>
+  <title>Module utils &mdash; npfc 0.6.0-2-gc26b608 documentation</title>
   
 
   
@@ -35,7 +35,7 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="&lt;no title&gt;" href="load.html" />
+    <link rel="next" title="Module load" href="load.html" />
     <link rel="prev" title="Welcome to npfc’s documentation!" href="index.html" /> 
 </head>
 
@@ -60,7 +60,7 @@
             
             
               <div class="version">
-                0.6.0-1-gd6c0f02
+                0.6.0-2-gc26b608
               </div>
             
           
@@ -84,10 +84,20 @@
               
             
             
-              <!-- Local TOC -->
-              <div class="local-toc"><ul class="simple">
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Module utils</a></li>
+<li class="toctree-l1"><a class="reference internal" href="load.html">Module load</a></li>
+<li class="toctree-l1"><a class="reference internal" href="save.html">Module save</a></li>
+<li class="toctree-l1"><a class="reference internal" href="filter.html">Module filter</a></li>
+<li class="toctree-l1"><a class="reference internal" href="standardize.html">Module standardize</a></li>
+<li class="toctree-l1"><a class="reference internal" href="duplicate.html">Module duplicate</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fragment_search.html">Module fragment_search</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fragment_combination.html">Module fragment_combination</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fragment_graph.html">Module fragment_map</a></li>
+<li class="toctree-l1"><a class="reference internal" href="draw.html">Module draw</a></li>
 </ul>
-</div>
+
             
           
         </div>
@@ -131,7 +141,7 @@
     
       <li><a href="index.html">Docs</a> &raquo;</li>
         
-      <li>&lt;no title&gt;</li>
+      <li>Module utils</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -150,7 +160,258 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  
+  <span class="target" id="module-npfc.utils"></span><div class="section" id="module-utils">
+<h1>Module utils<a class="headerlink" href="#module-utils" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="npfc.utils.check_arg_bool">
+<code class="sig-prename descclassname">npfc.utils.</code><code class="sig-name descname">check_arg_bool</code><span class="sig-paren">(</span><em class="sig-param">value</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/utils.html#check_arg_bool"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.utils.check_arg_bool" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return True of the value is indeed a boolean, raise a TypeError otherwise.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>value</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>) – the argument to test</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="npfc.utils.check_arg_config_file">
+<code class="sig-prename descclassname">npfc.utils.</code><code class="sig-name descname">check_arg_config_file</code><span class="sig-paren">(</span><em class="sig-param">config_file</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/utils.html#check_arg_config_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.utils.check_arg_config_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return True of the config_file exists, raise an error otherwise.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>input_file</strong> – the input file</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="npfc.utils.check_arg_input_dir">
+<code class="sig-prename descclassname">npfc.utils.</code><code class="sig-name descname">check_arg_input_dir</code><span class="sig-paren">(</span><em class="sig-param">input_dir</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/utils.html#check_arg_input_dir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.utils.check_arg_input_dir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return True of the input_dir exists.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>input_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the output directory</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>True if the directory exists.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="npfc.utils.check_arg_input_file">
+<code class="sig-prename descclassname">npfc.utils.</code><code class="sig-name descname">check_arg_input_file</code><span class="sig-paren">(</span><em class="sig-param">input_file</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/utils.html#check_arg_input_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.utils.check_arg_input_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return True of the input_file exists, raise an error otherwise.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>input_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the input file</p></li>
+<li><p><strong>input_format</strong> – the expected format of the input file</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="npfc.utils.check_arg_output_dir">
+<code class="sig-prename descclassname">npfc.utils.</code><code class="sig-name descname">check_arg_output_dir</code><span class="sig-paren">(</span><em class="sig-param">output_dir</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/utils.html#check_arg_output_dir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.utils.check_arg_output_dir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return True of the output_dir can exist.</p>
+<p>If the parent directory of the output dir does not exist, it has to either be created or fail the check.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>output_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the output directory</p></li>
+<li><p><strong>create_parent_dir</strong> – create the output file’s parent folder in case it does not exist</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="npfc.utils.check_arg_output_file">
+<code class="sig-prename descclassname">npfc.utils.</code><code class="sig-name descname">check_arg_output_file</code><span class="sig-paren">(</span><em class="sig-param">output_file</em>, <em class="sig-param">create_parent_dir=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/utils.html#check_arg_output_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.utils.check_arg_output_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return True of the output_file has the expected format (deduced from the file extension).</p>
+<p>If the parent directory of the output file does not exist, it has to either be created or fail the check.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>output_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the output file</p></li>
+<li><p><strong>create_parent_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>) – create the output file’s parent folder in case it does not exist</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="npfc.utils.check_arg_positive_number">
+<code class="sig-prename descclassname">npfc.utils.</code><code class="sig-name descname">check_arg_positive_number</code><span class="sig-paren">(</span><em class="sig-param">value</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/utils.html#check_arg_positive_number"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.utils.check_arg_positive_number" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return True of the value is indeed a positive number (&gt;0), raise a TypeError otherwise.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>value</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Union" title="(in Python v3.8)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>]) – the argument to test</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="npfc.utils.decode_mol">
+<code class="sig-prename descclassname">npfc.utils.</code><code class="sig-name descname">decode_mol</code><span class="sig-paren">(</span><em class="sig-param">string</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/utils.html#decode_mol"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.utils.decode_mol" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a string to a RDKit Mol object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>string</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – a string with a Mol object in bytes with a base64 string representation</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Mol</span></code></p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>a Mol object upon success, None otherwise</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="npfc.utils.decode_object">
+<code class="sig-prename descclassname">npfc.utils.</code><code class="sig-name descname">decode_object</code><span class="sig-paren">(</span><em class="sig-param">string</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/utils.html#decode_object"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.utils.decode_object" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a base64 string to an object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>string</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – a base64 string encoding an object</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>an object upon success, None otherwise</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="npfc.utils.encode_mol">
+<code class="sig-prename descclassname">npfc.utils.</code><code class="sig-name descname">encode_mol</code><span class="sig-paren">(</span><em class="sig-param">mol</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/utils.html#encode_mol"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.utils.encode_mol" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a molecule to a base64 string.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>mol</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Mol</span></code>) – the input molecule</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>the molecule in base64</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="npfc.utils.encode_object">
+<code class="sig-prename descclassname">npfc.utils.</code><code class="sig-name descname">encode_object</code><span class="sig-paren">(</span><em class="sig-param">element</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/utils.html#encode_object"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.utils.encode_object" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert an object to a base64 string.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>element</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a>) – an object to encode</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>an base64 string upon success, None otherwise</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="npfc.utils.get_file_format">
+<code class="sig-prename descclassname">npfc.utils.</code><code class="sig-name descname">get_file_format</code><span class="sig-paren">(</span><em class="sig-param">input_file</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/utils.html#get_file_format"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.utils.get_file_format" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deduce how the file should be parsed based on its suffixes.</p>
+<p>Only compressions for one single file with initial extension still visibile
+work (see example below).</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pathlib</span> <span class="k">import</span> <span class="n">Path</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">npfc</span> <span class="k">import</span> <span class="n">utils</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">utils</span><span class="o">.</span><span class="n">get_file_format</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="s1">&#39;file.csv.gz&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">suffixes</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># returns (&#39;CSV&#39;, &#39;gzip&#39;)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">utils</span><span class="o">.</span><span class="n">get_file_format</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="s1">&#39;file.sdf&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">suffixes</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># returns (&#39;SDF&#39;, None)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>suffixes</strong> – suffixes of a file</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a></p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>a tuple with syntax (format, compression)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="npfc.utils.get_shortest_path_between_frags">
+<code class="sig-prename descclassname">npfc.utils.</code><code class="sig-name descname">get_shortest_path_between_frags</code><span class="sig-paren">(</span><em class="sig-param">mol</em>, <em class="sig-param">aidxf1</em>, <em class="sig-param">aidxf2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/utils.html#get_shortest_path_between_frags"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.utils.get_shortest_path_between_frags" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the shortest path within a molecule between two fragments defined by atom indices.
+First and last atom indices are part of respectively fragment 1 and fragment 2, so they should not
+be considered when estimating the distance between fragments.</p>
+<p>(i.e. distance = len(shortest_path) - 2)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mol</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Mol</span></code>) – The input molecule.</p></li>
+<li><p><strong>aidxf1</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#set" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">set</span></code></a>) – the atom indices of the first fragment found in the molecule</p></li>
+<li><p><strong>aidxf2</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#set" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">set</span></code></a>) – the atom indices of the second fragment found in the molecule</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a></p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>the atom indices of the shortest path between both fragments. The first index is the attachment point from fragment 1 whereas the last index is the attachment point from fragment 2</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="npfc.utils.parse_argparse_boolstring">
+<code class="sig-prename descclassname">npfc.utils.</code><code class="sig-name descname">parse_argparse_boolstring</code><span class="sig-paren">(</span><em class="sig-param">value</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/utils.html#parse_argparse_boolstring"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.utils.parse_argparse_boolstring" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return True or False given the provided string. If the string is actually not a boolean, raise a TypeError.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>value</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the argument to test</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>the parsed boolean as type bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
 
            </div>
            
@@ -159,7 +420,7 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="load.html" class="btn btn-neutral float-right" title="&lt;no title&gt;" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="load.html" class="btn btn-neutral float-right" title="Module load" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="index.html" class="btn btn-neutral float-left" title="Welcome to npfc’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>

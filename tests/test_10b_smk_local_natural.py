@@ -37,10 +37,10 @@ def test_init():
 def test_run():
     """Run the 'natural' protocol applied to a subset of the DNP."""
 
-    output_files = [f"tests/tmp/natural/dnp/data/frags_crms/09_fgraph/data/dnp_{str(cid+1).zfill(3)}_fgraph.csv.gz" for cid in range(3)]
+    output_files = [f"tests/tmp/natural/dnp/data/frags_crms/08_fgraph/data/dnp_{str(cid+1).zfill(3)}_fgraph.csv.gz" for cid in range(3)]
     output_svg = 'tests/tmp/natural/dnp/natural_dnp_tasktree.svg'
     # run protocol
-    command_smk = 'run_protocol natural --chunksize 50'
+    command_smk = 'run_protocol natural --chunksize 20'
     subprocess.run(command_smk, shell=True, check=True, cwd='tests/tmp')
     assert Path(output_svg).exists()
     assert all([Path(f).exists() for f in output_files])

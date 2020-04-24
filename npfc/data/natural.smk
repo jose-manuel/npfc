@@ -95,7 +95,7 @@ rule STD:
 
 rule LOAD:
     priority: 18
-    input: "{WD}/01_chunk/data/{prefix}_{cid}.csv.gz"
+    input: "{WD}/01_chunk/data/{prefix}_{cid}.sdf.gz"
     output: "{WD}/02_load/data/{prefix}_{cid}.csv.gz"
     log: "{WD}/02_load/log/{prefix}_{cid}_load.log"
     shell: "mols_load {input} {output} --in_id {molid} >{log} 2>&1"
