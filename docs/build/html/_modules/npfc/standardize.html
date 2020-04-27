@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.standardize &mdash; npfc 0.6.1 documentation</title>
+  <title>npfc.standardize &mdash; npfc 0.6.1-1-g29216fb documentation</title>
   
 
   
@@ -58,7 +58,7 @@
             
             
               <div class="version">
-                0.6.1
+                0.6.1-1-g29216fb
               </div>
             
           
@@ -224,7 +224,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">q_pos_2</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">MolFromSmarts</span><span class="p">(</span><span class="s2">&quot;[*;+2]&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">q_neg_1</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">MolFromSmarts</span><span class="p">(</span><span class="s2">&quot;[*;-]&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">q_neg_2</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">MolFromSmarts</span><span class="p">(</span><span class="s2">&quot;[*;-2]&quot;</span><span class="p">)</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Initialized a new FullUncharger object&quot;</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Initialized a new FullUncharger object&quot;</span><span class="p">)</span>
 
 <div class="viewcode-block" id="FullUncharger.full_uncharge"><a class="viewcode-back" href="../../standardize.html#npfc.standardize.FullUncharger.full_uncharge">[docs]</a>    <span class="k">def</span> <span class="nf">full_uncharge</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mol</span><span class="p">:</span> <span class="n">Mol</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Mol</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Neutralize molecule by adding/removing hydrogens.</span>
@@ -234,7 +234,7 @@
 <span class="sd">        :param mol: the input molecule</span>
 <span class="sd">        :return: the uncharged molecule</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Uncharging a molecule&quot;</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Uncharging a molecule&quot;</span><span class="p">)</span>
         <span class="n">mol</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
         <span class="c1"># Get atom ids for matches</span>
         <span class="n">p</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">mol</span><span class="o">.</span><span class="n">GetSubstructMatches</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">q_pos_1</span><span class="p">)]</span>   <span class="c1"># +1</span>
@@ -515,7 +515,7 @@
             <span class="k">return</span> <span class="n">mol</span>
         <span class="c1"># otherwise, we have to compare the submols</span>
         <span class="c1"># init</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;found {len(submols)} submols&quot;</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;found </span><span class="si">%s</span><span class="s2"> submols&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">submols</span><span class="p">))</span>
         <span class="n">best_molweight</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span>  <span class="c1"># so we are sure to update this on the first iteration</span>
         <span class="n">best_submol</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="n">best_is_medchem</span> <span class="o">=</span> <span class="kc">False</span>
@@ -527,7 +527,7 @@
             <span class="n">is_non_linear</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter_mol</span><span class="p">(</span><span class="n">submol</span><span class="p">,</span> <span class="n">f</span><span class="s2">&quot;nrings &gt; 0&quot;</span><span class="p">)</span>
             <span class="c1"># molweight</span>
             <span class="n">molweight</span> <span class="o">=</span> <span class="n">Descriptors</span><span class="o">.</span><span class="n">ExactMolWt</span><span class="p">(</span><span class="n">submol</span><span class="p">)</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;submol #</span><span class="si">{i}</span><span class="s2">: IM=</span><span class="si">{is_medchem}</span><span class="s2"> INL=</span><span class="si">{is_non_linear}</span><span class="s2"> MW: </span><span class="si">{molweight}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;submol #</span><span class="si">%s</span><span class="s2">: IM=</span><span class="si">%s</span><span class="s2">, INL=</span><span class="si">%s</span><span class="s2">, MW=</span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">is_medchem</span><span class="p">,</span> <span class="n">is_non_linear</span><span class="p">,</span> <span class="n">molweight</span><span class="p">)</span>
             <span class="c1"># compare to the current best fragment</span>
             <span class="n">update_best</span> <span class="o">=</span> <span class="kc">False</span>
             <span class="n">compute_diff</span> <span class="o">=</span> <span class="kc">False</span>  <span class="c1"># check which</span>

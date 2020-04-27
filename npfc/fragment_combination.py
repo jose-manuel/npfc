@@ -388,7 +388,8 @@ def _get_combination_subtype(category: str, type: str, aidxf1: set, aidxf2: set,
 
 def classify_df(df_aidxf: DataFrame,
                 cutoff: int = 3,
-                clear_cfc: bool = True) -> DataFrame:
+                clear_cfc: bool = True,
+                exclude_exocyclic: bool = False) -> DataFrame:
     """Return a DataFrame with all fragment combination categories for a given set of
     molecules and fragment atom indices obtained by substructure search.
     For more details about category, type and subtype, see doc in method classify_fragment_combination.
@@ -411,6 +412,7 @@ def classify_df(df_aidxf: DataFrame,
     :param df_aidxf: the input DataFrame with substructure matches
     :param cutoff: the maximum number of intermediary atoms between 2 fragments
     :param clear_cfc: remove cfc combinations (false positives) from results
+    :param exclude_exocyclic: exclude exocylic atoms from fragment atom indices (during classification only)
     :return: a DataFrame with all fragment combination classifications
     """
     ds_fcc = []
@@ -439,7 +441,7 @@ def classify_df(df_aidxf: DataFrame,
                 molf2 = row_f2['mol_frag']
                 logging.debug("="*80)
                 logging.debug("Classifying m=%s, f1=%s:%s, f2=%s:%s", gid, idf1, idf1_idx, idf2, idf2_idx)
-                d_fcc = classify(mol, aidxf1, aidxf2, cutoff=cutoff)
+                d_fcc = classify(mol, aidxf1, aidxf2, cutoff=cutoff, exclude_exocyclic=exclude_exocyclic)
 
                 # record fragment combination
                 d_fcc['idm'] = gid
