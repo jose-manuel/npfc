@@ -40,20 +40,20 @@ def _clear_ffs(df_fcc: DataFrame) -> DataFrame:
     logging.debug("Now cleaning fragment combinations")
 
     # drop cutoff combinations
-    logging.debug(f"Removing cutoff connections from fragment combinations")
+    logging.debug("Removing cutoff connections from fragment combinations")
     num_fcc_ini = len(df_fcc.index)
-    logging.debug(f"Number of remaining fragment combinations: {len(df_fcc.index)}/{num_fcc_ini}")
+    logging.debug("Number of remaining fragment combinations: %s/%s", len(df_fcc.index), num_fcc_ini)
 
     # drop fragments combinations paired with a substructure
-    logging.debug(f"Removing substructures from fragment combinations")
+    logging.debug("Removing substructures from fragment combinations")
     df_substructures = df_fcc[df_fcc['abbrev'] == 'ffs']  # all the substructures in the whole dataframe
     num_substructures = len(df_substructures.index)
-    logging.debug(f"Number of substructures found in df_fcc: {num_substructures}/{len(df_fcc.index)}")
+    logging.debug("Number of substructures found in df_fcc: %s/%s", num_substructures, len(df_fcc.index))
     # in case of substructures to remove, iterate over all identified subtructures for each molecule,
     # determine what fragments are part of others and discard all entries with them
     if num_substructures > 0:
-        logging.debug(f"Substructure combinations:\n\n{df_substructures[['idm', 'fid1', 'fid2', 'abbrev']]}\n")
-        logging.debug(f"Determining what fragments should be removed:")
+        logging.debug("Substructure combinations:\n\n%s\n", df_substructures[['idm', 'fid1', 'fid2', 'abbrev']])
+        logging.debug("Determining what fragments should be removed:")
         # intialize the iteration
         rowids_to_remove = []  # the rowids of the df_fcc dataframe to remove
         for gid, g in df_fcc[df_fcc['idm'].isin(df_substructures['idm'])].groupby('idm'):  # iterate only on the groups with at least one substructure
@@ -66,16 +66,16 @@ def _clear_ffs(df_fcc: DataFrame) -> DataFrame:
                 else:
                     fid_to_remove.add(row['fid1'])
                 # display some debugging
-                logging.debug(f"{gid}: {row['fid1']} - {row['fid2']} ==> fid_to_remove={fid_to_remove}")
+                logging.debug("%s: %s - %s ==> fid_to_remove: %s", gid, row['fid1'], row['fid2'], fid_to_remove)
                 # register df_fcc rowids that will be removed for this substructure
                 rowids_to_remove += list(g[g["fid1"].isin(list(fid_to_remove))].index) + list(g[g["fid2"].isin(list(fid_to_remove))].index)
         # remove dupl in rowids_to_remove
         rowids_to_remove = list(set(rowids_to_remove))
         # filter the unwanted fragment combinations
-        logging.debug(f"Number of fragments combinations to remove: {len(rowids_to_remove)}")
+        logging.debug("Number of fragments combinations to remove: %s", len(rowids_to_remove))
         nb_fcc_ini = len(df_fcc.index)
         df_fcc = df_fcc.loc[~df_fcc.index.isin(rowids_to_remove)]
-        logging.debug(f"Number of fragment combinations remaining: {len(df_fcc)}/{nb_fcc_ini}")
+        logging.debug("Number of fragment combinations remaining: %s/%s", len(df_fcc), nb_fcc_ini)
 
     return df_fcc
 
@@ -124,23 +124,23 @@ def _split_overlaps(df_fc: DataFrame, max_overlaps: int) -> DataFrame:
     # overlaps
     df_overlaps = df_fc[df_fc['abbrev'] == 'ffo']
     noverlaps = len(df_overlaps.index)
-    logging.debug(f"Number of overlaps found: {noverlaps}'")
+    logging.debug("Number of overlaps found: %s'", noverlaps)
 
     if noverlaps == 0:
         return ([df_fc], noverlaps)
     elif noverlaps > max_overlaps:
-        logging.debug(f"Too many overlap combinations ({noverlaps}/{max_overlaps}), discarding molecule.")
+        logging.debug("Too many overlap combinations (%s/%s), discarding molecule.", noverlaps, max_overlaps)
         return ([], noverlaps)
 
     # code below is for cases with at least 1 overlap
     d_incompatible = _get_incompatible_fragments_dict(df_overlaps)
     # common
     df_common = df_fc[(~df_fc['fid1'].isin(d_incompatible.keys())) & (~df_fc['fid2'].isin(d_incompatible.keys()))]
-    logging.debug(f"Identified {len(df_common.index):,} variant combinations:\n{df_common[['idm', 'fid1', 'fid2', 'abbrev']]}")
+    logging.debug("Identified %s variant combinations:\n%s", len(df_common.index), df_common[['idm', 'fid1', 'fid2', 'abbrev']])
 
     # variants
     df_variants = df_fc[(df_fc['abbrev'] != 'ffo') & ((df_fc['fid1'].isin(d_incompatible.keys()) | (df_fc['fid2'].isin(d_incompatible.keys()))))]
-    logging.debug(f"Identified {len(df_variants.index):,} variant combinations:\n{df_variants[['idm', 'fid1', 'fid2', 'abbrev']]}")
+    logging.debug("Identified %s variant combinations:\n%s", len(df_variants.index), df_variants[['idm', 'fid1', 'fid2', 'abbrev']])
 
     # define a list of sets of alternative fragments (i.e. [(A, B), (C, D)]) for computing all possible alternative fgraph possibilities
     alt_frags = list(set([tuple(sorted([k] + v)) for k, v in d_incompatible.items()]))
@@ -148,12 +148,12 @@ def _split_overlaps(df_fc: DataFrame, max_overlaps: int) -> DataFrame:
     alt_frags = [set(x) for x in alt_frags]  # now the former set of tuples is a list of sets
     alt_frags.sort(key=len)  # do only 1 check: left in right and not right in left as well
     alt_frags = [tuple(sorted(list(x))) for x in list(filter(lambda f: not any(f < g for g in alt_frags), alt_frags))]  # discard any set that is subset of another
-    logging.debug(f"Alternative fragments:\n" + '\n'.join([str(x) for x in alt_frags]))
+    logging.debug("Alternative fragments:\n" + '\n'.join([str(x) for x in alt_frags]))
 
     # compute 1 df for each alternative fgraph and then concatenate it all into one single df
     dfs_alt_curr = []
     for product in itertools.product(*alt_frags):
-        logging.debug(f"Current alternative route for fgraphs: {product}")
+        logging.debug("Current alternative route for fgraphs: %s", product)
         to_remove = []
         for p in product:
             to_remove += d_incompatible[p]
@@ -185,7 +185,7 @@ def _split_unconnected(dfs_fcc_clean: List[DataFrame]) -> List[DataFrame]:
         num_fc_subgraphs = len(fc_subgraphs)
         # splitting up subgraphs
         if num_fc_subgraphs > 1:
-            logging.debug(f"Fragment Connectivity" + f"{i}".rjust(5) + f": found {num_fc_subgraphs} fc_subgraphs, so splitting up")
+            logging.debug("Fragment Connectivity -- %s: found %s subgraphs, so splitting up", i, num_fc_subgraphs)
             # for each subgraph, record corresponding rows in df only
             for fc_subgraph in fc_subgraphs:
                 nodes = list(fc_subgraph.nodes())
@@ -233,17 +233,17 @@ def generate(df_fcc: DataFrame, min_frags: int = 2, max_frags: int = 5, max_over
     """
     # split by overlaps
 
-    logging.debug(f"Mapping fragments")
+    logging.debug("Mapping fragments")
 
     ds_map = []
     for gid, g in df_fcc.groupby('idm'):
-        logging.debug(f"Current Molecule: {gid}")
+        logging.debug("Current Molecule: %s", gid)
         # split overlaps into different Dataframes
         dfs_fcc_clean, noverlaps = _split_overlaps(g, max_overlaps)
 
         if logging.getLogger().level == logging.DEBUG:
             for i, df_fcc_clean in enumerate(dfs_fcc_clean):
-                logging.info(f"df_fcc_clean #{i}\n\n{df_fcc_clean[['idm', 'fid1', 'fid2', 'abbrev']]}\n")
+                logging.info("df_fcc_clean #%s\n\n%s\n", i, df_fcc_clean[['idm', 'fid1', 'fid2', 'abbrev']])
 
         if len(dfs_fcc_clean) == 0:
             continue
@@ -290,7 +290,7 @@ def generate(df_fcc: DataFrame, min_frags: int = 2, max_frags: int = 5, max_over
 
             # filter results by min/max number of fragment occurrences
             if nfrags < min_frags or nfrags > max_frags:
-                logging.debug(f"{gid}: discarding one fragment map because of unsuitable number of fragments ({nfrags})")
+                logging.debug("%s: discarding one fragment map because of unsuitable number of fragments (%s)", gid, nfrags)
                 continue
 
             # count unique fragment types (unique)

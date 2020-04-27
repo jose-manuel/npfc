@@ -62,7 +62,7 @@ def get_fragment_hits(df_mols: DataFrame,
             # perform the substructure search on mol so the latest matching fragment does not get highlighted
             matches = mol.GetSubstructMatches(rowq[col_mol_frags])
             if len(matches) > 0:
-                logging.debug(f"MOL {rowm.name} + FRAG {rowq.name} ==> {matches}")
+                logging.debug("MOL %s + FRAG %s ==> %s", rowm.name, rowq.name, matches)
                 for m in matches:
                     d['idm'].append(rowm.name)
                     d['idf'].append(rowq.name)

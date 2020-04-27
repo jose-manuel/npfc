@@ -68,7 +68,7 @@ class Filter:
         split_expr = self._split_expr(expr)  # something like 'molweight', '<=', '1000'
         # replace descriptor names by their values
         split_expr = [self.descriptors[k](mol) if k in self.descriptors.keys() else k for k in split_expr]  # now it is '250.0', '<=', '1000'
-        logging.debug(f"applying numeric filter: {' '.join(str(v) for v in split_expr)}")
+        logging.debug("Applying numeric filter: %s", ' '.join(str(v) for v in split_expr))
         # convert all values extracted as string into their type
         split_expr = [float(x) if x not in split_expr[1::2] else x for x in split_expr]  # and now it is 250.0, '<=', 1000.0
         # operators are always at odd positions, whereas values are at even positions
@@ -114,7 +114,7 @@ class Filter:
         expr_split = [e.replace(" ", "") for e in expr.split(op)]
         descriptor = self.descriptors[expr_split[0]](mol)  # left
         values = set(expr_split[1].split(","))  # right
-        logging.debug(f"applying inclusion/exclusion filter: {''.join(str(v) for v in [descriptor, op, values])}")
+        logging.debug("Applying inclusion/exclusion filter: %s", ''.join(str(v) for v in [descriptor, op, values]))
         if (op == ' in ' and descriptor.issubset(values)) or (op == ' not in ' and not descriptor.issubset(values)):
             return True
         else:

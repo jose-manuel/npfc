@@ -58,7 +58,7 @@ def file(df: pd.DataFrame,
     utils.check_arg_bool(shuffle)
     utils.check_arg_bool(encode)
 
-    logging.debug(f"Excerpt of the data as provided to file function:\n\n{df.head(5)}\n")
+    logging.debug("Excerpt of the data as provided to file function:\n\n%s\n", df.head(5))
 
     # init
     path_output_file = Path(output_file)
@@ -92,7 +92,7 @@ def file(df: pd.DataFrame,
             if col.startswith('_') and col != '_Name':
                 df[col] = df[col].map(utils.encode_object)
 
-    logging.debug(f"Excerpt of the data to save before chuking:\n\n{df.head(3)}\n")
+    logging.debug("Excerpt of the data to save before chuking:\n\n%s\n", df.head(3))
 
     # chunking
     if chunk_size is None:
@@ -109,7 +109,7 @@ def file(df: pd.DataFrame,
             _save(df=df.iloc[start:end], output_file=output_chunk, col_mol=col_mol, col_id=col_id, suffixes=ext_output_file, key=path_output_file.stem.split('.')[0], csv_sep=csv_sep)
             output_files.append([output_chunk, len(df.iloc[start:end].index)])
             j += 1
-        logging.debug(f"{len(output_files)} chunks were created")
+        logging.debug("%s chunks were created", len(output_files))
 
     return output_files
 
@@ -145,7 +145,7 @@ def _save(df: DataFrame,
         if out_compression == 'gzip':
             # init
             output_file_base = '.'.join(output_file.split('.')[:-1])
-            logging.debug(f"Output_file_base: {output_file_base}")
+            logging.debug("Output_file_base: %s", output_file_base)
             # write the file uncompressed
             write_sdf(df, output_file_base, molColName=col_mol, idName=col_id, properties=list(df.columns))
             # compress the file
@@ -160,7 +160,7 @@ def _save(df: DataFrame,
         df.to_feather(output_file)
     else:
         raise ValueError(f"Error! Cannot save DataFrame to unexpected format '{suffixes[0]}'.")
-    logging.debug(f"Saved {len(df.index)} records at '{output_file}'.")
+    logging.debug("Saved %s records at '%s'.", len(df.index), output_file)
 
 
 def write_sdf(df, out, molColName='ROMol', idName=None, properties=None, allNumeric=False):

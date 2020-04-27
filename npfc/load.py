@@ -57,11 +57,11 @@ def pgsql(dbname: str,
     :param keep_db_cols: keep src_id and src_mol columns in output DataFrame. This does not impact any other column extracted from the psql query
     :return: a DataFrame with Mol objects
     """
-    logging.debug(f"Retrieving data from dbname={dbname} wiht user={user} with psql:\n{psql}\nwith src_id={src_id}, src_mol={src_mol}, col_mol={col_mol}, col_id={col_id} and keep_db_cols={keep_db_cols}\n")
+    logging.debug("Retrieving data from dbname=%s wiht user=%s with psql:\n%s\nwith src_id=%s, src_mol=%s, col_mol=%s, col_id=%s, keep_db_cols=%s", dbname, user, psql, src_id, src_mol, col_mol, col_id, keep_db_cols)
     if mol_format not in ('molblock', 'smiles', None):
         raise ValueError(f"Format '{mol_format}' is currently not supported. Please use either 'molblock' or 'sdf'.")
     if src_id is None:
-        raise ValueError(f"src_id needs to be defined but values None.")
+        raise ValueError("src_id needs to be defined but values None.")
     # establish connection
     conn = psycopg2.connect(dbname=dbname, user=user)
     cur = conn.cursor()
@@ -74,7 +74,7 @@ def pgsql(dbname: str,
     # check for columns
     if mol_format is not None:
         if src_mol not in df.columns:
-            raise ValueError(f"src_mol '{src_mol}' could not be found in pgsql query results.\nAvailable columns are: {list(df.columns.values)}")
+            raise ValueError(f"src_mol '%s' could not be found in pgsql query results.\nAvailable columns are: %s", src_mol, list(df.columns.values))
         # convert mol_col to RDKit
         df[col_mol] = df[src_mol].map(CONVERTERS[mol_format])
 
@@ -113,7 +113,7 @@ def file(input_file: str,
     # check arguments
     utils.check_arg_input_file(input_file)
     format, compression = utils.get_file_format(input_file)
-    logging.debug(f"Format: {format}, compression: {compression}")
+    logging.debug("Loading file '%s' (format=%s, compression=%s)", input_file, format, compression)
 
     # read mols
     if format == 'SDF':
@@ -143,9 +143,9 @@ def file(input_file: str,
 
     # keep_props
     if not keep_props:
-        logging.debug(f"Found properties: {[c for c in df.columns]}")
-        logging.debug(f"Keeping properties: {[out_id, out_mol]}")
-        logging.debug(f"Dropping properties: {[c for c in df.columns if c not in (out_id, out_mol)]}")
+        logging.debug("Found properties: %s", [c for c in df.columns])
+        logging.debug("Keeping properties: %s", [out_id, out_mol])
+        logging.debug("Dropping properties: %s", [c for c in df.columns if c not in (out_id, out_mol)])
         df.drop([c for c in df.columns if c not in (out_id, out_mol)], axis=1, inplace=True)
 
     # mol_format
@@ -157,12 +157,12 @@ def file(input_file: str,
         # faster way for mols
         for col in ('mol', 'mol_frag', 'mol_frag_1', 'mol_frag_2'):
             if col in df.columns:
-                logging.debug(f"Decoding column='{col}'")
+                logging.debug("Decoding column='%s'", col)
                 df[col] = df[col].map(utils.decode_mol)
         # other objects are labelled with leading '_'
         for col in df.columns:
             if col.startswith('_') and col != '_Name':
-                logging.debug(f"Decoding column='{col}'")
+                logging.debug("Decoding column='%s'", col)
                 df[col] = df[col].map(utils.decode_object)
 
     # consistent id comparison accross datasets
@@ -172,7 +172,7 @@ def file(input_file: str,
         if col in df.columns:
             df[col] = df[col].astype(str)
 
-    logging.debug(f"Excerpt of the data as extracted with load.file function\n\n{df.head(3)}\n")
+    logging.debug("Excerpt of the data as extracted with load.file function\n\n%s\n", df.head(3))
 
     return df
 
@@ -183,7 +183,7 @@ def _from_sdf(input_sdf: str, col_mol: str = 'mol', compression: str = None):
         FH = open(input_sdf, 'rb')
         FH_raw = open(input_sdf, 'rb')
     elif compression == 'gzip':
-        logging.debug(f"Read sdf from compressed file ({compression})")
+        logging.debug("Read sdf from compressed file (%s)", compression)
         FH = gzip.open(input_sdf)
         FH_raw = gzip.open(input_sdf)
     else:
@@ -235,7 +235,7 @@ def count_mols(input_file: str, keep_uncompressed: bool = False):
 
     utils.check_arg_input_file(input_file)
     format, compression = utils.get_file_format(input_file)
-    logging.debug(f"Format: {format}, compression: {compression}")
+    logging.debug("input_file='%s' (format: %s, compression: %s)", input_file, format, compression)
 
     # in case of compressed file, uncompress it
     if compression == 'gzip':

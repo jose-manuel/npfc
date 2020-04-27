@@ -36,10 +36,10 @@ def init_ref_file(ref_file, group_on, col_id) -> bool:
         df_ref = pd.DataFrame({group_on: [], col_id: []})
         df_ref.index = df_ref[group_on]
         df_ref.to_hdf(ref_file, key=key, format="table")
-        logging.debug(f"Created new ref_file at '{ref_file}'")
+        logging.debug("Created new ref_file at '%s'", ref_file)
         return True
     except ValueError:  # certainly not the only kind of error but PEP8 is against using just plain except.
-        logging.critical(f"Could not create a new ref_file at '{ref_file}'")
+        logging.critical("Could not create a new ref_file at '%s'", ref_file)
         return False
 
 
@@ -72,7 +72,7 @@ def filter_duplicates(df: DataFrame, group_on: str = "inchikey", col_id: str = "
         raise ValueError(f"Error! Unauthorized value for on parameter ({group_on}).")
     # compute it if not present
     elif group_on not in df.columns:
-        logging.warning(f"Column {group_on} not found, so computing it.")
+        logging.warning("Column '%s' not found, so computing it.", group_on)
         if group_on == 'inchikey':
             df.loc[:, group_on] = df.loc[:, col_mol].map(MolToInchiKey)
         elif group_on == 'smiles':
@@ -90,12 +90,12 @@ def filter_duplicates(df: DataFrame, group_on: str = "inchikey", col_id: str = "
             logging.debug("number of duplicate molecule found in current chunk: 0")
         else:
             df_dupl = df[~df[col_id].isin(df_u[col_id])]
-            logging.debug(f"number of duplicate molecule found in current chunk: {len(df_dupl.index)}")
+            logging.debug("number of duplicate molecule found in current chunk: %s", len(df_dupl.index))
             # log what molecule "lost" to what other in same DataFrame: InChiKey, kept, filtered
-            logging.debug(f"HEADER:group_on|id_kept|id_filtered")
+            logging.debug("HEADER:group_on|id_kept|id_filtered")
             for i in range(len(df_dupl)):
                 row_dupl = df_dupl.iloc[i]
-                logging.debug(f"RESULT: {row_dupl.name}|{df_u.loc[row_dupl.name][col_id]}|{row_dupl[col_id]}")
+                logging.debug("RESULT: %s|%s|%s", row_dupl.name, df_u.loc[row_dupl.name][col_id], row_dupl[col_id])
 
     # load reference file
     if ref_file is not None:
@@ -112,7 +112,7 @@ def filter_duplicates(df: DataFrame, group_on: str = "inchikey", col_id: str = "
                 df_ref = pd.DataFrame({group_on: [], col_id: []})
             # use group_on as index for faster comparison
             df_ref.set_index(group_on, inplace=True)
-            logging.debug(f"Number of entries in ref: {len(df_ref.index)}")
+            logging.debug("Number of entries in ref: %s", len(df_ref.index))
 
             # filter out already referenced compounds
             df_u2 = df_u[~df_u.index.isin(df_ref.index)]
@@ -128,12 +128,12 @@ def filter_duplicates(df: DataFrame, group_on: str = "inchikey", col_id: str = "
                     logging.debug("Number of duplicate molecule found by using ref_file: 0")
                 else:
                     df_dupl = df_u[~df_u[col_id].isin(df_u2[col_id])]
-                    logging.debug(f"Number of duplicate molecule found by using ref_file: {len(df_dupl.index)}")
-                    logging.debug(f"HEADER:group_on|id_kept|id_filtered")
+                    logging.debug("Number of duplicate molecule found by using ref_file: %s", len(df_dupl.index))
+                    logging.debug("HEADER:group_on|id_kept|id_filtered")
                     # log what molecule "lost" to what other in same DataFrame: InChiKey, kept, filtered
                     for i in range(len(df_dupl)):
                         row_dupl = df_dupl.iloc[i]
-                        logging.debug(f"RESULT:{row_dupl.name}|{df_ref.loc[row_dupl.name][col_id]}|{row_dupl[col_id]}")
+                        logging.debug("RESULT: %s|%s|%s", row_dupl.name, df_u.loc[row_dupl.name][col_id], row_dupl[col_id])
 
             # return updated output in case of ref file
             df_u = df_u2

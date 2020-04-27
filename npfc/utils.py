@@ -54,16 +54,16 @@ def get_file_format(input_file: str) -> tuple:
     :return: a tuple with syntax (format, compression)
     """
     suffixes = Path(input_file).suffixes
-    logging.debug(f"Input file Suffixes are: {suffixes}")
+    logging.debug("Input file Suffixes are: %s", suffixes)
     # is the file an archive?
     if len(suffixes) > 1:
         compression = suffixes[1]
-        logging.debug(f"File is an archive with compression={compression}")
+        logging.debug("File is an archive with compression=%s", compression)
         # special case for gzip so .gz files can be read directly with pandas
         if compression == '.gz':
             compression = 'gzip'
         else:
-            raise ValueError(f"Error! Unexpected value for compression suffix: '{compression}'.")
+            raise ValueError("Error! Unexpected value for compression suffix: '%s'.", compression)
     else:
         compression = None
 
@@ -108,7 +108,7 @@ def check_arg_positive_number(value: Number) -> bool:
 
     :param value: the argument to test
     """
-    logging.debug(f"value is {value} ({type(value)})")
+    logging.debug("value is %s (%s)", value, type(value))
     # possible value for Number is None if argument is left unset
     if value is None:
         return True
@@ -318,7 +318,7 @@ def get_shortest_path_between_frags(mol: Mol, aidxf1: set, aidxf2: set) -> tuple
     # 2/ for each of those, compute the shortest path possible
     pairwise_combinations = list(pairwise_combinations)
     all_paths = [AllChem.GetShortestPath(mol, pc[0], pc[1]) for pc in pairwise_combinations]
-    # logging.debug(f"Looking for the shortest path shortest path among these:")
-    # [logging.debug(f"Path ({str(i).zfill(3)}): {p}") for i, p in enumerate(all_paths)]
+    logging.debug("Looking for the shortest path shortest path among these:")
+    [logging.debug("Path (%s): %s", str(i).zfill(3), p) for i, p in enumerate(all_paths)]
     # 3/ return one of the shortest pathes
     return min(all_paths, key=lambda x: len(x))

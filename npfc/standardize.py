@@ -65,7 +65,7 @@ class FullUncharger(Uncharger):
         self.q_pos_2 = Chem.MolFromSmarts("[*;+2]")
         self.q_neg_1 = Chem.MolFromSmarts("[*;-]")
         self.q_neg_2 = Chem.MolFromSmarts("[*;-2]")
-        logging.debug(f"Initialized a new FullUncharger object")
+        logging.debug("Initialized a new FullUncharger object")
 
     def full_uncharge(self, mol: Mol) -> Mol:
         """Neutralize molecule by adding/removing hydrogens.
@@ -75,7 +75,7 @@ class FullUncharger(Uncharger):
         :param mol: the input molecule
         :return: the uncharged molecule
         """
-        logging.debug(f"Uncharging a molecule")
+        logging.debug("Uncharging a molecule")
         mol = deepcopy(mol)
         # Get atom ids for matches
         p = [x[0] for x in mol.GetSubstructMatches(self.q_pos_1)]   # +1
@@ -356,7 +356,7 @@ class Standardizer(Filter):
             return mol
         # otherwise, we have to compare the submols
         # init
-        logging.debug(f"found {len(submols)} submols")
+        logging.debug("found %s submols", len(submols))
         best_molweight = -1.0  # so we are sure to update this on the first iteration
         best_submol = None
         best_is_medchem = False
@@ -368,7 +368,7 @@ class Standardizer(Filter):
             is_non_linear = self.filter_mol(submol, f"nrings > 0")
             # molweight
             molweight = Descriptors.ExactMolWt(submol)
-            logging.debug(f"submol #{i}: IM={is_medchem} INL={is_non_linear} MW: {molweight}")
+            logging.debug("submol #%s: IM=%s, INL=%s, MW=%s", i, is_medchem, is_non_linear, molweight)
             # compare to the current best fragment
             update_best = False
             compute_diff = False  # check which

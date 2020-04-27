@@ -34,7 +34,7 @@ warnings.simplefilter(action='ignore', category=pd.errors.PerformanceWarning)
 
 
 @pytest.fixture
-def ref_file_highlight_mol():
+def ref_file_mol():
     return "npfc/data/test_06_draw_highlight_mol.svg"
 
 
@@ -97,11 +97,11 @@ def test_depict(mols_2D):
     assert mol_c.GetProp("_2D") == "rdDepictor"
 
 
-def test_highlight_mol(df_map, ref_file_highlight_mol):
+def test_mol(df_map, ref_file_mol):
     """Highlight a molecule using the colormap object defined by the previous test file. Compare the output SVG to a reference SVG."""
-    test_file_highlight_mol = "tests/tmp/test_06_draw_highlight_mol.svg"
+    test_file_mol = "tests/tmp/test_06_draw_highlight_mol.svg"
     # check if ref file is available
-    assert Path(ref_file_highlight_mol).exists() is True
+    assert Path(ref_file_mol).exists() is True
     # check colormap
     row = df_map.iloc[0]
     colormap = row["_colormap"]
@@ -171,8 +171,8 @@ def test_highlight_mol(df_map, ref_file_highlight_mol):
                               31: (1, 1, 1),
                               }
     # compute a SVG drawing of the molecule with highlights
-    img = draw.highlight_mol(row["mol"], colormap=colormap, svg=True)
-    with open(test_file_highlight_mol, "w") as FILE:
+    img = draw.mol(row["mol"], colormap=colormap, svg=True)
+    with open(test_file_mol, "w") as FILE:
         FILE.write(img)
     # check if generated file is identical to ref file (size and content)
-    assert filecmp.cmp(test_file_highlight_mol, ref_file_highlight_mol) is True
+    assert filecmp.cmp(test_file_mol, ref_file_mol) is True

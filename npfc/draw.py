@@ -557,7 +557,7 @@ def reaction(mol1: Mol, mol2: Mol, sub_img_size: tuple = (200, 200), svg: bool =
     if isinstance(mol2, Mol):
         mol2 = Chem.MolToSmiles(mol2)
     rxn_str = f"{mol1}>>{mol2}"
-    logging.debug(f"rxn_str={rxn_str}")
+    logging.debug("rxn_str='%s'", rxn_str)
     rxn = rdChemReactions.ReactionFromSmarts(rxn_str, useSmiles=True)
     img = Draw.ReactionToImage(rxn, subImgSize=sub_img_size, useSVG=svg)
 
