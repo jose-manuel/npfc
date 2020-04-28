@@ -77,15 +77,19 @@ def get_shortest_path_between_frags(mol: Mol, aidxf1: set, aidxf2: set) -> tuple
     return min(all_paths, key=lambda x: len(x))
 
 
-def _exclude_exocyclic(mol: Mol, aidxf: list) -> list:
+def _exclude_exocyclic(mol: Mol, aidxf: frozenset) -> frozenset:
     """Exclude exocylic atoms from a list of atom indices.
 
     :param mol: the input molecule
     :param aidxf: the atom indices
     :return: the filtered atom indices
     """
-    fragment_atoms = [mol.GetAtomWithIdx(x) for x in aidxf]
-    return [aidxf[i] for i, x in enumerate(fragment_atoms) if x.IsInRing()]
+    # all ring atoms in the molecule
+    ring_atoms = [set(x) for x in mol.GetRingInfo().AtomRings()]
+    # save all ring atoms that are found in the fragment, exocylic atoms are thus ignored
+    to_keep = set()
+    [to_keep.update(ri) for ri in ring_atoms if ri.issubset(aidxf)]
+    return frozenset(to_keep)
 
 
 def classify(mol: Mol,
