@@ -504,39 +504,6 @@ class Standardizer(Filter):
     #     else:
     #         raise ValueError(f"Error! Unknown situation encountered during Murcko Scaffold Extraction! (hac_a={hac_a},hac_b={hac_b} , mol='{Chem.MolToSmiles(mol)}')")
 
-    def _fuse_rings(self, rings: tuple) -> list:
-        """
-        Check for atom indices in common between rings to aggregate them into fused rings.
-
-        :param rings: the ring atoms as provided by the RDKit function mol.GetRingInfo().AtomRings() (iteratble of iteratable of atom indices).
-        :return: the fused ring atoms (list of lists of atom indices)
-        """
-        # condition to exit from recursive fusion of ring atom indices
-        done = False
-
-        while not done:
-            fused_rings = []
-            num_rings = len(rings)
-            # pairwise check for common atoms between rings
-            for i in range(num_rings):
-                # define a core
-                fused_ring = set(rings[i])
-                for j in range(i+1, num_rings):
-                    # detect if ring is fused
-                    if set(rings[i]) & set(rings[j]):
-                        # add fused ring to our rign atom list
-                        fused_ring = fused_ring.union(rings[j])
-                # either lone or fused ring, first check if not already in fused_rings
-                if any([fused_ring.issubset(x) for x in fused_rings]):
-                    continue
-                fused_rings.append(list(fused_ring))
-            rings = list(fused_rings)
-            # there are no rings to fuse anymore
-            if num_rings == len(rings):
-                done = True
-
-        return rings
-
     def _is_sugar_like(self, ring_aidx: list, mol: Mol):
         """Indicate whether a ring (defined by its atom indices) in a molecule is sugar-like or not.
 
@@ -634,7 +601,7 @@ class Standardizer(Filter):
 
         # define rings
         rings = mol.GetRingInfo().AtomRings()
-        rings = self._fuse_rings(rings)
+        rings = utils.fuse_rings(rings)
         # try to deglycosylate only if the molecule has at least 2 rings:
         # - leave linear compounds out
         # - leave sugars in case they are the only ring on the molecule

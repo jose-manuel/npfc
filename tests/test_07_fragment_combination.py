@@ -16,7 +16,7 @@ from npfc import fragment_combination
 from npfc import utils
 # debug
 import logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FIXTURES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
@@ -69,7 +69,7 @@ def df_aidxf_fl():
 @pytest.fixture
 def df_aidxf_ca():
     """Example df_aidxf of a molecule with a annulated connection fragment combination."""
-    mol = Chem.MolFromSmiles('C1CC2C(CCC3C2CCC2CCOCC32)CN1')
+    mol = Chem.MolFromSmiles('C1NCC2C1CCC1C2CCC2CCOCC12')
     return pd.DataFrame([
                          ['mol_ca', 'QA', 0, frozenset([10, 11, 12, 13, 14, 15]), 33.0, mol, Chem.MolFromSmiles('C1CCNC1'), 'RRJUGKFDAVWIGB-UHFFFAOYNA-N'],
                          ['mol_ca', 'QB', 0, frozenset([2, 1, 0, 17, 16, 3]), 33.0, mol, Chem.MolFromSmiles('C1CCOCC1'), 'RRJUGKFDAVWIGB-UHFFFAOYNA-N'],
@@ -316,175 +316,175 @@ def test_classify_fs(df_aidxf_fs):
     df_fcc = fragment_combination.classify_df(df_aidxf_fs)
     result = df_fcc.iloc[0]
     assert result['category'] == 'fusion' and result['type'] == 'spiro' and result['subtype'] == '' and result['abbrev'] == 'fs'
-
-
-def test_classify_fe(df_aidxf_fe):
-    """Check if fusion edge fragment combinations are identified."""
-    df_fcc = fragment_combination.classify_df(df_aidxf_fe)
-    result = df_fcc.iloc[0]
-    assert result['category'] == 'fusion' and result['type'] == 'edge' and result['subtype'] == '' and result['abbrev'] == 'fe'
-
-
-def test_classify_fb(df_aidxf_fb):
-    """Check if fusion edge fragment combinations are identified."""
-    df_fcc = fragment_combination.classify_df(df_aidxf_fb)
-    result = df_fcc.iloc[0]
-    assert result['category'] == 'fusion' and result['type'] == 'bridged' and result['subtype'] == '' and result['abbrev'] == 'fb'
-
-
-def test_classify_fl(df_aidxf_fl):
-    """Check if fusion edge fragment combinations are identified."""
-    df_fcc = fragment_combination.classify_df(df_aidxf_fl)
-    result = df_fcc.iloc[0]
-    assert result['category'] == 'fusion' and result['type'] == 'linker' and result['subtype'] == '' and result['abbrev'] == 'fl'
-
-
-def test_classify_cm1(df_aidxf_cm1):
-    """Check if connection monopodal fragment combinations are identified."""
-    df_fcc = fragment_combination.classify_df(df_aidxf_cm1)
-    result = df_fcc.iloc[0]
-    assert result['category'] == 'connection' and result['type'] == 'monopodal' and result['subtype'] == '' and result['abbrev'] == 'cm'
-
-
-def test_classify_cm2(df_aidxf_cm2):
-    """Check if connection monopodal fragment combinations are identified."""
-    df_fcc = fragment_combination.classify_df(df_aidxf_cm2)
-    result = df_fcc.iloc[0]
-    assert result['category'] == 'connection' and result['type'] == 'monopodal' and result['subtype'] == '' and result['abbrev'] == 'cm'
-
-
-def test_classify_cm3(df_aidxf_cm3):
-    """Check if connection monopodal fragment combinations are identified."""
-    df_fcc = fragment_combination.classify_df(df_aidxf_cm3)
-    result = df_fcc.iloc[0]
-    assert result['category'] == 'connection' and result['type'] == 'monopodal' and result['subtype'] == '' and result['abbrev'] == 'cm'
-
-
-def test_classify_cbs(df_aidxf_cbs):
-    """Check if fragment combinations of type connection bipodal spiro are identified."""
-    df_fcc = fragment_combination.classify_df(df_aidxf_cbs)
-    result = df_fcc.iloc[0]
-    assert result['category'] == 'connection' and result['type'] == 'bipodal' and result['subtype'] == 'spiro' and result['abbrev'] == 'cbs'
-
-
-def test_classify_cbe(df_aidxf_cbe):
-    """Check if fragment combinations of type connection bipodal edge are identified."""
-    df_fcc = fragment_combination.classify_df(df_aidxf_cbe)
-    result = df_fcc.iloc[0]
-    assert result['category'] == 'connection' and result['type'] == 'bipodal' and result['subtype'] == 'edge' and result['abbrev'] == 'cbe'
-
-
-def test_classify_cbb(df_aidxf_cbb):
-    """Check if fragment combinations of type connection bipodal bridged are identified."""
-    df_fcc = fragment_combination.classify_df(df_aidxf_cbb)
-    result = df_fcc.iloc[0]
-    assert result['category'] == 'connection' and result['type'] == 'bipodal' and result['subtype'] == 'bridged' and result['abbrev'] == 'cbb'
-
-
-@pytest.mark.skip
-def test_classify_cbl(df_aidxf_cbl):
-    """Check if fragment combinations of type connection bipodal linker are identified."""
-    df_fcc = fragment_combination.classify_df(df_aidxf_cbl)
-    result = df_fcc.iloc[0]
-    assert result['category'] == 'connection' and result['type'] == 'bipodal' and result['subtype'] == 'linker' and result['abbrev'] == 'cbl'
-
-
-def test_classify_cts(df_aidxf_cts):
-    """Check if fragment combinations of type connection tripodal spiro are identified."""
-    df_fcc = fragment_combination.classify_df(df_aidxf_cts)
-    result = df_fcc.iloc[0]
-    assert result['category'] == 'connection' and result['type'] == 'tripodal' and result['subtype'] == 'spiro' and result['abbrev'] == 'cts'
-
-
-def test_classify_cte(df_aidxf_cte):
-    """Check if fragment combinations of type connection tripodal edge are identified."""
-    df_fcc = fragment_combination.classify_df(df_aidxf_cte)
-    result = df_fcc.iloc[0]
-    assert result['category'] == 'connection' and result['type'] == 'tripodal' and result['subtype'] == 'edge' and result['abbrev'] == 'cte'
-
-
-def test_classify_ctb(df_aidxf_ctb):
-    """Check if fragment combinations of type connection tripodal bridged are identified."""
-    df_fcc = fragment_combination.classify_df(df_aidxf_ctb)
-    result = df_fcc.iloc[0]
-    assert result['category'] == 'connection' and result['type'] == 'tripodal' and result['subtype'] == 'bridged' and result['abbrev'] == 'ctb'
-
-
-@pytest.mark.skip
-def test_classify_ctl(df_aidxf_ctl):
-    """Check if fragment combinations of type connection bipodal linker are identified."""
-    df_fcc = fragment_combination.classify_df(df_aidxf_ctl)
-    result = df_fcc.iloc[0]
-    # currently found as ctr instead of ctl
-    assert result['category'] == 'connection' and result['type'] == 'tripodal' and result['subtype'] == 'linker' and result['abbrev'] == 'ctl'
-
-
-def test_classify_cos(df_aidxf_cos):
-    """Check if fragment combinations of type connection other spiro are identified."""
-    df_fcc = fragment_combination.classify_df(df_aidxf_cos)
-    result = df_fcc.iloc[0]
-    assert result['category'] == 'connection' and result['type'] == 'other' and result['subtype'] == 'spiro' and result['abbrev'] == 'cos'
-
-
-def test_classify_coe(df_aidxf_coe):
-    """Check if fragment combinations of type connection other edge are identified."""
-    df_fcc = fragment_combination.classify_df(df_aidxf_coe)
-    result = df_fcc.iloc[0]
-    assert result['category'] == 'connection' and result['type'] == 'other' and result['subtype'] == 'edge' and result['abbrev'] == 'coe'
-
-
-def test_classify_cob(df_aidxf_cob):
-    """Check if fragment combinations of type connection other bridged are identified."""
-    df_fcc = fragment_combination.classify_df(df_aidxf_cob)
-    result = df_fcc.iloc[0]
-    assert result['category'] == 'connection' and result['type'] == 'other' and result['subtype'] == 'bridged' and result['abbrev'] == 'cob'
-
-
-@pytest.mark.skip
-def test_classify_col(df_aidxf_col):
-    """Check if fragment combinations of type connection other linker are identified."""
-    df_fcc = fragment_combination.classify_df(df_aidxf_col)
-    result = df_fcc.iloc[0]
-    assert result['category'] == 'connection' and result['type'] == 'other' and result['subtype'] == 'linker' and result['abbrev'] == 'col'
-
-
-def test_classify_ffs(df_aidxf_ffs):
-    """Check if fragment combinations of type fusion false positive substructure are identified."""
-    df_fcc = fragment_combination.classify_df(df_aidxf_ffs)
-    result = df_fcc.iloc[0]
-    assert result['category'] == 'fusion' and result['type'] == 'false_positive' and result['subtype'] == 'substructure' and result['abbrev'] == 'ffs'
-
-
-def test_classify_ffo(df_aidxf_ffo):
-    """Check if fragment combinations of type fusion false positive substructure are identified."""
-    df_fcc = fragment_combination.classify_df(df_aidxf_ffo)
-    result = df_fcc.iloc[0]
-    assert result['category'] == 'fusion' and result['type'] == 'false_positive' and result['subtype'] == 'overlap' and result['abbrev'] == 'ffo'
-
-
-def test_classify_cfc(df_aidxf_cfc):
-    """Check if fragment combinations of type fusion false positive substructure are identified."""
-    df_fcc = fragment_combination.classify_df(df_aidxf_cfc, clear_cfc=False)
-    result = df_fcc.iloc[0]
-    assert result['category'] == 'connection' and result['type'] == 'false_positive' and result['subtype'] == 'cutoff' and result['abbrev'] == 'cfc'
-
-
-def test_classify_cbs_in_macro(df_aidxf_macro_cbs):
-    """Check if cbs fragment combinations are correctly identified in macrocycles."""
-    df_fcc = fragment_combination.classify_df(df_aidxf_macro_cbs)
-    result = df_fcc.iloc[0]
-    assert result['category'] == 'connection' and result['type'] == 'bipodal' and result['subtype'] == 'spiro' and result['abbrev'] == 'cbs'
-
-
-def test_classify_cbe_in_macro(df_aidxf_macro_cbe):
-    """Check if cbe fragment combinations are correctly identified in macrocycles."""
-    df_fcc = fragment_combination.classify_df(df_aidxf_macro_cbe)
-    result = df_fcc.iloc[0]
-    assert result['category'] == 'connection' and result['type'] == 'bipodal' and result['subtype'] == 'edge' and result['abbrev'] == 'cbe'
-
-
-def test_classify_cbb_in_macro(df_aidxf_macro_cbb):
-    """Check if cbb fragment combinations are correctly identified in macrocycles."""
-    df_fcc = fragment_combination.classify_df(df_aidxf_macro_cbb)
-    result = df_fcc.iloc[0]
-    assert result['category'] == 'connection' and result['type'] == 'bipodal' and result['subtype'] == 'bridged' and result['abbrev'] == 'cbb'
+#
+#
+# def test_classify_fe(df_aidxf_fe):
+#     """Check if fusion edge fragment combinations are identified."""
+#     df_fcc = fragment_combination.classify_df(df_aidxf_fe)
+#     result = df_fcc.iloc[0]
+#     assert result['category'] == 'fusion' and result['type'] == 'edge' and result['subtype'] == '' and result['abbrev'] == 'fe'
+#
+#
+# def test_classify_fb(df_aidxf_fb):
+#     """Check if fusion edge fragment combinations are identified."""
+#     df_fcc = fragment_combination.classify_df(df_aidxf_fb)
+#     result = df_fcc.iloc[0]
+#     assert result['category'] == 'fusion' and result['type'] == 'bridged' and result['subtype'] == '' and result['abbrev'] == 'fb'
+#
+#
+# def test_classify_fl(df_aidxf_fl):
+#     """Check if fusion edge fragment combinations are identified."""
+#     df_fcc = fragment_combination.classify_df(df_aidxf_fl)
+#     result = df_fcc.iloc[0]
+#     assert result['category'] == 'fusion' and result['type'] == 'linker' and result['subtype'] == '' and result['abbrev'] == 'fl'
+#
+#
+# def test_classify_cm1(df_aidxf_cm1):
+#     """Check if connection monopodal fragment combinations are identified."""
+#     df_fcc = fragment_combination.classify_df(df_aidxf_cm1)
+#     result = df_fcc.iloc[0]
+#     assert result['category'] == 'connection' and result['type'] == 'monopodal' and result['subtype'] == '' and result['abbrev'] == 'cm'
+#
+#
+# def test_classify_cm2(df_aidxf_cm2):
+#     """Check if connection monopodal fragment combinations are identified."""
+#     df_fcc = fragment_combination.classify_df(df_aidxf_cm2)
+#     result = df_fcc.iloc[0]
+#     assert result['category'] == 'connection' and result['type'] == 'monopodal' and result['subtype'] == '' and result['abbrev'] == 'cm'
+#
+#
+# def test_classify_cm3(df_aidxf_cm3):
+#     """Check if connection monopodal fragment combinations are identified."""
+#     df_fcc = fragment_combination.classify_df(df_aidxf_cm3)
+#     result = df_fcc.iloc[0]
+#     assert result['category'] == 'connection' and result['type'] == 'monopodal' and result['subtype'] == '' and result['abbrev'] == 'cm'
+#
+#
+# def test_classify_cbs(df_aidxf_cbs):
+#     """Check if fragment combinations of type connection bipodal spiro are identified."""
+#     df_fcc = fragment_combination.classify_df(df_aidxf_cbs)
+#     result = df_fcc.iloc[0]
+#     assert result['category'] == 'connection' and result['type'] == 'bipodal' and result['subtype'] == 'spiro' and result['abbrev'] == 'cbs'
+#
+#
+# def test_classify_cbe(df_aidxf_cbe):
+#     """Check if fragment combinations of type connection bipodal edge are identified."""
+#     df_fcc = fragment_combination.classify_df(df_aidxf_cbe)
+#     result = df_fcc.iloc[0]
+#     assert result['category'] == 'connection' and result['type'] == 'bipodal' and result['subtype'] == 'edge' and result['abbrev'] == 'cbe'
+#
+#
+# def test_classify_cbb(df_aidxf_cbb):
+#     """Check if fragment combinations of type connection bipodal bridged are identified."""
+#     df_fcc = fragment_combination.classify_df(df_aidxf_cbb)
+#     result = df_fcc.iloc[0]
+#     assert result['category'] == 'connection' and result['type'] == 'bipodal' and result['subtype'] == 'bridged' and result['abbrev'] == 'cbb'
+#
+#
+# @pytest.mark.skip
+# def test_classify_cbl(df_aidxf_cbl):
+#     """Check if fragment combinations of type connection bipodal linker are identified."""
+#     df_fcc = fragment_combination.classify_df(df_aidxf_cbl)
+#     result = df_fcc.iloc[0]
+#     assert result['category'] == 'connection' and result['type'] == 'bipodal' and result['subtype'] == 'linker' and result['abbrev'] == 'cbl'
+#
+#
+# def test_classify_cts(df_aidxf_cts):
+#     """Check if fragment combinations of type connection tripodal spiro are identified."""
+#     df_fcc = fragment_combination.classify_df(df_aidxf_cts)
+#     result = df_fcc.iloc[0]
+#     assert result['category'] == 'connection' and result['type'] == 'tripodal' and result['subtype'] == 'spiro' and result['abbrev'] == 'cts'
+#
+#
+# def test_classify_cte(df_aidxf_cte):
+#     """Check if fragment combinations of type connection tripodal edge are identified."""
+#     df_fcc = fragment_combination.classify_df(df_aidxf_cte)
+#     result = df_fcc.iloc[0]
+#     assert result['category'] == 'connection' and result['type'] == 'tripodal' and result['subtype'] == 'edge' and result['abbrev'] == 'cte'
+#
+#
+# def test_classify_ctb(df_aidxf_ctb):
+#     """Check if fragment combinations of type connection tripodal bridged are identified."""
+#     df_fcc = fragment_combination.classify_df(df_aidxf_ctb)
+#     result = df_fcc.iloc[0]
+#     assert result['category'] == 'connection' and result['type'] == 'tripodal' and result['subtype'] == 'bridged' and result['abbrev'] == 'ctb'
+#
+#
+# @pytest.mark.skip
+# def test_classify_ctl(df_aidxf_ctl):
+#     """Check if fragment combinations of type connection bipodal linker are identified."""
+#     df_fcc = fragment_combination.classify_df(df_aidxf_ctl)
+#     result = df_fcc.iloc[0]
+#     # currently found as ctr instead of ctl
+#     assert result['category'] == 'connection' and result['type'] == 'tripodal' and result['subtype'] == 'linker' and result['abbrev'] == 'ctl'
+#
+#
+# def test_classify_cos(df_aidxf_cos):
+#     """Check if fragment combinations of type connection other spiro are identified."""
+#     df_fcc = fragment_combination.classify_df(df_aidxf_cos)
+#     result = df_fcc.iloc[0]
+#     assert result['category'] == 'connection' and result['type'] == 'other' and result['subtype'] == 'spiro' and result['abbrev'] == 'cos'
+#
+#
+# def test_classify_coe(df_aidxf_coe):
+#     """Check if fragment combinations of type connection other edge are identified."""
+#     df_fcc = fragment_combination.classify_df(df_aidxf_coe)
+#     result = df_fcc.iloc[0]
+#     assert result['category'] == 'connection' and result['type'] == 'other' and result['subtype'] == 'edge' and result['abbrev'] == 'coe'
+#
+#
+# def test_classify_cob(df_aidxf_cob):
+#     """Check if fragment combinations of type connection other bridged are identified."""
+#     df_fcc = fragment_combination.classify_df(df_aidxf_cob)
+#     result = df_fcc.iloc[0]
+#     assert result['category'] == 'connection' and result['type'] == 'other' and result['subtype'] == 'bridged' and result['abbrev'] == 'cob'
+#
+#
+# @pytest.mark.skip
+# def test_classify_col(df_aidxf_col):
+#     """Check if fragment combinations of type connection other linker are identified."""
+#     df_fcc = fragment_combination.classify_df(df_aidxf_col)
+#     result = df_fcc.iloc[0]
+#     assert result['category'] == 'connection' and result['type'] == 'other' and result['subtype'] == 'linker' and result['abbrev'] == 'col'
+#
+#
+# def test_classify_ffs(df_aidxf_ffs):
+#     """Check if fragment combinations of type fusion false positive substructure are identified."""
+#     df_fcc = fragment_combination.classify_df(df_aidxf_ffs)
+#     result = df_fcc.iloc[0]
+#     assert result['category'] == 'fusion' and result['type'] == 'false_positive' and result['subtype'] == 'substructure' and result['abbrev'] == 'ffs'
+#
+#
+# def test_classify_ffo(df_aidxf_ffo):
+#     """Check if fragment combinations of type fusion false positive substructure are identified."""
+#     df_fcc = fragment_combination.classify_df(df_aidxf_ffo)
+#     result = df_fcc.iloc[0]
+#     assert result['category'] == 'fusion' and result['type'] == 'false_positive' and result['subtype'] == 'overlap' and result['abbrev'] == 'ffo'
+#
+#
+# def test_classify_cfc(df_aidxf_cfc):
+#     """Check if fragment combinations of type fusion false positive substructure are identified."""
+#     df_fcc = fragment_combination.classify_df(df_aidxf_cfc, clear_cfc=False)
+#     result = df_fcc.iloc[0]
+#     assert result['category'] == 'connection' and result['type'] == 'false_positive' and result['subtype'] == 'cutoff' and result['abbrev'] == 'cfc'
+#
+#
+# def test_classify_cbs_in_macro(df_aidxf_macro_cbs):
+#     """Check if cbs fragment combinations are correctly identified in macrocycles."""
+#     df_fcc = fragment_combination.classify_df(df_aidxf_macro_cbs)
+#     result = df_fcc.iloc[0]
+#     assert result['category'] == 'connection' and result['type'] == 'bipodal' and result['subtype'] == 'spiro' and result['abbrev'] == 'cbs'
+#
+#
+# def test_classify_cbe_in_macro(df_aidxf_macro_cbe):
+#     """Check if cbe fragment combinations are correctly identified in macrocycles."""
+#     df_fcc = fragment_combination.classify_df(df_aidxf_macro_cbe)
+#     result = df_fcc.iloc[0]
+#     assert result['category'] == 'connection' and result['type'] == 'bipodal' and result['subtype'] == 'edge' and result['abbrev'] == 'cbe'
+#
+#
+# def test_classify_cbb_in_macro(df_aidxf_macro_cbb):
+#     """Check if cbb fragment combinations are correctly identified in macrocycles."""
+#     df_fcc = fragment_combination.classify_df(df_aidxf_macro_cbb)
+#     result = df_fcc.iloc[0]
+#     assert result['category'] == 'connection' and result['type'] == 'bipodal' and result['subtype'] == 'bridged' and result['abbrev'] == 'cbb'

@@ -322,3 +322,37 @@ def get_shortest_path_between_frags(mol: Mol, aidxf1: set, aidxf2: set) -> tuple
     [logging.debug("Path (%s): %s", str(i).zfill(3), p) for i, p in enumerate(all_paths)]
     # 3/ return one of the shortest pathes
     return min(all_paths, key=lambda x: len(x))
+
+
+def fuse_rings(rings: tuple) -> list:
+    """
+    Check for atom indices in common between rings to aggregate them into fused rings.
+
+    :param rings: the ring atoms as provided by the RDKit function mol.GetRingInfo().AtomRings() (iteratble of iteratable of atom indices).
+    :return: the fused ring atoms (list of lists of atom indices)
+    """
+    # condition to exit from recursive fusion of ring atom indices
+    done = False
+
+    while not done:
+        fused_rings = []
+        num_rings = len(rings)
+        # pairwise check for common atoms between rings
+        for i in range(num_rings):
+            # define a core
+            fused_ring = set(rings[i])
+            for j in range(i+1, num_rings):
+                # detect if ring is fused
+                if set(rings[i]) & set(rings[j]):
+                    # add fused ring to our rign atom list
+                    fused_ring = fused_ring.union(rings[j])
+            # either lone or fused ring, first check if not already in fused_rings
+            if any([fused_ring.issubset(x) for x in fused_rings]):
+                continue
+            fused_rings.append(list(fused_ring))
+        rings = list(fused_rings)
+        # there are no rings to fuse anymore
+        if num_rings == len(rings):
+            done = True
+
+    return rings

@@ -11,6 +11,8 @@ from rdkit.Chem import Mol
 from rdkit.Chem import AllChem
 # docs
 from pandas import DataFrame
+# dev
+from npfc import utils
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
@@ -146,6 +148,12 @@ def classify(mol: Mol,
     :return: the dictionary specifying fragment combination category, type and subtype
     """
     logging.debug("cuttoff: %s", cutoff)
+    # use a list of the fragment hit atom indices for labelling connection points from the fragment perspective, not molecule's
+    aidxf1_list = list(aidxf1)
+    aidxf2_list = list(aidxf2)
+    aidxf1 = frozenset(aidxf1)
+    aidxf2 = frozenset(aidxf2)
+
     # exclude exocyclic atoms from aidxf1 and 2 during classification
     if exclude_exocyclic:
         aidxf1 = _exclude_exocyclic(mol, aidxf1)
@@ -158,17 +166,22 @@ def classify(mol: Mol,
     if aidxf1.issubset(aidxf2) or aidxf2.issubset(aidxf1):
         abbrev = 'ffs'
         logging.debug("Classification: %s", abbrev)
-        return {'category': 'fusion', 'type': 'false_positive', 'subtype': 'substructure', 'abbrev': abbrev}
+        cp1 = [aidxf1_list.index(x) for x in aidx_fused]
+        cp2 = [aidxf2_list.index(x) for x in aidx_fused]
+        return {'category': 'fusion', 'type': 'false_positive', 'subtype': 'substructure', 'abbrev': abbrev, 'cp1': cp1, 'cp2': cp2}
     if len(aidx_fused) > 0:
         category = 'fusion'
+        logging.debug(f"aidx_fused={aidx_fused}, ")
+        cp1 = [aidxf1_list.index(x) for x in aidx_fused]
+        cp2 = [aidxf2_list.index(x) for x in aidx_fused]
         if len(aidx_fused) == 1:
             abbrev = 'fs'
             logging.debug("Classification: %s", abbrev)
-            return {'category': category, 'type': 'spiro', 'subtype': '', 'abbrev': abbrev}
+            return {'category': category, 'type': 'spiro', 'subtype': '', 'abbrev': abbrev, 'cp1': cp1, 'cp2': cp2}
         elif len(aidx_fused) == 2:
             abbrev = 'fe'
             logging.debug("Classification: %s", abbrev)
-            return {'category': category, 'type': 'edge', 'subtype': '', 'abbrev': abbrev}
+            return {'category': category, 'type': 'edge', 'subtype': '', 'abbrev': abbrev, 'cp1': cp1, 'cp2': cp2}
         else:
             sssr = mol.GetRingInfo().AtomRings()  # smallest sets of smallest rings
             for aidxr in sssr:
@@ -177,15 +190,15 @@ def classify(mol: Mol,
                 if set(aidxr).issubset(aidx_fused):
                     abbrev = 'ffo'
                     logging.debug("Classification: %s", abbrev)
-                    return {'category': category, 'type': 'false_positive', 'subtype': 'overlap', 'abbrev': abbrev}
+                    return {'category': category, 'type': 'false_positive', 'subtype': 'overlap', 'abbrev': abbrev, 'cp1': cp1, 'cp2': cp2}
             # need to check for fbr after ffo since 3-5 atoms might actually define a full ring
             if 3 <= len(aidx_fused) <= 5:
                 abbrev = 'fbr'
                 logging.debug("Classification: %s", abbrev)
-                return {'category': category, 'type': 'bridged', 'subtype': '', 'abbrev': 'fb'}
+                return {'category': category, 'type': 'bridged', 'subtype': '', 'abbrev': 'fb', 'cp1': cp1, 'cp2': cp2}
             else:
                 # linker with > 5 fused atoms!
-                return {'category': category, 'type': 'linker', 'subtype': '', 'abbrev': 'fl'}
+                return {'category': category, 'type': 'linker', 'subtype': '', 'abbrev': 'fl', 'cp1': cp1, 'cp2': cp2}
     else:
         # not fusion so connection
         category = 'connection'
@@ -197,7 +210,7 @@ def classify(mol: Mol,
         if len(shortest_path_between_frags) - 2 > cutoff:  # begin and end atoms are in the shortest path but should not be considered for cutoff
             abbrev = 'cfc'
             logging.debug("Classification: %s (shortest_path_between_frags: %s > %s)", abbrev, len(shortest_path_between_frags) - 2, cutoff)
-            return {'category': category, 'type': 'false_positive', 'subtype': 'cutoff', 'abbrev': abbrev}
+            return {'category': category, 'type': 'false_positive', 'subtype': 'cutoff', 'abbrev': abbrev, 'cp1': [], 'cp2': []}
         # if the fragments are close enough, have a look at how many intermediary rings connec them
         intermediary_rings = get_rings_between_two_fragments(mol, aidxf1, aidxf2)
         logging.debug("intermediary_rings: %s", intermediary_rings)
@@ -211,14 +224,28 @@ def classify(mol: Mol,
             logging.debug("shortest path inner bonds: %s", shortest_path_between_frags_inner_bonds)
             # if all bonds of the shortest path are within rings, then the fragments are annulated
             if shortest_path_between_frags_inner_bonds.issubset(ring_bonds):
+                # I want to find out the CP between each fragment and the ring system inbetween.
+                # To achieve this, I need to:
+                # 1. get the list of all rings met by the shortest path (minus start and end to avoid the ring atoms of the fragments themselves)
+                # 2. fuse these rings
+                # 3. overlap between the fused rings and the fragments are the CPs.
+                sssr = [set(x) for x in RI.AtomRings()]
+                sp = set(shortest_path_between_frags[1:-1])
+                sssr_annulated = [x for x in sssr if x.intersection(sp)]
+                sssr_annulated = set(utils.fuse_rings(sssr_annulated)[0])  # by definition only one big ring
+                cp1 = [aidxf1_list.index(x) for x in sssr_annulated.intersection(aidxf1)]
+                cp2 = [aidxf2_list.index(x) for x in sssr_annulated.intersection(aidxf2)]
+
                 abbrev = 'ca'
                 logging.debug("Classification: %s", abbrev)
-                return {'category': category, 'type': 'annulated', 'subtype': '', 'abbrev': abbrev}
+                return {'category': category, 'type': 'annulated', 'subtype': '', 'abbrev': abbrev, 'cp1': cp1, 'cp2': cp2}  # place holders
             # if not, it is a monopodal connection
             else:
                 abbrev = 'cm'
                 logging.debug("Classification: %s", abbrev)
-                return {'category': category, 'type': 'monopodal', 'subtype': '', 'abbrev': abbrev}
+                cp1 = [aidxf1_list.index(shortest_path_between_frags[0])]
+                cp2 = [aidxf2_list.index(shortest_path_between_frags[1])]
+                return {'category': category, 'type': 'monopodal', 'subtype': '', 'abbrev': abbrev, 'cp1': cp1, 'cp2': cp2}
         else:
             # define what intermediary rings we are talking about
             sssr = [set(x) for x in RI.AtomRings()]  # smallest sets of smallest rings
@@ -229,13 +256,13 @@ def classify(mol: Mol,
             # subtype is deduced from the number of atoms in common between each fragment and each intermediary ring
             if len(intermediary_rings) == 1:
                 type = 'bipodal'  # 1 intermediary ring, which are defined by intersection of aidx, so at least always 1 for each fragment!
-                return _get_combination_subtype(category, type, aidxf1, aidxf2, intermediary_rings)
+                return _get_combination_subtype(category, type, aidxf1_list, aidxf2_list, intermediary_rings)
             elif len(intermediary_rings) == 2:
                 type = 'tripodal'
-                return _get_combination_subtype(category, type, aidxf1, aidxf2, intermediary_rings)
+                return _get_combination_subtype(category, type, aidxf1_list, aidxf2_list, intermediary_rings)
             else:
                 type = 'other'
-                return _get_combination_subtype(category, type, aidxf1, aidxf2, intermediary_rings)
+                return _get_combination_subtype(category, type, aidxf1_list, aidxf2_list, intermediary_rings)
 
 
 def _filter_intermediary_rings(mol: Mol, intermediary_rings: list, sssr: list):
@@ -339,7 +366,7 @@ def _filter_intermediary_rings(mol: Mol, intermediary_rings: list, sssr: list):
     return remaining_ir
 
 
-def _get_combination_subtype(category: str, type: str, aidxf1: set, aidxf2: set, intermediary_rings: list) -> tuple:
+def _get_combination_subtype(category: str, type: str, aidxf1_list: list, aidxf2_list: list, intermediary_rings: list) -> tuple:
     """Return the subtype (spiro, edge, bridged) for bipodal, tripodal and unknown connections.
 
     :param category: the fragment combination category (connection)
@@ -356,8 +383,10 @@ def _get_combination_subtype(category: str, type: str, aidxf1: set, aidxf2: set,
     spiro = False
     for i, ir in enumerate(intermediary_rings):
         logging.debug("IR#{i} => %s: %s", ir_ids[i], intermediary_rings[i])
-        intersect_1 = ir.intersection(aidxf1)
-        intersect_2 = ir.intersection(aidxf2)
+        intersect_1 = ir.intersection(set(aidxf1_list))
+        intersect_2 = ir.intersection(set(aidxf2_list))
+        cp1 = [aidxf1_list.index(x) for x in intersect_1]
+        cp2 = [aidxf2_list.index(x) for x in intersect_2]
         logging.debug("intersect_1: %s (%s), intersect_2: %s (%s)", intersect_1, len(intersect_1), intersect_2, len(intersect_2))
         if len(intersect_1) == 1 or len(intersect_2) == 1:
             logging.debug("Subtype: spiro")
@@ -369,25 +398,25 @@ def _get_combination_subtype(category: str, type: str, aidxf1: set, aidxf2: set,
             abbrev += 'l'  # linker
             logging.debug("Classification: %s", abbrev)
             # linker has the highest priority, exit as soon as detected
-            return {'category': category, 'type': type, 'subtype': 'linker', 'abbrev': abbrev}
+            return {'category': category, 'type': type, 'subtype': 'linker', 'abbrev': abbrev, 'cp1': cp1, 'cp2': cp2}
         # edge if no of the other conditions were fulfilled
 
     # spiro has 2nd highest priority
     if spiro:
         abbrev += 's'
         logging.debug("Classification: %s", abbrev)
-        return {'category': category, 'type': type, 'subtype': 'spiro', 'abbrev': abbrev}
+        return {'category': category, 'type': type, 'subtype': 'spiro', 'abbrev': abbrev, 'cp1': cp1, 'cp2': cp2}
 
     # bridged has 3rd hihghest priority
     if bridged:
         abbrev += 'b'
         logging.debug("Classification: %s", abbrev)
-        return {'category': category, 'type': type, 'subtype': 'bridged', 'abbrev': abbrev}
+        return {'category': category, 'type': type, 'subtype': 'bridged', 'abbrev': abbrev, 'cp1': cp1, 'cp2': cp2}
 
     # edge has lowest priority
     abbrev += 'e'
     logging.debug("Classification: %s", abbrev)
-    return {'category': category, 'type': type, 'subtype': 'edge', 'abbrev': abbrev}
+    return {'category': category, 'type': type, 'subtype': 'edge', 'abbrev': abbrev, 'cp1': cp1, 'cp2': cp2}
 
 
 def classify_df(df_aidxf: DataFrame,
@@ -446,6 +475,11 @@ def classify_df(df_aidxf: DataFrame,
                 logging.debug("="*80)
                 logging.debug("Classifying m=%s, f1=%s:%s, f2=%s:%s", gid, idf1, idf1_idx, idf2, idf2_idx)
                 d_fcc = classify(mol, aidxf1, aidxf2, cutoff=cutoff, exclude_exocyclic=exclude_exocyclic)
+                if len(d_fcc['cp1']) > 0:
+                    fc = f"{idf1}:{idf1_idx}@{','.join(sorted([str(x) for x in d_fcc['cp1']]))}[{d_fcc['abbrev']}]{idf2}:{idf2_idx}@{','.join(sorted([str(x) for x in d_fcc['cp2']]))}"
+                else:  # useful only for cfc combinations
+                    fc = f"{idf1}:{idf1_idx}[{d_fcc['abbrev']}]{idf2}:{idf2_idx}"
+                logging.debug(f"fc={fc}")
 
                 # record fragment combination
                 d_fcc['idm'] = gid
@@ -461,6 +495,7 @@ def classify_df(df_aidxf: DataFrame,
                 d_fcc['hac'] = hac
                 d_fcc['mol_frag_1'] = molf1
                 d_fcc['mol_frag_2'] = molf2
+                d_fcc['fc'] = fc
                 ds_fcc.append(d_fcc)
     logging.debug("="*80)
     # dataframe with columns in given order

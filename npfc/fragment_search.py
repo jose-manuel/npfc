@@ -66,7 +66,7 @@ def get_fragment_hits(df_mols: DataFrame,
                 for m in matches:
                     d['idm'].append(rowm.name)
                     d['idf'].append(rowq.name)
-                    d['_aidxf'].append(frozenset(m))  # frozenset so we can use intersection, etc. and still remove dupl. easily
+                    d['_aidxf'].append(m)  # frozenset so we can use intersection, etc. and still remove dupl. easily
                     d['mol_perc'].append(round(len(m)/hac, 2) * 100)
                     d['mol'].append(rowm[col_mol_mols])
                     d['inchikey'].append(rowm[col_mol_inchikey])
