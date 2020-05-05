@@ -244,7 +244,7 @@ def classify(mol: Mol,
                 abbrev = 'cm'
                 logging.debug("Classification: %s", abbrev)
                 cp1 = [aidxf1_list.index(shortest_path_between_frags[0])]
-                cp2 = [aidxf2_list.index(shortest_path_between_frags[1])]
+                cp2 = [aidxf2_list.index(shortest_path_between_frags[-1])]
                 return {'category': category, 'type': 'monopodal', 'subtype': '', 'abbrev': abbrev, 'cp1': cp1, 'cp2': cp2}
         else:
             # define what intermediary rings we are talking about
@@ -379,44 +379,51 @@ def _get_combination_subtype(category: str, type: str, aidxf1_list: list, aidxf2
     logging.debug("Iterating over remaining IR (new ids and will continue iteration only if subtype=edge):")
     ir_ids = [f"IR_{str(i).zfill(3)}" for i in range(len(intermediary_rings))]
     abbrev = category[0] + type[0]
+    linker = False
     bridged = False
     spiro = False
+    cp1 = []
+    cp2 = []
     for i, ir in enumerate(intermediary_rings):
         logging.debug("IR#{i} => %s: %s", ir_ids[i], intermediary_rings[i])
         intersect_1 = ir.intersection(set(aidxf1_list))
         intersect_2 = ir.intersection(set(aidxf2_list))
-        cp1 = [aidxf1_list.index(x) for x in intersect_1]
-        cp2 = [aidxf2_list.index(x) for x in intersect_2]
+        cp1 += [aidxf1_list.index(x) for x in intersect_1]
+        cp2 += [aidxf2_list.index(x) for x in intersect_2]
         logging.debug("intersect_1: %s (%s), intersect_2: %s (%s)", intersect_1, len(intersect_1), intersect_2, len(intersect_2))
-        if len(intersect_1) == 1 or len(intersect_2) == 1:
+        if len(intersect_1) > 5 or len(intersect_2) > 5:
+            logging.debug("Subtype: linker")
+            linker = True
+        elif len(intersect_1) == 1 or len(intersect_2) == 1:
             logging.debug("Subtype: spiro")
             spiro = True
         elif 3 <= len(intersect_1) <= 5 or 3 <= len(intersect_2) <= 5:
             logging.debug("Subtype: bridged")
             bridged = True
-        elif len(intersect_1) > 5 or len(intersect_2) > 5:
-            abbrev += 'l'  # linker
-            logging.debug("Classification: %s", abbrev)
-            # linker has the highest priority, exit as soon as detected
-            return {'category': category, 'type': type, 'subtype': 'linker', 'abbrev': abbrev, 'cp1': cp1, 'cp2': cp2}
-        # edge if no of the other conditions were fulfilled
+        # else: it is an edge
+
+    # linker has the 1st priority
+    if linker:
+        abbrev += 'l'
+        logging.debug("Classification: %s", abbrev)
+        return {'category': category, 'type': type, 'subtype': 'spiro', 'abbrev': abbrev, 'cp1': list(set(cp1)), 'cp2': list(set(cp2))}
 
     # spiro has 2nd highest priority
     if spiro:
         abbrev += 's'
         logging.debug("Classification: %s", abbrev)
-        return {'category': category, 'type': type, 'subtype': 'spiro', 'abbrev': abbrev, 'cp1': cp1, 'cp2': cp2}
+        return {'category': category, 'type': type, 'subtype': 'spiro', 'abbrev': abbrev, 'cp1': list(set(cp1)), 'cp2': list(set(cp2))}
 
     # bridged has 3rd hihghest priority
     if bridged:
         abbrev += 'b'
         logging.debug("Classification: %s", abbrev)
-        return {'category': category, 'type': type, 'subtype': 'bridged', 'abbrev': abbrev, 'cp1': cp1, 'cp2': cp2}
+        return {'category': category, 'type': type, 'subtype': 'bridged', 'abbrev': abbrev, 'cp1': list(set(cp1)), 'cp2': list(set(cp2))}
 
     # edge has lowest priority
     abbrev += 'e'
     logging.debug("Classification: %s", abbrev)
-    return {'category': category, 'type': type, 'subtype': 'edge', 'abbrev': abbrev, 'cp1': cp1, 'cp2': cp2}
+    return {'category': category, 'type': type, 'subtype': 'edge', 'abbrev': abbrev, 'cp1': list(set(cp1)), 'cp2': list(set(cp2))}
 
 
 def classify_df(df_aidxf: DataFrame,
@@ -499,7 +506,7 @@ def classify_df(df_aidxf: DataFrame,
                 ds_fcc.append(d_fcc)
     logging.debug("="*80)
     # dataframe with columns in given order
-    df_fcc = DataFrame(ds_fcc, columns=['idm', 'idf1', 'idf1_idx', 'fid1', 'idf2', 'idf2_idx', 'fid2', 'abbrev', 'category', 'type', 'subtype', '_aidxf1', '_aidxf2', 'hac', 'mol', 'mol_frag_1', 'mol_frag_2'])
+    df_fcc = DataFrame(ds_fcc, columns=['idm', 'idf1', 'idf1_idx', 'fid1', 'idf2', 'idf2_idx', 'fid2', 'abbrev', 'category', 'type', 'subtype', '_aidxf1', '_aidxf2', 'hac', 'mol', 'mol_frag_1', 'mol_frag_2', 'fc'])
     # clear_cfc
     if clear_cfc:
         df_fcc = df_fcc[df_fcc['abbrev'] != 'cfc']

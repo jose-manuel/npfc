@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.standardize &mdash; npfc 0.6.1-3-gf2b7c1a documentation</title>
+  <title>npfc.standardize &mdash; npfc 0.6.1-4-gcb2c707 documentation</title>
   
 
   
@@ -58,7 +58,7 @@
             
             
               <div class="version">
-                0.6.1-3-gf2b7c1a
+                0.6.1-4-gcb2c707
               </div>
             
           
@@ -663,39 +663,6 @@
     <span class="c1">#     else:</span>
     <span class="c1">#         raise ValueError(f&quot;Error! Unknown situation encountered during Murcko Scaffold Extraction! (hac_a={hac_a},hac_b={hac_b} , mol=&#39;{Chem.MolToSmiles(mol)}&#39;)&quot;)</span>
 
-    <span class="k">def</span> <span class="nf">_fuse_rings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rings</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Check for atom indices in common between rings to aggregate them into fused rings.</span>
-
-<span class="sd">        :param rings: the ring atoms as provided by the RDKit function mol.GetRingInfo().AtomRings() (iteratble of iteratable of atom indices).</span>
-<span class="sd">        :return: the fused ring atoms (list of lists of atom indices)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># condition to exit from recursive fusion of ring atom indices</span>
-        <span class="n">done</span> <span class="o">=</span> <span class="kc">False</span>
-
-        <span class="k">while</span> <span class="ow">not</span> <span class="n">done</span><span class="p">:</span>
-            <span class="n">fused_rings</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="n">num_rings</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">rings</span><span class="p">)</span>
-            <span class="c1"># pairwise check for common atoms between rings</span>
-            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_rings</span><span class="p">):</span>
-                <span class="c1"># define a core</span>
-                <span class="n">fused_ring</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">rings</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
-                <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">num_rings</span><span class="p">):</span>
-                    <span class="c1"># detect if ring is fused</span>
-                    <span class="k">if</span> <span class="nb">set</span><span class="p">(</span><span class="n">rings</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">&amp;</span> <span class="nb">set</span><span class="p">(</span><span class="n">rings</span><span class="p">[</span><span class="n">j</span><span class="p">]):</span>
-                        <span class="c1"># add fused ring to our rign atom list</span>
-                        <span class="n">fused_ring</span> <span class="o">=</span> <span class="n">fused_ring</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">rings</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
-                <span class="c1"># either lone or fused ring, first check if not already in fused_rings</span>
-                <span class="k">if</span> <span class="nb">any</span><span class="p">([</span><span class="n">fused_ring</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">fused_rings</span><span class="p">]):</span>
-                    <span class="k">continue</span>
-                <span class="n">fused_rings</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">fused_ring</span><span class="p">))</span>
-            <span class="n">rings</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">fused_rings</span><span class="p">)</span>
-            <span class="c1"># there are no rings to fuse anymore</span>
-            <span class="k">if</span> <span class="n">num_rings</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">rings</span><span class="p">):</span>
-                <span class="n">done</span> <span class="o">=</span> <span class="kc">True</span>
-
-        <span class="k">return</span> <span class="n">rings</span>
-
     <span class="k">def</span> <span class="nf">_is_sugar_like</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ring_aidx</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">mol</span><span class="p">:</span> <span class="n">Mol</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Indicate whether a ring (defined by its atom indices) in a molecule is sugar-like or not.</span>
 
@@ -793,7 +760,7 @@
 
         <span class="c1"># define rings</span>
         <span class="n">rings</span> <span class="o">=</span> <span class="n">mol</span><span class="o">.</span><span class="n">GetRingInfo</span><span class="p">()</span><span class="o">.</span><span class="n">AtomRings</span><span class="p">()</span>
-        <span class="n">rings</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fuse_rings</span><span class="p">(</span><span class="n">rings</span><span class="p">)</span>
+        <span class="n">rings</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">fuse_rings</span><span class="p">(</span><span class="n">rings</span><span class="p">)</span>
         <span class="c1"># try to deglycosylate only if the molecule has at least 2 rings:</span>
         <span class="c1"># - leave linear compounds out</span>
         <span class="c1"># - leave sugars in case they are the only ring on the molecule</span>

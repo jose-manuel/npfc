@@ -10,9 +10,7 @@ import pandas as pd
 from rdkit import Chem
 # tests
 import pytest
-from npfc import save
 from npfc import fragment_search
-from npfc import utils
 # debug
 import logging
 logging.basicConfig(level=logging.ERROR)
@@ -49,7 +47,7 @@ def test_find_fragments_hit(df_mols_match, df_frags):
     assert list(df_aidxf.index) == [0, 1]
     assert list(df_aidxf['idm']) == ['MOL1'] * 2
     assert list(df_aidxf['idf']) == ['QA', 'QB']
-    assert list(df_aidxf['_aidxf']) == [{1, 2, 3, 8, 9}, {10, 11, 12, 13, 14, 15}]
+    assert list(df_aidxf['_aidxf']) == [(1, 9, 8, 3, 2), (10, 11, 12, 13, 14, 15)]
     assert list(df_aidxf['mol_perc']) == [31.0, 38.0]
 
 
