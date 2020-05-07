@@ -660,10 +660,10 @@ class Standardizer(Filter):
                 if not set(shortest_path).intersection(other_ring_atoms):
                     G.add_edge(i, j, atoms=''.join(shortest_path_elements), glycosidic_bond=glycosidic_bond)
                     # annotate nodes with the ring atoms (+ relevent linker atoms) and if they are sugar-like
-                    G.node[i]['atoms'] = ring1
-                    G.node[i]['sugar_like'] = are_sugar_like[i]
-                    G.node[j]['atoms'] = ring2
-                    G.node[j]['sugar_like'] = are_sugar_like[j]
+                    G.nodes[i]['atoms'] = ring1
+                    G.nodes[i]['sugar_like'] = are_sugar_like[i]
+                    G.nodes[j]['atoms'] = ring2
+                    G.nodes[j]['sugar_like'] = are_sugar_like[j]
 
         # draw the graph
         if mode == 'graph':

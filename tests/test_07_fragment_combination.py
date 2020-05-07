@@ -13,7 +13,7 @@ import pytest
 from npfc import fragment_combination
 # debug
 import logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FIXTURES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
@@ -143,10 +143,10 @@ def df_aidxf_cbb():
 @pytest.fixture
 def df_aidxf_cbl():
     """Example df_aidxf of a molecule with a fragment combination of type connection bipodal linker."""
-    mol = Chem.MolFromSmiles('C1CCCC2NCC(CC1)C1CCCOC21')
+    mol = Chem.MolFromSmiles('C1CC2CC1CCCCC1CCC(CCCC3CCC2C3)NC1')
     return pd.DataFrame([
-                         ['mol_cbl', 'QC', 0, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], 62.0, mol, Chem.MolFromSmiles('C1CCCCNCCCC1')],
-                         ['mol_cbl', 'QB', 0, [11, 10, 15, 14, 13, 12], 38.0, mol, Chem.MolFromSmiles('C1CCOCC1')],
+                         ['mol_cbl', 'QA', 0, [10, 9, 22, 21, 12, 11], 62.0, mol, Chem.MolFromSmiles('C1CCNCC1')],
+                         ['mol_cbl', 'QI', 0, [0, 4, 3, 2, 1, 19, 18, 17, 16, 20], 38.0, mol, Chem.MolFromSmiles('C1CCC(C1)C1CCCC1')],
                         ], columns=['idm', 'idf', 'idf_idx', '_aidxf', 'mol_perc', 'mol', 'mol_frag']
                         )
 
@@ -187,10 +187,10 @@ def df_aidxf_ctb():
 @pytest.fixture
 def df_aidxf_ctl():
     """Example df_aidxf of a molecule with a fragment combination of type connection tripodal linker."""
-    mol = Chem.MolFromSmiles('C1CC2CCC3NC4CCCCCCC3C2C4O1')
+    mol = Chem.MolFromSmiles('C1CC2CC1CCCCC1CCNC3CCCCCCC4CC2CC4CCCC13')
     return pd.DataFrame([
-                         ['mol_ctl', 'QC', 0, [11, 10, 9, 8, 7, 6, 5, 14, 13, 12], 56.0, mol, Chem.MolFromSmiles('C1CCCCNCCCC1')],
-                         ['mol_ctl', 'QB', 0, [2, 1, 0, 17, 16, 15], 33.0, mol, Chem.MolFromSmiles('C1CCOCC1')],
+                         ['mol_ctl', 'QA', 0, [9, 10, 11, 12, 13, 28], 56.0, mol, Chem.MolFromSmiles('C1CCNCC1')],
+                         ['mol_ctl', 'QI', 0, [0, 4, 3, 2, 1, 22, 21, 20, 24, 23], 33.0, mol, Chem.MolFromSmiles('C1CCC(C1)C1CCCC1')],
                         ], columns=['idm', 'idf', 'idf_idx', '_aidxf', 'mol_perc', 'mol', 'mol_frag']
                         )
 
@@ -231,10 +231,10 @@ def df_aidxf_cob():
 @pytest.fixture
 def df_aidxf_col():   # TODO: replace one QB with QC
     """Example df_aidxf of a molecule with a fragment combination of type connection other linker."""
-    mol = Chem.MolFromSmiles('C1CCCC2CNC3CCC4OC(CC1)CC1CCC2C3C14')  # same QB twice because QA is too small for this case
+    mol = Chem.MolFromSmiles('C1CC2C3CC4CCCCCCC5NCC6CCCCCCC2C1CCCCC6C5CCCC4C3')  # same QB twice because QA is too small for this case
     return pd.DataFrame([
-                         ['mol_cob', 'QA', 0, [19, 20, 7, 6, 5, 4], 35.0, mol, Chem.MolFromSmiles('C1CCCNC1')],
-                         ['mol_cob', 'QB', 0, [16, 15, 12, 11, 10, 21], 35.0, mol, Chem.MolFromSmiles('C1CCOCC1')],
+                         ['mol_cob', 'QA', 0, [28, 29, 12, 13, 14, 15], 35.0, mol, Chem.MolFromSmiles('C1CCCNC1')],
+                         ['mol_cob', 'QI', 0, [0, 23, 22, 2, 1, 3, 4, 5, 33, 34], 35.0, mol, Chem.MolFromSmiles('C1CCC(C1)C1CCCC1')],
                         ], columns=['idm', 'idf', 'idf_idx', '_aidxf', 'mol_perc', 'mol', 'mol_frag']
                         )
 
@@ -329,7 +329,7 @@ def test_classify_fb(df_aidxf_fb):
 def test_classify_fl(df_aidxf_fl):
     """Check if fusion edge fragment combinations are identified."""
     df_fcc = fragment_combination.classify_df(df_aidxf_fl)
-    assert df_fcc.iloc[0]['fc'] == 'QC:0@0,1,2,3,4,7,8,9[fl]QD:0@0,1,10,2,3,4,8,9'
+    assert df_fcc.iloc[0]['fc'] == 'QC:0@0,1,2,3,4,7,8,9[fl]QD:0@0,1,2,3,4,8,9,10'
 
 
 def test_classify_ca(df_aidxf_ca):
@@ -374,12 +374,11 @@ def test_classify_cbb(df_aidxf_cbb):
     assert df_fcc.iloc[0]['fc'] == 'QA:0@0,1,5[cbb]QB:0@1,2'
 
 
-@pytest.mark.skip
+
 def test_classify_cbl(df_aidxf_cbl):  # this test is labeled as ctl instead of cbl and I do not know why -> TOCHECK
     """Check if fragment combinations of type connection bipodal linker are identified."""
     df_fcc = fragment_combination.classify_df(df_aidxf_cbl)
-    result = df_fcc.iloc[0]
-    assert result['category'] == 'connection' and result['type'] == 'bipodal' and result['subtype'] == 'linker' and result['abbrev'] == 'cbl'
+    assert df_fcc.iloc[0]['fc'] == 'QA:0@0,1,4,5[cbl]QI:0@1,2,3,5,8,9'
 
 
 def test_classify_cts(df_aidxf_cts):
@@ -400,14 +399,10 @@ def test_classify_ctb(df_aidxf_ctb):
     assert df_fcc.iloc[0]['fc'] == 'QA:0@0,1,2,3[ctb]QB:0@0,4,5'
 
 
-@pytest.mark.skip
 def test_classify_ctl(df_aidxf_ctl):
     """Check if fragment combinations of type connection bipodal linker are identified."""
     df_fcc = fragment_combination.classify_df(df_aidxf_ctl)
-    result = df_fcc.iloc[0]
-    # currently found as ctb instead of ctl
-    assert result['category'] == 'connection' and result['type'] == 'tripodal' and result['subtype'] == 'linker' and result['abbrev'] == 'ctl'
-
+    assert df_fcc.iloc[0]['fc'] == 'QA:0@0,4,5[ctl]QI:0@1,2,3,5,7,8,9'
 
 def test_classify_cos(df_aidxf_cos):
     """Check if fragment combinations of type connection other spiro are identified."""
@@ -427,12 +422,11 @@ def test_classify_cob(df_aidxf_cob):
     assert df_fcc.iloc[0]['fc'] == 'QA:0@0,1,2,3[cob]QB:0@0,1,2,4,5'
 
 
-@pytest.mark.skip
+
 def test_classify_col(df_aidxf_col):  # identified as cob instead of col
     """Check if fragment combinations of type connection other linker are identified."""
     df_fcc = fragment_combination.classify_df(df_aidxf_col)
-    result = df_fcc.iloc[0]
-    assert result['category'] == 'connection' and result['type'] == 'other' and result['subtype'] == 'linker' and result['abbrev'] == 'col'
+    assert df_fcc.iloc[0]['fc'] == 'QA:0@0,1,2,5[col]QI:0@1,2,3,5,7,8,9'
 
 
 def test_classify_ffs(df_aidxf_ffs):

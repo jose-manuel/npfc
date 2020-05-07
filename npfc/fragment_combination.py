@@ -483,7 +483,7 @@ def classify_df(df_aidxf: DataFrame,
                 logging.debug("Classifying m=%s, f1=%s:%s, f2=%s:%s", gid, idf1, idf1_idx, idf2, idf2_idx)
                 d_fcc = classify(mol, aidxf1, aidxf2, cutoff=cutoff, exclude_exocyclic=exclude_exocyclic)
                 if len(d_fcc['cp1']) > 0:
-                    fc = f"{idf1}:{idf1_idx}@{','.join(sorted([str(x) for x in d_fcc['cp1']]))}[{d_fcc['abbrev']}]{idf2}:{idf2_idx}@{','.join(sorted([str(x) for x in d_fcc['cp2']]))}"
+                    fc = f"{idf1}:{idf1_idx}@{','.join([str(x) for x in sorted(d_fcc['cp1'])])}[{d_fcc['abbrev']}]{idf2}:{idf2_idx}@{','.join([str(x) for x in sorted(d_fcc['cp2'])])}"
                 else:  # useful only for cfc combinations
                     fc = f"{idf1}:{idf1_idx}[{d_fcc['abbrev']}]{idf2}:{idf2_idx}"
                 logging.debug(f"fc={fc}")
