@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.standardize &mdash; npfc 0.6.1-5-g9b636da documentation</title>
+  <title>npfc.standardize &mdash; npfc 0.6.1-6-g1caee69 documentation</title>
   
 
   
@@ -58,7 +58,7 @@
             
             
               <div class="version">
-                0.6.1-5-g9b636da
+                0.6.1-6-g1caee69
               </div>
             
           
@@ -819,10 +819,10 @@
                 <span class="k">if</span> <span class="ow">not</span> <span class="nb">set</span><span class="p">(</span><span class="n">shortest_path</span><span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">other_ring_atoms</span><span class="p">):</span>
                     <span class="n">G</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">atoms</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">shortest_path_elements</span><span class="p">),</span> <span class="n">glycosidic_bond</span><span class="o">=</span><span class="n">glycosidic_bond</span><span class="p">)</span>
                     <span class="c1"># annotate nodes with the ring atoms (+ relevent linker atoms) and if they are sugar-like</span>
-                    <span class="n">G</span><span class="o">.</span><span class="n">node</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s1">&#39;atoms&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ring1</span>
-                    <span class="n">G</span><span class="o">.</span><span class="n">node</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s1">&#39;sugar_like&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">are_sugar_like</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
-                    <span class="n">G</span><span class="o">.</span><span class="n">node</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="s1">&#39;atoms&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ring2</span>
-                    <span class="n">G</span><span class="o">.</span><span class="n">node</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="s1">&#39;sugar_like&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">are_sugar_like</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+                    <span class="n">G</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s1">&#39;atoms&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ring1</span>
+                    <span class="n">G</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="s1">&#39;sugar_like&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">are_sugar_like</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                    <span class="n">G</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="s1">&#39;atoms&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ring2</span>
+                    <span class="n">G</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="s1">&#39;sugar_like&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">are_sugar_like</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
 
         <span class="c1"># draw the graph</span>
         <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;graph&#39;</span><span class="p">:</span>
