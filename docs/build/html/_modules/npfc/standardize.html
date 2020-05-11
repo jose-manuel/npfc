@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.standardize &mdash; npfc 0.6.1-8-gd1174ff documentation</title>
+  <title>npfc.standardize &mdash; npfc 0.6.2 documentation</title>
   
 
   
@@ -58,7 +58,7 @@
             
             
               <div class="version">
-                0.6.1-8-gd1174ff
+                0.6.2
               </div>
             
           
@@ -164,6 +164,7 @@
 
 <span class="c1"># standard</span>
 <span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">signal</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">Counter</span>
 <span class="kn">import</span> <span class="nn">timeout_decorator</span>
 <span class="kn">from</span> <span class="nn">copy</span> <span class="k">import</span> <span class="n">deepcopy</span>
@@ -861,7 +862,7 @@
         <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Returning only the non-linear obtained fragment&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">frags</span> <span class="k">if</span> <span class="n">Descriptors</span><span class="o">.</span><span class="n">rdMolDescriptors</span><span class="o">.</span><span class="n">CalcNumRings</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span></div>
 
-    <span class="nd">@timeout_decorator</span><span class="o">.</span><span class="n">timeout</span><span class="p">(</span><span class="n">TIMEOUT</span><span class="p">)</span>
+
     <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mol</span><span class="p">:</span> <span class="n">Mol</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Helper function for run.</span>
 <span class="sd">        Contains all tasks defined within the protocol. Since some operations are</span>
@@ -981,21 +982,23 @@
         <span class="c1"># a molecule that passed all the protocole!</span>
         <span class="k">return</span> <span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="s1">&#39;passed&#39;</span><span class="p">,</span> <span class="s1">&#39;standardize&#39;</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Standardizer.run"><a class="viewcode-back" href="../../standardize.html#npfc.standardize.Standardizer.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mol</span><span class="p">:</span> <span class="n">Mol</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+<div class="viewcode-block" id="Standardizer.run"><a class="viewcode-back" href="../../standardize.html#npfc.standardize.Standardizer.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mol</span><span class="p">:</span> <span class="n">Mol</span><span class="p">,</span> <span class="n">timeout</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Execute the standardization protocol on a molecule.</span>
 <span class="sd">        Molecule that exceed the timeout value are filtered with a task=&#39;timeout&#39;.</span>
 
 <span class="sd">        As a final step of the protocol, InChiKeys (&#39;inchikey&#39;) are computed for identifying molecules.</span>
 
 <span class="sd">        :param mol: the input molecule</span>
+<span class="sd">        :param timeout: the maximum number of seconds for processing a molecule</span>
 <span class="sd">        :return: a tuple containing the molecule, its status and the further task name it reached</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">try</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">utils</span><span class="o">.</span><span class="n">timeout</span><span class="p">(</span><span class="n">timeout</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_run</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
-        <span class="k">except</span> <span class="n">timeout_decorator</span><span class="o">.</span><span class="n">TimeoutError</span><span class="p">:</span>
-            <span class="k">return</span> <span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="s1">&#39;filtered&#39;</span><span class="p">,</span> <span class="s1">&#39;timeout&#39;</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Standardizer.run_df"><a class="viewcode-back" href="../../standardize.html#npfc.standardize.Standardizer.run_df">[docs]</a>    <span class="k">def</span> <span class="nf">run_df</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+        <span class="c1"># in case of timeout</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="s1">&#39;filtered&#39;</span><span class="p">,</span> <span class="s1">&#39;timeout&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Standardizer.run_df"><a class="viewcode-back" href="../../standardize.html#npfc.standardize.Standardizer.run_df">[docs]</a>    <span class="k">def</span> <span class="nf">run_df</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">,</span> <span class="n">timeout</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Apply the standardization protocol on a DataFrame, with the possibility of directly filtering duplicate entries as well.</span>
 <span class="sd">        This can be very useful as the standardization process can expose duplicate entries due to salts removal, neutralization,</span>
 <span class="sd">        canonical tautomer enumeration, and stereochemistry centers unlabelling</span>
@@ -1004,6 +1007,7 @@
 
 
 <span class="sd">        :param df: the input DataFrame</span>
+<span class="sd">        :param timeout: the maximum number of seconds for processing a molecule</span>
 <span class="sd">        :return: three DataFrames separated by status:</span>
 
 <span class="sd">            - passed</span>

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Module utils &mdash; npfc 0.6.1-8-gd1174ff documentation</title>
+  <title>Module utils &mdash; npfc 0.6.2 documentation</title>
   
 
   
@@ -60,7 +60,7 @@
             
             
               <div class="version">
-                0.6.1-8-gd1174ff
+                0.6.2
               </div>
             
           
@@ -424,6 +424,31 @@ be considered when estimating the distance between fragments.</p>
 <dd class="field-odd"><p>the parsed boolean as type bool</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="npfc.utils.raise_timeout">
+<code class="sig-prename descclassname">npfc.utils.</code><code class="sig-name descname">raise_timeout</code><span class="sig-paren">(</span><em class="sig-param">signum</em>, <em class="sig-param">frame</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/utils.html#raise_timeout"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.utils.raise_timeout" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to actually raise the TimeoutError when the time has come.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="npfc.utils.timeout">
+<code class="sig-prename descclassname">npfc.utils.</code><code class="sig-name descname">timeout</code><span class="sig-paren">(</span><em class="sig-param">time</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/utils.html#timeout"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.utils.timeout" title="Permalink to this definition">¶</a></dt>
+<dd><p>With function is used within a with statement:
+with timeout(5):</p>
+<blockquote>
+<div><p>do something</p>
+</div></blockquote>
+<p>If the code block execution time exceeds the time threshold, a TimeoutError is raised.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>time</strong> – time in seconds allowd to the code block before raising a TimeoutError</p>
+</dd>
+</dl>
+<p>References:
+<a class="reference external" href="https://www.jujens.eu/posts/en/2018/Jun/02/python-timeout-function/">https://www.jujens.eu/posts/en/2018/Jun/02/python-timeout-function/</a>
+<a class="reference external" href="https://docs.python.org/3/library/contextlib.html">https://docs.python.org/3/library/contextlib.html</a></p>
 </dd></dl>
 
 </div>

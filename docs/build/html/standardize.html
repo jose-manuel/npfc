@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Module standardize &mdash; npfc 0.6.1-8-gd1174ff documentation</title>
+  <title>Module standardize &mdash; npfc 0.6.2 documentation</title>
   
 
   
@@ -60,7 +60,7 @@
             
             
               <div class="version">
-                0.6.1-8-gd1174ff
+                0.6.2
               </div>
             
           
@@ -367,13 +367,16 @@ On the contrary, this long aliphatic chain would be kept in a mixture with a non
 
 <dl class="method">
 <dt id="npfc.standardize.Standardizer.run">
-<code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param">mol</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#Standardizer.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.Standardizer.run" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param">mol</em>, <em class="sig-param">timeout=10</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#Standardizer.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.Standardizer.run" title="Permalink to this definition">¶</a></dt>
 <dd><p>Execute the standardization protocol on a molecule.
 Molecule that exceed the timeout value are filtered with a task=’timeout’.</p>
 <p>As a final step of the protocol, InChiKeys (‘inchikey’) are computed for identifying molecules.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>mol</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Mol</span></code>) – the input molecule</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mol</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Mol</span></code>) – the input molecule</p></li>
+<li><p><strong>timeout</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>) – the maximum number of seconds for processing a molecule</p></li>
+</ul>
 </dd>
 <dt class="field-even">Return type</dt>
 <dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a></p>
@@ -386,14 +389,17 @@ Molecule that exceed the timeout value are filtered with a task=’timeout’.</
 
 <dl class="method">
 <dt id="npfc.standardize.Standardizer.run_df">
-<code class="sig-name descname">run_df</code><span class="sig-paren">(</span><em class="sig-param">df</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#Standardizer.run_df"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.Standardizer.run_df" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">run_df</code><span class="sig-paren">(</span><em class="sig-param">df</em>, <em class="sig-param">timeout=10</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#Standardizer.run_df"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.Standardizer.run_df" title="Permalink to this definition">¶</a></dt>
 <dd><p>Apply the standardization protocol on a DataFrame, with the possibility of directly filtering duplicate entries as well.
 This can be very useful as the standardization process can expose duplicate entries due to salts removal, neutralization,
 canonical tautomer enumeration, and stereochemistry centers unlabelling</p>
 <p>If a reference file is specified, duplicate removals becomes possible accross chunks.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>df</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code>) – the input DataFrame</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code>) – the input DataFrame</p></li>
+<li><p><strong>timeout</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>) – the maximum number of seconds for processing a molecule</p></li>
+</ul>
 </dd>
 <dt class="field-even">Return type</dt>
 <dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a></p>

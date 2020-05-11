@@ -262,8 +262,8 @@ def generate(df_fcc: DataFrame, min_frags: int = 2, max_frags: int = 5, max_over
         for i, df_fcc_clean in enumerate(dfs_fcc_ready):
 
             # string representation of the fragment combinations of this map
-            frag_map_str = '-'.join(list(df_fcc_clean['fc'].map(str)))
-            logging.debug(f"{frag_map_str=}")
+            fragment_graph_str = '-'.join(list(df_fcc_clean['fc'].map(str)))
+            logging.debug('fragment_graph_str: %s', fragment_graph_str)
 
             # d_aidxs: a dict containing the occurrences of each fragment type
             d_aidxs = {}
@@ -333,7 +333,7 @@ def generate(df_fcc: DataFrame, min_frags: int = 2, max_frags: int = 5, max_over
             ncomb = len(comb)
             comb_u = list(set(comb))
             ncomb_u = len(comb_u)
-            ds_map.append({'idm': gid, 'fmid': str(i+1).zfill(3), 'nfrags': nfrags, 'nfrags_u': nfrags_u, 'ncomb': ncomb, 'ncomb_u': ncomb_u, 'hac_mol': hac_mol, 'hac_frags': hac_frags, 'perc_mol_cov_frags': perc_mol_cov_frags, 'frags': frags, 'frags_u': frags_u, 'comb': comb, 'comb_u': comb_u, 'fgraph_str': frag_map_str, '_d_aidxs': d_aidxs, '_colormap': colormap, '_fgraph': graph, 'mol': mol, '_d_mol_frags': d_frags})
+            ds_map.append({'idm': gid, 'fmid': str(i+1).zfill(3), 'nfrags': nfrags, 'nfrags_u': nfrags_u, 'ncomb': ncomb, 'ncomb_u': ncomb_u, 'hac_mol': hac_mol, 'hac_frags': hac_frags, 'perc_mol_cov_frags': perc_mol_cov_frags, 'frags': frags, 'frags_u': frags_u, 'comb': comb, 'comb_u': comb_u, 'fgraph_str': fragment_graph_str, '_d_aidxs': d_aidxs, '_colormap': colormap, '_fgraph': graph, 'mol': mol, '_d_mol_frags': d_frags})
 
     # concatenate all together
     df_fg = DataFrame(ds_map, columns=['idm', 'fmid', 'nfrags', 'nfrags_u', 'ncomb', 'ncomb_u', 'hac_mol', 'hac_frags', 'perc_mol_cov_frags', 'frags', 'frags_u', 'comb', 'comb_u', 'fgraph_str', '_d_aidxs', '_colormap', '_fgraph', 'mol', '_d_mol_frags']).drop_duplicates(subset=['fgraph_str'])
