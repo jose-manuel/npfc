@@ -46,20 +46,20 @@ def _clear_ffs(df_fcc: DataFrame) -> DataFrame:
 
     # drop fragments combinations paired with a substructure
     logging.debug("Removing substructures from fragment combinations")
-    df_substructures = df_fcc[df_fcc['abbrev'] == 'ffs']  # all the substructures in the whole dataframe
+    df_substructures = df_fcc[df_fcc['fcc'] == 'ffs']  # all the substructures in the whole dataframe
     num_substructures = len(df_substructures.index)
     logging.debug("Number of substructures found in df_fcc: %s/%s", num_substructures, len(df_fcc.index))
     # in case of substructures to remove, iterate over all identified subtructures for each molecule,
     # determine what fragments are part of others and discard all entries with them
     if num_substructures > 0:
-        logging.debug("Substructure combinations:\n\n%s\n", df_substructures[['idm', 'fid1', 'fid2', 'abbrev']])
+        logging.debug("Substructure combinations:\n\n%s\n", df_substructures[['idm', 'fc']])
         logging.debug("Determining what fragments should be removed:")
         # intialize the iteration
         rowids_to_remove = []  # the rowids of the df_fcc dataframe to remove
         for gid, g in df_fcc[df_fcc['idm'].isin(df_substructures['idm'])].groupby('idm'):  # iterate only on the groups with at least one substructure
             fid_to_remove = set()   # fid of substructures identified for the current molecule
             # for each molecule, look at what fids we should remove
-            for rowid, row in g[g['abbrev'] == 'ffs'].iterrows():
+            for rowid, row in g[g['fcc'] == 'ffs'].iterrows():
                 # combination ifs ffs, so remove either fid1 or fid2 depending on hac
                 if len(row['_aidxf1']) > len(row['_aidxf2']):
                     fid_to_remove.add(row['fid2'])
@@ -122,7 +122,7 @@ def _split_overlaps(df_fc: DataFrame, max_overlaps: int) -> DataFrame:
     # 2. commons: fc not involving any fragment in ffo
     # 3. variants: fc involving fragments in ffo
     # overlaps
-    df_overlaps = df_fc[df_fc['abbrev'] == 'ffo']
+    df_overlaps = df_fc[df_fc['fcc'] == 'ffo']
     noverlaps = len(df_overlaps.index)
     logging.debug("Number of overlaps found: %s'", noverlaps)
 
@@ -136,11 +136,11 @@ def _split_overlaps(df_fc: DataFrame, max_overlaps: int) -> DataFrame:
     d_incompatible = _get_incompatible_fragments_dict(df_overlaps)
     # common
     df_common = df_fc[(~df_fc['fid1'].isin(d_incompatible.keys())) & (~df_fc['fid2'].isin(d_incompatible.keys()))]
-    logging.debug("Identified %s variant combinations:\n%s", len(df_common.index), df_common[['idm', 'fid1', 'fid2', 'abbrev']])
+    logging.debug("Identified %s variant combinations:\n%s", len(df_common.index), df_common[['idm', 'fc']])
 
     # variants
-    df_variants = df_fc[(df_fc['abbrev'] != 'ffo') & ((df_fc['fid1'].isin(d_incompatible.keys()) | (df_fc['fid2'].isin(d_incompatible.keys()))))]
-    logging.debug("Identified %s variant combinations:\n%s", len(df_variants.index), df_variants[['idm', 'fid1', 'fid2', 'abbrev']])
+    df_variants = df_fc[(df_fc['fcc'] != 'ffo') & ((df_fc['fid1'].isin(d_incompatible.keys()) | (df_fc['fid2'].isin(d_incompatible.keys()))))]
+    logging.debug("Identified %s variant combinations:\n%s", len(df_variants.index), df_variants[['idm', 'fcc']])
 
     # define a list of sets of alternative fragments (i.e. [(A, B), (C, D)]) for computing all possible alternative fgraph possibilities
     alt_frags = list(set([tuple(sorted([k] + v)) for k, v in d_incompatible.items()]))
@@ -243,7 +243,7 @@ def generate(df_fcc: DataFrame, min_frags: int = 2, max_frags: int = 5, max_over
 
         if logging.getLogger().level == logging.DEBUG:
             for i, df_fcc_clean in enumerate(dfs_fcc_clean):
-                logging.info("df_fcc_clean #%s\n\n%s\n", i, df_fcc_clean[['idm', 'fid1', 'fid2', 'abbrev']])
+                logging.info("df_fcc_clean #%s\n\n%s\n", i, df_fcc_clean[['idm', 'fc']])
 
         if len(dfs_fcc_clean) == 0:
             continue
@@ -262,7 +262,8 @@ def generate(df_fcc: DataFrame, min_frags: int = 2, max_frags: int = 5, max_over
         for i, df_fcc_clean in enumerate(dfs_fcc_ready):
 
             # string representation of the fragment combinations of this map
-            frag_map_str = '-'.join(list(df_fcc_clean['fid1'].map(str) + "[" + df_fcc_clean['abbrev'] + "]" + df_fcc_clean['fid2'].map(str)))
+            frag_map_str = '-'.join(list(df_fcc_clean['fc'].map(str)))
+            logging.debug(f"{frag_map_str=}")
 
             # d_aidxs: a dict containing the occurrences of each fragment type
             d_aidxs = {}
@@ -308,12 +309,12 @@ def generate(df_fcc: DataFrame, min_frags: int = 2, max_frags: int = 5, max_over
             perc_mol_cov_frags = round((hac_frags / hac_mol), 2) * 100
 
             # compute a new graph again but this time on a single subgraph and with edge labels (room for optimization)
-            # count the number of equivalent edges (sames ids and same abbrev)
+            # count the number of equivalent edges (sames ids and same fcc)
             df_fcc_clean = df_fcc_clean.copy()  # ### one day I will have to understand why all of the Pandas warnings appear all the time
-            df_fcc_clean['n_abbrev'] = df_fcc_clean.groupby(['idf1', 'idf2', 'abbrev'])['abbrev'].transform('count')
-            df_fcc_clean.drop_duplicates(subset=["idf1", "idf2", "abbrev"], keep="first", inplace=True)
+            df_fcc_clean['n_fcc'] = df_fcc_clean.groupby(['idf1', 'idf2', 'fcc'])['fcc'].transform('count')
+            df_fcc_clean.drop_duplicates(subset=["idf1", "idf2", "fcc"], keep="first", inplace=True)
             # compute the graph
-            edge_attr = ['abbrev', 'n_abbrev', 'idm', 'n_active', 'n_tot', 'success_rate']
+            edge_attr = ['fcc', 'n_fcc', 'idm', 'n_active', 'n_tot', 'success_rate']
             edge_attr = [x for x in edge_attr if x in df_fcc_clean.columns]
             graph = nx.from_pandas_edgelist(df_fcc_clean, source="idf1", target="idf2", edge_attr=edge_attr)
 
@@ -328,7 +329,7 @@ def generate(df_fcc: DataFrame, min_frags: int = 2, max_frags: int = 5, max_over
             # attribute colors to each fragment atoms/bonds
             colormap = draw.ColorMap(mol, d_aidxs, draw.colors)
 
-            comb = list(df_fcc_clean['abbrev'].values)
+            comb = list(df_fcc_clean['fcc'].values)
             ncomb = len(comb)
             comb_u = list(set(comb))
             ncomb_u = len(comb_u)
