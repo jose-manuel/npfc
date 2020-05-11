@@ -6,6 +6,7 @@ This modules is used to standardize molecules and molecular DataFrames.
 
 # standard
 import logging
+import signal
 from collections import Counter
 import timeout_decorator
 from copy import deepcopy
@@ -703,7 +704,7 @@ class Standardizer(Filter):
         logging.debug('Returning only the non-linear obtained fragment')
         return [x for x in frags if Descriptors.rdMolDescriptors.CalcNumRings(x) > 0][0]
 
-    @timeout_decorator.timeout(TIMEOUT)
+
     def _run(self, mol: Mol) -> tuple:
         """Helper function for run.
         Contains all tasks defined within the protocol. Since some operations are
@@ -823,21 +824,23 @@ class Standardizer(Filter):
         # a molecule that passed all the protocole!
         return (mol, 'passed', 'standardize')
 
-    def run(self, mol: Mol) -> tuple:
+    def run(self, mol: Mol, timeout: int = 10) -> tuple:
         """Execute the standardization protocol on a molecule.
         Molecule that exceed the timeout value are filtered with a task='timeout'.
 
         As a final step of the protocol, InChiKeys ('inchikey') are computed for identifying molecules.
 
         :param mol: the input molecule
+        :param timeout: the maximum number of seconds for processing a molecule
         :return: a tuple containing the molecule, its status and the further task name it reached
         """
-        try:
+        with utils.timeout(timeout):
             return self._run(mol)
-        except timeout_decorator.TimeoutError:
-            return (mol, 'filtered', 'timeout')
 
-    def run_df(self, df: DataFrame) -> tuple:
+        # in case of timeout
+        return (mol, 'filtered', 'timeout')
+
+    def run_df(self, df: DataFrame, timeout: int = 10) -> tuple:
         """Apply the standardization protocol on a DataFrame, with the possibility of directly filtering duplicate entries as well.
         This can be very useful as the standardization process can expose duplicate entries due to salts removal, neutralization,
         canonical tautomer enumeration, and stereochemistry centers unlabelling
@@ -846,6 +849,7 @@ class Standardizer(Filter):
 
 
         :param df: the input DataFrame
+        :param timeout: the maximum number of seconds for processing a molecule
         :return: three DataFrames separated by status:
 
             - passed

@@ -281,10 +281,10 @@ def test_run_protocol(standardizer, mols, mols_bad):
     assert len(df_filtered.index) == 6  # duplicates are not found
 
 
-@pytest.mark.skip  # skip this test to avoid 10s waiting time
+# @pytest.mark.skip  # skip this test to avoid 10s waiting time
 def test_standardizer_timeout(mols_timeout, standardizer):
     """Test if timeout is enforced. It is set to 10s and cannot be changed without reinstalling the library."""
-    mol, status, task = standardizer.run(mols_timeout['timeout'])
+    mol, status, task = standardizer.run(mols_timeout['timeout'], timeout=1)
     assert isinstance(mol, Mol) is True
     assert status == 'filtered'
     assert task == 'timeout'

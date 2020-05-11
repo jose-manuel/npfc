@@ -8,6 +8,8 @@ import logging
 from pathlib import Path
 import sys
 import itertools
+import signal
+from contextlib import contextmanager
 # data handling
 import pickle
 import base64
@@ -356,3 +358,37 @@ def fuse_rings(rings: tuple) -> list:
             done = True
 
     return rings
+
+
+@contextmanager
+def timeout(time):
+    """With function is used within a with statement:
+    with timeout(5):
+        do something
+
+    If the code block execution time exceeds the time threshold, a TimeoutError is raised.
+
+    :param time: time in seconds allowd to the code block before raising a TimeoutError
+
+    References:
+    https://www.jujens.eu/posts/en/2018/Jun/02/python-timeout-function/
+    https://docs.python.org/3/library/contextlib.html
+    """
+    # register a function to raise a TimeoutError on the signal.
+    signal.signal(signal.SIGALRM, raise_timeout)
+    # schedule the signal to be sent after time
+    signal.alarm(time)
+    # run the code block within the with statement
+    try:
+        yield
+    except TimeoutError:
+        pass  # exit the with statement
+    finally:
+        # unregister the signal so it won't be triggered if the timeout is not reached
+        signal.signal(signal.SIGALRM, signal.SIG_IGN)
+
+
+def raise_timeout(signum, frame):
+    """Function to actually raise the TimeoutError when the time has come.
+    """
+    raise TimeoutError
