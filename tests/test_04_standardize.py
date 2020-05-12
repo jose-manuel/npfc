@@ -6,6 +6,7 @@ Tests for the standardize module.
 # standard
 from pathlib import Path
 import warnings
+from copy import deepcopy
 # data science
 import pandas as pd
 # chemoinformatics
@@ -181,7 +182,9 @@ def test_std_disconnect_metal(standardizer, mols):
 
 
 def test_std_init(standardizer):
+
     # default parameters
+    standardizer = deepcopy(standardizer)  # if the standardizer is modified in place, then other tests will fail
     assert set(standardizer.protocol.keys()) == set(['tasks', 'filter_hac', 'filter_molweight', 'filter_nrings', 'filter_medchem'])
     assert standardizer.protocol['tasks'] == ['filter_empty',
                                               'disconnect_metal',
@@ -204,7 +207,6 @@ def test_std_init(standardizer):
 
     # from a json file
     json_config = 'tests/tmp/std_protocol.json'
-
     standardizer.protocol = json_config
     assert standardizer.protocol['tasks'] == ["sanitize", "filter_molweight"]
     assert standardizer.protocol['filter_molweight'] == "100.0 <= molweight <= 1000.0"

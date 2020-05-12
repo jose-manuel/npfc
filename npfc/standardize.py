@@ -6,9 +6,7 @@ This modules is used to standardize molecules and molecular DataFrames.
 
 # standard
 import logging
-import signal
 from collections import Counter
-import timeout_decorator
 from copy import deepcopy
 # data handling
 import json
@@ -29,15 +27,34 @@ from networkx import Graph
 # docs
 from typing import Union
 # dev library
+from npfc.draw import depict_mol
 from npfc import utils
 from npfc.filter import Filter
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ GLOBALS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
+DEFAULT_ELEMENTS = {'H', 'B', 'C', 'N', 'O', 'F', 'P', 'S', 'Cl', 'Br', 'I'}
 
-TIMEOUT = 10  # TODO: find a way to specify a timeout value for a given Standardizer instance
-
+DEFAULT_PROTOCOL = {'tasks': ['filter_empty',
+                              'disconnect_metal',
+                              'keep_best',
+                              'deglycosylate',
+                              'filter_hac',
+                              'filter_molweight',
+                              'filter_nrings',
+                              'filter_medchem',
+                              'clear_isotopes',
+                              'normalize',
+                              'uncharge',
+                              'canonicalize',
+                              'clear_stereo',
+                              ],
+                    'filter_hac': 'hac > 3',
+                    'filter_molweight': 'molweight <= 1000.0',
+                    'filter_nrings': 'nrings > 0',
+                    'filter_medchem': f'elements in {", ".join(str(x) for x in DEFAULT_ELEMENTS)}',
+                    }
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ CLASSES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
@@ -110,7 +127,7 @@ class Standardizer(Filter):
     """A class for standardizing molecular structures. The standardization itself is based
     on a protocol that the user can modify.
 
-    By default this protocol consists in 12 tasks applied to each molecule invidually:
+    By default this protocol consists in 14 tasks applied to each molecule invidually:
 
         1) **initiate_mol**: check if the molecule passed the RDKit conversion
         2) **filter_empty**: filter molecules with empty structures
@@ -127,7 +144,11 @@ class Standardizer(Filter):
         13) **canonicalize**: enumerate the canonical tautomer.
         14) **clear_stereo**: remove all remaining stereochemistry flags on the molecule.
 
-    Finally, duplicate entries can be filtered using InChiKeys when postprocessing the DataFrame with molecules (argument in the run_df method).
+    Other steps are not part of this protocol but can be executed as well for convenience:
+
+        - **depict**: find the "best" possible 2D depiction of the molecule among Input/rdDepictor/Avalon/CoordGen methods
+        - **extract_murcko**: return the Murcko Scaffold from the molecule
+        - **clear_side_chains**: remove any exocyclic atom that is not part of a linker
 
     This results in new columns in the input DataFrame:
 
@@ -135,66 +156,37 @@ class Standardizer(Filter):
         - the 'status' column: either passed, filtered or error.
         - the 'task' column: the latest task that was applied to the molecule.
 
-    Optionally, it is possible to compute new 2D coordinates for depicting molecules as final step of the standardization.
-    To achieve this, a scoring function is assigned to each depiction to retrieve the "best" one (least amount of overlapping atoms/bonds):
+    The standardizer works either on a molecule (method: 'run') or on a DataFrame containing molecules ('run_df').
 
-        - Input (if any)
-        - rdDepictor
-        - Avalon
-        - rdCoordgen
+    In the latter case, the inchikey is computed and can be used for identifying duplicate entries.
 
-    A column "depiction_method" is appended to the output DataFrame so the user knows which method was considered the best.
-
-    .. note:: For now, the user can only change the task order and the values of filters, but it would be relatively easy to add more functionality.
-
-    .. note:: For now structures are deglycosylated before being standardized using a KIME workflow. This is far from being ideal, at the node itself contains bugs and its execution is relatively slow.
+    A timeout value is set by default and will be applied to each molecule individually to avoid the process being stuck on marginally difficult cases.
+    This value can be set either during the Standardizer object initialization or by defining as an option in the protocol (priority is given to the latter if defined).
     """
 
     def __init__(self,
                  protocol: str = None,
                  col_mol: str = 'mol',
                  col_id: str = 'idm',
-                 filter_duplicates: bool = True,
-                 compute_2D: bool = False,
-                 ref_file: str = None,
-                 on: str = 'inchikey',
-                 # ref_dataset=None,
-                 suffix: str = None,
-                 elements_medchem: set = {'H', 'B', 'C', 'N', 'O', 'F', 'P', 'S', 'Cl', 'Br', 'I'}
+                 elements_medchem: set = DEFAULT_ELEMENTS,
+                 timeout: int = 10,
                  ):
-        """Create a Standardizer object."""
+        """Create a Standardizer object.
+
+        :param protocol: Either a JSON file or a dictionary. The resultung dictinary needs a 'tasks' key that lists all tasks to be excuted as a list.
+        :param col_mol: the column with the molecule for when running the run_df method
+        :param col_id: the column with the id for when running the run_df method
+        :param filter_duplicates:
+        """
         # filter
         super(Standardizer, self).__init__()
         # standardizer
         self._elements_medchem = elements_medchem
         self._col_id = col_id
         self._col_mol = col_mol
-        self._filter_duplicates = filter_duplicates
-        self._compute_2D = compute_2D
-        self._on = on
-        self._suffix = suffix
-        self._ref_file = ref_file
-        self._default_protocol = {'tasks': ['filter_empty',
-                                            'disconnect_metal',
-                                            'keep_best',
-                                            'deglycosylate',
-                                            'filter_hac',
-                                            'filter_molweight',
-                                            'filter_nrings',
-                                            'filter_medchem',
-                                            'clear_isotopes',
-                                            'normalize',
-                                            'uncharge',
-                                            'canonicalize',
-                                            'clear_stereo',
-                                            ],
-                                  'filter_hac': 'hac > 3',
-                                  'filter_molweight': 'molweight <= 1000.0',
-                                  'filter_nrings': 'nrings > 0',
-                                  'filter_medchem': f'elements in {", ".join(str(x) for x in self.elements_medchem)}',
-                                  }
+
         if protocol is None:
-            self._protocol = self._default_protocol
+            self._protocol = DEFAULT_PROTOCOL
         else:
             if isinstance(protocol, str):
                 self._protocol = json.load(open(protocol, 'r'))
@@ -206,16 +198,16 @@ class Standardizer(Filter):
         self.full_uncharger = FullUncharger()
         self.canonicalizer = TautomerCanonicalizer()
 
+        # display information on protocol
+        if logging.getLogger().level == logging.DEBUG:
+            logging.debug("Successfully instanciated a Standardizer object with protocol:")
+            [logging.debug("Task #%s: %s", str(i+1).zfill(2), task) for i, task in enumerate(self._protocol['tasks'])]
+            [logging.debug("Option %s %s", opt, value) for opt, value in self._protocol.items() if opt != 'tasks']
+
     def __repr__(self):
         tasks = ' -> '.join([f"{task}" for task in self._protocol['tasks']])
         opts = [f"{opt}: {value}" for opt, value in self._protocol.items() if opt != 'tasks']
         return "STANDARDIZER{" + f"prot={tasks}" + f", opts={opts}" + "}"
-
-        # PROTOCOL:
-        # [logger.info(f"TASK #{str(i+1).zfill(2)} {task}") for i, task in enumerate(s._protocol['tasks'])]
-        # [f"OPTION {opt}".ljust(pad) + f"{value}" for opt, value in s._protocol.items() if opt != 'tasks']
-        # logger.info("TIMEOUT FOR ABOVE TASKS".ljust(pad) + f"{standardize.TIMEOUT} SEC")
-        # """
 
     @property
     def protocol(self):
@@ -236,6 +228,18 @@ class Standardizer(Filter):
                 raise ValueError("invalid protocol format ('tasks' key is neither list or tuple)")
         # update default protocol
         self._protocol.update(protocol)
+
+    @property
+    def timeout(self) -> str:
+        return self._timeout
+
+    @timeout.setter
+    def timeout(self, value: int) -> None:
+        if not isinstance(value, int):
+            raise ValueError(f"Error! timeout should be a positive int (>1), not '{type(value)}'.")
+        elif value < 1:
+            raise ValueError(f"Error! timeout should be superior to 1 ({value})")
+        self._col_id = value
 
     @property
     def col_id(self) -> str:
@@ -268,54 +272,6 @@ class Standardizer(Filter):
         elif not all([isinstance(v, str) for v in value]):
             raise ValueError(f"Error! elements_medchem should be a set of strings, not '{value}' ({type(value)}).")
         self._elements_medchem = value
-
-    @property
-    def filter_duplicates(self) -> bool:
-        return self._filter_duplicates
-
-    @filter_duplicates.setter
-    def filter_duplicates(self, value: bool) -> None:
-        utils.check_arg_bool(value)
-        self._filter_duplicates = value
-
-    @property
-    def compute_2D(self) -> bool:
-        return self._compute_2D
-
-    @compute_2D.setter
-    def compute_2D(self, value: bool) -> None:
-        utils.check_arg_bool(value)
-        self._compute_2D = value
-
-    @property
-    def on(self) -> str:
-        return self._on
-
-    @on.setter
-    def on(self, value: str) -> None:
-        if value is None:
-            raise ValueError(f"Error! on cannot be '{value}'.")
-        self._on = value
-
-    @property
-    def suffix(self) -> str:
-        return self._suffix
-
-    @suffix.setter
-    def suffix(self, value: str) -> None:
-        if value is not None and not isinstance(value, str):
-            raise ValueError(f"Error! Either None or a str are expected for suffix, not '{value}' ({type(value)}).")
-        self._suffix = value
-
-    @property
-    def ref_file(self) -> str:
-        return self._ref_file
-
-    @ref_file.setter
-    def ref_file(self, value: str) -> None:
-        if value is not None and not isinstance(value, str):
-            raise ValueError(f"Error! Either None or a str are expected for ref_file, not '{value}' ({type(value)}).")
-        self._ref_file = value
 
     def clear_isotopes(self, mol: Mol) -> Mol:
         """Return a molecule without any isotopes.
@@ -445,65 +401,6 @@ class Standardizer(Filter):
 
         # I could not figure out how to remove radicals, so I just convert the mol to Smiles and edit the string
         return Chem.MolFromSmiles(Chem.MolToSmiles(rwmol).replace('[N]', 'N').replace('[n]', 'n'))
-
-    # def extract_murcko_scaffold(self, mol: Mol, keep_best_minor_compound: bool = True) -> tuple:
-    #     """Extract Murcko Scaffolds.
-    #     This function apply two protocols on the molecule to extract the "best" Murcko Scaffold:
-    #
-    #         - A: mol > murcko > standardize
-    #         - B: mol > standardize > murcko > standardize
-    #
-    #     The "best" Murcko Scaffold is the smaller of both solutions. In case both are of same size (hac),
-    #     solution from protocol B is preferred, as it was extracted from a standardized molecule.
-    #
-    #     .. warning:: In case keep_largest is not performed in Standardizer protocol, protocol B might return minor compounds.
-    #
-    #     :param mol: the molecule where to extract Murcko Scaffolds from
-    #     :param keep_best_minor_compound: if True, then the keep_best method is applied before extracting the Murcko Scaffold. Makes a difference only for protocol A if keep_best is defined in Standardizer protocol.
-    #     :return: a tuple (murcko scaffold, status, task)
-    #     """
-    #     # init
-    #     hac_max = 9999999  # large atom count to deprioritize failures
-    #
-    #     # protocol A
-    #     mol = self.keep_best(mol)
-    #     ms_a = MurckoScaffold.GetScaffoldForMol(mol)  # molecule could be loaded so should be usable as received in pipeline
-    #     ms_a_std, status_a, task_a = self.run(ms_a)
-    #     if status_a == 'passed':
-    #         hac_a = ms_a_std.GetNumHeavyAtoms()
-    #     else:
-    #         hac_a = hac_max  # I am looking for the smaller murcko scaffold, so deprioritize failures
-    #
-    #     # protocol B
-    #     mol_b_std, status_b, task_b = self.run(mol)
-    #     if status_b == 'passed':
-    #         ms_b_std = MurckoScaffold.GetScaffoldForMol(mol_b_std)
-    #         ms_b_std, status_b, task_b = self.run(ms_b_std)
-    #         if status_b == 'passed':
-    #             hac_b = ms_b_std.GetNumHeavyAtoms()
-    #         else:
-    #             hac_b = hac_max
-    #     else:
-    #         hac_b = hac_max
-    #
-    #     # decide what solution to keep
-    #
-    #     # case 1: both have the same hac...
-    #     if hac_a == hac_b:
-    #         # because both failed
-    #         if hac_a == 9999999:
-    #             return (ms_b_std, 'error', 'murcko')
-    #         # because both succeeded
-    #         else:
-    #             return (ms_b_std, 'passed_protB=A', 'murcko')
-    #
-    #     # case 2: A is smaller than B
-    #     elif hac_a < hac_b:
-    #         return (ms_a_std, 'passed_protA>B', 'murcko')
-    #     elif hac_a > hac_b:
-    #         return (ms_b_std, 'passed_protB>A', 'murcko')
-    #     else:
-    #         raise ValueError(f"Error! Unknown situation encountered during Murcko Scaffold Extraction! (hac_a={hac_a},hac_b={hac_b} , mol='{Chem.MolToSmiles(mol)}')")
 
     def _is_sugar_like(self, ring_aidx: list, mol: Mol):
         """Indicate whether a ring (defined by its atom indices) in a molecule is sugar-like or not.
@@ -695,7 +592,7 @@ class Standardizer(Filter):
         # clean-up
         frags = Chem.GetMolFrags(mol, asMols=True)
         # avoid counting the number of rings in each fragment if only 1 fragment left anyway
-        if len(frags) < 2:
+        if len(frags) == 1:
             logging.debug('Only one fragment obtained, returning it')
             return frags[0]
         # the substituents of the deleted terminal sugar-like rings remain in the structure,
@@ -703,7 +600,6 @@ class Standardizer(Filter):
         # so we just have to retrieve the one fragment that is not linear
         logging.debug('Returning only the non-linear obtained fragment')
         return [x for x in frags if Descriptors.rdMolDescriptors.CalcNumRings(x) > 0][0]
-
 
     def _run(self, mol: Mol) -> tuple:
         """Helper function for run.
@@ -721,7 +617,7 @@ class Standardizer(Filter):
             return (mol, 'error', 'initiate_mol')
 
         # begin protocol
-        mol = deepcopy(mol)
+        mol = deepcopy(mol)  # do not modify the molecule in place
         for task in self._protocol['tasks']:
             # filter_empty
             if task == 'filter_empty':
@@ -817,6 +713,12 @@ class Standardizer(Filter):
                 except ValueError:
                     return (mol, 'error', task)
 
+            elif task == 'depict':
+                try:
+                    mol = depict_mol(mol)
+                except ValueError:
+                    return (mol, 'error', task)
+
             # something else?
             else:
                 raise ValueError(f"Unknown task: {task}")
@@ -840,7 +742,7 @@ class Standardizer(Filter):
         # in case of timeout
         return (mol, 'filtered', 'timeout')
 
-    def run_df(self, df: DataFrame, timeout: int = 10) -> tuple:
+    def run_df(self, df: DataFrame) -> tuple:
         """Apply the standardization protocol on a DataFrame, with the possibility of directly filtering duplicate entries as well.
         This can be very useful as the standardization process can expose duplicate entries due to salts removal, neutralization,
         canonical tautomer enumeration, and stereochemistry centers unlabelling

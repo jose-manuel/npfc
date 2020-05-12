@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Module utils &mdash; npfc 0.6.2 documentation</title>
+  <title>Module utils &mdash; npfc 0.6.2-1-gc29c3c6 documentation</title>
   
 
   
@@ -60,7 +60,7 @@
             
             
               <div class="version">
-                0.6.2
+                0.6.2-1-gc29c3c6
               </div>
             
           
@@ -94,6 +94,7 @@
 <li class="toctree-l1"><a class="reference internal" href="duplicate.html">Module duplicate</a></li>
 <li class="toctree-l1"><a class="reference internal" href="fragment_search.html">Module fragment_search</a></li>
 <li class="toctree-l1"><a class="reference internal" href="fragment_combination.html">Module fragment_combination</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fragment_graph.html">Module fragment_map</a></li>
 <li class="toctree-l1"><a class="reference internal" href="draw.html">Module draw</a></li>
 </ul>
 
@@ -435,20 +436,24 @@ be considered when estimating the distance between fragments.</p>
 <dl class="function">
 <dt id="npfc.utils.timeout">
 <code class="sig-prename descclassname">npfc.utils.</code><code class="sig-name descname">timeout</code><span class="sig-paren">(</span><em class="sig-param">time</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/utils.html#timeout"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.utils.timeout" title="Permalink to this definition">¶</a></dt>
-<dd><p>With function is used within a with statement:
-with timeout(5):</p>
-<blockquote>
-<div><p>do something</p>
-</div></blockquote>
+<dd><p>With function is used within a with statement:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">timeout</span><span class="p">(</span><span class="mi">5</span><span class="p">):</span>
+<span class="gp">&gt;&gt;&gt; </span>   <span class="n">do</span> <span class="n">something</span>
+</pre></div>
+</div>
 <p>If the code block execution time exceeds the time threshold, a TimeoutError is raised.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>time</strong> – time in seconds allowd to the code block before raising a TimeoutError</p>
 </dd>
 </dl>
-<p>References:
-<a class="reference external" href="https://www.jujens.eu/posts/en/2018/Jun/02/python-timeout-function/">https://www.jujens.eu/posts/en/2018/Jun/02/python-timeout-function/</a>
-<a class="reference external" href="https://docs.python.org/3/library/contextlib.html">https://docs.python.org/3/library/contextlib.html</a></p>
+<p>References</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><a class="reference external" href="https://www.jujens.eu/posts/en/2018/Jun/02/python-timeout-function/">https://www.jujens.eu/posts/en/2018/Jun/02/python-timeout-function/</a></p></li>
+<li><p><a class="reference external" href="https://docs.python.org/3/library/contextlib.html">https://docs.python.org/3/library/contextlib.html</a></p></li>
+</ul>
+</div></blockquote>
 </dd></dl>
 
 </div>

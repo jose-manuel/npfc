@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.utils &mdash; npfc 0.6.2 documentation</title>
+  <title>npfc.utils &mdash; npfc 0.6.2-1-gc29c3c6 documentation</title>
   
 
   
@@ -58,7 +58,7 @@
             
             
               <div class="version">
-                0.6.2
+                0.6.2-1-gc29c3c6
               </div>
             
           
@@ -92,6 +92,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../duplicate.html">Module duplicate</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../fragment_search.html">Module fragment_search</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../fragment_combination.html">Module fragment_combination</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../fragment_graph.html">Module fragment_map</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../draw.html">Module draw</a></li>
 </ul>
 
@@ -521,16 +522,19 @@
 <div class="viewcode-block" id="timeout"><a class="viewcode-back" href="../../utils.html#npfc.utils.timeout">[docs]</a><span class="nd">@contextmanager</span>
 <span class="k">def</span> <span class="nf">timeout</span><span class="p">(</span><span class="n">time</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;With function is used within a with statement:</span>
-<span class="sd">    with timeout(5):</span>
-<span class="sd">        do something</span>
+
+<span class="sd">    &gt;&gt;&gt; with timeout(5):</span>
+<span class="sd">    &gt;&gt;&gt;    do something</span>
 
 <span class="sd">    If the code block execution time exceeds the time threshold, a TimeoutError is raised.</span>
 
 <span class="sd">    :param time: time in seconds allowd to the code block before raising a TimeoutError</span>
 
-<span class="sd">    References:</span>
-<span class="sd">    https://www.jujens.eu/posts/en/2018/Jun/02/python-timeout-function/</span>
-<span class="sd">    https://docs.python.org/3/library/contextlib.html</span>
+<span class="sd">    References</span>
+
+<span class="sd">        - https://www.jujens.eu/posts/en/2018/Jun/02/python-timeout-function/</span>
+<span class="sd">        - https://docs.python.org/3/library/contextlib.html</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># register a function to raise a TimeoutError on the signal.</span>
     <span class="n">signal</span><span class="o">.</span><span class="n">signal</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">SIGALRM</span><span class="p">,</span> <span class="n">raise_timeout</span><span class="p">)</span>

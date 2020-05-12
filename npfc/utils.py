@@ -362,17 +362,20 @@ def fuse_rings(rings: tuple) -> list:
 
 @contextmanager
 def timeout(time):
-    """With function is used within a with statement:
-    with timeout(5):
-        do something
+    """This function is used within a with statement:
+
+    >>> with timeout(5):
+    >>>    do something
 
     If the code block execution time exceeds the time threshold, a TimeoutError is raised.
 
-    :param time: time in seconds allowd to the code block before raising a TimeoutError
+    :param time: time in seconds allowd to the code block before aborting its execution
 
-    References:
-    https://www.jujens.eu/posts/en/2018/Jun/02/python-timeout-function/
-    https://docs.python.org/3/library/contextlib.html
+    References
+
+        - https://www.jujens.eu/posts/en/2018/Jun/02/python-timeout-function/
+        - https://docs.python.org/3/library/contextlib.html
+
     """
     # register a function to raise a TimeoutError on the signal.
     signal.signal(signal.SIGALRM, raise_timeout)
