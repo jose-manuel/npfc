@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.utils &mdash; npfc 0.6.2-1-gc29c3c6 documentation</title>
+  <title>npfc.utils &mdash; npfc 0.6.2-2-g4b106b6 documentation</title>
   
 
   
@@ -58,7 +58,7 @@
             
             
               <div class="version">
-                0.6.2-1-gc29c3c6
+                0.6.2-2-g4b106b6
               </div>
             
           
@@ -521,14 +521,14 @@
 
 <div class="viewcode-block" id="timeout"><a class="viewcode-back" href="../../utils.html#npfc.utils.timeout">[docs]</a><span class="nd">@contextmanager</span>
 <span class="k">def</span> <span class="nf">timeout</span><span class="p">(</span><span class="n">time</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;With function is used within a with statement:</span>
+    <span class="sd">&quot;&quot;&quot;This function is used within a with statement:</span>
 
 <span class="sd">    &gt;&gt;&gt; with timeout(5):</span>
 <span class="sd">    &gt;&gt;&gt;    do something</span>
 
 <span class="sd">    If the code block execution time exceeds the time threshold, a TimeoutError is raised.</span>
 
-<span class="sd">    :param time: time in seconds allowd to the code block before raising a TimeoutError</span>
+<span class="sd">    :param time: time in seconds allowd to the code block before aborting its execution</span>
 
 <span class="sd">    References</span>
 

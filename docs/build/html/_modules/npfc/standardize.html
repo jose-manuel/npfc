@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.standardize &mdash; npfc 0.6.2-1-gc29c3c6 documentation</title>
+  <title>npfc.standardize &mdash; npfc 0.6.2-2-g4b106b6 documentation</title>
   
 
   
@@ -58,7 +58,7 @@
             
             
               <div class="version">
-                0.6.2-1-gc29c3c6
+                0.6.2-2-g4b106b6
               </div>
             
           
@@ -165,9 +165,7 @@
 
 <span class="c1"># standard</span>
 <span class="kn">import</span> <span class="nn">logging</span>
-<span class="kn">import</span> <span class="nn">signal</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">Counter</span>
-<span class="kn">import</span> <span class="nn">timeout_decorator</span>
 <span class="kn">from</span> <span class="nn">copy</span> <span class="k">import</span> <span class="n">deepcopy</span>
 <span class="c1"># data handling</span>
 <span class="kn">import</span> <span class="nn">json</span>
@@ -188,15 +186,34 @@
 <span class="c1"># docs</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">Union</span>
 <span class="c1"># dev library</span>
+<span class="kn">from</span> <span class="nn">npfc.draw</span> <span class="k">import</span> <span class="n">depict_mol</span>
 <span class="kn">from</span> <span class="nn">npfc</span> <span class="k">import</span> <span class="n">utils</span>
 <span class="kn">from</span> <span class="nn">npfc.filter</span> <span class="k">import</span> <span class="n">Filter</span>
 
 
 <span class="c1"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ GLOBALS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #</span>
 
+<span class="n">DEFAULT_ELEMENTS</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;H&#39;</span><span class="p">,</span> <span class="s1">&#39;B&#39;</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="s1">&#39;N&#39;</span><span class="p">,</span> <span class="s1">&#39;O&#39;</span><span class="p">,</span> <span class="s1">&#39;F&#39;</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">,</span> <span class="s1">&#39;S&#39;</span><span class="p">,</span> <span class="s1">&#39;Cl&#39;</span><span class="p">,</span> <span class="s1">&#39;Br&#39;</span><span class="p">,</span> <span class="s1">&#39;I&#39;</span><span class="p">}</span>
 
-<span class="n">TIMEOUT</span> <span class="o">=</span> <span class="mi">10</span>  <span class="c1"># TODO: find a way to specify a timeout value for a given Standardizer instance</span>
-
+<span class="n">DEFAULT_PROTOCOL</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;tasks&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;filter_empty&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;disconnect_metal&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;keep_best&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;deglycosylate&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;filter_hac&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;filter_molweight&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;filter_nrings&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;filter_medchem&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;clear_isotopes&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;normalize&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;uncharge&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;canonicalize&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;clear_stereo&#39;</span><span class="p">,</span>
+                              <span class="p">],</span>
+                    <span class="s1">&#39;filter_hac&#39;</span><span class="p">:</span> <span class="s1">&#39;hac &gt; 3&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;filter_molweight&#39;</span><span class="p">:</span> <span class="s1">&#39;molweight &lt;= 1000.0&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;filter_nrings&#39;</span><span class="p">:</span> <span class="s1">&#39;nrings &gt; 0&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;filter_medchem&#39;</span><span class="p">:</span> <span class="n">f</span><span class="s1">&#39;elements in {&quot;, &quot;.join(str(x) for x in DEFAULT_ELEMENTS)}&#39;</span><span class="p">,</span>
+                    <span class="p">}</span>
 
 <span class="c1"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ CLASSES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #</span>
 
@@ -269,7 +286,7 @@
     <span class="sd">&quot;&quot;&quot;A class for standardizing molecular structures. The standardization itself is based</span>
 <span class="sd">    on a protocol that the user can modify.</span>
 
-<span class="sd">    By default this protocol consists in 12 tasks applied to each molecule invidually:</span>
+<span class="sd">    By default this protocol consists in 14 tasks applied to each molecule invidually:</span>
 
 <span class="sd">        1) **initiate_mol**: check if the molecule passed the RDKit conversion</span>
 <span class="sd">        2) **filter_empty**: filter molecules with empty structures</span>
@@ -286,7 +303,11 @@
 <span class="sd">        13) **canonicalize**: enumerate the canonical tautomer.</span>
 <span class="sd">        14) **clear_stereo**: remove all remaining stereochemistry flags on the molecule.</span>
 
-<span class="sd">    Finally, duplicate entries can be filtered using InChiKeys when postprocessing the DataFrame with molecules (argument in the run_df method).</span>
+<span class="sd">    Other steps are not part of this protocol but can be executed as well for convenience:</span>
+
+<span class="sd">        - **depict**: find the &quot;best&quot; possible 2D depiction of the molecule among Input/rdDepictor/Avalon/CoordGen methods</span>
+<span class="sd">        - **extract_murcko**: return the Murcko Scaffold from the molecule</span>
+<span class="sd">        - **clear_side_chains**: remove any exocyclic atom that is not part of a linker</span>
 
 <span class="sd">    This results in new columns in the input DataFrame:</span>
 
@@ -294,66 +315,37 @@
 <span class="sd">        - the &#39;status&#39; column: either passed, filtered or error.</span>
 <span class="sd">        - the &#39;task&#39; column: the latest task that was applied to the molecule.</span>
 
-<span class="sd">    Optionally, it is possible to compute new 2D coordinates for depicting molecules as final step of the standardization.</span>
-<span class="sd">    To achieve this, a scoring function is assigned to each depiction to retrieve the &quot;best&quot; one (least amount of overlapping atoms/bonds):</span>
+<span class="sd">    The standardizer works either on a molecule (method: &#39;run&#39;) or on a DataFrame containing molecules (&#39;run_df&#39;).</span>
 
-<span class="sd">        - Input (if any)</span>
-<span class="sd">        - rdDepictor</span>
-<span class="sd">        - Avalon</span>
-<span class="sd">        - rdCoordgen</span>
+<span class="sd">    In the latter case, the inchikey is computed and can be used for identifying duplicate entries.</span>
 
-<span class="sd">    A column &quot;depiction_method&quot; is appended to the output DataFrame so the user knows which method was considered the best.</span>
-
-<span class="sd">    .. note:: For now, the user can only change the task order and the values of filters, but it would be relatively easy to add more functionality.</span>
-
-<span class="sd">    .. note:: For now structures are deglycosylated before being standardized using a KIME workflow. This is far from being ideal, at the node itself contains bugs and its execution is relatively slow.</span>
+<span class="sd">    A timeout value is set by default and will be applied to each molecule individually to avoid the process being stuck on marginally difficult cases.</span>
+<span class="sd">    This value can be set either during the Standardizer object initialization or by defining as an option in the protocol (priority is given to the latter if defined).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                  <span class="n">protocol</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
                  <span class="n">col_mol</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;mol&#39;</span><span class="p">,</span>
                  <span class="n">col_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;idm&#39;</span><span class="p">,</span>
-                 <span class="n">filter_duplicates</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-                 <span class="n">compute_2D</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-                 <span class="n">ref_file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-                 <span class="n">on</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;inchikey&#39;</span><span class="p">,</span>
-                 <span class="c1"># ref_dataset=None,</span>
-                 <span class="n">suffix</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-                 <span class="n">elements_medchem</span><span class="p">:</span> <span class="nb">set</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;H&#39;</span><span class="p">,</span> <span class="s1">&#39;B&#39;</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="s1">&#39;N&#39;</span><span class="p">,</span> <span class="s1">&#39;O&#39;</span><span class="p">,</span> <span class="s1">&#39;F&#39;</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">,</span> <span class="s1">&#39;S&#39;</span><span class="p">,</span> <span class="s1">&#39;Cl&#39;</span><span class="p">,</span> <span class="s1">&#39;Br&#39;</span><span class="p">,</span> <span class="s1">&#39;I&#39;</span><span class="p">}</span>
+                 <span class="n">elements_medchem</span><span class="p">:</span> <span class="nb">set</span> <span class="o">=</span> <span class="n">DEFAULT_ELEMENTS</span><span class="p">,</span>
+                 <span class="n">timeout</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
                  <span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Create a Standardizer object.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Create a Standardizer object.</span>
+
+<span class="sd">        :param protocol: Either a JSON file or a dictionary. The resultung dictinary needs a &#39;tasks&#39; key that lists all tasks to be excuted as a list.</span>
+<span class="sd">        :param col_mol: the column with the molecule for when running the run_df method</span>
+<span class="sd">        :param col_id: the column with the id for when running the run_df method</span>
+<span class="sd">        :param filter_duplicates:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># filter</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">Standardizer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="c1"># standardizer</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_elements_medchem</span> <span class="o">=</span> <span class="n">elements_medchem</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_col_id</span> <span class="o">=</span> <span class="n">col_id</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_col_mol</span> <span class="o">=</span> <span class="n">col_mol</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_filter_duplicates</span> <span class="o">=</span> <span class="n">filter_duplicates</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_compute_2D</span> <span class="o">=</span> <span class="n">compute_2D</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_on</span> <span class="o">=</span> <span class="n">on</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_suffix</span> <span class="o">=</span> <span class="n">suffix</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_ref_file</span> <span class="o">=</span> <span class="n">ref_file</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_default_protocol</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;tasks&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;filter_empty&#39;</span><span class="p">,</span>
-                                            <span class="s1">&#39;disconnect_metal&#39;</span><span class="p">,</span>
-                                            <span class="s1">&#39;keep_best&#39;</span><span class="p">,</span>
-                                            <span class="s1">&#39;deglycosylate&#39;</span><span class="p">,</span>
-                                            <span class="s1">&#39;filter_hac&#39;</span><span class="p">,</span>
-                                            <span class="s1">&#39;filter_molweight&#39;</span><span class="p">,</span>
-                                            <span class="s1">&#39;filter_nrings&#39;</span><span class="p">,</span>
-                                            <span class="s1">&#39;filter_medchem&#39;</span><span class="p">,</span>
-                                            <span class="s1">&#39;clear_isotopes&#39;</span><span class="p">,</span>
-                                            <span class="s1">&#39;normalize&#39;</span><span class="p">,</span>
-                                            <span class="s1">&#39;uncharge&#39;</span><span class="p">,</span>
-                                            <span class="s1">&#39;canonicalize&#39;</span><span class="p">,</span>
-                                            <span class="s1">&#39;clear_stereo&#39;</span><span class="p">,</span>
-                                            <span class="p">],</span>
-                                  <span class="s1">&#39;filter_hac&#39;</span><span class="p">:</span> <span class="s1">&#39;hac &gt; 3&#39;</span><span class="p">,</span>
-                                  <span class="s1">&#39;filter_molweight&#39;</span><span class="p">:</span> <span class="s1">&#39;molweight &lt;= 1000.0&#39;</span><span class="p">,</span>
-                                  <span class="s1">&#39;filter_nrings&#39;</span><span class="p">:</span> <span class="s1">&#39;nrings &gt; 0&#39;</span><span class="p">,</span>
-                                  <span class="s1">&#39;filter_medchem&#39;</span><span class="p">:</span> <span class="n">f</span><span class="s1">&#39;elements in {&quot;, &quot;.join(str(x) for x in self.elements_medchem)}&#39;</span><span class="p">,</span>
-                                  <span class="p">}</span>
+
         <span class="k">if</span> <span class="n">protocol</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_protocol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default_protocol</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_protocol</span> <span class="o">=</span> <span class="n">DEFAULT_PROTOCOL</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">protocol</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_protocol</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">protocol</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">))</span>
@@ -365,16 +357,16 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">full_uncharger</span> <span class="o">=</span> <span class="n">FullUncharger</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">canonicalizer</span> <span class="o">=</span> <span class="n">TautomerCanonicalizer</span><span class="p">()</span>
 
+        <span class="c1"># display information on protocol</span>
+        <span class="k">if</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">()</span><span class="o">.</span><span class="n">level</span> <span class="o">==</span> <span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Successfully instanciated a Standardizer object with protocol:&quot;</span><span class="p">)</span>
+            <span class="p">[</span><span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Task #</span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">zfill</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="n">task</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">task</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_protocol</span><span class="p">[</span><span class="s1">&#39;tasks&#39;</span><span class="p">])]</span>
+            <span class="p">[</span><span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Option </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">opt</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="k">for</span> <span class="n">opt</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_protocol</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">opt</span> <span class="o">!=</span> <span class="s1">&#39;tasks&#39;</span><span class="p">]</span>
+
     <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">tasks</span> <span class="o">=</span> <span class="s1">&#39; -&gt; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">f</span><span class="s2">&quot;</span><span class="si">{task}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_protocol</span><span class="p">[</span><span class="s1">&#39;tasks&#39;</span><span class="p">]])</span>
         <span class="n">opts</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span><span class="s2">&quot;</span><span class="si">{opt}</span><span class="s2">: </span><span class="si">{value}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">opt</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_protocol</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">opt</span> <span class="o">!=</span> <span class="s1">&#39;tasks&#39;</span><span class="p">]</span>
         <span class="k">return</span> <span class="s2">&quot;STANDARDIZER{&quot;</span> <span class="o">+</span> <span class="n">f</span><span class="s2">&quot;prot=</span><span class="si">{tasks}</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">f</span><span class="s2">&quot;, opts=</span><span class="si">{opts}</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="s2">&quot;}&quot;</span>
-
-        <span class="c1"># PROTOCOL:</span>
-        <span class="c1"># [logger.info(f&quot;TASK #{str(i+1).zfill(2)} {task}&quot;) for i, task in enumerate(s._protocol[&#39;tasks&#39;])]</span>
-        <span class="c1"># [f&quot;OPTION {opt}&quot;.ljust(pad) + f&quot;{value}&quot; for opt, value in s._protocol.items() if opt != &#39;tasks&#39;]</span>
-        <span class="c1"># logger.info(&quot;TIMEOUT FOR ABOVE TASKS&quot;.ljust(pad) + f&quot;{standardize.TIMEOUT} SEC&quot;)</span>
-        <span class="c1"># &quot;&quot;&quot;</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">protocol</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -395,6 +387,18 @@
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;invalid protocol format (&#39;tasks&#39; key is neither list or tuple)&quot;</span><span class="p">)</span>
         <span class="c1"># update default protocol</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_protocol</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">protocol</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">timeout</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_timeout</span>
+
+    <span class="nd">@timeout</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">timeout</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Error! timeout should be a positive int (&gt;1), not &#39;{type(value)}&#39;.&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">value</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Error! timeout should be superior to 1 (</span><span class="si">{value}</span><span class="s2">)&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_col_id</span> <span class="o">=</span> <span class="n">value</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">col_id</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
@@ -427,54 +431,6 @@
         <span class="k">elif</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">([</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">value</span><span class="p">]):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Error! elements_medchem should be a set of strings, not &#39;</span><span class="si">{value}</span><span class="s2">&#39; ({type(value)}).&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_elements_medchem</span> <span class="o">=</span> <span class="n">value</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">filter_duplicates</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filter_duplicates</span>
-
-    <span class="nd">@filter_duplicates</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">filter_duplicates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">utils</span><span class="o">.</span><span class="n">check_arg_bool</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_filter_duplicates</span> <span class="o">=</span> <span class="n">value</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">compute_2D</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_2D</span>
-
-    <span class="nd">@compute_2D</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">compute_2D</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">utils</span><span class="o">.</span><span class="n">check_arg_bool</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_compute_2D</span> <span class="o">=</span> <span class="n">value</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">on</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on</span>
-
-    <span class="nd">@on</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">on</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Error! on cannot be &#39;</span><span class="si">{value}</span><span class="s2">&#39;.&quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_on</span> <span class="o">=</span> <span class="n">value</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">suffix</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_suffix</span>
-
-    <span class="nd">@suffix</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">suffix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Error! Either None or a str are expected for suffix, not &#39;</span><span class="si">{value}</span><span class="s2">&#39; ({type(value)}).&quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_suffix</span> <span class="o">=</span> <span class="n">value</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">ref_file</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ref_file</span>
-
-    <span class="nd">@ref_file</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">ref_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Error! Either None or a str are expected for ref_file, not &#39;</span><span class="si">{value}</span><span class="s2">&#39; ({type(value)}).&quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_ref_file</span> <span class="o">=</span> <span class="n">value</span>
 
 <div class="viewcode-block" id="Standardizer.clear_isotopes"><a class="viewcode-back" href="../../standardize.html#npfc.standardize.Standardizer.clear_isotopes">[docs]</a>    <span class="k">def</span> <span class="nf">clear_isotopes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mol</span><span class="p">:</span> <span class="n">Mol</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Mol</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Return a molecule without any isotopes.</span>
@@ -604,65 +560,6 @@
 
         <span class="c1"># I could not figure out how to remove radicals, so I just convert the mol to Smiles and edit the string</span>
         <span class="k">return</span> <span class="n">Chem</span><span class="o">.</span><span class="n">MolFromSmiles</span><span class="p">(</span><span class="n">Chem</span><span class="o">.</span><span class="n">MolToSmiles</span><span class="p">(</span><span class="n">rwmol</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;[N]&#39;</span><span class="p">,</span> <span class="s1">&#39;N&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;[n]&#39;</span><span class="p">,</span> <span class="s1">&#39;n&#39;</span><span class="p">))</span></div>
-
-    <span class="c1"># def extract_murcko_scaffold(self, mol: Mol, keep_best_minor_compound: bool = True) -&gt; tuple:</span>
-    <span class="c1">#     &quot;&quot;&quot;Extract Murcko Scaffolds.</span>
-    <span class="c1">#     This function apply two protocols on the molecule to extract the &quot;best&quot; Murcko Scaffold:</span>
-    <span class="c1">#</span>
-    <span class="c1">#         - A: mol &gt; murcko &gt; standardize</span>
-    <span class="c1">#         - B: mol &gt; standardize &gt; murcko &gt; standardize</span>
-    <span class="c1">#</span>
-    <span class="c1">#     The &quot;best&quot; Murcko Scaffold is the smaller of both solutions. In case both are of same size (hac),</span>
-    <span class="c1">#     solution from protocol B is preferred, as it was extracted from a standardized molecule.</span>
-    <span class="c1">#</span>
-    <span class="c1">#     .. warning:: In case keep_largest is not performed in Standardizer protocol, protocol B might return minor compounds.</span>
-    <span class="c1">#</span>
-    <span class="c1">#     :param mol: the molecule where to extract Murcko Scaffolds from</span>
-    <span class="c1">#     :param keep_best_minor_compound: if True, then the keep_best method is applied before extracting the Murcko Scaffold. Makes a difference only for protocol A if keep_best is defined in Standardizer protocol.</span>
-    <span class="c1">#     :return: a tuple (murcko scaffold, status, task)</span>
-    <span class="c1">#     &quot;&quot;&quot;</span>
-    <span class="c1">#     # init</span>
-    <span class="c1">#     hac_max = 9999999  # large atom count to deprioritize failures</span>
-    <span class="c1">#</span>
-    <span class="c1">#     # protocol A</span>
-    <span class="c1">#     mol = self.keep_best(mol)</span>
-    <span class="c1">#     ms_a = MurckoScaffold.GetScaffoldForMol(mol)  # molecule could be loaded so should be usable as received in pipeline</span>
-    <span class="c1">#     ms_a_std, status_a, task_a = self.run(ms_a)</span>
-    <span class="c1">#     if status_a == &#39;passed&#39;:</span>
-    <span class="c1">#         hac_a = ms_a_std.GetNumHeavyAtoms()</span>
-    <span class="c1">#     else:</span>
-    <span class="c1">#         hac_a = hac_max  # I am looking for the smaller murcko scaffold, so deprioritize failures</span>
-    <span class="c1">#</span>
-    <span class="c1">#     # protocol B</span>
-    <span class="c1">#     mol_b_std, status_b, task_b = self.run(mol)</span>
-    <span class="c1">#     if status_b == &#39;passed&#39;:</span>
-    <span class="c1">#         ms_b_std = MurckoScaffold.GetScaffoldForMol(mol_b_std)</span>
-    <span class="c1">#         ms_b_std, status_b, task_b = self.run(ms_b_std)</span>
-    <span class="c1">#         if status_b == &#39;passed&#39;:</span>
-    <span class="c1">#             hac_b = ms_b_std.GetNumHeavyAtoms()</span>
-    <span class="c1">#         else:</span>
-    <span class="c1">#             hac_b = hac_max</span>
-    <span class="c1">#     else:</span>
-    <span class="c1">#         hac_b = hac_max</span>
-    <span class="c1">#</span>
-    <span class="c1">#     # decide what solution to keep</span>
-    <span class="c1">#</span>
-    <span class="c1">#     # case 1: both have the same hac...</span>
-    <span class="c1">#     if hac_a == hac_b:</span>
-    <span class="c1">#         # because both failed</span>
-    <span class="c1">#         if hac_a == 9999999:</span>
-    <span class="c1">#             return (ms_b_std, &#39;error&#39;, &#39;murcko&#39;)</span>
-    <span class="c1">#         # because both succeeded</span>
-    <span class="c1">#         else:</span>
-    <span class="c1">#             return (ms_b_std, &#39;passed_protB=A&#39;, &#39;murcko&#39;)</span>
-    <span class="c1">#</span>
-    <span class="c1">#     # case 2: A is smaller than B</span>
-    <span class="c1">#     elif hac_a &lt; hac_b:</span>
-    <span class="c1">#         return (ms_a_std, &#39;passed_protA&gt;B&#39;, &#39;murcko&#39;)</span>
-    <span class="c1">#     elif hac_a &gt; hac_b:</span>
-    <span class="c1">#         return (ms_b_std, &#39;passed_protB&gt;A&#39;, &#39;murcko&#39;)</span>
-    <span class="c1">#     else:</span>
-    <span class="c1">#         raise ValueError(f&quot;Error! Unknown situation encountered during Murcko Scaffold Extraction! (hac_a={hac_a},hac_b={hac_b} , mol=&#39;{Chem.MolToSmiles(mol)}&#39;)&quot;)</span>
 
     <span class="k">def</span> <span class="nf">_is_sugar_like</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ring_aidx</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">mol</span><span class="p">:</span> <span class="n">Mol</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Indicate whether a ring (defined by its atom indices) in a molecule is sugar-like or not.</span>
@@ -854,7 +751,7 @@
         <span class="c1"># clean-up</span>
         <span class="n">frags</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">GetMolFrags</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">asMols</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="c1"># avoid counting the number of rings in each fragment if only 1 fragment left anyway</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">frags</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">frags</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
             <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Only one fragment obtained, returning it&#39;</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">frags</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="c1"># the substituents of the deleted terminal sugar-like rings remain in the structure,</span>
@@ -862,7 +759,6 @@
         <span class="c1"># so we just have to retrieve the one fragment that is not linear</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Returning only the non-linear obtained fragment&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">frags</span> <span class="k">if</span> <span class="n">Descriptors</span><span class="o">.</span><span class="n">rdMolDescriptors</span><span class="o">.</span><span class="n">CalcNumRings</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span></div>
-
 
     <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mol</span><span class="p">:</span> <span class="n">Mol</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Helper function for run.</span>
@@ -880,7 +776,7 @@
             <span class="k">return</span> <span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="s1">&#39;error&#39;</span><span class="p">,</span> <span class="s1">&#39;initiate_mol&#39;</span><span class="p">)</span>
 
         <span class="c1"># begin protocol</span>
-        <span class="n">mol</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
+        <span class="n">mol</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>  <span class="c1"># do not modify the molecule in place</span>
         <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_protocol</span><span class="p">[</span><span class="s1">&#39;tasks&#39;</span><span class="p">]:</span>
             <span class="c1"># filter_empty</span>
             <span class="k">if</span> <span class="n">task</span> <span class="o">==</span> <span class="s1">&#39;filter_empty&#39;</span><span class="p">:</span>
@@ -976,6 +872,12 @@
                 <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
                     <span class="k">return</span> <span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="s1">&#39;error&#39;</span><span class="p">,</span> <span class="n">task</span><span class="p">)</span>
 
+            <span class="k">elif</span> <span class="n">task</span> <span class="o">==</span> <span class="s1">&#39;depict&#39;</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">mol</span> <span class="o">=</span> <span class="n">depict_mol</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="s1">&#39;error&#39;</span><span class="p">,</span> <span class="n">task</span><span class="p">)</span>
+
             <span class="c1"># something else?</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Unknown task: </span><span class="si">{task}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -999,7 +901,7 @@
         <span class="c1"># in case of timeout</span>
         <span class="k">return</span> <span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="s1">&#39;filtered&#39;</span><span class="p">,</span> <span class="s1">&#39;timeout&#39;</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Standardizer.run_df"><a class="viewcode-back" href="../../standardize.html#npfc.standardize.Standardizer.run_df">[docs]</a>    <span class="k">def</span> <span class="nf">run_df</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">,</span> <span class="n">timeout</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
+<div class="viewcode-block" id="Standardizer.run_df"><a class="viewcode-back" href="../../standardize.html#npfc.standardize.Standardizer.run_df">[docs]</a>    <span class="k">def</span> <span class="nf">run_df</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">:</span> <span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Apply the standardization protocol on a DataFrame, with the possibility of directly filtering duplicate entries as well.</span>
 <span class="sd">        This can be very useful as the standardization process can expose duplicate entries due to salts removal, neutralization,</span>
 <span class="sd">        canonical tautomer enumeration, and stereochemistry centers unlabelling</span>

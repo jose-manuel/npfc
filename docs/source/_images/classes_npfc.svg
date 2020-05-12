@@ -95,35 +95,31 @@
 <!-- 4 -->
 <g id="node5" class="node">
 <title>4</title>
-<polygon fill="none" stroke="#000000" points="0,-211.5 0,-535.5 239,-535.5 239,-211.5 0,-211.5"/>
-<text text-anchor="middle" x="119.5" y="-520.3" font-family="Times,serif" font-size="14.00" fill="#000000">npfc.standardize.Standardizer</text>
-<polyline fill="none" stroke="#000000" points="0,-512.5 239,-512.5 "/>
-<text text-anchor="start" x="8" y="-497.3" font-family="Times,serif" font-size="14.00" fill="#000000">canonicalizer : TautomerCanonicalizer</text>
-<text text-anchor="start" x="8" y="-482.3" font-family="Times,serif" font-size="14.00" fill="#000000">col_id</text>
-<text text-anchor="start" x="8" y="-467.3" font-family="Times,serif" font-size="14.00" fill="#000000">col_mol</text>
-<text text-anchor="start" x="8" y="-452.3" font-family="Times,serif" font-size="14.00" fill="#000000">compute_2D</text>
-<text text-anchor="start" x="8" y="-437.3" font-family="Times,serif" font-size="14.00" fill="#000000">elements_medchem</text>
-<text text-anchor="start" x="8" y="-422.3" font-family="Times,serif" font-size="14.00" fill="#000000">filter_duplicates</text>
+<polygon fill="none" stroke="#000000" points="0,-241.5 0,-505.5 239,-505.5 239,-241.5 0,-241.5"/>
+<text text-anchor="middle" x="119.5" y="-490.3" font-family="Times,serif" font-size="14.00" fill="#000000">npfc.standardize.Standardizer</text>
+<polyline fill="none" stroke="#000000" points="0,-482.5 239,-482.5 "/>
+<text text-anchor="start" x="8" y="-467.3" font-family="Times,serif" font-size="14.00" fill="#000000">canonicalizer : TautomerCanonicalizer</text>
+<text text-anchor="start" x="8" y="-452.3" font-family="Times,serif" font-size="14.00" fill="#000000">col_id</text>
+<text text-anchor="start" x="8" y="-437.3" font-family="Times,serif" font-size="14.00" fill="#000000">col_mol</text>
+<text text-anchor="start" x="8" y="-422.3" font-family="Times,serif" font-size="14.00" fill="#000000">elements_medchem</text>
 <text text-anchor="start" x="8" y="-407.3" font-family="Times,serif" font-size="14.00" fill="#000000">full_uncharger</text>
 <text text-anchor="start" x="8" y="-392.3" font-family="Times,serif" font-size="14.00" fill="#000000">metal_disconnector : MetalDisconnector</text>
 <text text-anchor="start" x="8" y="-377.3" font-family="Times,serif" font-size="14.00" fill="#000000">normalizer : Normalizer</text>
-<text text-anchor="start" x="8" y="-362.3" font-family="Times,serif" font-size="14.00" fill="#000000">on</text>
-<text text-anchor="start" x="8" y="-347.3" font-family="Times,serif" font-size="14.00" fill="#000000">protocol</text>
-<text text-anchor="start" x="8" y="-332.3" font-family="Times,serif" font-size="14.00" fill="#000000">ref_file</text>
-<text text-anchor="start" x="8" y="-317.3" font-family="Times,serif" font-size="14.00" fill="#000000">suffix</text>
-<polyline fill="none" stroke="#000000" points="0,-309.5 239,-309.5 "/>
-<text text-anchor="start" x="8" y="-294.3" font-family="Times,serif" font-size="14.00" fill="#000000">clear_isotopes()</text>
-<text text-anchor="start" x="8" y="-279.3" font-family="Times,serif" font-size="14.00" fill="#000000">clear_side_chains()</text>
-<text text-anchor="start" x="8" y="-264.3" font-family="Times,serif" font-size="14.00" fill="#000000">deglycosylate()</text>
-<text text-anchor="start" x="8" y="-249.3" font-family="Times,serif" font-size="14.00" fill="#000000">keep_best()</text>
-<text text-anchor="start" x="8" y="-234.3" font-family="Times,serif" font-size="14.00" fill="#000000">run()</text>
-<text text-anchor="start" x="8" y="-219.3" font-family="Times,serif" font-size="14.00" fill="#000000">run_df()</text>
+<text text-anchor="start" x="8" y="-362.3" font-family="Times,serif" font-size="14.00" fill="#000000">protocol</text>
+<text text-anchor="start" x="8" y="-347.3" font-family="Times,serif" font-size="14.00" fill="#000000">timeout</text>
+<polyline fill="none" stroke="#000000" points="0,-339.5 239,-339.5 "/>
+<text text-anchor="start" x="8" y="-324.3" font-family="Times,serif" font-size="14.00" fill="#000000">clear_isotopes()</text>
+<text text-anchor="start" x="8" y="-309.3" font-family="Times,serif" font-size="14.00" fill="#000000">clear_side_chains()</text>
+<text text-anchor="start" x="8" y="-294.3" font-family="Times,serif" font-size="14.00" fill="#000000">deglycosylate()</text>
+<text text-anchor="start" x="8" y="-279.3" font-family="Times,serif" font-size="14.00" fill="#000000">keep_best()</text>
+<text text-anchor="start" x="8" y="-264.3" font-family="Times,serif" font-size="14.00" fill="#000000">run()</text>
+<text text-anchor="start" x="8" y="-249.3" font-family="Times,serif" font-size="14.00" fill="#000000">run_df()</text>
 </g>
 <!-- 3&#45;&gt;4 -->
 <g id="edge4" class="edge">
 <title>3&#45;&gt;4</title>
-<path fill="none" stroke="#000000" d="M252.2208,-114.6653C247.7399,-120.7261 243.4175,-126.9042 239.5,-133 225.7723,-154.3611 212.4586,-177.5075 200.0033,-200.7151"/>
-<polygon fill="#000000" stroke="#000000" points="199.9701,-200.7775 200.6892,-207.9527 194.3425,-211.3761 193.6235,-204.201 199.9701,-200.7775"/>
+<path fill="none" stroke="#000000" d="M252.2208,-114.6653C247.7399,-120.7261 243.4175,-126.9042 239.5,-133 219.8946,-163.507 201.1338,-197.6555 184.5114,-230.4232"/>
+<polygon fill="#000000" stroke="#000000" points="184.3458,-230.7529 185.2262,-237.9101 178.9582,-241.4755 178.0778,-234.3183 184.3458,-230.7529"/>
 <text text-anchor="middle" x="279.5" y="-136.8" font-family="Times,serif" font-size="14.00" fill="#00ff00">full_uncharger</text>
 </g>
 <!-- 6 -->
@@ -144,8 +140,8 @@
 <!-- 4&#45;&gt;1 -->
 <g id="edge3" class="edge">
 <title>4&#45;&gt;1</title>
-<path fill="none" stroke="#000000" d="M119.5,-535.6817C119.5,-562.3409 119.5,-587.8818 119.5,-608.2864"/>
-<polygon fill="none" stroke="#000000" points="116.0001,-608.4672 119.5,-618.4672 123.0001,-608.4673 116.0001,-608.4672"/>
+<path fill="none" stroke="#000000" d="M119.5,-505.8834C119.5,-542.667 119.5,-580.133 119.5,-608.0502"/>
+<polygon fill="none" stroke="#000000" points="116.0001,-608.2608 119.5,-618.2608 123.0001,-608.2609 116.0001,-608.2608"/>
 </g>
 </g>
 </svg>

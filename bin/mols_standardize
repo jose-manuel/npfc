@@ -73,6 +73,10 @@ def main():
         >>> standardize_mols file_in.sdf.gz file_out.csv.gz
         >>> # Apply user-defined protocol:
         >>> standardize_mols file_in.sdf.gz file_out.csv.gz -p file_conf.json
+        >>> # Apply default protocol but with saving filtered and error files:
+        >>> standardize_mols file_in.sdf.gz file_out.csv.gz -f file_filtered.csv.gz -e file_error.csv.gz
+        >>> # Apply default protocol with shorter cooldown:
+        >>> standardize_mols file_in.sdf.gz file_out.csv.gz -t 5
     """
 
     # parameters CLI
@@ -83,6 +87,7 @@ def main():
     parser.add_argument('-f', '--filtered', type=str, default=None, help="Output file for filtered molecules.")
     parser.add_argument('-e', '--error', type=str, default=None, help="Output file for molecules with errors.")
     parser.add_argument('-p', '--protocol', type=str, default=None, help="Configuration file in JSON for specifying a standardization protocol. See the docs for the default protocol.")
+    parser.add_argument('-t', '--timeout', type=int, default=10, help="Maximum time in seconds allowed to standardize a molecule before filterintg it.")
     parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
     args = parser.parse_args()
 
@@ -180,10 +185,10 @@ def main():
     # describe protocol
     logger.info(f"STANDARDIZING MOLECULES")
     logger.info(f"PROTOCOL:")
-    s = standardize.Standardizer(protocol=args.protocol)
+    s = standardize.Standardizer(protocol=args.protocol, timeout=args.timeout)
     [logger.info(f"TASK #{str(i+1).zfill(2)} {task}") for i, task in enumerate(s._protocol['tasks'])]
     [logger.info(f"OPTION {opt}".ljust(pad) + f"{value}") for opt, value in s._protocol.items() if opt != 'tasks']
-    logger.info("TIMEOUT FOR ABOVE TASKS".ljust(pad) + f"{standardize.TIMEOUT} SEC")
+    logger.info("TIMEOUT FOR ABOVE TASKS".ljust(pad) + f"{args.timeout} SEC")
 
     # load mols
     d1 = datetime.now()

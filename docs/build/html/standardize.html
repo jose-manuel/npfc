@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Module standardize &mdash; npfc 0.6.2-1-gc29c3c6 documentation</title>
+  <title>Module standardize &mdash; npfc 0.6.2-2-g4b106b6 documentation</title>
   
 
   
@@ -60,7 +60,7 @@
             
             
               <div class="version">
-                0.6.2-1-gc29c3c6
+                0.6.2-2-g4b106b6
               </div>
             
           
@@ -206,10 +206,10 @@ For now takes into account only charges of -2 and +2.</p>
 
 <dl class="class">
 <dt id="npfc.standardize.Standardizer">
-<em class="property">class </em><code class="sig-prename descclassname">npfc.standardize.</code><code class="sig-name descname">Standardizer</code><span class="sig-paren">(</span><em class="sig-param">protocol=None</em>, <em class="sig-param">col_mol='mol'</em>, <em class="sig-param">col_id='idm'</em>, <em class="sig-param">filter_duplicates=True</em>, <em class="sig-param">compute_2D=False</em>, <em class="sig-param">ref_file=None</em>, <em class="sig-param">on='inchikey'</em>, <em class="sig-param">suffix=None</em>, <em class="sig-param">elements_medchem={'B'</em>, <em class="sig-param">'Br'</em>, <em class="sig-param">'C'</em>, <em class="sig-param">'Cl'</em>, <em class="sig-param">'F'</em>, <em class="sig-param">'H'</em>, <em class="sig-param">'I'</em>, <em class="sig-param">'N'</em>, <em class="sig-param">'O'</em>, <em class="sig-param">'P'</em>, <em class="sig-param">'S'}</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#Standardizer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.Standardizer" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">npfc.standardize.</code><code class="sig-name descname">Standardizer</code><span class="sig-paren">(</span><em class="sig-param">protocol=None</em>, <em class="sig-param">col_mol='mol'</em>, <em class="sig-param">col_id='idm'</em>, <em class="sig-param">elements_medchem={'B'</em>, <em class="sig-param">'Br'</em>, <em class="sig-param">'C'</em>, <em class="sig-param">'Cl'</em>, <em class="sig-param">'F'</em>, <em class="sig-param">'H'</em>, <em class="sig-param">'I'</em>, <em class="sig-param">'N'</em>, <em class="sig-param">'O'</em>, <em class="sig-param">'P'</em>, <em class="sig-param">'S'}</em>, <em class="sig-param">timeout=10</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#Standardizer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.Standardizer" title="Permalink to this definition">¶</a></dt>
 <dd><p>A class for standardizing molecular structures. The standardization itself is based
 on a protocol that the user can modify.</p>
-<p>By default this protocol consists in 12 tasks applied to each molecule invidually:</p>
+<p>By default this protocol consists in 14 tasks applied to each molecule invidually:</p>
 <blockquote>
 <div><ol class="arabic simple">
 <li><p><strong>initiate_mol</strong>: check if the molecule passed the RDKit conversion</p></li>
@@ -228,7 +228,14 @@ on a protocol that the user can modify.</p>
 <li><p><strong>clear_stereo</strong>: remove all remaining stereochemistry flags on the molecule.</p></li>
 </ol>
 </div></blockquote>
-<p>Finally, duplicate entries can be filtered using InChiKeys when postprocessing the DataFrame with molecules (argument in the run_df method).</p>
+<p>Other steps are not part of this protocol but can be executed as well for convenience:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><strong>depict</strong>: find the “best” possible 2D depiction of the molecule among Input/rdDepictor/Avalon/CoordGen methods</p></li>
+<li><p><strong>extract_murcko</strong>: return the Murcko Scaffold from the molecule</p></li>
+<li><p><strong>clear_side_chains</strong>: remove any exocyclic atom that is not part of a linker</p></li>
+</ul>
+</div></blockquote>
 <p>This results in new columns in the input DataFrame:</p>
 <blockquote>
 <div><ul class="simple">
@@ -237,26 +244,21 @@ on a protocol that the user can modify.</p>
 <li><p>the ‘task’ column: the latest task that was applied to the molecule.</p></li>
 </ul>
 </div></blockquote>
-<p>Optionally, it is possible to compute new 2D coordinates for depicting molecules as final step of the standardization.
-To achieve this, a scoring function is assigned to each depiction to retrieve the “best” one (least amount of overlapping atoms/bonds):</p>
-<blockquote>
-<div><ul class="simple">
-<li><p>Input (if any)</p></li>
-<li><p>rdDepictor</p></li>
-<li><p>Avalon</p></li>
-<li><p>rdCoordgen</p></li>
-</ul>
-</div></blockquote>
-<p>A column “depiction_method” is appended to the output DataFrame so the user knows which method was considered the best.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>For now, the user can only change the task order and the values of filters, but it would be relatively easy to add more functionality.</p>
-</div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>For now structures are deglycosylated before being standardized using a KIME workflow. This is far from being ideal, at the node itself contains bugs and its execution is relatively slow.</p>
-</div>
+<p>The standardizer works either on a molecule (method: ‘run’) or on a DataFrame containing molecules (‘run_df’).</p>
+<p>In the latter case, the inchikey is computed and can be used for identifying duplicate entries.</p>
+<p>A timeout value is set by default and will be applied to each molecule individually to avoid the process being stuck on marginally difficult cases.
+This value can be set either during the Standardizer object initialization or by defining as an option in the protocol (priority is given to the latter if defined).</p>
 <p>Create a Standardizer object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>protocol</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.8)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]) – Either a JSON file or a dictionary. The resultung dictinary needs a ‘tasks’ key that lists all tasks to be excuted as a list.</p></li>
+<li><p><strong>col_mol</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the column with the molecule for when running the run_df method</p></li>
+<li><p><strong>col_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the column with the id for when running the run_df method</p></li>
+<li><p><strong>filter_duplicates</strong> – </p></li>
+</ul>
+</dd>
+</dl>
 <dl class="method">
 <dt id="npfc.standardize.Standardizer.clear_isotopes">
 <code class="sig-name descname">clear_isotopes</code><span class="sig-paren">(</span><em class="sig-param">mol</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#Standardizer.clear_isotopes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.Standardizer.clear_isotopes" title="Permalink to this definition">¶</a></dt>
@@ -390,7 +392,7 @@ Molecule that exceed the timeout value are filtered with a task=’timeout’.</
 
 <dl class="method">
 <dt id="npfc.standardize.Standardizer.run_df">
-<code class="sig-name descname">run_df</code><span class="sig-paren">(</span><em class="sig-param">df</em>, <em class="sig-param">timeout=10</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#Standardizer.run_df"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.Standardizer.run_df" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">run_df</code><span class="sig-paren">(</span><em class="sig-param">df</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#Standardizer.run_df"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.Standardizer.run_df" title="Permalink to this definition">¶</a></dt>
 <dd><p>Apply the standardization protocol on a DataFrame, with the possibility of directly filtering duplicate entries as well.
 This can be very useful as the standardization process can expose duplicate entries due to salts removal, neutralization,
 canonical tautomer enumeration, and stereochemistry centers unlabelling</p>
@@ -399,7 +401,7 @@ canonical tautomer enumeration, and stereochemistry centers unlabelling</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>df</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code>) – the input DataFrame</p></li>
-<li><p><strong>timeout</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>) – the maximum number of seconds for processing a molecule</p></li>
+<li><p><strong>timeout</strong> – the maximum number of seconds for processing a molecule</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type</dt>
