@@ -126,7 +126,7 @@ def mol(mol: Mol,
     if output_file is not None:
         output_ext = output_file.split('.')[-1].upper()
         if output_ext == 'SVG' and not svg:
-            raise ValueError(f"Error! output file extension is SVG but image format is PNG!")
+            raise ValueError("Error! output file extension is SVG but image format is PNG!")
         if output_ext == 'SVG':
             with open(output_file, 'w') as SVG:
                 SVG.write(img)

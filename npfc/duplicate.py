@@ -13,6 +13,9 @@ from pandas import DataFrame
 # chemoinformatics
 from rdkit.Chem import MolToSmiles
 from rdkit.Chem.rdinchi import MolToInchiKey
+# docs
+from typing import Union
+from typing import Tuple
 # dev
 from npfc import save
 # from npfc import save  # use of df.to_hdf with append and table modes for now
@@ -43,7 +46,7 @@ def init_ref_file(ref_file, group_on, col_id) -> bool:
         return False
 
 
-def filter_duplicates(df: DataFrame, group_on: str = "inchikey", col_id: str = "idm", col_mol: str = "mol", ref_file: str = None):
+def filter_duplicates(df: DataFrame, group_on: str = "inchikey", col_id: str = "idm", col_mol: str = "mol", ref_file: str = None, get_df_dupl: bool = False) -> Union[DataFrame, Tuple]:
     """Filter out duplicate molecules from a DataFrame.
 
     The comparison is performed by grouping entries on a column (inchikey or smiles) and the first entry of a group is kept.
@@ -84,18 +87,22 @@ def filter_duplicates(df: DataFrame, group_on: str = "inchikey", col_id: str = "
     df.set_index(group_on, inplace=True)
     df_u = df.loc[~df.index.duplicated(keep="first")]
 
-    # in case of debug only, record the list of all duplicates from the chunk
-    if logging.getLogger().level == logging.DEBUG:
-        if len(df_u.index) == len(df.index):
-            logging.debug("number of duplicate molecule found in current chunk: 0")
-        else:
-            df_dupl = df[~df[col_id].isin(df_u[col_id])]
-            logging.debug("number of duplicate molecule found in current chunk: %s", len(df_dupl.index))
-            # log what molecule "lost" to what other in same DataFrame: InChiKey, kept, filtered
-            logging.debug("HEADER:group_on|id_kept|id_filtered")
-            for i in range(len(df_dupl)):
-                row_dupl = df_dupl.iloc[i]
-                logging.debug("RESULT: %s|%s|%s", row_dupl.name, df_u.loc[row_dupl.name][col_id], row_dupl[col_id])
+    # filter duplicates found in the same input file
+    dupl_inchikey = []
+    dupl_id_kept = []
+    dupl_id_filtered = []
+    if len(df_u.index) == len(df.index):
+        logging.debug("Number of duplicate molecule found in current chunk: 0")
+    else:
+        df_dupl = df[~df[col_id].isin(df_u[col_id])]
+        logging.debug("Number of duplicate molecule found in current chunk: %s", len(df_dupl.index))
+        for i in range(len(df_dupl)):
+            row_dupl = df_dupl.iloc[i]
+            dupl_inchikey.append(row_dupl.name)
+            dupl_id_kept.append(df_u.loc[row_dupl.name][col_id])  # this is why I have a loop
+            dupl_id_filtered.append(row_dupl[col_id])
+    # df with entries that were removed because of another entry in the same chunk
+    df_filtered = DataFrame({'group_on': dupl_inchikey, 'id_kept': dupl_id_kept, 'id_filtered': dupl_id_filtered})
 
     # load reference file
     if ref_file is not None:
@@ -115,28 +122,30 @@ def filter_duplicates(df: DataFrame, group_on: str = "inchikey", col_id: str = "
             logging.debug("Number of entries in ref: %s", len(df_ref.index))
 
             # filter out already referenced compounds
+            dupl_inchikey = []
+            dupl_id_kept = []
+            dupl_id_filtered = []
             df_u2 = df_u[~df_u.index.isin(df_ref.index)]
-
             # reset indices (feather does not support strings as rowids...)
             df_u2.reset_index(inplace=True)
-
             df_u2.drop([c for c in df_u.columns if c not in (group_on, col_id)], axis=1).to_hdf(ref_file, key=key, mode="a", format="table", append=True)
-
-            # in case of debug only, record the list of all duplicates by using the ref file
-            if logging.getLogger().level == logging.DEBUG:
-                if len(df_u2.index) == len(df_u.index):
-                    logging.debug("Number of duplicate molecule found by using ref_file: 0")
-                else:
-                    df_dupl = df_u[~df_u[col_id].isin(df_u2[col_id])]
-                    logging.debug("Number of duplicate molecule found by using ref_file: %s", len(df_dupl.index))
-                    logging.debug("HEADER:group_on|id_kept|id_filtered")
-                    # log what molecule "lost" to what other in same DataFrame: InChiKey, kept, filtered
-                    for i in range(len(df_dupl)):
-                        row_dupl = df_dupl.iloc[i]
-                        logging.debug("RESULT: %s|%s|%s", row_dupl.name, df_u.loc[row_dupl.name][col_id], row_dupl[col_id])
+            if len(df_u2.index) == len(df_u.index):
+                logging.debug("Number of duplicate molecules found by using ref_file: 0")
+            else:
+                df_dupl = df_u[~df_u[col_id].isin(df_u2[col_id])]
+                logging.debug("Number of duplicate molecule found by using ref_file: %s", len(df_dupl.index))
+                for i in range(len(df_dupl)):
+                    row_dupl = df_dupl.iloc[i]
+                    dupl_inchikey.append(row_dupl.name)
+                    dupl_id_kept.append(df_u.loc[row_dupl.name][col_id])  # this is why I have a loop
+                    dupl_id_filtered.append(row_dupl[col_id])
 
             # return updated output in case of ref file
             df_u = df_u2
             df_ref.reset_index(inplace=True)
+            df_filtered = pd.concat([df_filtered, DataFrame({'group_on': dupl_inchikey, 'id_kept': dupl_id_kept, 'id_filtered': dupl_id_filtered})])
+
+    if get_df_dupl:
+        return (df_u, df_filtered)
 
     return df_u

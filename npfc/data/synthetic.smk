@@ -116,9 +116,11 @@ rule DEPICT:
 rule DEDUPL:
     priority: 6
     input: "{WD}/03_std/data/{prefix}_{cid}_std.csv.gz"
-    output: "{WD}/04_dedupl/data/{prefix}_{cid}_dedupl.csv.gz"
+    output:
+        passed = "{WD}/04_dedupl/data/{prefix}_{cid}_dedupl.csv.gz",
+        filtered = "{WD}/04_dedupl/log/{prefix}_{cid}_filtered.csv.gz"
     log: "{WD}/04_dedupl/log/{prefix}_{cid}_dedupl.log"
-    shell: "mols_dedupl {input} {output} -r {WD}/04_dedupl/{prefix}_ref.hdf --log DEBUG 2>{log}"
+    shell: "mols_dedupl {input} {output.passed} -d {output.filtered} -r {WD}/04_dedupl/{prefix}_ref.hdf 2>{log}"
 
 rule STD:
     priority: 7
