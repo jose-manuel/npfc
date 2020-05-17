@@ -20,6 +20,7 @@ from collections import Counter
 # chemoinformatics
 from rdkit.Chem import AllChem as Chem
 from rdkit.Chem import rdChemReactions
+from rdkit.Chem.Draw import rdMolDraw2D
 from rdkit.Chem import Mol
 from rdkit.Chem import Atom
 from rdkit.Chem import Bond
@@ -31,9 +32,11 @@ from pdbeccdutils.core.depictions import DepictionValidator
 # graph
 import networkx as nx
 # docs
+import matplotlib
 import matplotlib.pyplot as plt  # required for creating a canvas for displaying graphs
 from matplotlib.figure import Figure
 from networkx.classes.graph import Graph
+import seaborn as sns
 from PIL.Image import Image
 from typing import Union
 from typing import Set
@@ -47,204 +50,51 @@ from npfc import utils
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ GLOBALS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 
-# OrderedDict so fragment 1 is always colored in red, fragment 2 in green, etc.
-colors = OrderedDict()
-colors["red"] = (1.0, 0.6, 0.6)
-colors["green"] = (0.2, 1.0, 0.2)
-colors["blue"] = (0.4, 0.6, 1.0)
-colors["orange"] = (0.9569, 0.6667, 0.2588)
-colors["purple"] = (0.8392, 0.6275, 0.7686)
+# in python 3.7+ dict are odered so red will always #1, green #2, etc.
+DEFAULT_PALETTE = {'red': (1.0, 0.6, 0.6),
+                   'green': (0.2, 1.0, 0.2),
+                   'blue': (0.4, 0.6, 1.0),
+                   'orange': (0.9569, 0.6667, 0.2588),
+                   'purple': (0.8392, 0.6275, 0.7686),
+                   'yellow': (1.0, 0.9294, 0.0),
+                   'teal': (0.5725, 0.9608, 0.9882),
+                   'gray': (0.7294, 0.7294, 0.7294),
+                   }
+
+# matplotlib.colors.to_rgb('#FF0000')
+# matplotlib.colors.to_hex(((1.0, 0.0, 0.0)))
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 
-def _blend_color_value(val1: int, val2: int, alpha: float) -> Tuple[int]:
-    return sqrt((1-alpha) * (val1 ** 2) + alpha * (val2 ** 2))
+def get_d_aidxs_for_rings(mol: Mol, fuse_rings: bool = False) -> dict:
+    """Return a dictionary of atom indices (d_aidxs) for highlighting rings in molecules.
 
+    This is purely a helper function to instanciate a ColorMap object, which can highlight SSSR or ring systems instead of fragments.
 
-def blend_color(color1: Tuple[int], color2: Tuple[int], alpha: float = 0.5) -> Tuple[int]:
-    """Blend two colors after Downgoat'reply at:
-
-    https://stackoverflow.com/questions/726549/algorithm-for-additive-color-mixing-for-rgb-values
-
-    The formala below is applied to each color channel (R, G, and B):
-
-    .. math::
-        blended = \\sqrt{(1 - alpha) * val1^2 + alpha * val2^2}
-
-    with val1: color channel in color1; val2: corresponding color channel in color2; alpha: transparency factor
-
-    :param color1: the first color to blend
-    :param color2: the second color to blend
-    :param alpha: the blending factor, 0.5 means as much as color1 than color2
+    :param mol: the input molecule
+    :param fuse_rings: if False: highlight SSSR, if True: highlight fused ring systems
+    :return: a dictionary of syntax: {"R#0": [(0, 1, 2, 3, 4)], "R#1": [(5, 6, 7, 8, 9)]}. It is a list of tuple for compatibility reasons with fragment highlighting. It could also be edited to highlight rings of a certain size, etc.
     """
-    return tuple((_blend_color_value(x1, x2, alpha) for x1, x2 in zip(color1, color2)))
-
-
-def get_bidxs(mol: Mol, aidxs: Set[int]) -> Set[int]:
-    """From an iterable of atom indices (aidxs), return a set of bond indices (bidxs)
-    found between atoms in aidxs.
-
-    :param mol: the molecule to highlight
-    :param aidxs: a set with the atom indices of the fragment to highlight
-    :return: a set with the corresponding bond indices
-    """
-    bidxs = []
-    for aidx in aidxs:
-        bonds = [b for b in mol.GetAtomWithIdx(aidx).GetBonds()]
-        bidx = [b.GetIdx() for b in bonds]
-        bidxs.append(bidx)
-    # flatten the list of bond indices (bidx)
-    bidxs_merged = list(chain.from_iterable(bidxs))  # all bonds
-    # count number of times each bidx is found
-    counter = Counter(bidxs_merged)
-    # keep only bidx that appear > 1
-    return set({x: counter[x] for x in counter if counter[x] > 1}.keys())
-
-
-def get_bidx_all(mol: Mol, aidxs: Tuple[int]) -> Set[int]:
-    """From an iterable of atom indices (aidxs), return a set of all bond indices (bidxs)
-    connected to a least one specified atom.
-
-    :param mol: the molecule to highlight
-    :param aidxs: a set with the atom indices of the fragment to highlight
-    :return: a set with the corresponding bond indices
-    """
-    bidx = []
-    for aidx in aidxs:
-        [bidx.append(b.GetIdx()) for b in mol.GetAtomWithIdx(aidx).GetBonds()]
-    return set(bidx)
-
-
-def set_atom_or_bond_color(atom_or_bond: Union[Atom, Bond], color: Tuple[float]):
-    """Set a color (RGB , i.e. (0, 0, 1) as str property using JSON to an atom or a bond of a RDKit Molecule.
-    This is possible because they share the same API for doing executing this task.
-    If a color is already defined, then an attempt is made to blend it with
-    the new color. The number of colors that were already mixed is used for weighting the blending.
-    In case the same color is found, a 15% darker shade is used after blending, so we can still distinguish common atoms and bonds.
-    The atom or bond property is modified in place (_num_colors, _color).
-
-    .. note:: Due to the color palette I am using, I could only get a "olive green" when blending red and green. To get a proper golden yellow, I hard-coded the color for this particular blending.
-
-    :param atom_or_bond: either an atom or a bond
-    :param color: a tuple of RGB values
-    """
-    if atom_or_bond.HasProp("_num_colors"):
-        num_colors = int(atom_or_bond.GetProp("_num_colors"))
-    else:
-        num_colors = 0
-
-    # if already a color on the atom, blend it with the new one
-    if num_colors > 0:
-        old_color = get_atom_or_bond_color(atom_or_bond)
-        # blend with the old color only if it is not the same color
-        old_alpha = 1 - (1/(num_colors + 1))
-        alpha = 1 - old_alpha
-        new_color = blend_color(old_color, color, alpha)
-        # when I mix red and green, I want to get some yellow, not some olive color,
-        # so here I hardcode the yellow I long for (golden yellow)
-        if tuple(round(x, 4) for x in new_color) == (0.7211, 0.8246, 0.4472):
-            new_color = (1.0, 0.9294, 0.0)
-
-        # in case of the same color being applied, use a 15% darker shade
-        if new_color == old_color:
-            new_color = tuple((x * 0.85 for x in color))
-    else:
-        new_color = color
-
-    atom_or_bond.SetProp("_color", json.dumps(list(new_color)))
-    atom_or_bond.SetProp("_num_colors", str(num_colors+1))
-
-
-def get_atom_or_bond_color(atom_or_bond: Union[Atom, Bond]) -> Tuple[float]:
-    if atom_or_bond.HasProp("_color"):
-        return tuple(json.loads(atom_or_bond.GetProp("_color")))
-
-
-def set_atoms_color(mol: Mol, aidxs: Set[int], color: Tuple[float]):
-    """Set all specified atoms in a given color. If some atoms are already set to
-    another color, then an attempt is made to blend colors.
-
-    :param mol: the molecule to highlight
-    :param aidxs: the indices of the atoms to highlight
-    :param color: a color as a tuple of R, G, B values within a range of [0;1]
-    """
-    atoms = [mol.GetAtomWithIdx(x) for x in aidxs]
-    [set_atom_or_bond_color(a, color) for a in atoms]
-
-
-def get_atoms_color(mol: Mol, aidxs: Set[int]) -> Dict:
-    atoms = [mol.GetAtomWithIdx(x) for x in aidxs]
-    return {a.GetIdx(): get_atom_or_bond_color(a) for a in atoms}
-
-
-def set_bonds_color(mol: Mol, bidxs: Set[int], color: Tuple[float]):
-    """Set all specified bonds in a given color. If some bonds are already set to
-    another color, then an attempt is made to blend colors.
-
-    :param mol: the molecule to highlight
-    :param bidxs: the indices of the bonds to highlight
-    :param color: a color as a tuple of R, G, B values within a range of [0;1]
-    """
-    bonds = [mol.GetBondWithIdx(x) for x in bidxs]
-    [set_atom_or_bond_color(a, color) for a in bonds]
-
-
-def get_bonds_color(mol: Mol, bidxs: Set[int]) -> Dict:
-    bonds = [mol.GetBondWithIdx(x) for x in bidxs]
-    return {b.GetIdx(): get_atom_or_bond_color(b) for b in bonds}
-
-
-def clear_colors(mol: Mol, inplace: bool = True) -> Union[None, Mol]:
-    """Clear any color highlight (atoms and bonds) on a molecule.
-    This is equivalent to removing the _color and _num_colors atom and bond attributes.
-
-    :param mol: the molecule to clear colors from
-    :param inplace: if set to True, the molecule is directly modified. If set to False, a modified copy of the molecule is returned.
-    :return: the modified molecule or nothing
-    """
-    props_to_clear = ['_color', '_num_colors']
-    if not inplace:
-        mol = deepcopy(mol)
-    for p in props_to_clear:
-        [a.ClearProp(p) for a in mol.GetAtoms()]
-        [b.ClearProp(p) for b in mol.GetBonds()]
-    if not inplace:
-        return mol
-
-
-def scale_rgb(rgb_color: Tuple[int]) -> Tuple[float]:
-    """Scale down a RGB value (0, 0, 255) to (0.0, 0.0, 1.0).
-    Useful for trying new colors from the web as RDKit only accepts [0;1] range.
-
-    :param rgb_color: a color with RGB values in range [0;250]
-    :return: a color with RGB values in range [0;1]
-    """
-    if any((isinstance(v, int) or v > 1.0) for v in rgb_color):
-        return tuple([round(x/255, 4) for x in rgb_color])
-
-
-def scale_rgb_colormap(colormap: Dict) -> Dict:
-    """Scale down the RGB values in a colormap so that they are in acceptable range
-    for RDKit (i.e. [0;1]).
-
-    :param colormap: a dictionary of syntax: atom_or_bond_idx: (R, G, B)
-    :return: the same colormap but scaled down.
-    """
-    return {k: scale_rgb(colormap[k]) for k in colormap.keys()}
+    ring_atoms_l = mol.GetRingInfo().AtomRings()
+    if fuse_rings:
+        ring_atoms_l = utils.fuse_rings(ring_atoms_l)
+    return {f"R#{i}": [ring_atoms] for i, ring_atoms in enumerate(ring_atoms_l)}
 
 
 def mol(mol: Mol,
         colormap: 'ColorMap' = None,
         output_file: str = None,
-        img_size: Tuple[int] = (300, 300),
+        img_size: Tuple[int] = (400, 400),
         debug: bool = False,
         svg: bool = True,
         legend: str = '') -> Image:
     """
     Draw an Image of a molecule with highlighted atoms and bonds according to a colormap.
     If no Colormap object is provided, no highlighting is done.
+
+    This code is based on the 2020.03 RDKit release and the picture below is not yet updated.
 
     .. image:: _images/draw_highlight.svg
         :align: center
@@ -257,26 +107,21 @@ def mol(mol: Mol,
     :param svg: use SVG format instead of PNG
     :return: an Image of the highlighted molecule
     """
-    if debug:
-        mol = Mol(mol)
-        [mol.GetAtomWithIdx(idx).SetProp('molAtomMapNumber', str(mol.GetAtomWithIdx(idx).GetIdx())) for idx in range(mol.GetNumAtoms())]
+    # if no colormap is provided, do not highlight any atoms
     if colormap is None:
-        highlightAtomList = []
-        highlightAtomColors = {}
-        highlightBondColors = {}
+        colormap = ColorMap(mol, {})
+
+    # draw
+    if svg:
+        d2d = rdMolDraw2D.MolDraw2DSVG(img_size[0], img_size[1])
     else:
-        highlightAtomList = [int(x) for x in list(colormap.atoms.keys())]
-        highlightAtomColors = colormap.atoms
-        highlightBondColors = colormap.bonds
-    img = Draw.MolsToGridImage([mol],
-                               molsPerRow=1,
-                               subImgSize=img_size,
-                               highlightAtomLists=[highlightAtomList],
-                               highlightAtomColors=[highlightAtomColors],
-                               highlightBondColors=[highlightBondColors],
-                               useSVG=svg,
-                               legends=[legend],
-                               )
+        d2d = rdMolDraw2D.MolDraw2DCairo(img_size[0], img_size[1])
+    d2d.drawOptions().addAtomIndices = debug
+    d2d.drawOptions().legendFontSize = 24
+    d2d.DrawMoleculeWithHighlights(mol, legend, colormap.atoms, colormap.bonds, {}, {})
+    d2d.FinishDrawing()
+    img = d2d.GetDrawingText()
+
     # export img
     if output_file is not None:
         output_ext = output_file.split('.')[-1].upper()
@@ -284,9 +129,10 @@ def mol(mol: Mol,
             raise ValueError(f"Error! output file extension is SVG but image format is PNG!")
         if output_ext == 'SVG':
             with open(output_file, 'w') as SVG:
-                SVG.write(img.data)
+                SVG.write(img)
         else:
             raise ValueError(f"Error! Unsupported extension '{output_ext}'!")
+
     return img
 
 
@@ -302,6 +148,8 @@ def mols(mols: List[Mol],
     """
     Draw an Image of a list of molecules with highlighted atoms and bonds
     according to a list of colormaps.
+
+    This function is based on the old RDKit drawing code (< 2020.03)
 
     :param mols: the molecules to highlight
     :param colormaps: the colormaps to use for highlighting the molecules
@@ -351,6 +199,7 @@ def mols(mols: List[Mol],
                 SVG.write(img.data)
         else:
             raise ValueError(f"Error! Unsupported extension '{output_ext}'!")
+
     return img
 
 
@@ -410,23 +259,6 @@ def graph(G: Graph, colormap_nodes: List[Tuple[float]] = None, output_file: str 
         plt.savefig(output_file, format=output_file_format)
     plt.close()
     return figure
-
-
-# def graph_fc_from_series(row: Series, colormap_nodes_name: str = None) -> Figure:
-#     """
-#     Return a matplotlib Figure of a networkx graph.
-#
-#     :param row: a row from a Fragment Map DataFrame (df_map)
-#     :param colormap_nodes_name: the name of the Series axe (column) from which to retrieve the nodes colormap
-#     :return: a matplotlib Figure object
-#     """
-#     if colormap_nodes_name is None:
-#         colormap_nodes = None
-#     elif colormap_nodes_name == "fid":
-#         colormap = row["colormap"]
-#         colormap_nodes = list(colormap.fragments.values())
-#
-#     return G(row["G"], colormap_nodes=colormap_nodes)
 
 
 def rescale(mol: Mol, f: float = 1.4):
@@ -582,81 +414,146 @@ class ColorMap:
     It is represented by the count of fragments, atom- and bond colors.
     """
 
-    def __init__(self, mol: Mol, d_aidxs: OrderedDict, colors: OrderedDict = colors, reset_colors: bool = False):
+    def __init__(self, mol: Mol, d_aidxs: dict, palette: str = None):
         """
         :param mol: the molecule to highlight. Atom/Bond properties '_color' and 'num_colors' are modified in place.
-        :param d_aidxs: a dictionary containing fragment ids as keys and molecule atom indices as values ({fid: [aidxs]})
-        :param colors: the color palette to use, by default the draw.colors palette is used (red, green, blue, orange and purple).
-        :param reset_colors: clear any pre-existing colors in atoms and bonds. This ensures independent colorations using a same molecule.
+        :param d_aidxs: a dictionary containing fragment ids as keys and molecule atom indices as values, i.e. {'frag1': [(0, 1, 2)]. 'frag2': [(2, 3, 4), (5, 6, 7)]}
+        :param palette: a seaborn palette defined by a string. A list of possible palette names can be found at: http://www.python-simple.com/img/img45.png. If none is provided, an intern palette is used instead. Please note that a same fragment occuring mulitple times will be displayed with only one color, but each time with a 10% darker shade. This can happen up to 5x, after what the color shade is reset to default to prevent colors from turning pitch black.
         """
-        self.fragments, self.atoms, self.bonds = self._compute_colormap(mol, d_aidxs, colors, reset_colors)
+        colormap_atoms = {}  # atoms
+        colormap_bonds = {}  # bonds
+        colormap_fragments = {}  # fragments are colored and stored in order
+        if palette is None:
+            palette = DEFAULT_PALETTE
+        else:
+            palette = sns.color_palette(palette)
+            palette = {f"COL_{str(i+1).zfill(2)}": color for i, color in enumerate(palette)}
+        # pick a color for each fragment type
+        for i, (fragment_id, aidxs_l) in enumerate(d_aidxs.items()):
+            colors_k = list(palette.keys())  # colors are sorted, so always red, then green, etc.
+            color = palette[colors_k[i % len(colors_k)]]  # the great idea here is to loop back to the red once all colors have been used
+            colormap_fragments[fragment_id] = []  # frag1: [(0, 0, 1)]
+            # pick a shade for each occurrence of a same fragment type
+            k = 0
+            for j, aidxs in enumerate(aidxs_l):
+                # new_color = color
+                new_color = tuple((x * (1.0 - 0.10 * k) for x in color))  # 5% darker for each fragment of the same type  ## TODO: define a range for j when colors get 10% lighter instead
+                colormap_fragments[fragment_id].append(new_color)
+                # color atoms
+                for aidx in aidxs:
+                    if aidx not in colormap_atoms.keys():
+                        colormap_atoms[aidx] = [new_color]
+                    else:
+                        colormap_atoms[aidx].append(new_color)
+
+                # color bonds
+                bidxs = self._get_bidxs(mol, aidxs)
+                for bidx in bidxs:
+                    if bidx not in colormap_bonds.keys():
+                        colormap_bonds[bidx] = [new_color]
+                    else:
+                        colormap_bonds[bidx].append(new_color)
+
+                # continue to darken only if it does not end up being black
+                if j < 6:
+                    k += 1
+                else:
+                    k = 0  # reset to default
+
+        # init attributes
+        self.fragments = colormap_fragments
+        self.atoms = colormap_atoms
+        self.bonds = colormap_bonds
+        self.palette = palette
 
     def __repr__(self):
         """Return a string representation of the ColorMap object
         """
-        # listing a huge dictionary of tuples is not great for representing data,
-        # so I just list the number of different colors found
-        num_frags = len(list(self.fragments.keys()))
-        num_atom_colors = len(set(self.atoms.values()))
-        # bonds require special handling because of a hack
-        bond_colors = set(self.bonds.values())
-        try:
-            bond_colors.remove((1, 1, 1))  # do not count hard-coded white bonds, also white color should never happen during blending anyway
-        except KeyError:
-            pass
-        num_bond_colors = len(bond_colors)
+        s = 'ColorMap={'
+        frags = []
+        # listing a huge dictionary of tuples is not that great for representing data, so just display fragment colors
+        for i, v in enumerate(self.fragments.items()):
+            # find the corresponding key in the palette for the color value, so one can simply display the color name
+            frags = [f"{v[0]}: {list(self.palette.keys())[list(self.palette.values()).index(v[1][0])]}" for i, v in enumerate(self.fragments.items())]
+        return f"{s}{', '.join(frags)}" + '}'
 
-        return str(f"ColorMap(nf={num_frags}, nac={num_atom_colors}, nbc={num_bond_colors})")
-
-    def _compute_colormap(self, mol: Mol, d_aidxs: Dict, colors, reset_colors):
-        """
-        Compute a colormap for highlighting a molecule given a dictionary of fragments {fid: [aidxs]} and specified RGB colors.
-
-        The following rules are applied for consistant highilighting:
-
-                 - only one color is attributed per fragment type (defined by fragment id, i.e. f1 in f1:0)
-                 - in case there are more fragments than colors, a same color can be used for several fragments
-                 - when 2 fragments of different colors overlap, their colors are blended on overlapping atoms/bonds
-                 - when 2 fragments of same colors overlap, a 15% darker shade is used on overlapping atoms/bonds, so these can be distinguished
+    def _get_bidxs(self, mol: Mol, aidxs: Set[int]) -> Set[int]:
+        """From an iterable of atom indices (aidxs), return a set of bond indices (bidxs)
+        found between atoms in aidxs.
 
         :param mol: the molecule to highlight
-        :param d_aidxs: a dictionary of fragments atom indices with fragment ids as keys and list of iterable as values
-        :param colors: a color palette
-        :param reset_colors: reset colors found on a molecule (inplace only)
+        :param aidxs: a set with the atom indices of the fragment to highlight
+        :return: a set with the corresponding bond indices
         """
-        if reset_colors:
-            clear_colors(mol, inplace=True)
-        colors_k = list(colors.keys())  # colors is a OrderedDict, so no need for resorting colors
-        aidxs_colored = set()  # atoms
-        bidxs_colored = set()  # bonds
-        colormap_f = OrderedDict()  # fragments are colored and stored in order
-        # for i, (fid, aidxs_l) in enumerate(zip(fids, l_aidxs)):
-        for i, (fid, aidxs_l) in enumerate(d_aidxs.items()):
-            # pick a color
-            color = colors[colors_k[i % len(colors_k)]]
-            colormap_f[fid] = color
-            # print(f"fid: {fid}, color: {color}, aidxs_l: {aidxs_l}")
-            # highlight the corresponding fragment
-            for aidxs in aidxs_l:
-                set_atoms_color(mol, aidxs, color)
-                bidxs = get_bidxs(mol, aidxs)
-                set_bonds_color(mol, bidxs, color)
-                aidxs_colored.update(set(aidxs))
-                bidxs_colored.update(set(bidxs))
+        # get all bonds attached to atom indices (as set: {0, 1, 2, 3})
+        bidxs = []
+        for aidx in aidxs:
+            bonds = [b for b in mol.GetAtomWithIdx(aidx).GetBonds()]
+            bidx = [b.GetIdx() for b in bonds]
+            bidxs.append(bidx)
 
-        colormap_a = get_atoms_color(mol, aidxs_colored)  # atoms
-        colormap_b = get_bonds_color(mol, bidxs_colored)  # bonds
+        # flatten the list of bond indices (bidx)
+        bidxs_merged = list(chain.from_iterable(bidxs))  # all bonds
 
-        # highlight bonds not colored as white, since we get sometimes the RDKit default highlight otherwise
-        # this might not be the best idea ever, but I could not find any hidden property on the mol, atoms or bonds
-        # responsible for this default for behavior. To compensate, I tried to make it as fast as possible,
-        # hence the cryptic writing below.
-        # Also I do not update the _color and _num_colors properties, so further color blending should not be an issue
-        bidxs_white = {bidx: (1, 1, 1) for bidx in set([b.GetIdx() for b in mol.GetBonds()]) - set(list(colormap_b.keys()))}
-        #                      white                            all bidx of the mol          -        all colored bidx
-        # update colormap with white bond indices
-        logging.debug('Highlighting out-of-fragment-bonds in white')
-        colormap_b.update(bidxs_white)
+        # count number of times each bidx is found
+        counter = Counter(bidxs_merged)
 
-        # return results as tuple
-        return (colormap_f, colormap_a, colormap_b)
+        # keep only bidx that appear > 1
+        return set({x: counter[x] for x in counter if counter[x] > 1}.keys())
+
+    def blend(self):
+        """Blend colors found in a ColorMap.
+
+        The ColorMap object is modified in place.
+        """
+
+        for k, v in self.atoms.items():
+            self.atoms[k] = self._blend_multiple_colors(v)
+        for k, v in self.bonds.items():
+            self.bonds[k] = self._blend_multiple_colors(v)
+
+    def _blend_two_colors(self, color1: Tuple[int], color2: Tuple[int], alpha: float = 0.5) -> Tuple[int]:
+        """Blend two colors after Downgoat'reply at:
+
+        https://stackoverflow.com/questions/726549/algorithm-for-additive-color-mixing-for-rgb-values
+
+        The formala below is applied to each color channel (R, G, and B):
+
+        .. math::
+            blended = \\sqrt{(1 - alpha) * val1^2 + alpha * val2^2}
+
+        with val1: color channel in color1; val2: corresponding color channel in color2; alpha: transparency factor
+
+        :param color1: the first color to blend
+        :param color2: the second color to blend
+        :param alpha: the blending factor, 0.5 means as much as color1 than color2
+        """
+        return tuple((sqrt((1-alpha) * (x1 ** 2) + alpha * (x2 ** 2)) for x1, x2 in zip(color1, color2)))
+
+    def _blend_multiple_colors(self, colors: List[Tuple[int]]) -> List[Tuple[int]]:
+        """Given an iterable of colors represented in RGB format (i.e. [(1, 0, 0), (0, 1, 0), (0, 0, 1)]),
+        iteratively apply the blend_two_colors function.
+        For instance, if colors are red, green, and blue (respectively from above), then:
+            - first blend red and green applying an alpha
+        """
+        num_colors = len(colors)
+        # if just 1 color, just return it as it is
+        if num_colors < 2:
+            return colors
+
+        # iterate over colors
+        color_result = colors[0]  # initiate at the first color
+        for i in range(1, len(colors)):
+            color_to_add = colors[i]
+            old_alpha = 1 - (1/(i + 1))
+            alpha = 1 - old_alpha
+            color_result = self._blend_two_colors(color_result, color_to_add, alpha)
+            # when I mix red and green, I want to get some yellow, not some olive color,
+            # so here I hardcode the yellow I long for (golden yellow)
+            if tuple(round(x, 4) for x in color_result) == (0.7211, 0.8246, 0.4472):
+                color_result = (1.0, 0.9294, 0.0)
+            # in case of the same color being applied, use a 10% darker shade
+            if color_result == color_to_add:
+                color_result = tuple((x * 0.90 for x in color_result))
+
+        return [color_result]

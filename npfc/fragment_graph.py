@@ -197,7 +197,7 @@ def _split_unconnected(dfs_fcc_clean: List[DataFrame]) -> List[DataFrame]:
     return dfs_fcc_ready
 
 
-def generate(df_fcc: DataFrame, min_frags: int = 2, max_frags: int = 5, max_overlaps: int = 5, split_unconnected: bool = True, clear_ffs: bool = True) -> DataFrame:
+def generate(df_fcc: DataFrame, min_frags: int = 2, max_frags: int = 5, max_overlaps: int = 5, split_unconnected: bool = True, clear_ffs: bool = True, palette: str = None) -> DataFrame:
     """This method process a fragment combinations DataFrame
     and return a new DataFrame with a fragment map for each molecule.
 
@@ -327,7 +327,7 @@ def generate(df_fcc: DataFrame, min_frags: int = 2, max_frags: int = 5, max_over
                 mol = Mol(mol)
 
             # attribute colors to each fragment atoms/bonds
-            colormap = draw.ColorMap(mol, d_aidxs, draw.colors)
+            colormap = draw.ColorMap(mol, d_aidxs, palette)
 
             comb = list(df_fcc_clean['fcc'].values)
             ncomb = len(comb)
