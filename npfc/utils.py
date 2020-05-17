@@ -27,6 +27,7 @@ from typing import List
 # allowed suffixes
 EXTS_INPUT = [['.sdf'], ['.sdf', '.gz'],
               ['.csv'], ['.csv', '.gz'],
+              ['.log'],  # for loading formatted log files
               ['.hdf']]  # , ['.feather']]  # tests with feather work but not in production, dig into that later
 
 EXTS_CONFIG = [['.json']]

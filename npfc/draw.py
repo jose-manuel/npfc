@@ -10,6 +10,7 @@ A special care was given to blending colors for overlapping fragments.
 import logging
 from math import sqrt
 from copy import deepcopy
+import math
 # data handling
 import json
 import base64
@@ -18,7 +19,7 @@ from collections import OrderedDict
 from itertools import chain
 from collections import Counter
 # chemoinformatics
-from rdkit.Chem import AllChem as Chem
+from rdkit.Chem import AllChem
 from rdkit.Chem import rdChemReactions
 from rdkit.Chem.Draw import rdMolDraw2D
 from rdkit.Chem import Mol
@@ -28,7 +29,6 @@ from rdkit.Chem import Draw
 # 2D depiction of molecules
 from rdkit.Chem import rdDepictor
 from rdkit.Chem import rdCoordGen
-from pdbeccdutils.core.depictions import DepictionValidator
 # graph
 import networkx as nx
 # docs
@@ -45,6 +45,11 @@ from typing import Tuple
 from typing import Dict
 # dev
 from npfc import utils
+# tmp
+from pdbeccdutils.utils import config
+from rdkit import Chem, Geometry
+from rdkit.Chem import AllChem, rdCoordGen
+from scipy.spatial import KDTree
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ GLOBALS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
@@ -271,7 +276,7 @@ def rescale(mol: Mol, f: float = 1.4):
     for i in range(3):
         tm[i, i] = f
     tm[3, 3] = 1.0
-    Chem.TransformMol(mol, tm)
+    AllChem.TransformMol(mol, tm)
 
 
 def depict_mol(mol: Mol, methods: List[str] = ["CoordGen", "rdDepictor"], consider_input: bool = True) -> Mol:
@@ -557,3 +562,222 @@ class ColorMap:
                 color_result = tuple((x * 0.90 for x in color_result))
 
         return [color_result]
+
+
+class DepictionValidator:
+    """
+    Toolkit for estimation of depiction quality.
+
+    This is not my code, it was copied from:
+    https://gitlab.ebi.ac.uk/pdbe/ccdutils/blob/master/pdbeccdutils/core/depictions.py
+
+    I did this because everytime I try to create an environment using the pdbeccdutils library,
+    I have issues and I have to try to use an older version. So I just extracted the little piece
+    that is required for my project, so I don't have problems anymore.
+    """
+
+    def __init__(self, mol):
+        self.mol = mol
+        self.conformer = mol.GetConformer()
+        self.bonds = self.mol.GetBonds()
+
+        atoms = [self.conformer.GetAtomPosition(i) for i in range(0, self.conformer.GetNumAtoms())]
+        atom_centers = [[atom.x, atom.y, atom.z] for atom in atoms]
+
+        self.kd_tree = KDTree(atom_centers)
+
+    def _intersection(self, bondA, bondB):
+        """
+        True if two bonds collide, false otherwise. Note that false is
+        retrieved even in case the bonds share common atom, as this is
+        not a problem case. Cramer's rule is used for the linear
+        equations system.
+
+        Args:
+            bondA (rdkit.Chem.rdchem.Bond): this bond
+            bondB (rdkit.Chem.rdchem.Bond): other bond
+
+        Returns:
+            bool: true if bonds share collide, false otherwise.
+        """
+        atoms = [bondA.GetBeginAtom(), bondA.GetEndAtom(), bondB.GetBeginAtom(), bondB.GetEndAtom()]
+        names = [a.GetProp('name') for a in atoms]
+        points = [self.conformer.GetAtomPosition(a.GetIdx()) for a in atoms]
+
+        vecA = Geometry.Point2D(points[1].x - points[0].x, points[1].y - points[0].y)
+        vecB = Geometry.Point2D(points[3].x - points[2].x, points[3].y - points[2].y)
+
+        # we need to set up directions of the vectors properly in case
+        # there is a common atom. So we identify angles correctly
+        # e.g. B -> A; B -> C and not A -> B; C -> B.
+        if len(set(names)) == 3:
+            angle = self.__get_angle(names, vecA, vecB)
+            return angle < 10.0
+
+        # Cramer's rule to identify intersection
+        det = vecA.x * -vecB.y + vecA.y * vecB.x
+        if round(det, 2) == 0.00:
+            return False
+
+        a = points[2].x - points[0].x
+        b = points[2].y - points[0].y
+
+        detP = (a * -vecB.y) - (b * -vecB.x)
+        p = round(detP / det, 3)
+
+        if (p < 0 or p > 1):
+            return False
+
+        detR = (vecA.x * b) - (vecA.y * a)
+        r = round(detR / det, 3)
+
+        if 0 <= r <= 1:
+            return True
+
+        return False
+
+    def __find_element_with_max_occurrence(self, array):
+        """Find element with most occurrences in the list
+
+        Args:
+            array (list of str): Array to be searched
+
+        Returns:
+            str: Value with most occurrences in the list
+        """
+        temp = {}
+        for i in array:
+            if i in temp:
+                temp[i] += 1
+            else:
+                temp[i] = 1
+
+        max_occur = max(temp.values())
+
+        for k, v in temp.items():
+            if v == max_occur:
+                return k
+
+        return ''
+
+    def __get_angle(self, names, vecA, vecB):
+        """Get the size of the angle formed by two bonds which share
+        common atom.
+
+        Args:
+            names (list of str): List of atom names forming bonds
+                [A, B, C, D] for AB and CD.
+            vecA (Geometry.Point2D): Vector representing AB bond.
+            vecB (Geometry.Point2D): Vector representing CD bond.
+
+        Returns:
+            float: Size of the angle in degrees.
+        """
+        pivot = self.__find_element_with_max_occurrence(names)
+
+        if names[0] != pivot:  # Atoms needs to be order to pick vectors correctly
+            vecA = vecA * -1
+
+        if names[2] != pivot:
+            vecB = vecB * -1
+
+        radians = vecA.AngleTo(vecB)
+        angle = 180 / math.pi * radians
+
+        return angle
+
+    def has_degenerated_atom_positions(self, threshold):
+        """
+        Detects whether the structure has a pair or atoms closer to each
+        other than threshold. This can detect structures which may need
+        a template as they can be handled by RDKit correctly.
+
+        Arguments:
+            threshold (float): Bottom line to use for spatial search.
+
+        Returns:
+            (bool): if such atomic pair is found
+        """
+
+        for i in range(0, len(self.conformer.GetNumAtoms())):
+            center = self.conformer.GetAtomPosition(i)
+            point = [center.x, center.y, center.z]
+            surrounding = self.kd_tree.query_ball_point(point, threshold)
+
+            if len(surrounding) > 1:
+                return True
+
+        return False
+
+    def count_suboptimal_atom_positions(self, lowerBound, upperBound):
+        """
+        Detects whether the structure has a pair or atoms in the range
+        <lowerBound, upperBound> meaning that the depiction could
+        be improved.
+
+        Arguments:
+            lowerBound (float): lower bound
+            upperBound (float): upper bound
+
+        Returns:
+            bool: indication whether or not the atoms are not in
+            optimal coordinates
+        """
+        counter = 0
+        for i in range(self.conformer.GetNumAtoms()):
+            center = self.conformer.GetAtomPosition(i)
+            point = [center.x, center.y, center.z]
+            surroundingLow = self.kd_tree.query_ball_point(point, lowerBound)
+            surroundingHigh = self.kd_tree.query_ball_point(point, upperBound)
+
+            if len(surroundingHigh) - len(surroundingLow) > 0:
+                counter += 1
+
+        return counter / 2
+
+    def count_bond_collisions(self):
+        """
+        Counts number of collisions among all bonds. Can be used for estimations of how 'wrong'
+        the depiction is.
+
+        Returns:
+            int: number of bond collisions per molecule
+        """
+
+        errors = 0
+
+        for i in range(0, len(self.bonds)):
+            for a in range(i + 1, len(self.bonds)):
+                result = self._intersection(self.bonds[i], self.bonds[a])
+
+                if result:
+                    errors += 1
+        return errors
+
+    def has_bond_crossing(self):
+        """
+        Tells if the structure contains collisions
+
+        Returns:
+            bool: Indication about bond collisions
+        """
+        return self.count_bond_collisions() > 0
+
+    def depiction_score(self):
+        """
+        Calculate quality of the ligand depiction. The higher the worse.
+        Ideally that should be 0.
+
+        Returns:
+            float: Penalty score.
+        """
+
+        collision_penalty = 1
+        degenerated_penalty = 0.4
+
+        bond_collisions = self.count_bond_collisions()
+        degenerated_atoms = self.count_suboptimal_atom_positions(0.0, 0.5)
+
+        score = collision_penalty * bond_collisions + degenerated_penalty * degenerated_atoms
+
+        return round(score, 1)

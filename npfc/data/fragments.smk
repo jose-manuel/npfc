@@ -60,9 +60,11 @@ rule DEPICT:
 rule DEDUPL:
     priority: 101
     input: "{WD}/02_std/data/{prefix}_std.csv.gz"
-    output: "{WD}/03_dedupl/data/{prefix}_dedupl.csv.gz"
+    output:
+        passed = "{WD}/03_dedupl/data/{prefix}_dedupl.csv.gz",
+        filtered = "{WD}/03_dedupl/log/{prefix}_filtered.csv.gz"
     log: "{WD}/03_dedupl/log/{prefix}_dedupl.log"
-    shell: "mols_dedupl {input} {output} -r " + "{WD}/03_dedupl/{prefix}_ref.hdf --log DEBUG 2>{log}"
+    shell: "mols_dedupl {input} {output.passed} -d {output.filtered} -r {WD}/03_dedupl/{prefix}_ref.hdf 2>{log}"
 
 rule STD_MURCKO:
     priority: 102
