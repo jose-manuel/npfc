@@ -21,6 +21,7 @@ import npfc
 from npfc import load
 from npfc import save
 from npfc import utils
+from npfc import fragment_graph
 # disable SettingWithCopyWarning warnings
 pd.options.mode.chained_assignment = None  # default='warn'
 
@@ -132,42 +133,61 @@ def main():
     logger.info("OUT_FORMAT".ljust(pad) + f"{out_format}")
     logger.info("OUT_COMPRESSION".ljust(pad) + f"{out_compression}")
     logger.info("LOG".ljust(pad) + f"{args.log}")
+    d1 = datetime.now()
 
     # begin
     logger.info("BEGIN")
 
     # load map
-    logger.info("LOADING FRAGMENT MAPS")
-    d1 = datetime.now()
-    df_map = load.file(args.input_map, decode=True)
-    print(df_map.head(1))
-    # df_map.drop("Unnamed: 0", axis=1, inplace=True)
-    logger.info(f"FOUND {len(df_map.index)} FRAGMENT MAPS")
+    logger.info("LOADING FRAGMENT GRAPHS")
+    df_fgraph = load.file(args.input_map, decode=True)
+    n_fragment_graphs = len(df_fgraph.index)
+    logger.info(f"FOUND {n_fragment_graphs:,} FRAGMENT GRAPHS")
+    d2 = datetime.now()
+
+    # avoid crash due to groupby method on empty dataframe
+    if n_fragment_graphs < 1:
+        logger.warning("NO FRAGMENT GRAPHS TO WORK WITH, ABORTING NOW. EMPTY OUTPUT FILE IS GENERATED FOR PIPELINE HANDLING.")
+        df_fgraph = pd.DataFrame(columns=fragment_graph.DF_PNP_COLS)
+        # saving results
+        logger.info("SAVING RESULTS")
+        d5 = datetime.now()
+        logger.info(f"SAVING PNP RESULTS AT '{args.output_map}'")
+        save.file(df_fgraph, args.output_map, encode=True)
+        # end
+        d6 = datetime.now()
+        logger.info("SUMMARY")
+        logger.info("COMPUTATIONAL TIME: CONFIGURING JOB".ljust(pad * 2) + f"{d1-d0}")
+        logger.info("COMPUTATIONAL TIME: LOADING INPUT FRAGMENT GRAPHS".ljust(pad * 2) + f"{d2-d1}")
+        logger.info("COMPUTATIONAL TIME: SAVING ANNOTATED FRAGMENT GRAPHS".ljust(pad * 2) + f"{d5-d2}")
+        logger.info("COMPUTATIONAL TIME: DISPLAYING RESULTS".ljust(pad * 2) + f"{d6-d5}")
+        logger.info("COMPUTATIONAL TIME: TOTAL".ljust(pad * 2) + f"{d6-d0}")
+        logger.info("END")
+        return None
 
     # load map_refs
-    logger.info("LOADING ALL REFERENCE FRAGMENT MAPS")
-    d2 = datetime.now()
-    df_map_ref = pd.concat([load.file(x) for x in ref_files])
-    # df_map_ref.drop("Unnamed: 0", axis=1, inplace=True)
-    logger.info(f"FOUND {len(df_map_ref.index)} REFERENCE FRAGMENT MAPS")
-    logger.info(f"EXTRACTING EDGES FROM FRAGMENT MAPS")
-    df_map_ref["edges_ref"] = df_map_ref["_fgraph"].map(lambda x: x.edges(data="abbrev"))
+    logger.info("LOADING ALL REFERENCE FRAGMENT GRAPHS")
+    df_fgraph_ref = pd.concat([load.file(x) for x in ref_files])
+    # df_fgraph_ref.drop("Unnamed: 0", axis=1, inplace=True)
+    logger.info(f"FOUND {len(df_fgraph_ref.index):,} REFERENCE FRAGMENT GRAPHS")
+    logger.info("EXTRACTING EDGES FROM FRAGMENT GRAPHS")
+    df_fgraph_ref["edges_ref"] = df_fgraph_ref["_fgraph"].map(lambda x: x.edges(data="abbrev"))
 
     # mapping fragment combinations
-    logger.info(f"ANNOTATING FRAGMENT MAPS")
+    logger.info("ANNOTATING FRAGMENT GRAPHS")
     d3 = datetime.now()
-    df_map["pnp_fm"] = label_pnp_maps(df_map, df_map_ref)
+    df_fgraph["pnp_fm"] = label_pnp_maps(df_fgraph, df_fgraph_ref)
 
-    logger.info(f"DISPLAYING RESULTS")
+    logger.info("DISPLAYING RESULTS")
     d4 = datetime.now()
     # pnps
-    df_pnps = df_map[df_map["pnp_fm"]].groupby("idm").first().reset_index()[["idm"]]
+    df_pnps = df_fgraph[df_fgraph["pnp_fm"]].groupby("idm").first().reset_index()[["idm"]]
     logger.info("=" * pad)
     logger.info(f"LIST OF PNPs ({len(df_pnps.index)})".center(pad))
     logger.info("=" * pad)
     [logger.info(f"PNP: {df_pnps.iat[i, 0]}") for i in range(len(df_pnps.index))]
     # others
-    df_others = df_map[~df_map["idm"].isin(df_pnps['idm'])].groupby("idm").first().reset_index()[["idm"]]
+    df_others = df_fgraph[~df_fgraph["idm"].isin(df_pnps['idm'])].groupby("idm").first().reset_index()[["idm"]]
     logger.info("=" * pad)
     logger.info(f"LIST OF NON-PNPs ({len(df_others.index)})".center(pad))
     logger.info("=" * pad)
@@ -176,22 +196,22 @@ def main():
 
     # curating results
     logger.info("CURATING RESULTS")
-    df_map['pnp_mol'] = df_map.groupby('idm').apply(_label_pnp_mols)['pnp_mol']  # cringy but works.... ok for now...
+    df_fgraph['pnp_mol'] = df_fgraph.groupby('idm').apply(_label_pnp_mols)['pnp_mol']  # cringy but works.... ok for now...
 
     # saving results
     logger.info("SAVING RESULTS")
     d5 = datetime.now()
     logger.info(f"SAVING PNP RESULTS AT '{args.output_map}'")
-    save.file(df_map, args.output_map, encode=True)
+    save.file(df_fgraph, args.output_map, encode=True)
 
     # end
     d6 = datetime.now()
     logger.info("SUMMARY")
     logger.info("COMPUTATIONAL TIME: CONFIGURING JOB".ljust(pad * 2) + f"{d1-d0}")
-    logger.info("COMPUTATIONAL TIME: LOADING INPUT FRAGMENT MAPS".ljust(pad * 2) + f"{d2-d1}")
-    logger.info("COMPUTATIONAL TIME: LOADING REFERENCE FRAGMENT MAPS".ljust(pad * 2) + f"{d3-d2}")
-    logger.info("COMPUTATIONAL TIME: ANNOTATING FRAGMENT MAPS".ljust(pad * 2) + f"{d4-d3}")
-    logger.info("COMPUTATIONAL TIME: SAVING ANNOTATED FRAGMENT MAPS".ljust(pad * 2) + f"{d5-d4}")
+    logger.info("COMPUTATIONAL TIME: LOADING INPUT FRAGMENT GRAPHS".ljust(pad * 2) + f"{d2-d1}")
+    logger.info("COMPUTATIONAL TIME: LOADING REFERENCE FRAGMENT GRAPHS".ljust(pad * 2) + f"{d3-d2}")
+    logger.info("COMPUTATIONAL TIME: ANNOTATING FRAGMENT GRAPHS".ljust(pad * 2) + f"{d4-d3}")
+    logger.info("COMPUTATIONAL TIME: SAVING ANNOTATED FRAGMENT GRAPHS".ljust(pad * 2) + f"{d5-d4}")
     logger.info("COMPUTATIONAL TIME: DISPLAYING RESULTS".ljust(pad * 2) + f"{d6-d5}")
     logger.info("COMPUTATIONAL TIME: TOTAL".ljust(pad * 2) + f"{d6-d0}")
     logger.info("END")

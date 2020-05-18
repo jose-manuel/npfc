@@ -1,3 +1,11 @@
 {
-    "tasks": ["filter_empty", "keep_best", "sanitize", "clear_isotopes", "normalize", "uncharge", "canonicalize", "clear_stereo", "extract_murcko"]
+    "tasks": ["filter_empty",
+              "keep_best",
+              "sanitize",
+              "clear_isotopes",
+              "normalize",
+              "uncharge",
+              "canonicalize",
+              "clear_stereo",
+              "extract_murcko"]
 }

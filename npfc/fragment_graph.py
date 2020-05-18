@@ -24,6 +24,34 @@ from npfc import draw
 from npfc import utils
 
 
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ GLOBALS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+# for computing fragment graphs
+DF_FG_COLS = ['idm',
+              'fmid',
+              'nfrags',
+              'nfrags_u',
+              'ncomb',
+              'ncomb_u',
+              'hac_mol',
+              'hac_frags',
+              'perc_mol_cov_frags',
+              'frags',
+              'frags_u',
+              'comb',
+              'comb_u',
+              'fgraph_str',
+              '_d_aidxs',
+              '_colormap',
+              '_fgraph',
+              'mol',
+              '_d_mol_frags',
+              ]
+
+# for annotating fragment graphs with PNP
+DF_PNP_COLS = DF_FG_COLS + ['pnp_fm', 'pnp_mol']
+
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 
@@ -336,6 +364,6 @@ def generate(df_fcc: DataFrame, min_frags: int = 2, max_frags: int = 5, max_over
             ds_map.append({'idm': gid, 'fmid': str(i+1).zfill(3), 'nfrags': nfrags, 'nfrags_u': nfrags_u, 'ncomb': ncomb, 'ncomb_u': ncomb_u, 'hac_mol': hac_mol, 'hac_frags': hac_frags, 'perc_mol_cov_frags': perc_mol_cov_frags, 'frags': frags, 'frags_u': frags_u, 'comb': comb, 'comb_u': comb_u, 'fgraph_str': fragment_graph_str, '_d_aidxs': d_aidxs, '_colormap': colormap, '_fgraph': graph, 'mol': mol, '_d_mol_frags': d_frags})
 
     # concatenate all together
-    df_fg = DataFrame(ds_map, columns=['idm', 'fmid', 'nfrags', 'nfrags_u', 'ncomb', 'ncomb_u', 'hac_mol', 'hac_frags', 'perc_mol_cov_frags', 'frags', 'frags_u', 'comb', 'comb_u', 'fgraph_str', '_d_aidxs', '_colormap', '_fgraph', 'mol', '_d_mol_frags']).drop_duplicates(subset=['fgraph_str'])
+    df_fg = DataFrame(ds_map, columns=DF_FG_COLS).drop_duplicates(subset=['fgraph_str'])
     df_fg['fmid'] = df_fg.groupby('idm').cumcount().map(lambda x: str(x+1).zfill(3))
     return df_fg
