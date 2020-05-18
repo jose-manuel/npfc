@@ -46,7 +46,6 @@ from typing import Dict
 # dev
 from npfc import utils
 # tmp
-from pdbeccdutils.utils import config
 from rdkit import Chem, Geometry
 from rdkit.Chem import AllChem, rdCoordGen
 from scipy.spatial import KDTree
