@@ -70,9 +70,11 @@ rule all:
 rule PNP:
     priority: 0
     input: "{WD}" + f"/{natref_subdir}/{frags_subdir}" + "/09_fgraph/data/{prefix}_{cid}_fgraph.csv.gz"
-    output: "{WD}" + f"/{natref_subdir}/{frags_subdir}" + "/10_pnp/data/{prefix}_{cid}_pnp.csv.gz"
+    output:
+        fgraphs = "{WD}" + f"/{natref_subdir}/{frags_subdir}" + "/10_pnp/data/{prefix}_{cid}_pnp.csv.gz",
+        list_pnps = "{WD}" + f"/{natref_subdir}/{frags_subdir}" + "/10_pnp/log/{prefix}_{cid}_list_pnp.csv.gz"
     log: "{WD}" + f"/{natref_subdir}/{frags_subdir}" + "/10_pnp/log/{prefix}_{cid}_pnp.log"
-    shell: "fgraph_annotate_pnp {input} {natref_fgraph_dir} {output} >{log} 2>&1"
+    shell: "fgraph_annotate_pnp {input} {natref_fgraph_dir} {output.fgraphs} -l {output.list_pnps} >{log} 2>&1"
 
 rule FGRAPH:
     priority: 1

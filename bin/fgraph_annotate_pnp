@@ -94,7 +94,8 @@ def main():
     parser = argparse.ArgumentParser(description=description, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('input_map', type=str, default=None, help="Fragment Map file to annotate")
     parser.add_argument('ref_dir', type=str, default=None, help="Directory with Fragment Map files to use as references (currently wiht syntax: <name>_map.csv.gz)")
-    parser.add_argument('output_map', type=str, default=None, help="Output file basename. It gets appended with the type of output being produced: raw, clean and map.")
+    parser.add_argument('output_map', type=str, default=None, help="Output file for annoated fragment graphs.")
+    parser.add_argument('-l', '--list-pnp-mols', type=str, default=None, help="Output file with the list of molecules labelled as PNP or not. It is useful to avoid loading the whole dataset just to count the proportion of PNP/non-PNP molecules.")
     parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
     args = parser.parse_args()
 
@@ -107,6 +108,8 @@ def main():
     # parse arguments
     utils.check_arg_input_file(args.input_map)
     utils.check_arg_output_file(args.output_map)
+    if args.list_pnp_mols is not None:
+        utils.check_arg_output_file(args.list_pnp_mols)
     input_format, input_compression = utils.get_file_format(args.input_map)
     out_format, out_compression = utils.get_file_format(args.output_map)
 
@@ -132,6 +135,7 @@ def main():
     logger.info("OUTPUT_MAP".ljust(pad) + f"{args.output_map}")
     logger.info("OUT_FORMAT".ljust(pad) + f"{out_format}")
     logger.info("OUT_COMPRESSION".ljust(pad) + f"{out_compression}")
+    logger.info("LIST_PNP_MOLS".ljust(pad) + f"{args.list_pnp_mols}")
     logger.info("LOG".ljust(pad) + f"{args.log}")
     d1 = datetime.now()
 
@@ -154,12 +158,16 @@ def main():
         d5 = datetime.now()
         logger.info(f"SAVING PNP RESULTS AT '{args.output_map}'")
         save.file(df_fgraph, args.output_map, encode=True)
+
+        if args.list_pnp_mols is not None:
+            save.file(pd.DataFrame(columns=['idm', 'pnp_mol']), args.list_pnp_mols)
+
         # end
         d6 = datetime.now()
         logger.info("SUMMARY")
         logger.info("COMPUTATIONAL TIME: CONFIGURING JOB".ljust(pad * 2) + f"{d1-d0}")
         logger.info("COMPUTATIONAL TIME: LOADING INPUT FRAGMENT GRAPHS".ljust(pad * 2) + f"{d2-d1}")
-        logger.info("COMPUTATIONAL TIME: SAVING ANNOTATED FRAGMENT GRAPHS".ljust(pad * 2) + f"{d5-d2}")
+        logger.info("COMPUTATIONAL TIME: SAVING EMPTY OUTPUT".ljust(pad * 2) + f"{d5-d2}")
         logger.info("COMPUTATIONAL TIME: DISPLAYING RESULTS".ljust(pad * 2) + f"{d6-d5}")
         logger.info("COMPUTATIONAL TIME: TOTAL".ljust(pad * 2) + f"{d6-d0}")
         logger.info("END")
@@ -180,19 +188,16 @@ def main():
 
     logger.info("DISPLAYING RESULTS")
     d4 = datetime.now()
-    # pnps
-    df_pnps = df_fgraph[df_fgraph["pnp_fm"]].groupby("idm").first().reset_index()[["idm"]]
-    logger.info("=" * pad)
-    logger.info(f"LIST OF PNPs ({len(df_pnps.index)})".center(pad))
-    logger.info("=" * pad)
-    [logger.info(f"PNP: {df_pnps.iat[i, 0]}") for i in range(len(df_pnps.index))]
-    # others
-    df_others = df_fgraph[~df_fgraph["idm"].isin(df_pnps['idm'])].groupby("idm").first().reset_index()[["idm"]]
-    logger.info("=" * pad)
-    logger.info(f"LIST OF NON-PNPs ({len(df_others.index)})".center(pad))
-    logger.info("=" * pad)
-    [logger.info(f"NON-PNP: {df_others.iat[i, 0]}") for i in range(len(df_others.index))]
-    logger.info("=" * pad)
+    # pnp mols
+    df_pnps = df_fgraph[df_fgraph["pnp_fm"]].groupby("idm").first().reset_index()[["idm"]].sort_values('idm')
+    df_pnps['pnp_mol'] = True
+    df_others = df_fgraph[~df_fgraph["idm"].isin(df_pnps['idm'])].groupby("idm").first().reset_index()[["idm"]].sort_values('idm')
+    df_pnps['pnp_mol'] = False
+
+    if args.list_pnp_mols is not None:
+        save.file(pd.concat([df_pnps, df_others]), args.list_pnp_mols)
+    logger.info("NUMBER OF PNP MOLS".ljust(pad) + f"{len(df_pnps.index):,}")
+    logger.info("NUMBER OF NON-PNP MOLS".ljust(pad) + f"{len(df_others.index):,}")
 
     # curating results
     logger.info("CURATING RESULTS")
