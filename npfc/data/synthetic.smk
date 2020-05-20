@@ -56,7 +56,7 @@ natref_subdir = "natref_" + Path(natref).stem.split('.')[0]  # subfolder where o
 natref_dedupl_dir = list(Path(f"{natref}/data").glob("[0-9][0-9]_dedupl"))[0]
 natref_dedupl_reffile = list(natref_dedupl_dir.glob('*.hdf'))[0]
 # natref fg - for pnp
-natref_fgraph_dir = [str(x) for x in Path(f"{natref}/data/{frags_subdir}").glob("[0-9][0-9]_fgraph")][0] + '/data'
+natref_fcg_dir = [str(x) for x in Path(f"{natref}/data/{frags_subdir}").glob("[0-9][0-9]_fcg")][0] + '/data'
 # define chunk_ids for wildcard expansion
 chunk_ids = [str(i+1).zfill(3) for i in range(num_chunks)]
 
@@ -69,19 +69,19 @@ rule all:
 
 rule PNP:
     priority: 0
-    input: "{WD}" + f"/{natref_subdir}/{frags_subdir}" + "/09_fgraph/data/{prefix}_{cid}_fgraph.csv.gz"
+    input: "{WD}" + f"/{natref_subdir}/{frags_subdir}" + "/09_fcg/data/{prefix}_{cid}_fcg.csv.gz"
     output:
         fgraphs = "{WD}" + f"/{natref_subdir}/{frags_subdir}" + "/10_pnp/data/{prefix}_{cid}_pnp.csv.gz",
         list_pnps = "{WD}" + f"/{natref_subdir}/{frags_subdir}" + "/10_pnp/log/{prefix}_{cid}_list_pnp.csv.gz"
     log: "{WD}" + f"/{natref_subdir}/{frags_subdir}" + "/10_pnp/log/{prefix}_{cid}_pnp.log"
-    shell: "fgraph_annotate_pnp {input} {natref_fgraph_dir} {output.fgraphs} -l {output.list_pnps} >{log} 2>&1"
+    shell: "fcg_annotate_pnp {input} {natref_fcg_dir} {output.fgraphs} -l {output.list_pnps} >{log} 2>&1"
 
-rule FGRAPH:
+rule FCG:
     priority: 1
     input: "{WD}" + f"/{natref_subdir}/{frags_subdir}" + "/08_fcc/data/{prefix}_{cid}_fcc.csv.gz"
-    output: "{WD}" + f"/{natref_subdir}/{frags_subdir}" + "/09_fgraph/data/{prefix}_{cid}_fgraph.csv.gz"
-    log: "{WD}" + f"/{natref_subdir}/{frags_subdir}" + "/09_fgraph/log/{prefix}_{cid}_fgraph.log"
-    shell: "fgraph_generate {input} {output} --min-frags 2 --max-frags 9999 --max-overlaps 5 >{log} 2>&1"
+    output: "{WD}" + f"/{natref_subdir}/{frags_subdir}" + "/09_fcg/data/{prefix}_{cid}_fcg.csv.gz"
+    log: "{WD}" + f"/{natref_subdir}/{frags_subdir}" + "/09_fcg/log/{prefix}_{cid}_fcg.log"
+    shell: "fcg_generate {input} {output} --min-frags 2 --max-frags 9999 --max-overlaps 5 >{log} 2>&1"
 
 rule FCC:
     priority: 2

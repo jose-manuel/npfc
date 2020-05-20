@@ -1,7 +1,7 @@
 """
-tests.test_fragment_graph
-=======================
-Tests for the npfc.fragment_graph module.
+tests.test_fragment_combination_graph
+=======================================
+Tests for the npfc.fragment_combination_graph module.
 """
 
 # data handling
@@ -11,7 +11,7 @@ from rdkit import Chem
 # tests
 import pytest
 # dev
-from npfc import fragment_graph
+from npfc import fragment_combination_graph
 # debug
 import logging
 logging.basicConfig(level=logging.INFO)
@@ -39,7 +39,7 @@ mol_o9 = Chem.MolFromSmiles('OC1CCC1')
 
 @pytest.fixture
 def df_fc_simple():
-    """Simplest scenario case with a map of 3 fragments."""
+    """Simplest scenario case with a fcg of 3 fragments."""
     mol = Chem.MolFromSmiles('C(C1CCSCC1)C1CCC(CN1)C1CCCOC1')
     return DataFrame([
                       ['mol_cmo', 'QA', 0, 'QA:0', 'QB', 0, 'QB:0', 'cmo', 'connection', 'monopodal', '', [8, 9, 10, 11, 12, 7], [14, 13, 18, 17, 16, 15], 11, mol, mol_qa, mol_qb, 'QA:0@2[cm]QB:0@1'],
@@ -49,7 +49,7 @@ def df_fc_simple():
 
 @pytest.fixture
 def df_fc_redundant():
-    """Scenario case with a map of 2 redundant fragments ."""
+    """Scenario case with a fcg of 2 redundant fragments ."""
     mol = Chem.MolFromSmiles('C1CCC(NC1)C1CCCNC1')
     return DataFrame([
                       ['mol_fc_redundant', 'QA', 0, 'QA:0', 'QA', 1, 'QA:1', 'cmo', 'connection', 'monopodal', '', [0, 1, 2, 3, 4, 5], [6, 7, 8, 9, 10, 11], 10, mol, mol_qa, mol_qa, 'QA:0@3[cm]QA:1@0'],
@@ -58,7 +58,7 @@ def df_fc_redundant():
 
 @pytest.fixture
 def df_fc_circular():
-    """Scenario case with a circular map."""
+    """Scenario case with a circular fcg."""
     mol = Chem.MolFromSmiles('C1COCC(C1)C(C1CCNCC1)C1CCCSC1')
     return DataFrame([
                       ['mol_fc_circular', 'QA', 0, 'QA:0', 'QB', 0, 'QB:0', 'cmo', 'connection', 'monopodal', '', (8, 7, 12, 11, 10, 9), (5, 4, 3, 2, 1, 0), 20, mol, mol_qa, mol_qb, 'QA:0@1[cm]QB:0@1'],
@@ -69,7 +69,7 @@ def df_fc_circular():
 
 @pytest.fixture
 def df_fc_independant():
-    """Scenario case with 2 independant submaps."""
+    """Scenario case with 2 independant subfcgs."""
     mol = Chem.MolFromSmiles('C(CCC1CSC2CCCCC2C1)CC1COCC(CC2CCCNC2)C1')
     return DataFrame([
                       ['mol_fc_independant', 'QA', 0, 'QA:0', 'QB', 0, 'QB:0', 'cmo', 'connection', 'monopodal', '', (20, 21, 22, 23, 24, 25), (26, 18, 17, 16, 15, 14), 26, mol, mol_qa, mol_qb, 'QA:0@0[cm]QB:0@1'],
@@ -209,130 +209,130 @@ def df_fc_overlap_9():
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ TESTS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 
-def test_map_fc_simple(df_fc_simple):
+def test_fcg_fc_simple(df_fc_simple):
     """Compute a fragment graph from fragment combinations"""
     # default: 3 <= n <= 5
-    df_map = fragment_graph.generate(df_fc_simple)
-    result = df_map.iloc[0]
-    assert result['fgraph_str'] == 'QA:0@2[cm]QB:0@1-QA:0@5[cm]QC:0@0' and result['nfrags_u'] == 3
+    df_fcg = fragment_combination_graph.generate(df_fc_simple)
+    result = df_fcg.iloc[0]
+    assert result['fcg_str'] == 'QA:0@2[cm]QB:0@1-QA:0@5[cm]QC:0@0' and result['nfrags_u'] == 3
     # when n > max (2)
-    df_map = fragment_graph.generate(df_fc_simple, max_frags=2)
-    assert len(df_map.index) == 0
+    df_fcg = fragment_combination_graph.generate(df_fc_simple, max_frags=2)
+    assert len(df_fcg.index) == 0
     # when n < min (4)
-    df_map = fragment_graph.generate(df_fc_simple, min_frags=4)
-    assert len(df_map.index) == 0
+    df_fcg = fragment_combination_graph.generate(df_fc_simple, min_frags=4)
+    assert len(df_fcg.index) == 0
 
 
-def test_map_fc_redundant(df_fc_redundant):
+def test_fcg_fc_redundant(df_fc_redundant):
     """Compute a fragment graph from fragment combinations with multiple occurrences from a same fragment"""
-    df_map = fragment_graph.generate(df_fc_redundant)
-    result = df_map.iloc[0]
-    assert result['fgraph_str'] == 'QA:0@3[cm]QA:1@0' and result['nfrags'] == 2 and result['nfrags_u'] == 1
+    df_fcg = fragment_combination_graph.generate(df_fc_redundant)
+    result = df_fcg.iloc[0]
+    assert result['fcg_str'] == 'QA:0@3[cm]QA:1@0' and result['nfrags'] == 2 and result['nfrags_u'] == 1
 
 
-def test_map_fc_circular(df_fc_circular):
+def test_fcg_fc_circular(df_fc_circular):
     """Compute a circular fragment graph from fragment combination"""
-    df_map = fragment_graph.generate(df_fc_circular)
-    result = df_map.iloc[0]
-    assert result['fgraph_str'] == 'QA:0@1[cm]QB:0@1-QA:0@1[cm]QC:0@1-QB:0@1[cm]QC:0@1' and result['nfrags'] == 3 and result['nfrags_u'] == 3
+    df_fcg = fragment_combination_graph.generate(df_fc_circular)
+    result = df_fcg.iloc[0]
+    assert result['fcg_str'] == 'QA:0@1[cm]QB:0@1-QA:0@1[cm]QC:0@1-QB:0@1[cm]QC:0@1' and result['nfrags'] == 3 and result['nfrags_u'] == 3
 
 
-def test_map_fc_independant(df_fc_independant):
+def test_fcg_fc_independant(df_fc_independant):
     """Compute 2 fragment graphs from 2 independent fragment combinations """
-    df_map = fragment_graph.generate(df_fc_independant)
-    assert len(df_map.index) == 2
-    result1 = df_map.iloc[0]
-    assert result1['fgraph_str'] == 'QA:0@0[cm]QB:0@1' and result1['nfrags'] == 2 and result1['nfrags_u'] == 2
-    result2 = df_map.iloc[1]
-    assert result2['fgraph_str'] == 'QC:0@1,2[fe]QD:0@0,5' and result2['nfrags'] == 2 and result2['nfrags_u'] == 2
+    df_fcg = fragment_combination_graph.generate(df_fc_independant)
+    assert len(df_fcg.index) == 2
+    result1 = df_fcg.iloc[0]
+    assert result1['fcg_str'] == 'QA:0@0[cm]QB:0@1' and result1['nfrags'] == 2 and result1['nfrags_u'] == 2
+    result2 = df_fcg.iloc[1]
+    assert result2['fcg_str'] == 'QC:0@1,2[fe]QD:0@0,5' and result2['nfrags'] == 2 and result2['nfrags_u'] == 2
 
 
-def test_map_fc_overlap_1(df_fc_overlap_1):
+def test_fcg_fc_overlap_1(df_fc_overlap_1):
     """Split 2 overlapping fragments that result in no fragment graphs"""
-    df_map = fragment_graph.generate(df_fc_overlap_1)
-    assert len(df_map.index) == 0
+    df_fcg = fragment_combination_graph.generate(df_fc_overlap_1)
+    assert len(df_fcg.index) == 0
 
 
-def test_map_fc_overlap_2(df_fc_overlap_2):
+def test_fcg_fc_overlap_2(df_fc_overlap_2):
     """Split 2 overlapping fragments that result in 2 fragment graphs"""
-    df_map = fragment_graph.generate(df_fc_overlap_2)
-    assert len(df_map.index) == 2
-    assert sorted(list(df_map['fgraph_str'].values)) == ['O1:0@4[cm]O3:0@0',
-                                                         'O2:0@3[cm]O3:0@0'
-                                                         ]
+    df_fcg = fragment_combination_graph.generate(df_fc_overlap_2)
+    assert len(df_fcg.index) == 2
+    assert sorted(list(df_fcg['fcg_str'].values)) == ['O1:0@4[cm]O3:0@0',
+                                                      'O2:0@3[cm]O3:0@0'
+                                                      ]
 
 
-def test_map_fc_overlap_3(df_fc_overlap_3):
+def test_fcg_fc_overlap_3(df_fc_overlap_3):
     """Split 2 overlapping fragments that result in longer 2 fragment graphs"""
-    df_map = fragment_graph.generate(df_fc_overlap_3)
-    assert len(df_map.index) == 2
-    assert sorted(list(df_map['fgraph_str'].values)) == ['O6:0@2[cm]O7:0@0-O1:0@4[cm]O6:0@0',
-                                                         'O6:0@2[cm]O7:0@0-O2:0@3[cm]O6:0@0'
-                                                         ]
+    df_fcg = fragment_combination_graph.generate(df_fc_overlap_3)
+    assert len(df_fcg.index) == 2
+    assert sorted(list(df_fcg['fcg_str'].values)) == ['O6:0@2[cm]O7:0@0-O1:0@4[cm]O6:0@0',
+                                                      'O6:0@2[cm]O7:0@0-O2:0@3[cm]O6:0@0'
+                                                      ]
 
 
-def test_map_fc_overlap_4(df_fc_overlap_4):
+def test_fcg_fc_overlap_4(df_fc_overlap_4):
     """Split 2x2 overlapping fragments that result in 0 fragment graphs"""
-    df_map = fragment_graph.generate(df_fc_overlap_4)
-    assert len(df_map.index) == 0
+    df_fcg = fragment_combination_graph.generate(df_fc_overlap_4)
+    assert len(df_fcg.index) == 0
 
 
-def test_map_fc_overlap_5(df_fc_overlap_5):
+def test_fcg_fc_overlap_5(df_fc_overlap_5):
     """Split 2x2 overlapping fragments that result in 4 fragment graphs"""
-    df_map = fragment_graph.generate(df_fc_overlap_5)
-    assert len(df_map.index) == 4
+    df_fcg = fragment_combination_graph.generate(df_fc_overlap_5)
+    assert len(df_fcg.index) == 4
     # test each of the fgraphs
-    # for i in range(len(df_map.index)):
-    #     print(df_map.iloc[i]['fgraph_str'])
-    assert sorted(list(df_map['fgraph_str'].values)) == ['O1:0@4[cm]O4:0@3',
-                                                         'O1:0@4[cm]O5:0@5',
-                                                         'O2:0@5[cm]O4:0@3',
-                                                         'O2:0@5[cm]O5:0@5',
-                                                         ]
+    # for i in range(len(df_fcg.index)):
+    #     print(df_fcg.iloc[i]['fcg_str'])
+    assert sorted(list(df_fcg['fcg_str'].values)) == ['O1:0@4[cm]O4:0@3',
+                                                      'O1:0@4[cm]O5:0@5',
+                                                      'O2:0@5[cm]O4:0@3',
+                                                      'O2:0@5[cm]O5:0@5',
+                                                      ]
 
 
-def test_map_fc_overlap_6(df_fc_overlap_6):
+def test_fcg_fc_overlap_6(df_fc_overlap_6):
     """Split 2x2 overlapping fragments that result in 4 fragment graphs"""
-    df_map = fragment_graph.generate(df_fc_overlap_6)
-    assert len(df_map.index) == 4
-    assert sorted(list(df_map['fgraph_str'].values)) == ['O6:0@2[cm]O7:0@0-O1:0@4[cm]O5:0@5-O2:0@3[cm]O4:0@3',
-                                                         'O6:0@2[cm]O7:0@0-O1:0@5[cm]O6:0@0-O2:0@3[cm]O4:0@3',
-                                                         'O6:0@2[cm]O7:0@0-O2:0@3[cm]O5:0@5-O2:0@4[cm]O6:0@0',
-                                                         'O6:0@2[cm]O7:0@0-O2:0@4[cm]O6:0@0-O2:0@4[cm]O6:0@0',
-                                                         ]
+    df_fcg = fragment_combination_graph.generate(df_fc_overlap_6)
+    assert len(df_fcg.index) == 4
+    assert sorted(list(df_fcg['fcg_str'].values)) == ['O6:0@2[cm]O7:0@0-O1:0@4[cm]O5:0@5-O2:0@3[cm]O4:0@3',
+                                                      'O6:0@2[cm]O7:0@0-O1:0@5[cm]O6:0@0-O2:0@3[cm]O4:0@3',
+                                                      'O6:0@2[cm]O7:0@0-O2:0@3[cm]O5:0@5-O2:0@4[cm]O6:0@0',
+                                                      'O6:0@2[cm]O7:0@0-O2:0@4[cm]O6:0@0-O2:0@4[cm]O6:0@0',
+                                                      ]
 
 
-def test_map_fc_overlap_7(df_fc_overlap_7):
+def test_fcg_fc_overlap_7(df_fc_overlap_7):
     """Split 3x2 overlapping fragments that result in 3 fragment graphs"""
-    df_map = fragment_graph.generate(df_fc_overlap_7)
-    assert len(df_map.index) == 3
-    assert sorted(list(df_map['fgraph_str'].values)) == ['O1:0@4[cm]O6:0@0',
-                                                         'O2:0@3[cm]O6:0@0',
-                                                         'O3:0@3[cm]O6:0@0',
-                                                         ]
+    df_fcg = fragment_combination_graph.generate(df_fc_overlap_7)
+    assert len(df_fcg.index) == 3
+    assert sorted(list(df_fcg['fcg_str'].values)) == ['O1:0@4[cm]O6:0@0',
+                                                      'O2:0@3[cm]O6:0@0',
+                                                      'O3:0@3[cm]O6:0@0',
+                                                      ]
 
 
-def test_map_fc_overlap_8(df_fc_overlap_8):
+def test_fcg_fc_overlap_8(df_fc_overlap_8):
     """Split 3x2 overlapping fragments that result in 3 longer fragment graphs"""
-    df_map = fragment_graph.generate(df_fc_overlap_8)
-    assert len(df_map.index) == 3
-    assert sorted(list(df_map['fgraph_str'].values)) == ['O6:0@2[cm]O7:0@0-O1:0@4[cm]O6:0@0',
-                                                         'O6:0@2[cm]O7:0@0-O2:0@3[cm]O6:0@0',
-                                                         'O6:0@2[cm]O7:0@0-O3:0@3[cm]O6:0@0',
-                                                         ]
+    df_fcg = fragment_combination_graph.generate(df_fc_overlap_8)
+    assert len(df_fcg.index) == 3
+    assert sorted(list(df_fcg['fcg_str'].values)) == ['O6:0@2[cm]O7:0@0-O1:0@4[cm]O6:0@0',
+                                                      'O6:0@2[cm]O7:0@0-O2:0@3[cm]O6:0@0',
+                                                      'O6:0@2[cm]O7:0@0-O3:0@3[cm]O6:0@0',
+                                                      ]
 
 
-def test_map_fc_overlap_9(df_fc_overlap_9):
+def test_fcg_fc_overlap_9(df_fc_overlap_9):
     """Split 2x2x2 overlapping fragments that result in 8 fragment graphs"""
-    df_map = fragment_graph.generate(df_fc_overlap_9)
-    assert len(df_map.index) == 8
+    df_fcg = fragment_combination_graph.generate(df_fc_overlap_9)
+    assert len(df_fcg.index) == 8
 
-    assert sorted(list(df_map['fgraph_str'].values)) == ['O7:0@2[cm]O7:1@0-O1:0@4[cm]O4:0@3-O4:0@5[cm]O8:0@4-O7:0@0[cm]O8:0@3',
-                                                         'O7:0@2[cm]O7:1@0-O1:0@4[cm]O4:0@3-O4:0@5[cm]O9:0@3-O7:0@0[cm]O9:0@4',
-                                                         'O7:0@2[cm]O7:1@0-O1:0@4[cm]O5:0@2-O5:0@4[cm]O8:0@4-O7:0@0[cm]O8:0@3',
-                                                         'O7:0@2[cm]O7:1@0-O1:0@4[cm]O5:0@2-O5:0@4[cm]O9:0@3-O7:0@0[cm]O9:0@4',
-                                                         'O7:0@2[cm]O7:1@0-O2:0@5[cm]O4:0@3-O4:0@5[cm]O8:0@4-O7:0@0[cm]O8:0@3',
-                                                         'O7:0@2[cm]O7:1@0-O2:0@5[cm]O4:0@3-O4:0@5[cm]O9:0@3-O7:0@0[cm]O9:0@4',
-                                                         'O7:0@2[cm]O7:1@0-O2:0@5[cm]O5:0@2-O5:0@4[cm]O8:0@4-O7:0@0[cm]O8:0@3',
-                                                         'O7:0@2[cm]O7:1@0-O2:0@5[cm]O5:0@2-O5:0@4[cm]O9:0@3-O7:0@0[cm]O9:0@4',
-                                                         ]
+    assert sorted(list(df_fcg['fcg_str'].values)) == ['O7:0@2[cm]O7:1@0-O1:0@4[cm]O4:0@3-O4:0@5[cm]O8:0@4-O7:0@0[cm]O8:0@3',
+                                                      'O7:0@2[cm]O7:1@0-O1:0@4[cm]O4:0@3-O4:0@5[cm]O9:0@3-O7:0@0[cm]O9:0@4',
+                                                      'O7:0@2[cm]O7:1@0-O1:0@4[cm]O5:0@2-O5:0@4[cm]O8:0@4-O7:0@0[cm]O8:0@3',
+                                                      'O7:0@2[cm]O7:1@0-O1:0@4[cm]O5:0@2-O5:0@4[cm]O9:0@3-O7:0@0[cm]O9:0@4',
+                                                      'O7:0@2[cm]O7:1@0-O2:0@5[cm]O4:0@3-O4:0@5[cm]O8:0@4-O7:0@0[cm]O8:0@3',
+                                                      'O7:0@2[cm]O7:1@0-O2:0@5[cm]O4:0@3-O4:0@5[cm]O9:0@3-O7:0@0[cm]O9:0@4',
+                                                      'O7:0@2[cm]O7:1@0-O2:0@5[cm]O5:0@2-O5:0@4[cm]O8:0@4-O7:0@0[cm]O8:0@3',
+                                                      'O7:0@2[cm]O7:1@0-O2:0@5[cm]O5:0@2-O5:0@4[cm]O9:0@3-O7:0@0[cm]O9:0@4',
+                                                      ]

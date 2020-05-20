@@ -236,6 +236,7 @@ def graph(G: Graph, colormap_nodes: List[Tuple[float]] = None, output_file: str 
         colormap_nodes = [(0.7, 0.7, 0.7)] * len(list(G.nodes()))
     elif isinstance(colormap_nodes, ColorMap):
         colormap_nodes = list(colormap_nodes.fragments.values())
+        print(f"{colormap_nodes=}")
 
     pos = nx.spring_layout(G)
     edges_info = _get_edge_info(G)

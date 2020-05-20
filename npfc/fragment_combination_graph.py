@@ -1,7 +1,8 @@
 """
-Module fragment_map
-===================
-This modules contains the functions for mapping fragments combinations.
+Module fragment_combination_graph
+===================================
+This modules contains the functions for generating fragments combination graphs
+for individual molecules.
 """
 
 # standard
@@ -28,7 +29,7 @@ from npfc import utils
 
 # for computing fragment graphs
 DF_FG_COLS = ['idm',
-              'fmid',
+              'idfcg',
               'nfrags',
               'nfrags_u',
               'ncomb',
@@ -40,10 +41,10 @@ DF_FG_COLS = ['idm',
               'frags_u',
               'comb',
               'comb_u',
-              'fgraph_str',
+              'fcg_str',
               '_d_aidxs',
               '_colormap',
-              '_fgraph',
+              '_fcg',
               'mol',
               '_d_mol_frags',
               ]
@@ -227,7 +228,7 @@ def _split_unconnected(dfs_fcc_clean: List[DataFrame]) -> List[DataFrame]:
 
 def generate(df_fcc: DataFrame, min_frags: int = 2, max_frags: int = 5, max_overlaps: int = 5, split_unconnected: bool = True, clear_ffs: bool = True, palette: str = None) -> DataFrame:
     """This method process a fragment combinations DataFrame
-    and return a new DataFrame with a fragment map for each molecule.
+    and return a new DataFrame with a fragment combination graph for each molecule.
 
     |pic1| |pic2|
 
@@ -254,16 +255,16 @@ def generate(df_fcc: DataFrame, min_frags: int = 2, max_frags: int = 5, max_over
     Molecules can be filtered using thresholds.
 
     :param df_fcc: a Dataframe with pairwise fragment combinations
-    :param min_frags: a threshold for the minimum number of fragments allowed per fragment map
-    :param max_frags: a threshold for the maximum number of fragments allowed per fragment map
+    :param min_frags: a threshold for the minimum number of fragments allowed per fragment combination graph
+    :param max_frags: a threshold for the maximum number of fragments allowed per fragment combination graph
     :param max_overlaps: a threshold for the maximum number of overlap combinations found in the molecule
-    :return: a DataFrame representing fragment maps
+    :return: a DataFrame representing fragment combination graphs
     """
     # split by overlaps
 
     logging.debug("Mapping fragments")
 
-    ds_map = []
+    ds_fcg = []
     for gid, g in df_fcc.groupby('idm'):
         logging.debug("Current Molecule: %s", gid)
         # split overlaps into different Dataframes
@@ -286,7 +287,7 @@ def generate(df_fcc: DataFrame, min_frags: int = 2, max_frags: int = 5, max_over
         if clear_ffs:
             dfs_fcc_ready = [_clear_ffs(df_fcc_ready) for df_fcc_ready in dfs_fcc_ready]
 
-        # compute the entries of the df_map
+        # compute the entries of the df_fcg
         for i, df_fcc_clean in enumerate(dfs_fcc_ready):
 
             # string representation of the fragment combinations of this map
@@ -319,7 +320,7 @@ def generate(df_fcc: DataFrame, min_frags: int = 2, max_frags: int = 5, max_over
 
             # filter results by min/max number of fragment occurrences
             if nfrags < min_frags or nfrags > max_frags:
-                logging.debug("%s: discarding one fragment map because of unsuitable number of fragments (%s)", gid, nfrags)
+                logging.debug("%s: discarding one fragment combination graph because of unsuitable number of fragments (%s)", gid, nfrags)
                 continue
 
             # count unique fragment types (unique)
@@ -342,7 +343,7 @@ def generate(df_fcc: DataFrame, min_frags: int = 2, max_frags: int = 5, max_over
             df_fcc_clean['n_fcc'] = df_fcc_clean.groupby(['idf1', 'idf2', 'fcc'])['fcc'].transform('count')
             df_fcc_clean.drop_duplicates(subset=["idf1", "idf2", "fcc"], keep="first", inplace=True)
             # compute the graph
-            edge_attr = ['fcc', 'n_fcc', 'idm', 'n_active', 'n_tot', 'success_rate']
+            edge_attr = ['fcc', 'n_fcc', 'idm', 'idfcg']  # ##### TODO: clean up unused attributes
             edge_attr = [x for x in edge_attr if x in df_fcc_clean.columns]
             graph = nx.from_pandas_edgelist(df_fcc_clean, source="idf1", target="idf2", edge_attr=edge_attr)
 
@@ -361,9 +362,9 @@ def generate(df_fcc: DataFrame, min_frags: int = 2, max_frags: int = 5, max_over
             ncomb = len(comb)
             comb_u = list(set(comb))
             ncomb_u = len(comb_u)
-            ds_map.append({'idm': gid, 'fmid': str(i+1).zfill(3), 'nfrags': nfrags, 'nfrags_u': nfrags_u, 'ncomb': ncomb, 'ncomb_u': ncomb_u, 'hac_mol': hac_mol, 'hac_frags': hac_frags, 'perc_mol_cov_frags': perc_mol_cov_frags, 'frags': frags, 'frags_u': frags_u, 'comb': comb, 'comb_u': comb_u, 'fgraph_str': fragment_graph_str, '_d_aidxs': d_aidxs, '_colormap': colormap, '_fgraph': graph, 'mol': mol, '_d_mol_frags': d_frags})
+            ds_fcg.append({'idm': gid, 'idfcg': str(i+1).zfill(3), 'nfrags': nfrags, 'nfrags_u': nfrags_u, 'ncomb': ncomb, 'ncomb_u': ncomb_u, 'hac_mol': hac_mol, 'hac_frags': hac_frags, 'perc_mol_cov_frags': perc_mol_cov_frags, 'frags': frags, 'frags_u': frags_u, 'comb': comb, 'comb_u': comb_u, 'fcg_str': fragment_graph_str, '_d_aidxs': d_aidxs, '_colormap': colormap, '_fcg': graph, 'mol': mol, '_d_mol_frags': d_frags})
 
     # concatenate all together
-    df_fg = DataFrame(ds_map, columns=DF_FG_COLS).drop_duplicates(subset=['fgraph_str'])
-    df_fg['fmid'] = df_fg.groupby('idm').cumcount().map(lambda x: str(x+1).zfill(3))
-    return df_fg
+    df_fcg = DataFrame(ds_fcg, columns=DF_FG_COLS).drop_duplicates(subset=['fcg_str'])
+    df_fcg['idfcg'] = df_fcg.groupby('idm').cumcount().map(lambda x: str(x+1).zfill(3))
+    return df_fcg

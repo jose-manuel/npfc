@@ -21,7 +21,7 @@ import npfc
 from npfc import load
 from npfc import save
 from npfc import utils
-from npfc import fragment_graph
+from npfc import fragment_combination_graph
 # disable SettingWithCopyWarning warnings
 pd.options.mode.chained_assignment = None  # default='warn'
 
@@ -29,11 +29,11 @@ pd.options.mode.chained_assignment = None  # default='warn'
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 
-def label_pnp_maps(df, df_ref):
+def label_pnp_fcgs(df, df_ref):
     """Iterate over df and df_ref graphs to see if molecules in df are pseudo-natural-products
     in regards to df_ref, which contains only natural products.
 
-    As the input dataframes contain 1 fragment map per row, a same molecule might be
+    As the input dataframes contain 1 fragment fcg per row, a same molecule might be
     labelled both as PNP and non-PNP (respect. True and False).
 
     The refining of these results by groupbing entries by idm is performed outside
@@ -42,13 +42,13 @@ def label_pnp_maps(df, df_ref):
     """
     results = []
     for i in range(len(df.index)):
-        edges = df.iloc[i]['_fgraph'].edges(data='abbrev')
+        edges = df.iloc[i]['_fcg'].edges(data='abbrev')
         pnp = True
         for j in range(len(df_ref.index)):
             # if all edges of tested mol are present in ref edges, then it is not PNP
             if all(edge_ref in edges for edge_ref in df_ref.iloc[j]['edges_ref']):
                 pnp = False
-                logging.debug(f"FGRAPH {df.iloc[i]['idm']}#{df.iloc[i]['fmid']} IS NOT PNP BECAUSE OF REF FGRAPH{ df_ref.iloc[j]['idm']}#{df_ref.iloc[j]['fmid']}")
+                logging.debug(f"FGRAPH {df.iloc[i]['idm']}#{df.iloc[i]['idfcg']} IS NOT PNP BECAUSE OF REF FGRAPH{ df_ref.iloc[j]['idm']}#{df_ref.iloc[j]['idfcg']}")
                 break
 
         results.append(pnp)
@@ -57,9 +57,9 @@ def label_pnp_maps(df, df_ref):
 
 
 def _label_pnp_mols(group):
-    """Applied on the group of fragment map dataframe after annotation by pnp_fm.
-    If any map of a molecule has a label set to True, then the molecule should be considered
-    as PNP, even if some maps are not True.
+    """Applied on the group of fragment combination graph (fcg) dataframe after annotation by pnp_fm.
+    If any fcg of a molecule has a label set to True, then the molecule should be considered
+    as PNP, even if some fcgs are not True.
     """
     if any(group["pnp_fm"]):
         group["pnp_mol"] = True
@@ -76,7 +76,7 @@ def main():
     description = """Script is used for annotating Pseudo Natural Products (PNP).
 
     It takes two inputs:
-        - the map file with the molecules to annotate by comparing fragment maps (graphs)
+        - the fcg file with the molecules to annotate by comparing fragment fcgs (graphs)
         - a folder that contains molecular files of natural products
 
     It creates one output:
@@ -86,15 +86,15 @@ def main():
 
     Example:
 
-        >>> annotate_pnp file_map.csv.gz file_map.csv.gz
+        >>> annotate_pnp file_fcg.csv.gz file_fcg.csv.gz
 
     """
 
     # parameters CLI
     parser = argparse.ArgumentParser(description=description, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('input_map', type=str, default=None, help="Fragment Map file to annotate")
-    parser.add_argument('ref_dir', type=str, default=None, help="Directory with Fragment Map files to use as references (currently wiht syntax: <name>_map.csv.gz)")
-    parser.add_argument('output_map', type=str, default=None, help="Output file for annoated fragment graphs.")
+    parser.add_argument('input_fcg', type=str, default=None, help="Fragment Map file to annotate")
+    parser.add_argument('ref_dir', type=str, default=None, help="Directory with Fragment Map files to use as references (currently wiht syntax: <name>_fcg.csv.gz)")
+    parser.add_argument('output_fcg', type=str, default=None, help="Output file for annoated fragment graphs.")
     parser.add_argument('-l', '--list-pnp-mols', type=str, default=None, help="Output file with the list of molecules labelled as PNP or not. It is useful to avoid loading the whole dataset just to count the proportion of PNP/non-PNP molecules.")
     parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
     args = parser.parse_args()
@@ -106,18 +106,18 @@ def main():
     pad = 40
 
     # parse arguments
-    utils.check_arg_input_file(args.input_map)
-    utils.check_arg_output_file(args.output_map)
+    utils.check_arg_input_file(args.input_fcg)
+    utils.check_arg_output_file(args.output_fcg)
     if args.list_pnp_mols is not None:
         utils.check_arg_output_file(args.list_pnp_mols)
-    input_format, input_compression = utils.get_file_format(args.input_map)
-    out_format, out_compression = utils.get_file_format(args.output_map)
+    input_format, input_compression = utils.get_file_format(args.input_fcg)
+    out_format, out_compression = utils.get_file_format(args.output_fcg)
 
     # get the list of reference files
     p = Path(args.ref_dir)
     if not p.is_dir():
         raise ValueError(f"ERROR! REF_DIR COULD NOT BE FOUND! ({args.ref_dir})")
-    ref_files = [str(x) for x in list(p.glob("*_fgraph.csv.gz"))]
+    ref_files = [str(x) for x in list(p.glob("*_fcg.*"))]
     ref_files.sort()
     logger.info(f"FOUND {len(ref_files)} FRAGMENT MAP FILES AT {args.ref_dir}")
 
@@ -127,12 +127,12 @@ def main():
     logger.info("pandas".ljust(pad) + f"{pd.__version__}")
     logger.info("npfc".ljust(pad) + f"{npfc.__version__}")
     logger.info("ARGUMENTS:")
-    logger.info("INPUT_FCC".ljust(pad) + f"{args.input_map}")
+    logger.info("INPUT_FCC".ljust(pad) + f"{args.input_fcg}")
     logger.info("INPUT_FORMAT".ljust(pad) + f"{input_format}")
     logger.info("INPUT_COMPRESSION".ljust(pad) + f"{input_compression}")
     logger.info("REF_DIR".ljust(pad) + f"{args.ref_dir}")
     logger.info("NUM REF_DIR".ljust(pad) + f"{len(ref_files)}")
-    logger.info("OUTPUT_MAP".ljust(pad) + f"{args.output_map}")
+    logger.info("OUTPUT_MAP".ljust(pad) + f"{args.output_fcg}")
     logger.info("OUT_FORMAT".ljust(pad) + f"{out_format}")
     logger.info("OUT_COMPRESSION".ljust(pad) + f"{out_compression}")
     logger.info("LIST_PNP_MOLS".ljust(pad) + f"{args.list_pnp_mols}")
@@ -142,22 +142,22 @@ def main():
     # begin
     logger.info("BEGIN")
 
-    # load map
+    # load fcg
     logger.info("LOADING FRAGMENT GRAPHS")
-    df_fgraph = load.file(args.input_map, decode=True)
-    n_fragment_graphs = len(df_fgraph.index)
-    logger.info(f"FOUND {n_fragment_graphs:,} FRAGMENT GRAPHS")
+    df_fcg = load.file(args.input_fcg, decode=True)
+    n_fcg = len(df_fcg.index)
+    logger.info(f"FOUND {n_fcg:,} FRAGMENT COMBINATION GRAPHS")
     d2 = datetime.now()
 
     # avoid crash due to groupby method on empty dataframe
-    if n_fragment_graphs < 1:
+    if n_fcg < 1:
         logger.warning("NO FRAGMENT GRAPHS TO WORK WITH, ABORTING NOW. EMPTY OUTPUT FILE IS GENERATED FOR PIPELINE HANDLING.")
-        df_fgraph = pd.DataFrame(columns=fragment_graph.DF_PNP_COLS)
+        df_fcg = pd.DataFrame(columns=fragment_combination_graph.DF_PNP_COLS)
         # saving results
         logger.info("SAVING RESULTS")
         d5 = datetime.now()
-        logger.info(f"SAVING PNP RESULTS AT '{args.output_map}'")
-        save.file(df_fgraph, args.output_map, encode=True)
+        logger.info(f"SAVING PNP RESULTS AT '{args.output_fcg}'")
+        save.file(df_fcg, args.output_fcg, encode=True)
 
         if args.list_pnp_mols is not None:
             save.file(pd.DataFrame(columns=['idm', 'pnp_mol']), args.list_pnp_mols)
@@ -173,25 +173,25 @@ def main():
         logger.info("END")
         return None
 
-    # load map_refs
+    # load fcg_refs
     logger.info("LOADING ALL REFERENCE FRAGMENT GRAPHS")
-    df_fgraph_ref = pd.concat([load.file(x) for x in ref_files])
-    # df_fgraph_ref.drop("Unnamed: 0", axis=1, inplace=True)
-    logger.info(f"FOUND {len(df_fgraph_ref.index):,} REFERENCE FRAGMENT GRAPHS")
+    df_fcg_ref = pd.concat([load.file(x) for x in ref_files])
+    # df_fcg_ref.drop("Unnamed: 0", axis=1, inplace=True)
+    logger.info(f"FOUND {len(df_fcg_ref.index):,} REFERENCE FRAGMENT GRAPHS")
     logger.info("EXTRACTING EDGES FROM FRAGMENT GRAPHS")
-    df_fgraph_ref["edges_ref"] = df_fgraph_ref["_fgraph"].map(lambda x: x.edges(data="abbrev"))
+    df_fcg_ref["edges_ref"] = df_fcg_ref["_fcg"].map(lambda x: x.edges(data="abbrev"))
 
-    # mapping fragment combinations
+    # fcgping fragment combinations
     logger.info("ANNOTATING FRAGMENT GRAPHS")
     d3 = datetime.now()
-    df_fgraph["pnp_fm"] = label_pnp_maps(df_fgraph, df_fgraph_ref)
+    df_fcg["pnp_fm"] = label_pnp_fcgs(df_fcg, df_fcg_ref)
 
     logger.info("DISPLAYING RESULTS")
     d4 = datetime.now()
     # pnp mols
-    df_pnps = df_fgraph[df_fgraph["pnp_fm"]].groupby("idm").first().reset_index()[["idm"]].sort_values('idm')
+    df_pnps = df_fcg[df_fcg["pnp_fm"]].groupby("idm").first().reset_index()[["idm"]].sort_values('idm')
     df_pnps['pnp_mol'] = True
-    df_others = df_fgraph[~df_fgraph["idm"].isin(df_pnps['idm'])].groupby("idm").first().reset_index()[["idm"]].sort_values('idm')
+    df_others = df_fcg[~df_fcg["idm"].isin(df_pnps['idm'])].groupby("idm").first().reset_index()[["idm"]].sort_values('idm')
     df_pnps['pnp_mol'] = False
 
     if args.list_pnp_mols is not None:
@@ -201,13 +201,13 @@ def main():
 
     # curating results
     logger.info("CURATING RESULTS")
-    df_fgraph['pnp_mol'] = df_fgraph.groupby('idm').apply(_label_pnp_mols)['pnp_mol']  # cringy but works.... ok for now...
+    df_fcg['pnp_mol'] = df_fcg.groupby('idm').apply(_label_pnp_mols)['pnp_mol']  # cringy but works.... ok for now...
 
     # saving results
     logger.info("SAVING RESULTS")
     d5 = datetime.now()
-    logger.info(f"SAVING PNP RESULTS AT '{args.output_map}'")
-    save.file(df_fgraph, args.output_map, encode=True)
+    logger.info(f"SAVING PNP RESULTS AT '{args.output_fcg}'")
+    save.file(df_fcg, args.output_fcg, encode=True)
 
     # end
     d6 = datetime.now()

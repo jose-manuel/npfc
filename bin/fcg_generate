@@ -10,17 +10,16 @@ This script is used for generating fragment maps from fragment combination class
 import warnings
 import sys
 from datetime import datetime
-import logging
 import pandas as pd
 import argparse
 # chemoinformatics
 import rdkit
 # dev
 import npfc
+from npfc import fragment_combination_graph
 from npfc import load
 from npfc import save
 from npfc import utils
-from npfc import fragment_graph
 # disable SettingWithCopyWarning warnings
 pd.options.mode.chained_assignment = None  # default='warn'
 
@@ -95,7 +94,7 @@ def main():
     # mapping fragment combinations
     logger.info(f"MAPPING REMAINING FRAGMENT COMBINATIONS")
     d2 = datetime.now()
-    df_map = fragment_graph.generate(df_fcc, min_frags=args.min_frags, max_frags=args.max_frags, max_overlaps=args.max_overlaps)
+    df_map = fragment_combination_graph.generate(df_fcc, min_frags=args.min_frags, max_frags=args.max_frags, max_overlaps=args.max_overlaps)
     logger.info(f"COMPUTED {len(df_map.index)} FRAGMENT COMBINATION NETWORKS")
 
     # save map results
