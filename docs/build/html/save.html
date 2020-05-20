@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Module save &mdash; npfc 0.6.3-5-gc6177e9 documentation</title>
+  <title>Module save &mdash; npfc 0.6.3-6-gc2a1c58 documentation</title>
   
 
   
@@ -21,10 +21,10 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -60,7 +60,7 @@
             
             
               <div class="version">
-                0.6.3-5-gc6177e9
+                0.6.3-6-gc2a1c58
               </div>
             
           
@@ -90,9 +90,12 @@
 <li class="toctree-l1"><a class="reference internal" href="load.html">Module load</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Module save</a></li>
 <li class="toctree-l1"><a class="reference internal" href="filter.html">Module filter</a></li>
+<li class="toctree-l1"><a class="reference internal" href="standardize.html">Module standardize</a></li>
 <li class="toctree-l1"><a class="reference internal" href="duplicate.html">Module duplicate</a></li>
 <li class="toctree-l1"><a class="reference internal" href="fragment_search.html">Module fragment_search</a></li>
 <li class="toctree-l1"><a class="reference internal" href="fragment_combination.html">Module fragment_combination</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fragment_combination_graph.html">Module fragment_combination_graph</a></li>
+<li class="toctree-l1"><a class="reference internal" href="draw.html">Module draw</a></li>
 </ul>
 
             
@@ -161,18 +164,18 @@
 <h1>Module save<a class="headerlink" href="#module-save" title="Permalink to this headline">¶</a></h1>
 <p>A module containing the Saver class, used for storing DataFrames with molecules
 on disk.</p>
-<dl class="class">
+<dl class="py class">
 <dt id="npfc.save.SafeHDF5Store">
-<em class="property">class </em><code class="sig-prename descclassname">npfc.save.</code><code class="sig-name descname">SafeHDF5Store</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/save.html#SafeHDF5Store"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.save.SafeHDF5Store" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">npfc.save.</code><code class="sig-name descname">SafeHDF5Store</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/save.html#SafeHDF5Store"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.save.SafeHDF5Store" title="Permalink to this definition">¶</a></dt>
 <dd><p>Implement safe HDFStore by obtaining file lock. Multiple writes will queue if lock is not obtained.</p>
 <p>Edited after:
 <a class="reference external" href="https://stackoverflow.com/questions/41231678/obtaining-a-exclusive-lock-when-writing-to-an-hdf5-file">https://stackoverflow.com/questions/41231678/obtaining-a-exclusive-lock-when-writing-to-an-hdf5-file</a></p>
 <p>Initialize and obtain file lock.</p>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="npfc.save.file">
-<code class="sig-prename descclassname">npfc.save.</code><code class="sig-name descname">file</code><span class="sig-paren">(</span><em class="sig-param">df</em>, <em class="sig-param">output_file</em>, <em class="sig-param">shuffle=False</em>, <em class="sig-param">random_seed=None</em>, <em class="sig-param">chunk_size=None</em>, <em class="sig-param">encode=True</em>, <em class="sig-param">col_mol='mol'</em>, <em class="sig-param">col_id='idm'</em>, <em class="sig-param">csv_sep='|'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/save.html#file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.save.file" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">npfc.save.</code><code class="sig-name descname">file</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">df</span></em>, <em class="sig-param"><span class="n">output_file</span></em>, <em class="sig-param"><span class="n">shuffle</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">random_seed</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">chunk_size</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">encode</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">col_mol</span><span class="o">=</span><span class="default_value">'mol'</span></em>, <em class="sig-param"><span class="n">col_id</span><span class="o">=</span><span class="default_value">'idm'</span></em>, <em class="sig-param"><span class="n">csv_sep</span><span class="o">=</span><span class="default_value">'|'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/save.html#file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.save.file" title="Permalink to this definition">¶</a></dt>
 <dd><p>A method for saving DataFrames with molecules to different file types.
 This is handy way of using the Saver class without having to keep a Saver object.</p>
 <dl class="field-list simple">
@@ -194,14 +197,14 @@ This is handy way of using the Saver class without having to keep a Saver object
 </dl>
 </dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="npfc.save.random">
 <code class="sig-prename descclassname">npfc.save.</code><code class="sig-name descname">random</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; x in the interval [0, 1).<a class="headerlink" href="#npfc.save.random" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="function">
+<dl class="py function">
 <dt id="npfc.save.write_sdf">
-<code class="sig-prename descclassname">npfc.save.</code><code class="sig-name descname">write_sdf</code><span class="sig-paren">(</span><em class="sig-param">df</em>, <em class="sig-param">out</em>, <em class="sig-param">molColName='ROMol'</em>, <em class="sig-param">idName=None</em>, <em class="sig-param">properties=None</em>, <em class="sig-param">allNumeric=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/save.html#write_sdf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.save.write_sdf" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">npfc.save.</code><code class="sig-name descname">write_sdf</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">df</span></em>, <em class="sig-param"><span class="n">out</span></em>, <em class="sig-param"><span class="n">molColName</span><span class="o">=</span><span class="default_value">'ROMol'</span></em>, <em class="sig-param"><span class="n">idName</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">properties</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">allNumeric</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/save.html#write_sdf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.save.write_sdf" title="Permalink to this definition">¶</a></dt>
 <dd><p>Redefinition of PandasTools.WriteSDF because RDKit 2019.03.1 is incompatible with Pandas 25.1.</p>
 <p>Write an SD file for the molecules in the dataframe. Dataframe columns can be exported as
 SDF tags if specified in the “properties” list. “properties=list(df.columns)” would export

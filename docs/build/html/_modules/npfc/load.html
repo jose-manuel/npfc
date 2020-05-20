@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.load &mdash; npfc 0.6.3-5-gc6177e9 documentation</title>
+  <title>npfc.load &mdash; npfc 0.6.3-6-gc2a1c58 documentation</title>
   
 
   
@@ -21,10 +21,10 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../../_static/jquery.js"></script>
-        <script type="text/javascript" src="../../_static/underscore.js"></script>
-        <script type="text/javascript" src="../../_static/doctools.js"></script>
-        <script type="text/javascript" src="../../_static/language_data.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/language_data.js"></script>
     
     <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
@@ -58,7 +58,7 @@
             
             
               <div class="version">
-                0.6.3-5-gc6177e9
+                0.6.3-6-gc2a1c58
               </div>
             
           
@@ -168,19 +168,19 @@
 <span class="c1"># standard</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">gzip</span>
-<span class="kn">from</span> <span class="nn">pathlib</span> <span class="k">import</span> <span class="n">Path</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">import</span> <span class="nn">subprocess</span>
 <span class="c1"># data science</span>
 <span class="kn">import</span> <span class="nn">psycopg2</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
-<span class="kn">from</span> <span class="nn">pandas</span> <span class="k">import</span> <span class="n">DataFrame</span>
+<span class="kn">from</span> <span class="nn">pandas</span> <span class="kn">import</span> <span class="n">DataFrame</span>
 <span class="c1"># chemoinformatics</span>
-<span class="kn">from</span> <span class="nn">rdkit</span> <span class="k">import</span> <span class="n">Chem</span>
+<span class="kn">from</span> <span class="nn">rdkit</span> <span class="kn">import</span> <span class="n">Chem</span>
 <span class="c1"># docs</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">List</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">Union</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span>
 <span class="c1"># dev</span>
-<span class="kn">from</span> <span class="nn">npfc</span> <span class="k">import</span> <span class="n">utils</span>
+<span class="kn">from</span> <span class="nn">npfc</span> <span class="kn">import</span> <span class="n">utils</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
 <span class="c1"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ GLOBALS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #</span>
 
@@ -218,7 +218,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Retrieving data from dbname=</span><span class="si">%s</span><span class="s2"> wiht user=</span><span class="si">%s</span><span class="s2"> with psql:</span><span class="se">\n</span><span class="si">%s</span><span class="se">\n</span><span class="s2">with src_id=</span><span class="si">%s</span><span class="s2">, src_mol=</span><span class="si">%s</span><span class="s2">, col_mol=</span><span class="si">%s</span><span class="s2">, col_id=</span><span class="si">%s</span><span class="s2">, keep_db_cols=</span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">dbname</span><span class="p">,</span> <span class="n">user</span><span class="p">,</span> <span class="n">psql</span><span class="p">,</span> <span class="n">src_id</span><span class="p">,</span> <span class="n">src_mol</span><span class="p">,</span> <span class="n">col_mol</span><span class="p">,</span> <span class="n">col_id</span><span class="p">,</span> <span class="n">keep_db_cols</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">mol_format</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;molblock&#39;</span><span class="p">,</span> <span class="s1">&#39;smiles&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Format &#39;</span><span class="si">{mol_format}</span><span class="s2">&#39; is currently not supported. Please use either &#39;molblock&#39; or &#39;sdf&#39;.&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Format &#39;</span><span class="si">{</span><span class="n">mol_format</span><span class="si">}</span><span class="s2">&#39; is currently not supported. Please use either &#39;molblock&#39; or &#39;sdf&#39;.&quot;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">src_id</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;src_id needs to be defined but values None.&quot;</span><span class="p">)</span>
     <span class="c1"># establish connection</span>
@@ -233,7 +233,7 @@
     <span class="c1"># check for columns</span>
     <span class="k">if</span> <span class="n">mol_format</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">src_mol</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;src_mol &#39;</span><span class="si">%s</span><span class="s2">&#39; could not be found in pgsql query results.</span><span class="se">\n</span><span class="s2">Available columns are: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">src_mol</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">values</span><span class="p">))</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;src_mol &#39;%s&#39; could not be found in pgsql query results.</span><span class="se">\n</span><span class="s2">Available columns are: %s&quot;</span><span class="p">,</span> <span class="n">src_mol</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">values</span><span class="p">))</span>
         <span class="c1"># convert mol_col to RDKit</span>
         <span class="n">df</span><span class="p">[</span><span class="n">col_mol</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">src_mol</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">CONVERTERS</span><span class="p">[</span><span class="n">mol_format</span><span class="p">])</span>
 
@@ -346,7 +346,7 @@
         <span class="n">FH</span> <span class="o">=</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">input_sdf</span><span class="p">)</span>
         <span class="n">FH_raw</span> <span class="o">=</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">input_sdf</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Error! Unknown compression type for SDF: &#39;</span><span class="si">{compression}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error! Unknown compression type for SDF: &#39;</span><span class="si">{</span><span class="n">compression</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
     <span class="c1"># init</span>
     <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="n">rows</span> <span class="o">=</span> <span class="p">[]</span>
@@ -361,7 +361,7 @@
             <span class="c1"># mol</span>
             <span class="n">row</span><span class="p">[</span><span class="n">col_mol</span><span class="p">]</span> <span class="o">=</span> <span class="n">mol</span>
         <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Molecule #</span><span class="si">{i}</span><span class="s2"> could not be parsed and was skipped!&quot;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Molecule #</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2"> could not be parsed and was skipped!&quot;</span><span class="p">)</span>
             <span class="n">row</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="c1"># record entry</span>
         <span class="k">if</span> <span class="n">row</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -407,13 +407,13 @@
     <span class="c1"># count mols</span>
     <span class="k">if</span> <span class="nb">format</span> <span class="o">==</span> <span class="s1">&#39;SDF&#39;</span><span class="p">:</span>
         <span class="c1"># look for the &#39;$$$$&#39; pattern in the SDF file</span>
-        <span class="n">result</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">check_output</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;grep -c &#39;$$$$&#39; </span><span class="si">{input_file}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">check_output</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;grep -c &#39;$$$$&#39; </span><span class="si">{</span><span class="n">input_file</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
     <span class="k">elif</span> <span class="nb">format</span> <span class="o">==</span> <span class="s1">&#39;HDF&#39;</span><span class="p">:</span>
         <span class="c1"># get the size of the dataframe</span>
         <span class="n">result</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">file</span><span class="p">(</span><span class="n">input_file</span><span class="p">,</span> <span class="n">decode</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="c1"># any text-based file with 1 molecule per row (csv, smiles, inchi, etc.)</span>
-        <span class="n">result</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">check_output</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;wc -l </span><span class="si">{input_file}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">check_output</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;wc -l </span><span class="si">{</span><span class="n">input_file</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
 
     <span class="c1"># read count</span>
     <span class="n">count</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>

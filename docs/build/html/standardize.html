@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Module standardize &mdash; npfc 0.6.3-5-gc6177e9 documentation</title>
+  <title>Module standardize &mdash; npfc 0.6.3-6-gc2a1c58 documentation</title>
   
 
   
@@ -21,10 +21,10 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -60,7 +60,7 @@
             
             
               <div class="version">
-                0.6.3-5-gc6177e9
+                0.6.3-6-gc2a1c58
               </div>
             
           
@@ -94,6 +94,7 @@
 <li class="toctree-l1"><a class="reference internal" href="duplicate.html">Module duplicate</a></li>
 <li class="toctree-l1"><a class="reference internal" href="fragment_search.html">Module fragment_search</a></li>
 <li class="toctree-l1"><a class="reference internal" href="fragment_combination.html">Module fragment_combination</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fragment_combination_graph.html">Module fragment_combination_graph</a></li>
 <li class="toctree-l1"><a class="reference internal" href="draw.html">Module draw</a></li>
 </ul>
 
@@ -162,18 +163,18 @@
   <span class="target" id="module-npfc.standardize"></span><div class="section" id="module-standardize">
 <h1>Module standardize<a class="headerlink" href="#module-standardize" title="Permalink to this headline">¶</a></h1>
 <p>This modules is used to standardize molecules and molecular DataFrames.</p>
-<dl class="class">
+<dl class="py class">
 <dt id="npfc.standardize.FullUncharger">
 <em class="property">class </em><code class="sig-prename descclassname">npfc.standardize.</code><code class="sig-name descname">FullUncharger</code><a class="reference internal" href="_modules/npfc/standardize.html#FullUncharger"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.FullUncharger" title="Permalink to this definition">¶</a></dt>
 <dd><p>A class derived from rdkit.Chem.MolStandardize.charge.Uncharger, so
 instead of attempting to create zwitterions all possible charges are removed
 from the molecule.</p>
 <p>For instance:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Uncharger:</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Uncharger:</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">O</span><span class="o">-</span><span class="p">][</span><span class="n">N</span><span class="o">+</span><span class="p">](</span><span class="n">C</span><span class="p">)(</span><span class="n">C</span><span class="p">)</span><span class="n">C</span><span class="p">[</span><span class="n">O</span><span class="o">-</span><span class="p">]</span> <span class="o">-&gt;</span> <span class="p">[</span><span class="n">O</span><span class="o">-</span><span class="p">][</span><span class="n">N</span><span class="o">+</span><span class="p">](</span><span class="n">C</span><span class="p">)(</span><span class="n">C</span><span class="p">)</span><span class="n">CO</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># FullUncharger:</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># FullUncharger:</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">O</span><span class="o">-</span><span class="p">][</span><span class="n">N</span><span class="o">+</span><span class="p">](</span><span class="n">C</span><span class="p">)(</span><span class="n">C</span><span class="p">)</span><span class="n">C</span><span class="p">[</span><span class="n">O</span><span class="o">-</span><span class="p">]</span> <span class="o">-&gt;</span> <span class="n">O</span><span class="p">[</span><span class="n">N</span><span class="o">+</span><span class="p">](</span><span class="n">C</span><span class="p">)(</span><span class="n">C</span><span class="p">)</span><span class="n">CO</span>
 </pre></div>
 </div>
@@ -182,9 +183,9 @@ from the molecule.</p>
 <p class="admonition-title">Todo</p>
 <p>This will remove charges from -2 to +2 only. This could be improved using more general smarts?</p>
 </div>
-<dl class="method">
+<dl class="py method">
 <dt id="npfc.standardize.FullUncharger.full_uncharge">
-<code class="sig-name descname">full_uncharge</code><span class="sig-paren">(</span><em class="sig-param">mol</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#FullUncharger.full_uncharge"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.FullUncharger.full_uncharge" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">full_uncharge</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mol</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#FullUncharger.full_uncharge"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.FullUncharger.full_uncharge" title="Permalink to this definition">¶</a></dt>
 <dd><p>Neutralize molecule by adding/removing hydrogens.
 Does not attempt to preserve zwitterions.
 For now takes into account only charges of -2 and +2.</p>
@@ -203,9 +204,9 @@ For now takes into account only charges of -2 and +2.</p>
 
 </dd></dl>
 
-<dl class="class">
+<dl class="py class">
 <dt id="npfc.standardize.Standardizer">
-<em class="property">class </em><code class="sig-prename descclassname">npfc.standardize.</code><code class="sig-name descname">Standardizer</code><span class="sig-paren">(</span><em class="sig-param">protocol=None</em>, <em class="sig-param">col_mol='mol'</em>, <em class="sig-param">col_id='idm'</em>, <em class="sig-param">elements_medchem={'B'</em>, <em class="sig-param">'Br'</em>, <em class="sig-param">'C'</em>, <em class="sig-param">'Cl'</em>, <em class="sig-param">'F'</em>, <em class="sig-param">'H'</em>, <em class="sig-param">'I'</em>, <em class="sig-param">'N'</em>, <em class="sig-param">'O'</em>, <em class="sig-param">'P'</em>, <em class="sig-param">'S'}</em>, <em class="sig-param">timeout=10</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#Standardizer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.Standardizer" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">npfc.standardize.</code><code class="sig-name descname">Standardizer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">protocol</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">col_mol</span><span class="o">=</span><span class="default_value">'mol'</span></em>, <em class="sig-param"><span class="n">col_id</span><span class="o">=</span><span class="default_value">'idm'</span></em>, <em class="sig-param"><span class="n">elements_medchem</span><span class="o">=</span><span class="default_value">{'B', 'Br', 'C', 'Cl', 'F', 'H', 'I', 'N', 'O', 'P', 'S'}</span></em>, <em class="sig-param"><span class="n">timeout</span><span class="o">=</span><span class="default_value">10</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#Standardizer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.Standardizer" title="Permalink to this definition">¶</a></dt>
 <dd><p>A class for standardizing molecular structures. The standardization itself is based
 on a protocol that the user can modify.</p>
 <p>By default this protocol consists in 14 tasks applied to each molecule invidually:</p>
@@ -258,9 +259,9 @@ This value can be set either during the Standardizer object initialization or by
 </ul>
 </dd>
 </dl>
-<dl class="method">
+<dl class="py method">
 <dt id="npfc.standardize.Standardizer.clear_isotopes">
-<code class="sig-name descname">clear_isotopes</code><span class="sig-paren">(</span><em class="sig-param">mol</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#Standardizer.clear_isotopes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.Standardizer.clear_isotopes" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">clear_isotopes</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mol</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#Standardizer.clear_isotopes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.Standardizer.clear_isotopes" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a molecule without any isotopes.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -275,9 +276,9 @@ This value can be set either during the Standardizer object initialization or by
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="npfc.standardize.Standardizer.clear_side_chains">
-<code class="sig-name descname">clear_side_chains</code><span class="sig-paren">(</span><em class="sig-param">mol</em>, <em class="sig-param">debug=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#Standardizer.clear_side_chains"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.Standardizer.clear_side_chains" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">clear_side_chains</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mol</span></em>, <em class="sig-param"><span class="n">debug</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#Standardizer.clear_side_chains"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.Standardizer.clear_side_chains" title="Permalink to this definition">¶</a></dt>
 <dd><p>Clear the side chains of a molecule.</p>
 <p>This method operates in 3 steps:</p>
 <blockquote>
@@ -304,9 +305,9 @@ This value can be set either during the Standardizer object initialization or by
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="npfc.standardize.Standardizer.deglycosylate">
-<code class="sig-name descname">deglycosylate</code><span class="sig-paren">(</span><em class="sig-param">mol</em>, <em class="sig-param">mode='run'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#Standardizer.deglycosylate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.Standardizer.deglycosylate" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">deglycosylate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mol</span></em>, <em class="sig-param"><span class="n">mode</span><span class="o">=</span><span class="default_value">'run'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#Standardizer.deglycosylate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.Standardizer.deglycosylate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Function to deglycosylate molecules.</p>
 <p>Several rules are applied for removing Sugar-Like Rings (SLRs) from molecules:</p>
 <blockquote>
@@ -318,8 +319,7 @@ This value can be set either during the Standardizer object initialization or by
 <li><p>Linker atoms until the glycosidic bond oxygen atom are appended to the definition of the SLR, so that any extra methyl is also removed.</p></li>
 </ol>
 </div></blockquote>
-<div align="center" class="align-center"><img alt="_images/std_deglyco_algo.svg" src="_images/std_deglyco_algo.svg" /></div>
-<dl class="field-list simple">
+<img alt="_images/std_deglyco_algo.svg" class="align-center" src="_images/std_deglyco_algo.svg" /><dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>mol</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Mol</span></code>) – the input molecule</p></li>
@@ -335,9 +335,9 @@ This value can be set either during the Standardizer object initialization or by
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="npfc.standardize.Standardizer.keep_best">
-<code class="sig-name descname">keep_best</code><span class="sig-paren">(</span><em class="sig-param">mol</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#Standardizer.keep_best"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.Standardizer.keep_best" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">keep_best</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mol</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#Standardizer.keep_best"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.Standardizer.keep_best" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the “best” molecule found in a molecular structure.</p>
 <p>The “best” molecule is determined by the following criteria, sorted by priority:</p>
 <blockquote>
@@ -367,9 +367,9 @@ On the contrary, this long aliphatic chain would be kept in a mixture with a non
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="npfc.standardize.Standardizer.run">
-<code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param">mol</em>, <em class="sig-param">timeout=10</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#Standardizer.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.Standardizer.run" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mol</span></em>, <em class="sig-param"><span class="n">timeout</span><span class="o">=</span><span class="default_value">10</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#Standardizer.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.Standardizer.run" title="Permalink to this definition">¶</a></dt>
 <dd><p>Execute the standardization protocol on a molecule.
 Molecule that exceed the timeout value are filtered with a task=’timeout’.</p>
 <p>As a final step of the protocol, InChiKeys (‘inchikey’) are computed for identifying molecules.</p>
@@ -389,9 +389,9 @@ Molecule that exceed the timeout value are filtered with a task=’timeout’.</
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="npfc.standardize.Standardizer.run_df">
-<code class="sig-name descname">run_df</code><span class="sig-paren">(</span><em class="sig-param">df</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#Standardizer.run_df"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.Standardizer.run_df" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">run_df</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">df</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#Standardizer.run_df"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.Standardizer.run_df" title="Permalink to this definition">¶</a></dt>
 <dd><p>Apply the standardization protocol on a DataFrame, with the possibility of directly filtering duplicate entries as well.
 This can be very useful as the standardization process can expose duplicate entries due to salts removal, neutralization,
 canonical tautomer enumeration, and stereochemistry centers unlabelling</p>

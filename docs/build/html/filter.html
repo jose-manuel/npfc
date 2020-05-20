@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Module filter &mdash; npfc 0.6.3-5-gc6177e9 documentation</title>
+  <title>Module filter &mdash; npfc 0.6.3-6-gc2a1c58 documentation</title>
   
 
   
@@ -21,10 +21,10 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -35,7 +35,7 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="&lt;no title&gt;" href="standardize.html" />
+    <link rel="next" title="Module standardize" href="standardize.html" />
     <link rel="prev" title="Module save" href="save.html" /> 
 </head>
 
@@ -60,7 +60,7 @@
             
             
               <div class="version">
-                0.6.3-5-gc6177e9
+                0.6.3-6-gc2a1c58
               </div>
             
           
@@ -90,9 +90,12 @@
 <li class="toctree-l1"><a class="reference internal" href="load.html">Module load</a></li>
 <li class="toctree-l1"><a class="reference internal" href="save.html">Module save</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Module filter</a></li>
+<li class="toctree-l1"><a class="reference internal" href="standardize.html">Module standardize</a></li>
 <li class="toctree-l1"><a class="reference internal" href="duplicate.html">Module duplicate</a></li>
 <li class="toctree-l1"><a class="reference internal" href="fragment_search.html">Module fragment_search</a></li>
 <li class="toctree-l1"><a class="reference internal" href="fragment_combination.html">Module fragment_combination</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fragment_combination_graph.html">Module fragment_combination_graph</a></li>
+<li class="toctree-l1"><a class="reference internal" href="draw.html">Module draw</a></li>
 </ul>
 
             
@@ -161,14 +164,14 @@
 <h1>Module filter<a class="headerlink" href="#module-filter" title="Permalink to this headline">¶</a></h1>
 <p>This modules contains the class Filter, which is used to filter molecules using
 molecular descriptors.</p>
-<dl class="class">
+<dl class="py class">
 <dt id="npfc.filter.Filter">
 <em class="property">class </em><code class="sig-prename descclassname">npfc.filter.</code><code class="sig-name descname">Filter</code><a class="reference internal" href="_modules/npfc/filter.html#Filter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.filter.Filter" title="Permalink to this definition">¶</a></dt>
 <dd><p>A class for filtering molecules based on molecular descriptors.</p>
 <p>Create a Filter object.</p>
-<dl class="method">
+<dl class="py method">
 <dt id="npfc.filter.Filter.filter_mol">
-<code class="sig-name descname">filter_mol</code><span class="sig-paren">(</span><em class="sig-param">mol</em>, <em class="sig-param">expr</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/filter.html#Filter.filter_mol"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.filter.Filter.filter_mol" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">filter_mol</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mol</span></em>, <em class="sig-param"><span class="n">expr</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/filter.html#Filter.filter_mol"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.filter.Filter.filter_mol" title="Permalink to this definition">¶</a></dt>
 <dd><p>Filter a molecule based on an expression.
 Two types of expressions are currently supported:</p>
 <blockquote>
@@ -221,7 +224,7 @@ Two types of expressions are currently supported:</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="standardize.html" class="btn btn-neutral float-right" title="&lt;no title&gt;" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="standardize.html" class="btn btn-neutral float-right" title="Module standardize" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="save.html" class="btn btn-neutral float-left" title="Module save" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
