@@ -25,7 +25,7 @@ available. Please have a look and enjoy, any feedback is welcome!
    duplicate
    fragment_search
    fragment_combination
-   fragment_graph
+   fragment_combination_graph
    draw
 
 Indices and tables
