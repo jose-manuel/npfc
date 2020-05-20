@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>&lt;no title&gt; &mdash; npfc 0.6.3-4-gec2c0e1 documentation</title>
+  <title>Module standardize &mdash; npfc 0.6.3-5-gc6177e9 documentation</title>
   
 
   
@@ -60,7 +60,7 @@
             
             
               <div class="version">
-                0.6.3-4-gec2c0e1
+                0.6.3-5-gc6177e9
               </div>
             
           
@@ -85,14 +85,16 @@
             
             
               <p class="caption"><span class="caption-text">Contents:</span></p>
-<ul>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="utils.html">Module utils</a></li>
 <li class="toctree-l1"><a class="reference internal" href="load.html">Module load</a></li>
 <li class="toctree-l1"><a class="reference internal" href="save.html">Module save</a></li>
 <li class="toctree-l1"><a class="reference internal" href="filter.html">Module filter</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Module standardize</a></li>
 <li class="toctree-l1"><a class="reference internal" href="duplicate.html">Module duplicate</a></li>
 <li class="toctree-l1"><a class="reference internal" href="fragment_search.html">Module fragment_search</a></li>
 <li class="toctree-l1"><a class="reference internal" href="fragment_combination.html">Module fragment_combination</a></li>
+<li class="toctree-l1"><a class="reference internal" href="draw.html">Module draw</a></li>
 </ul>
 
             
@@ -138,7 +140,7 @@
     
       <li><a href="index.html">Docs</a> &raquo;</li>
         
-      <li>&lt;no title&gt;</li>
+      <li>Module standardize</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -157,7 +159,281 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  
+  <span class="target" id="module-npfc.standardize"></span><div class="section" id="module-standardize">
+<h1>Module standardize<a class="headerlink" href="#module-standardize" title="Permalink to this headline">¶</a></h1>
+<p>This modules is used to standardize molecules and molecular DataFrames.</p>
+<dl class="class">
+<dt id="npfc.standardize.FullUncharger">
+<em class="property">class </em><code class="sig-prename descclassname">npfc.standardize.</code><code class="sig-name descname">FullUncharger</code><a class="reference internal" href="_modules/npfc/standardize.html#FullUncharger"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.FullUncharger" title="Permalink to this definition">¶</a></dt>
+<dd><p>A class derived from rdkit.Chem.MolStandardize.charge.Uncharger, so
+instead of attempting to create zwitterions all possible charges are removed
+from the molecule.</p>
+<p>For instance:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Uncharger:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">O</span><span class="o">-</span><span class="p">][</span><span class="n">N</span><span class="o">+</span><span class="p">](</span><span class="n">C</span><span class="p">)(</span><span class="n">C</span><span class="p">)</span><span class="n">C</span><span class="p">[</span><span class="n">O</span><span class="o">-</span><span class="p">]</span> <span class="o">-&gt;</span> <span class="p">[</span><span class="n">O</span><span class="o">-</span><span class="p">][</span><span class="n">N</span><span class="o">+</span><span class="p">](</span><span class="n">C</span><span class="p">)(</span><span class="n">C</span><span class="p">)</span><span class="n">CO</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># FullUncharger:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">O</span><span class="o">-</span><span class="p">][</span><span class="n">N</span><span class="o">+</span><span class="p">](</span><span class="n">C</span><span class="p">)(</span><span class="n">C</span><span class="p">)</span><span class="n">C</span><span class="p">[</span><span class="n">O</span><span class="o">-</span><span class="p">]</span> <span class="o">-&gt;</span> <span class="n">O</span><span class="p">[</span><span class="n">N</span><span class="o">+</span><span class="p">](</span><span class="n">C</span><span class="p">)(</span><span class="n">C</span><span class="p">)</span><span class="n">CO</span>
+</pre></div>
+</div>
+<p>Create an instance of FullUncharger.</p>
+<div class="admonition-todo admonition" id="id1">
+<p class="admonition-title">Todo</p>
+<p>This will remove charges from -2 to +2 only. This could be improved using more general smarts?</p>
+</div>
+<dl class="method">
+<dt id="npfc.standardize.FullUncharger.full_uncharge">
+<code class="sig-name descname">full_uncharge</code><span class="sig-paren">(</span><em class="sig-param">mol</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#FullUncharger.full_uncharge"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.FullUncharger.full_uncharge" title="Permalink to this definition">¶</a></dt>
+<dd><p>Neutralize molecule by adding/removing hydrogens.
+Does not attempt to preserve zwitterions.
+For now takes into account only charges of -2 and +2.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>mol</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Mol</span></code>) – the input molecule</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Mol</span></code></p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>the uncharged molecule</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="npfc.standardize.Standardizer">
+<em class="property">class </em><code class="sig-prename descclassname">npfc.standardize.</code><code class="sig-name descname">Standardizer</code><span class="sig-paren">(</span><em class="sig-param">protocol=None</em>, <em class="sig-param">col_mol='mol'</em>, <em class="sig-param">col_id='idm'</em>, <em class="sig-param">elements_medchem={'B'</em>, <em class="sig-param">'Br'</em>, <em class="sig-param">'C'</em>, <em class="sig-param">'Cl'</em>, <em class="sig-param">'F'</em>, <em class="sig-param">'H'</em>, <em class="sig-param">'I'</em>, <em class="sig-param">'N'</em>, <em class="sig-param">'O'</em>, <em class="sig-param">'P'</em>, <em class="sig-param">'S'}</em>, <em class="sig-param">timeout=10</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#Standardizer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.Standardizer" title="Permalink to this definition">¶</a></dt>
+<dd><p>A class for standardizing molecular structures. The standardization itself is based
+on a protocol that the user can modify.</p>
+<p>By default this protocol consists in 14 tasks applied to each molecule invidually:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p><strong>initiate_mol</strong>: check if the molecule passed the RDKit conversion</p></li>
+<li><p><strong>filter_empty</strong>: filter molecules with empty structures</p></li>
+<li><p><strong>disconnect_metal</strong>: break bonds involving metallic atoms, resulting in potentially several molecules per structure.</p></li>
+<li><p><strong>keep_best</strong>: retrieve only the “best” molecule from a mixture, which might not always be the largest one.</p></li>
+<li><p><strong>deglycosylate</strong>: remove all external sugars-like rings from the molecule and return the remaining non-linear entity.</p></li>
+<li><p><strong>filter_hac</strong>: filter molecules with a heavy atom count not in the accepted range. By default: hac &gt; 3.</p></li>
+<li><p><strong>filter_molweight</strong>: filter molecules with a molecular weight not in the accepted range. By default: molweight &lt;= 1000.0.</p></li>
+<li><p><strong>filter_nrings</strong>: filter molecules with a number of rings (Smallest Sets of Smallest Rings or SSSR) not in the accepted range. By default: nrings &gt; 0.</p></li>
+<li><p><strong>filter_medchem</strong>: filter molecules with elements not considered as medchem. By default: elements in H, B, C, N, O, F, P, S, Cl, Br, I.</p></li>
+<li><p><strong>clear_isotopes</strong>: set all atoms to their most common isotope (i.e. 14C becomes 12C which is C).</p></li>
+<li><p><strong>normalize</strong>: always write the same functional groups in the same manner.</p></li>
+<li><p><strong>uncharge</strong>: remove all charges on a molecule when it is possible. This is different from rdkit.Chem.MolStandardize.charge module as there is no attempt for reaching the zwitterion.</p></li>
+<li><p><strong>canonicalize</strong>: enumerate the canonical tautomer.</p></li>
+<li><p><strong>clear_stereo</strong>: remove all remaining stereochemistry flags on the molecule.</p></li>
+</ol>
+</div></blockquote>
+<p>Other steps are not part of this protocol but can be executed as well for convenience:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><strong>depict</strong>: find the “best” possible 2D depiction of the molecule among Input/rdDepictor/Avalon/CoordGen methods</p></li>
+<li><p><strong>extract_murcko</strong>: return the Murcko Scaffold from the molecule</p></li>
+<li><p><strong>clear_side_chains</strong>: remove any exocyclic atom that is not part of a linker</p></li>
+</ul>
+</div></blockquote>
+<p>This results in new columns in the input DataFrame:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>the ‘mol’ column: updated structure (only for the protocol)</p></li>
+<li><p>the ‘status’ column: either passed, filtered or error.</p></li>
+<li><p>the ‘task’ column: the latest task that was applied to the molecule.</p></li>
+</ul>
+</div></blockquote>
+<p>The standardizer works either on a molecule (method: ‘run’) or on a DataFrame containing molecules (‘run_df’).</p>
+<p>In the latter case, the inchikey is computed and can be used for identifying duplicate entries.</p>
+<p>A timeout value is set by default and will be applied to each molecule individually to avoid the process being stuck on marginally difficult cases.
+This value can be set either during the Standardizer object initialization or by defining as an option in the protocol (priority is given to the latter if defined).</p>
+<p>Create a Standardizer object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>protocol</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.8)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]) – Either a JSON file or a dictionary. The resultung dictinary needs a ‘tasks’ key that lists all tasks to be excuted as a list.</p></li>
+<li><p><strong>col_mol</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the column with the molecule for when running the run_df method</p></li>
+<li><p><strong>col_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the column with the id for when running the run_df method</p></li>
+<li><p><strong>filter_duplicates</strong> – </p></li>
+</ul>
+</dd>
+</dl>
+<dl class="method">
+<dt id="npfc.standardize.Standardizer.clear_isotopes">
+<code class="sig-name descname">clear_isotopes</code><span class="sig-paren">(</span><em class="sig-param">mol</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#Standardizer.clear_isotopes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.Standardizer.clear_isotopes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a molecule without any isotopes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>mol</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Mol</span></code>) – the input molecule</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Mol</span></code></p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>the molecule without isotope</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="npfc.standardize.Standardizer.clear_side_chains">
+<code class="sig-name descname">clear_side_chains</code><span class="sig-paren">(</span><em class="sig-param">mol</em>, <em class="sig-param">debug=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#Standardizer.clear_side_chains"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.Standardizer.clear_side_chains" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clear the side chains of a molecule.</p>
+<p>This method operates in 3 steps:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p>Remove quickly all atoms in side chains but the one attached to a ring, starting from the terminal atom. (would certainly fail in case of linear molecules)</p></li>
+<li><p>Iterate over each remaining exocyclic atoms to remove only atoms when it does not break the ring aromaticity. Simple and double bonds can be broken and the atoms in rings which were attached to removed atoms are neutralized.</p></li>
+<li><p>Remove eventual nitrogen radicals by Smiles editing.</p></li>
+</ol>
+</div></blockquote>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>I found only nitrogen radicals in my dataset, this might be insufficient on a larger scale.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>mol</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Mol</span></code>) – the molecule to simplify</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Mol</span></code></p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>a simplified copy of the molecule</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="npfc.standardize.Standardizer.deglycosylate">
+<code class="sig-name descname">deglycosylate</code><span class="sig-paren">(</span><em class="sig-param">mol</em>, <em class="sig-param">mode='run'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#Standardizer.deglycosylate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.Standardizer.deglycosylate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to deglycosylate molecules.</p>
+<p>Several rules are applied for removing Sugar-Like Rings (SLRs) from molecules:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p>Only external SLRs are removed, so a molecule with aglycan-SLR-aglycan is not modified</p></li>
+<li><p>Only molecules with both aglycans and SLRs are modified (so only SLRs or none are left untouched)</p></li>
+<li><p>Linear aglycans are considered to be part of linkers and are thus never returned as results</p></li>
+<li><p>Glycosidic bonds are defined as either O or CO and can be linked to larger linear linker. So from a SLR side, either nothing or only 1 C are allowed before the glycosidic bond oxygen</p></li>
+<li><p>Linker atoms until the glycosidic bond oxygen atom are appended to the definition of the SLR, so that any extra methyl is also removed.</p></li>
+</ol>
+</div></blockquote>
+<div align="center" class="align-center"><img alt="_images/std_deglyco_algo.svg" src="_images/std_deglyco_algo.svg" /></div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mol</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Mol</span></code>) – the input molecule</p></li>
+<li><p><strong>mode</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – either ‘run’ for actually deglycosylating the molecule or ‘graph’ for returning a graph of rings instead (useful for presentations or debugging)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Union" title="(in Python v3.8)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code></a>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Mol</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Graph</span></code>]</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>the deglycosylated molecule or a graph of rings</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="npfc.standardize.Standardizer.keep_best">
+<code class="sig-name descname">keep_best</code><span class="sig-paren">(</span><em class="sig-param">mol</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#Standardizer.keep_best"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.Standardizer.keep_best" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the “best” molecule found in a molecular structure.</p>
+<p>The “best” molecule is determined by the following criteria, sorted by priority:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p>contains only medchem elements</p></li>
+<li><p>contains at least one ring</p></li>
+<li><p>has the largest molecular weight of the mixture</p></li>
+</ol>
+</div></blockquote>
+<p>To summarize:</p>
+<div class="math">
+<p><img src="_images/math/9d38d8a859040db59e88fdcf7b67665576b35bac.png" alt="medchem &gt; non linear &gt; molecular weight"/></p>
+</div><p>So the largest molecule of a mixture might not always be selected, for instance
+a very long aliphatic chain would be dismissed to keep a benzene molecule instead.</p>
+<p>This is implemented in such a way because our fragments used for substructure search contain at least one ring.
+On the contrary, this long aliphatic chain would be kept in a mixture with a non-medchem molecule.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>mol</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Mol</span></code>) – the input molecule(s)</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Mol</span></code></p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>the best molecule</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="npfc.standardize.Standardizer.run">
+<code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param">mol</em>, <em class="sig-param">timeout=10</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#Standardizer.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.Standardizer.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute the standardization protocol on a molecule.
+Molecule that exceed the timeout value are filtered with a task=’timeout’.</p>
+<p>As a final step of the protocol, InChiKeys (‘inchikey’) are computed for identifying molecules.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mol</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Mol</span></code>) – the input molecule</p></li>
+<li><p><strong>timeout</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>) – the maximum number of seconds for processing a molecule</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a></p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>a tuple containing the molecule, its status and the further task name it reached</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="npfc.standardize.Standardizer.run_df">
+<code class="sig-name descname">run_df</code><span class="sig-paren">(</span><em class="sig-param">df</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#Standardizer.run_df"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.Standardizer.run_df" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply the standardization protocol on a DataFrame, with the possibility of directly filtering duplicate entries as well.
+This can be very useful as the standardization process can expose duplicate entries due to salts removal, neutralization,
+canonical tautomer enumeration, and stereochemistry centers unlabelling</p>
+<p>If a reference file is specified, duplicate removals becomes possible accross chunks.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code>) – the input DataFrame</p></li>
+<li><p><strong>timeout</strong> – the maximum number of seconds for processing a molecule</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a></p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><p>three DataFrames separated by status:</p>
+<ul class="simple">
+<li><p>passed</p></li>
+<li><p>filtered</p></li>
+<li><p>error</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>As a side effect, the output DataFrames get indexed by idm. The ‘inchikey’ col is not returned, but the values can be accessed using the reference file.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> – The DataFrame with molecules to standardize</p></li>
+<li><p><strong>return</strong> – a tuple of 3 DataFrames: standardized, filtered and error.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
 
            </div>
            
