@@ -209,8 +209,8 @@ def _split_unconnected(dfs_fcc_clean: List[DataFrame]) -> List[DataFrame]:
     dfs_fcc_ready = []
     for i, df_fcc_clean in enumerate(dfs_fcc_clean):
         # compute a graph with each fid as a node, one row means an edge between 2 fid
-        fc_graph = nx.from_pandas_edgelist(df_fcc_clean, "fid1", "fid2")
-        fc_subgraphs = list(fc_graph.subgraph(c) for c in nx.connected_components(fc_graph))
+        G = nx.from_pandas_edgelist(df_fcc_clean, "fid1", "fid2")
+        fc_subgraphs = list(G.subgraph(c) for c in nx.connected_components(G))
         num_fc_subgraphs = len(fc_subgraphs)
         # splitting up subgraphs
         if num_fc_subgraphs > 1:
@@ -291,8 +291,8 @@ def generate(df_fcc: DataFrame, min_frags: int = 2, max_frags: int = 5, max_over
         for i, df_fcc_clean in enumerate(dfs_fcc_ready):
 
             # string representation of the fragment combinations of this map
-            fragment_graph_str = '-'.join(list(df_fcc_clean['fc'].map(str)))
-            logging.debug('fragment_graph_str: %s', fragment_graph_str)
+            fragment_combination_graph_str = '-'.join(list(df_fcc_clean['fc'].map(str)))
+            logging.debug('fcg_str: %s', fragment_combination_graph_str)
 
             # d_aidxs: a dict containing the occurrences of each fragment type
             d_aidxs = {}
@@ -340,13 +340,15 @@ def generate(df_fcc: DataFrame, min_frags: int = 2, max_frags: int = 5, max_over
             # compute a new graph again but this time on a single subgraph and with edge labels (room for optimization)
             # count the number of equivalent edges (sames ids and same fcc)
             df_fcc_clean = df_fcc_clean.copy()  # ### one day I will have to understand why all of the Pandas warnings appear all the time
-            df_fcc_clean['n_fcc'] = df_fcc_clean.groupby(['idf1', 'idf2', 'fcc'])['fcc'].transform('count')
-            df_fcc_clean.drop_duplicates(subset=["idf1", "idf2", "fcc"], keep="first", inplace=True)
+            # here I used to compress all combinations in common
+            # df_fcc_clean['n_fcc'] = df_fcc_clean.groupby(['idf1', 'idf2', 'fcc'])['fcc'].transform('count')
+            # df_fcc_clean.drop_duplicates(subset=["idf1", "idf2", "fcc"], keep="first", inplace=True)
+            # create two new columns: cps and cpt for indicating connection points of source and target
+            df_fcc_clean['cps'], df_fcc_clean['cpt'] = zip(*df_fcc_clean['fc'].map(lambda x: (x.split('[')[0].split('@')[1], x.split(']')[1].split('@')[1])))
             # compute the graph
-            edge_attr = ['fcc', 'n_fcc', 'idm', 'idfcg']  # ##### TODO: clean up unused attributes
+            edge_attr = ['fcc', 'n_fcc', 'idm', 'cps', 'cpt']
             edge_attr = [x for x in edge_attr if x in df_fcc_clean.columns]
-            graph = nx.from_pandas_edgelist(df_fcc_clean, source="idf1", target="idf2", edge_attr=edge_attr)
-
+            G = nx.from_pandas_edgelist(df_fcc_clean, source="idf1", target="idf2", edge_attr=edge_attr)
             # same molecule in each row, so to use the first one is perfectly fine
             mol = df_fcc_clean.iloc[0]['mol']
 
@@ -362,9 +364,12 @@ def generate(df_fcc: DataFrame, min_frags: int = 2, max_frags: int = 5, max_over
             ncomb = len(comb)
             comb_u = list(set(comb))
             ncomb_u = len(comb_u)
-            ds_fcg.append({'idm': gid, 'idfcg': str(i+1).zfill(3), 'nfrags': nfrags, 'nfrags_u': nfrags_u, 'ncomb': ncomb, 'ncomb_u': ncomb_u, 'hac_mol': hac_mol, 'hac_frags': hac_frags, 'perc_mol_cov_frags': perc_mol_cov_frags, 'frags': frags, 'frags_u': frags_u, 'comb': comb, 'comb_u': comb_u, 'fcg_str': fragment_graph_str, '_d_aidxs': d_aidxs, '_colormap': colormap, '_fcg': graph, 'mol': mol, '_d_mol_frags': d_frags})
+            ds_fcg.append({'idm': gid, 'idfcg': str(i+1).zfill(3), 'nfrags': nfrags, 'nfrags_u': nfrags_u, 'ncomb': ncomb, 'ncomb_u': ncomb_u, 'hac_mol': hac_mol, 'hac_frags': hac_frags, 'perc_mol_cov_frags': perc_mol_cov_frags, 'frags': frags, 'frags_u': frags_u, 'comb': comb, 'comb_u': comb_u, 'fcg_str': fragment_combination_graph_str, '_d_aidxs': d_aidxs, '_colormap': colormap, '_fcg': G, 'mol': mol, '_d_mol_frags': d_frags})
 
-    # concatenate all together
+    # put it all together
     df_fcg = DataFrame(ds_fcg, columns=DF_FG_COLS).drop_duplicates(subset=['fcg_str'])
     df_fcg['idfcg'] = df_fcg.groupby('idm').cumcount().map(lambda x: str(x+1).zfill(3))
+    # incorporate the idcfg to the graphs
+    df_fcg.apply(lambda x: nx.classes.function.set_edge_attributes(x['_fcg'], x['idfcg'], 'idcfg'), axis=1)
+
     return df_fcg

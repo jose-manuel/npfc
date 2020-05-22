@@ -137,7 +137,7 @@ def filter_duplicates(df: DataFrame, group_on: str = "inchikey", col_id: str = "
                 for i in range(len(df_dupl)):
                     row_dupl = df_dupl.iloc[i]
                     dupl_inchikey.append(row_dupl.name)
-                    dupl_id_kept.append(df_u.loc[row_dupl.name][col_id])  # this is why I have a loop
+                    dupl_id_kept.append(df_ref.loc[row_dupl.name][col_id])  # this is why I have a loop
                     dupl_id_filtered.append(row_dupl[col_id])
 
             # return updated output in case of ref file

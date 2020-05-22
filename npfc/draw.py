@@ -45,6 +45,7 @@ from typing import Tuple
 from typing import Dict
 # dev
 from npfc import utils
+from npfc import fragment_combination_graph
 # tmp
 from rdkit import Chem, Geometry
 from rdkit.Chem import AllChem, rdCoordGen
@@ -197,7 +198,7 @@ def mols(mols: List[Mol],
     if output_file is not None:
         output_ext = output_file.split('.')[-1].upper()
         if output_ext == 'SVG' and not svg:
-            raise ValueError(f"Error! output file extension is SVG but image format is PNG!")
+            raise ValueError("Error! output file extension is SVG but image format is PNG!")
         if output_ext == 'SVG':
             with open(output_file, 'w') as SVG:
                 SVG.write(img.data)
@@ -207,29 +208,65 @@ def mols(mols: List[Mol],
     return img
 
 
-def _get_edge_info(G: Graph) -> Dict:
+def _get_edge_info(G: Graph, edge_attributes: List[str], attribute_names: bool, label_node_names_on_edges: bool) -> Dict:
     """
     Use the first associated data of edges for edge labelling of a networkx graph.
 
     :param G: a Fragment Combination graph
+    :param edge_attributes: a list of edge attributes to represent on the figure
+    :param attribute_names: display the attribute names on the figure (name: value)
     :return: a Dict of syntax {(node1, node2): data}
     """
     d = {}
+
     for edge in list(G.edges(data=True)):
-        d[(edge[0], edge[1])] = list(edge[2].values())[0]
+        # determine what properties to keep by their names (defined as list in G attr)
+        if edge_attributes is None:
+            data = edge[2]
+        else:
+            data = {k: v for k, v in edge[2].items() if k in edge_attributes}
+        # cannot use a dict for labelling edges, so just display values
+        if attribute_names:
+            data = [f"{k}: {v}" for k, v in data.items()]
+        else:
+            data = list(data.values())
+
+        if label_node_names_on_edges:
+            print(f"{data=}")
+            data.append(f"s: {edge[0]}")
+            data.append(f"t: {edge[1]}")
+
+        # format them
+        d[(edge[0], edge[1])] = '; '.join(data)
+    print(f"d_edges_info={d}")
     return d
 
 
-def graph(G: Graph, colormap_nodes: List[Tuple[float]] = None, output_file: str = None) -> Figure:
+def graph(G: Graph,
+          colormap_nodes: List[Tuple[float]] = None,
+          output_file: str = None,
+          edge_attributes: List[str] = ['fcc'],
+          attribute_names: bool = False,
+          orientate: bool = False,
+          label_node_names_on_edges: bool = False) -> Figure:
     """
     Return a matplotlib Figure of a networkx graph.
 
     :param G: a networkx Graph object of the fragment combinations
     :param colormap_nodes: a colormap of RGB values for the nodes (i.e. [(0, 0, 1), (0, 1, 0)])
+    :param output_file: if speficied, the image is saved (format is deduced from extension)
+    :param edge_attributes: a list of edge attributes to represent on the figure
+    :param attribute_names: display the attribute names on the figure (name: value)
     :return: a matplotlib Figure object
     """
     if isinstance(G, base64.bytes_types):
         G = utils.decode_object(G)
+
+    # to orientate the graph, this is uselessly complicated, do not use this on larger networks!
+    if orientate:
+        H = nx.DiGraph(G, data=True)  # this creates not only node1 -> node2 but also node2 -> node1
+        H.remove_edges_from(G.edges())  # this removes node1 -> node2 because it is found in the undirected graph
+        G = H.reverse()  # this transforms the remaining node2 -> node1 into node1 -> node2
 
     if colormap_nodes is None:
         # define a 2D list instead of a single tuple to avoid matplotlib warning
@@ -238,7 +275,7 @@ def graph(G: Graph, colormap_nodes: List[Tuple[float]] = None, output_file: str 
         colormap_nodes = list(colormap_nodes.fragments.values())
 
     pos = nx.spring_layout(G)
-    edges_info = _get_edge_info(G)
+    edges_info = _get_edge_info(G, edge_attributes, attribute_names, label_node_names_on_edges)
     figure = plt.figure()
     nx.draw(G,
             pos,
