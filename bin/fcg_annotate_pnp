@@ -29,7 +29,7 @@ pd.options.mode.chained_assignment = None  # default='warn'
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 
-def label_pnp_fcgs(df, df_ref):
+def label_pnp_fcgs(df, df_ref, data):
     """Iterate over df and df_ref graphs to see if molecules in df are pseudo-natural-products
     in regards to df_ref, which contains only natural products.
 
@@ -42,7 +42,7 @@ def label_pnp_fcgs(df, df_ref):
     """
     results = []
     for i in range(len(df.index)):
-        edges = df.iloc[i]['_fcg'].edges(data='abbrev')
+        edges = df.iloc[i]['_fcg'].edges(data=data)
         pnp = True
         for j in range(len(df_ref.index)):
             # if all edges of tested mol are present in ref edges, then it is not PNP
@@ -95,6 +95,7 @@ def main():
     parser.add_argument('input_fcg', type=str, default=None, help="Fragment Map file to annotate")
     parser.add_argument('ref_dir', type=str, default=None, help="Directory with Fragment Map files to use as references (currently wiht syntax: <name>_fcg.csv.gz)")
     parser.add_argument('output_fcg', type=str, default=None, help="Output file for annoated fragment graphs.")
+    parser.add_argument('-d', '--data', type=str, default='fcc', help="Graph properties to consider for annotating pnps. (i.e. 'fcc' or 'fcc,cps,cpt').")
     parser.add_argument('-l', '--list-pnp-mols', type=str, default=None, help="Output file with the list of molecules labelled as PNP or not. It is useful to avoid loading the whole dataset just to count the proportion of PNP/non-PNP molecules.")
     parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
     args = parser.parse_args()
@@ -112,6 +113,11 @@ def main():
         utils.check_arg_output_file(args.list_pnp_mols)
     input_format, input_compression = utils.get_file_format(args.input_fcg)
     out_format, out_compression = utils.get_file_format(args.output_fcg)
+    data = args.data
+    if ',' in data:
+        data = tuple([x.strip() for x in data.split(',')])
+    else:
+        data = tuple([data])
 
     # get the list of reference files
     p = Path(args.ref_dir)
@@ -136,6 +142,7 @@ def main():
     logger.info("OUT_FORMAT".ljust(pad) + f"{out_format}")
     logger.info("OUT_COMPRESSION".ljust(pad) + f"{out_compression}")
     logger.info("LIST_PNP_MOLS".ljust(pad) + f"{args.list_pnp_mols}")
+    logger.info("PNP_ATTRIBUTES".ljust(pad) + f"{', '.join(data)}")
     logger.info("LOG".ljust(pad) + f"{args.log}")
     d1 = datetime.now()
 
@@ -184,7 +191,7 @@ def main():
     # fcgping fragment combinations
     logger.info("ANNOTATING FRAGMENT GRAPHS")
     d3 = datetime.now()
-    df_fcg["pnp_fm"] = label_pnp_fcgs(df_fcg, df_fcg_ref)
+    df_fcg["pnp_fm"] = label_pnp_fcgs(df_fcg, df_fcg_ref, data=data)
 
     logger.info("DISPLAYING RESULTS")
     d4 = datetime.now()

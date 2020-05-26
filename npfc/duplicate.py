@@ -89,8 +89,8 @@ def filter_duplicates(df: DataFrame, group_on: str = "inchikey", col_id: str = "
 
     # filter duplicates found in the same input file
     dupl_inchikey = []
-    dupl_id_kept = []
-    dupl_id_filtered = []
+    dupl_idm_kept = []
+    dupl_idm_filtered = []
     if len(df_u.index) == len(df.index):
         logging.debug("Number of duplicate molecule found in current chunk: 0")
     else:
@@ -99,10 +99,10 @@ def filter_duplicates(df: DataFrame, group_on: str = "inchikey", col_id: str = "
         for i in range(len(df_dupl)):
             row_dupl = df_dupl.iloc[i]
             dupl_inchikey.append(row_dupl.name)
-            dupl_id_kept.append(df_u.loc[row_dupl.name][col_id])  # this is why I have a loop
-            dupl_id_filtered.append(row_dupl[col_id])
+            dupl_idm_kept.append(df_u.loc[row_dupl.name][col_id])  # this is why I have a loop
+            dupl_idm_filtered.append(row_dupl[col_id])
     # df with entries that were removed because of another entry in the same chunk
-    df_filtered = DataFrame({'group_on': dupl_inchikey, 'id_kept': dupl_id_kept, 'id_filtered': dupl_id_filtered})
+    df_filtered = DataFrame({'group_on': dupl_inchikey, 'idm_kept': dupl_idm_kept, 'idm_filtered': dupl_idm_filtered})
 
     # load reference file
     if ref_file is not None:
@@ -123,8 +123,8 @@ def filter_duplicates(df: DataFrame, group_on: str = "inchikey", col_id: str = "
 
             # filter out already referenced compounds
             dupl_inchikey = []
-            dupl_id_kept = []
-            dupl_id_filtered = []
+            dupl_idm_kept = []
+            dupl_idm_filtered = []
             df_u2 = df_u[~df_u.index.isin(df_ref.index)]
             # reset indices (feather does not support strings as rowids...)
             df_u2.reset_index(inplace=True)
@@ -137,13 +137,13 @@ def filter_duplicates(df: DataFrame, group_on: str = "inchikey", col_id: str = "
                 for i in range(len(df_dupl)):
                     row_dupl = df_dupl.iloc[i]
                     dupl_inchikey.append(row_dupl.name)
-                    dupl_id_kept.append(df_ref.loc[row_dupl.name][col_id])  # this is why I have a loop
-                    dupl_id_filtered.append(row_dupl[col_id])
+                    dupl_idm_kept.append(df_ref.loc[row_dupl.name][col_id])  # this is why I have a loop
+                    dupl_idm_filtered.append(row_dupl[col_id])
 
             # return updated output in case of ref file
             df_u = df_u2
             df_ref.reset_index(inplace=True)
-            df_filtered = pd.concat([df_filtered, DataFrame({'group_on': dupl_inchikey, 'id_kept': dupl_id_kept, 'id_filtered': dupl_id_filtered})])
+            df_filtered = pd.concat([df_filtered, DataFrame({'group_on': dupl_inchikey, 'idm_kept': dupl_idm_kept, 'idm_filtered': dupl_idm_filtered})])
 
     if get_df_dupl:
         return (df_u, df_filtered)

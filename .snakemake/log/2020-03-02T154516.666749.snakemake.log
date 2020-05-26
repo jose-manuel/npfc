@@ -1,3 +1,0 @@
-TypeError in line 79 of /home/gally/Software/anaconda3/envs/npfc/lib/python3.7/site-packages/npfc/data/fragments.smk:
-can only concatenate str (not "bool") to str
-  File "/home/gally/Software/anaconda3/envs/npfc/lib/python3.7/site-packages/npfc/data/fragments.smk", line 79, in <module>

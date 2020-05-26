@@ -7,5 +7,6 @@
                     "frags_subdir": "crms",
                     "chunksize": 5000,
                     "natref": "natural/dnp/",
+                    "pnp_attributes": "fcc",
                     "act_file": "synthetic/chembl/data/00_raw/data/chembl_act.csv.gz"
 }

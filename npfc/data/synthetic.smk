@@ -30,8 +30,14 @@ frags_subdir = "frags_" + config['frags_subdir']
 chunksize = config['chunksize']  # maximum number of molecules per chunk
 # specific to synthetic
 natref = config['natref']  # WD for defining natural compounds, subdir with same frags is also searched for pnp annotation
+# by default consider fcc for pnp attributes, if one wants to only compare pairs of fragments, provide empty string in config file instead
+try:
+    pnp_attributes = config['pnp_attributes']
+except KeyError:
+    pnp_attributes = 'fcc'
 # from master script
 num_chunks = config['num_chunks']
+
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ INITIALIZATION ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
@@ -74,7 +80,7 @@ rule PNP:
         fgraphs = "{WD}" + f"/{natref_subdir}/{frags_subdir}" + "/10_pnp/data/{prefix}_{cid}_pnp.csv.gz",
         list_pnps = "{WD}" + f"/{natref_subdir}/{frags_subdir}" + "/10_pnp/log/{prefix}_{cid}_list_pnp.csv.gz"
     log: "{WD}" + f"/{natref_subdir}/{frags_subdir}" + "/10_pnp/log/{prefix}_{cid}_pnp.log"
-    shell: "fcg_annotate_pnp {input} {natref_fcg_dir} {output.fgraphs} -l {output.list_pnps} >{log} 2>&1"
+    shell: "fcg_annotate_pnp {input} {natref_fcg_dir} {output.fgraphs} -l {output.list_pnps} -d '" + pnp_attributes + "' >{log} 2>&1"
 
 rule FCG:
     priority: 1
