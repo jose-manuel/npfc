@@ -42,7 +42,10 @@ def label_pnp_fcgs(df, df_ref, data):
     """
     results = []
     for i in range(len(df.index)):
-        edges = df.iloc[i]['_fcg'].edges(data=data)
+        if data is None:
+            edges = df.iloc[i]['_fcg'].edges()
+        else:
+            edges = df.iloc[i]['_fcg'].edges(data=data)
         pnp = True
         for j in range(len(df_ref.index)):
             # if all edges of tested mol are present in ref edges, then it is not PNP
@@ -114,7 +117,9 @@ def main():
     input_format, input_compression = utils.get_file_format(args.input_fcg)
     out_format, out_compression = utils.get_file_format(args.output_fcg)
     data = args.data
-    if ',' in data:
+    if data is None:
+        data = []
+    elif ',' in data:
         data = tuple([x.strip() for x in data.split(',')])
     else:
         data = tuple([data])
@@ -186,7 +191,10 @@ def main():
     # df_fcg_ref.drop("Unnamed: 0", axis=1, inplace=True)
     logger.info(f"FOUND {len(df_fcg_ref.index):,} REFERENCE FRAGMENT GRAPHS")
     logger.info("EXTRACTING EDGES FROM FRAGMENT GRAPHS")
-    df_fcg_ref["edges_ref"] = df_fcg_ref["_fcg"].map(lambda x: x.edges(data="abbrev"))
+    if data is None:
+        df_fcg_ref["edges_ref"] = df_fcg_ref["_fcg"].map(lambda x: x.edges())
+    else:
+        df_fcg_ref["edges_ref"] = df_fcg_ref["_fcg"].map(lambda x: x.edges(data=data))
 
     # fcgping fragment combinations
     logger.info("ANNOTATING FRAGMENT GRAPHS")
