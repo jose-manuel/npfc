@@ -46,7 +46,7 @@ def main():
     parser.add_argument('--mmol', type=str, default='mol', help="Molecule column for csv or hdf files.")
     parser.add_argument('--msep', type=str, default='|', help="Separator to use in case the input file is a csv.")
     parser.add_argument('finput', type=str, default=None, help="Input frags.")
-    parser.add_argument('-f', '--fid', type=str, default='idm', help="Identifier column in the fragments file. If not specified, rowids are used instead (_Name for SDF).")
+    parser.add_argument('--fid', type=str, default='idm', help="Identifier column in the fragments file. If not specified, rowids are used instead (_Name for SDF).")
     parser.add_argument('--fdecode', type=bool, default=True, help="Decode fragments from base64 strings.")
     parser.add_argument('--fmol', type=str, default='mol', help="Molecule column for csv or hdf files.")
     parser.add_argument('--fsep', type=str, default='|', help="Separator to use in case the input file is a csv.")
@@ -55,6 +55,8 @@ def main():
     parser.add_argument('--omol', type=str, default='mol', help="Molecule column for csv or hdf files.")
     parser.add_argument('--ofrag', type=str, default='mol_frag', help="Molecule column for csv or hdf files.")
     parser.add_argument('--osep', type=str, default='|', help="Separator to use in case the input file is a csv.")
+    parser.add_argument('-f', '--filter-frags', type=str, default=None, help="List of IDs to filter out from the input fragment combinations.")
+
     parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
     args = parser.parse_args()
 
@@ -84,6 +86,14 @@ def main():
         oencode = True
     else:
         oencode = args.oencode
+
+    # filter frags
+    if args.filter_frags is None:
+        filter_frags = []
+    elif ',' in filter_frags:
+        filter_frags = tuple([x.strip() for x in filter_frags.split(',')])
+    else:
+        filter_frags = tuple([filter_frags])
 
     # display infos
 
@@ -119,6 +129,7 @@ def main():
     logger.info("OMOL".ljust(pad) + f"{args.omol}")
     logger.info("OFRAG".ljust(pad) + f"{args.ofrag}")
     logger.info("OSEP".ljust(pad) + f"{args.osep}")
+    logger.info('FILTER_FRAGS'.ljust(pad) + f"{', '.join(filter_frags)}")
     logger.info("LOG".ljust(pad) + f"{args.log}")
 
     # begin
@@ -139,7 +150,7 @@ def main():
                         )
     df_mols.index = df_mols[args.mid]
     num_failed = df_mols['mol'].isna().sum()
-    logger.info(f"LOADED {len(df_mols)} RECORDS WITH {num_failed} FAILURE(S)")
+    logger.info(f"LOADED {len(df_mols):,} RECORDS WITH {num_failed:,} FAILURE(S)")
 
     # load frags
     logger.info("LOADING FRAGMENTS")
@@ -155,19 +166,25 @@ def main():
                          )
     df_frags.index = df_frags[args.fid]
     num_failed = df_frags['mol'].isna().sum()
-    logger.info(f"LOADED {len(df_frags)} RECORDS WITH {num_failed} FAILURE(S)")
+    logger.info(f"LOADED {len(df_frags):,} RECORDS WITH {num_failed:,} FAILURE(S)")
 
-    # substructure search
-    logger.info(f"SUBSTRUCTURE SEARCH")
+    # eventually filter out some fragments
+    if len(filter_frags) > 0:
+        logger.info(f"FILTERING FRAGMENT COMBINATIONS WITH FRAG(S): {', '.join(filter_frags)}")
+        df_frags = df_frags[~df_frags['idm'].isin(filter_frags)]
+        logger.info(f"REMAINING FRAGMENTS: {len(df_frags):,}")
+
+    # fragment search (substructure search)
+    logger.info("FRAGMENT SEARCH")
     d3 = datetime.now()
     df_aidxf = fragment_search.get_fragment_hits(df_mols, df_frags)
-    logger.info(f"FOUND {len(df_aidxf.index)} HITS")
+    logger.info(f"FOUND {len(df_aidxf.index):,} FRAGMENT HITS")
 
     # save results
-    logger.info(f"SAVING RESULTS")
+    logger.info("SAVING RESULTS")
     d4 = datetime.now()
     outputs = save.file(df_aidxf, args.output, encode=True)
-    logger.info(f"SAVED {outputs[0][1]} RECORDS AT {outputs[0][0]}")
+    logger.info(f"SAVED {outputs[0][1]:,} RECORDS AT {outputs[0][0]}")
 
     # end
     d5 = datetime.now()
@@ -175,7 +192,7 @@ def main():
     logger.info("COMPUTATIONAL TIME: CONFIGURING JOB".ljust(pad * 2) + f"{d1-d0}")
     logger.info("COMPUTATIONAL TIME: LOADING MOLECULES".ljust(pad * 2) + f"{d2-d1}")
     logger.info("COMPUTATIONAL TIME: LOADING FRAGMNENTS".ljust(pad * 2) + f"{d3-d2}")
-    logger.info("COMPUTATIONAL TIME: SUBSTRUCTURE SEARCH".ljust(pad * 2) + f"{d4-d3}")
+    logger.info("COMPUTATIONAL TIME: FRAGMENT SEARCH".ljust(pad * 2) + f"{d4-d3}")
     logger.info("COMPUTATIONAL TIME: SAVING OUTPUT".ljust(pad * 2) + f"{d5-d4}")
     logger.info("COMPUTATIONAL TIME: TOTAL".ljust(pad * 2) + f"{d5-d0}")
     logger.info("END")

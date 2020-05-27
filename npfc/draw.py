@@ -232,7 +232,6 @@ def _get_edge_info(G: Graph, edge_attributes: List[str], attribute_names: bool, 
             data = list(data.values())
 
         if label_node_names_on_edges:
-            print(f"{data=}")
             data.append(f"s: {edge[0]}")
             data.append(f"t: {edge[1]}")
 

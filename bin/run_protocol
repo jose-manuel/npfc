@@ -105,7 +105,7 @@ def main():
     # configure job by updating config with config_parsed
     if args.config is not None:
         config_file = args.config
-        logger.info(f"PARSING SPECIFIED CONFIG FILE")
+        logger.info("PARSING SPECIFIED CONFIG FILE")
     else:
         config_file = pkg_resources.resource_filename('npfc', f"data/{args.protocol}.json")
         logger.info(f"NO SPECIFIED CONFIG FILE, PARSING DEFAULT CONFIG FILE AT '{config_file}'")
@@ -141,7 +141,7 @@ def main():
         logger.info(f"OVERWRITING PREFIX TO {args.prefix}")
         config['prefix'] = args.prefix
     if config['prefix'] is None:
-        errors.append(f"ERROR! PREFIX IS UNDEFINED!")
+        errors.append("ERROR! PREFIX IS UNDEFINED!")
 
     # frags_file
     if args.frags_file is not None:
@@ -180,7 +180,6 @@ def main():
         logger.error(f"{n_errors} ERROR(S) FOUND DURING ARGUMENT PARSING:\n" + '\n'.join(errors) + "\n")
         sys.exit(1)
 
-
     logger.info(f"PROTOCOL - {args.protocol}".center(pad))
     # automatically retrieve all variables and append them to command string using key=value
     if Path(args.protocol).is_file():
@@ -197,11 +196,11 @@ def main():
     if args.env == 'local':
         smk_command += f"-j {args.jobs} "
     elif args.env == 'clem':
-        config_cluster = pkg_resources.resource_filename('npfc', f"data/cluster_clem.json")
+        config_cluster = pkg_resources.resource_filename('npfc', "data/cluster_clem.json")
         smk_command += '-j 100 --cluster-config ' + config_cluster + ' --cluster "sbatch -A {cluster.account} -p {cluster.partition} -n {cluster.n}  -t {cluster.time} --oversubscribe" '
     elif args.env == 'gwdg1':
         smk_command = "sbatch -p medium -t '12:00:00'" + smk_command
-        config_cluster = pkg_resources.resource_filename('npfc', f"data/cluster_gwdg1.json")
+        config_cluster = pkg_resources.resource_filename('npfc', "data/cluster_gwdg1.json")
         smk_command += '-j 400 --cluster-config ' + config_cluster + ' --cluster "sbatch -p medium -n {cluster.n}  -t {cluster.time} --oversubscribe" '
 
     # arguments
@@ -228,7 +227,7 @@ def main():
         # determine the number of chunks to generate
         num_chunks = ceil(num_mols / config['chunksize'])
         config['num_chunks'] = num_chunks
-        logger.info(f"NUMBER OF CHUNKS:".ljust(pad) + f"{num_mols:,d} / {config['chunksize']:,d} = {num_chunks:,d}")
+        logger.info("NUMBER OF CHUNKS:".ljust(pad) + f"{num_mols:,d} / {config['chunksize']:,d} = {num_chunks:,d}")
     # add arguments to the smk command
     smk_command += "--config "
     for k, v in config.items():
@@ -249,13 +248,13 @@ def main():
     subprocess.run(smk_command_svg, shell=True, check=True)
 
     # run protocol
-    logger.info(f"BEGIN OF SNAKEMAKE PROTOCOL")
+    logger.info("BEGIN OF SNAKEMAKE PROTOCOL")
     subprocess.run(smk_command, shell=True, check=True)
     ds.append((f"PROTOCOL '{args.protocol}'", datetime.now()))
     logger.info(f"END OF SNAKEMAKE PROTOCOL '{args.protocol}'")
 
     # end
-    ds.append((f"END", datetime.now()))
+    ds.append(("END", datetime.now()))
     logger.info("SUMMARY")
     for i in range(len(ds) - 1):
         if ds[i+1] != 'END':

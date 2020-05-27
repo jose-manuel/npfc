@@ -10,6 +10,7 @@ This script is used for classifying fragment combinations (fc).
 from pathlib import Path
 import warnings
 import sys
+import os
 from datetime import datetime
 import logging
 import pandas as pd
@@ -69,6 +70,10 @@ def main():
     output_raw = str(output_fcc_path.parent) + "/" + output_fcc_path.stem.split(".")[0] + "_raw" + "".join(output_fcc_path.suffixes)
 
     # display infos
+    try:
+        logger.info("CURRENT ENV".ljust(pad) + f"{os.environ['CONDA_DEFAULT_ENV']}")
+    except KeyError:
+        logger.info("CURRENT ENV".ljust(pad) + "UNDEFINED")
     logger.info("LIBRARY VERSIONS:")
     logger.info("rdkit".ljust(pad) + f"{rdkit.__version__}")
     logger.info("pandas".ljust(pad) + f"{pd.__version__}")
