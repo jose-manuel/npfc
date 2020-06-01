@@ -36,7 +36,7 @@ def label_pnp_fcgs(df, df_ref, data):
     As the input dataframes contain 1 fragment fcg per row, a same molecule might be
     labelled both as PNP and non-PNP (respect. True and False).
 
-    The refining of these results by groupbing entries by idm is performed outside
+    The refining of these results by grouping entries by idm is performed outside
     of this function.
 
     """
@@ -45,7 +45,9 @@ def label_pnp_fcgs(df, df_ref, data):
         if data is None:
             edges = df.iloc[i]['_fcg'].edges()
         else:
-            edges = df.iloc[i]['_fcg'].edges(data=data)
+            edges = df.iloc[i]['_fcg'].edges(data=True)
+            edges = filter_edges_attributes(edges, data)
+
         pnp = True
         for j in range(len(df_ref.index)):
             # if all edges of tested mol are present in ref edges, then it is not PNP
@@ -70,6 +72,16 @@ def _label_pnp_mols(group):
         group["pnp_mol"] = False
 
     return group
+
+
+def filter_edges_attributes(edges: list, cols: list) -> list:
+    """Networkx can either return one or all properties. Now that I am aware of this,
+    I extract all attributes and then filter out the ones I do not want to use.
+
+    :param edges: the edges are a list of tuple of syntax (u, v, d) with d being the dict with the attributes
+    :param cols: the list of attributes to use for PNP labelling.
+    """
+    return [(row[0], row[1], {k: v for k, v in row[2].items() if k in cols}) for row in edges]
 
 
 def main():
@@ -194,7 +206,8 @@ def main():
     if data is None:
         df_fcg_ref["edges_ref"] = df_fcg_ref["_fcg"].map(lambda x: x.edges())
     else:
-        df_fcg_ref["edges_ref"] = df_fcg_ref["_fcg"].map(lambda x: x.edges(data=data))
+        df_fcg_ref["edges_ref"] = df_fcg_ref["_fcg"].map(lambda x: x.edges(data=True))
+        df_fcg_ref["edges_ref"] = df_fcg_ref["edges_ref"].map(lambda x: filter_edges_attributes(x, data))
 
     # fcgping fragment combinations
     logger.info("ANNOTATING FRAGMENT GRAPHS")

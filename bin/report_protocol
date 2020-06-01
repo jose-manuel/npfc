@@ -31,9 +31,7 @@ from adjustText import adjust_text
 # chemoinformatics
 import rdkit
 from rdkit import Chem
-from rdkit.Chem import Draw
 from rdkit.Chem import Mol
-from rdkit.Chem import rdChemReactions
 # docs
 from typing import List
 from typing import Tuple
@@ -43,8 +41,9 @@ import npfc
 from npfc import utils
 from npfc import load
 from npfc import save
+from npfc import draw
 from npfc import fragment_combination
-
+from multiprocessing import Pool
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
@@ -133,6 +132,101 @@ def save_barplot(df: DataFrame,
     plt.close()
 
     return figure
+
+
+def save_displot(df: DataFrame,
+                 output_plot: str,
+                 x_name: str,
+                 y_name: str,
+                 title: str,
+                 color: str,
+                 x_label: str = None,
+                 y_label: str = None,
+                 rotate_x: int = 0,
+                 perc_labels: str = None,
+                 perc_label_size: int = 15,
+                 fig_size: Tuple[int] = (24, 12),
+                 fill: bool = False,
+                 ):
+    """This function helps for computing automated lineplot using seaborn.
+    It sets up somewhat standardized figure output for a harmonized rendering.
+
+    :param df: the DataFrame with data to plot
+    :param output_plot: the output plot full file name
+    :param x_name: DF column name to use for x-axis
+    :param y_name: DF column name to use for y-axis
+    :param x_label: the name to display on the plot for x-axis
+    :param y_label: the name to display on the plot for y-axis
+    :param rotate_x: rotate the x-axis ticks anticlock-wise
+    :param perc_labels: DF column name to use display percentage labels above bars
+    :param perc_label_size: annotation text size for perc_labels
+    :param color: color to use for bars, theoritically could also be a list of colors
+    :param fig_size: tuple of integers defining the plot dimensions (x, y)
+    :return: the figure in searborn format
+    """
+    # detect format from file extension
+    format = Path(output_plot).suffix[1:].lower()
+    if format != 'svg' and format != 'png':
+        raise ValueError(f"ERROR! UNKNOWN PLOT FORMAT! ('{format}')")
+    logging.debug(f"FORMAT FOR PLOT: '{format}'")
+
+    # delete existing file for preventing stacking of plots
+    p = Path(output_plot)
+    if p.exists():
+        p.unlink()
+
+    # general style for plotting
+    # sns.set(rc={'figure.figsize': fig_size})
+    plt.figure(figsize=fig_size)
+    sns.set_style('whitegrid', {'axes.edgecolor': '0.2'})
+    sns.set_context("paper", font_scale=2)
+
+    # distplot
+    fig, ax = plt.subplots(figsize=fig_size)
+    ax = sns.scatterplot(x=x_name, y=y_name, data=df, ax=ax, s=20)
+    ax = sns.distplot(x=df[x_name], y=df[y_name], color=color, ax=ax, kde=False)
+    # fix xticks that would contain floats instead of ints
+    plt.xticks(np.arange(min(df[x_name]), max(df[x_name]) + 1, 1))  # https://stackoverflow.com/questions/30327153/seaborn-pylab-changing-xticks-from-float-to-int
+    # update all lines width
+    for l in ax.lines:
+        plt.setp(l, linewidth=3)
+    ax.margins(0, 0)
+    ax.set_title(title, fontsize=24, y=1.02)
+    ax.tick_params(labelsize=20)
+    ax.tick_params(axis='x', rotation=rotate_x)
+    # ax.set_xticklabels(df[x_name])
+    ax.set_xlabel(x_label, fontsize=25, labelpad=20)
+    ax.set_ylabel(y_label, fontsize=25, labelpad=20)
+    # if no entry, then y ticks get all confused
+    if df[y_name].sum() == 0:
+        ax.set_yticks((0, 1, 2, 3, 4, 5))
+        ax.set_ylim((0, 5))
+
+    # format y labels
+    ylabels = ['{:,.0f}'.format(x) for x in ax.get_yticks()]
+    ax.set_yticklabels(ylabels)
+    # add percentage annotations
+    if perc_labels is not None:
+        for i in range(len(df.index)):
+            row = df.iloc[i]
+            ax.text(row[x_name], row[y_name], row[perc_labels], color='black', ha='center', fontdict={'fontsize': perc_label_size})
+
+    if fill:
+        plt.fill_between(df[x_name].values, df[y_name].values)
+
+    # adjust overlapping text annotations (percentages with axes, etc.)
+    texts = [x for x in ax.texts]
+    adjust_text(texts)
+
+    # save
+    figure = ax.get_figure()
+    figure.subplots_adjust(bottom=0.2)
+    figure.savefig(output_plot, format=format, dpi=600)
+    plt.clf()
+    plt.close()
+
+    return figure
+
 
 
 def save_lineplot(df: DataFrame,
@@ -434,7 +528,7 @@ def find_wd_levels(WD: str, natref: str = None, frags: str = None) -> dict:
         wd_natref = [str(p) for p in list(Path(WD).glob('**')) if p.name == natref]
     # find frags dirs
     if frags is None:
-        wd_frags = [str(p) for p in list(Path(WD).glob('**')) if p.name[0:6] == 'frags_']
+        wd_frags = []
     else:
         wd_frags = [str(p) for p in list(Path(WD).glob('**')) if p.name == frags]
 
@@ -472,7 +566,6 @@ def filter_wd_levels_with_missing_chunks(wd_levels: OrderedDict) -> OrderedDict:
             error = False
             wd_steps = find_wd_level_steps(wd_subdir)
             for wd_step in wd_steps:  # 00_raw, 01_load, 02_load, etc.
-                print(f"{wd_step.split('/')[-1][0:5]=}")
                 if wd_step[0:5].split('/')[-1] == 'frags_':
                     continue
                 # count chunks
@@ -500,7 +593,7 @@ def filter_wd_levels_with_missing_chunks(wd_levels: OrderedDict) -> OrderedDict:
         wd_levels[wd_level] = [wd_levels[wd_level][i] for i, e in enumerate(errors) if not e]
         # apply logical thinking: if the earlier step failed, it is better not to run the later step
         if len(wd_levels['preprocess']) == 0:
-            logging.debug(f"CHUNKS -- ERROR! SINCE PREPROCESS IS NOT GOOD, ABORT PARSING OF NATREF AND FRAGS SUBDIRS.")
+            logging.debug("CHUNKS -- ERROR! SINCE PREPROCESS IS NOT GOOD, ABORT PARSING OF NATREF AND FRAGS SUBDIRS.")
             wd_levels['natref'] = []
             wd_levels['frags'] = []
         # elif len(wd_levels['natref']) == 0:  # this is way too simplistic, indeed need to iterate depth-wise to skip frags corresponding on incomplete natref
@@ -525,6 +618,10 @@ def _get_chunks(WD: str, pattern: str) -> List[str]:
     return sorted(list(filter(pattern.match, chunks)))
 
 
+def _parse_std_chunk(c):
+    return load.file(c, decode=False).groupby("task").count()[['status']].rename({'status': 'Count'}, axis=1)
+
+
 def _parse_std_chunks(chunks: List[str]) -> DataFrame:
     """Parse all output files of a category (passed, filtered or error) for the std step and return a corresponding a results summary.
 
@@ -533,11 +630,12 @@ def _parse_std_chunks(chunks: List[str]) -> DataFrame:
     """
     # parse all files
     dfs = []
-    for c in chunks:
-        df = pd.read_csv(c, sep="|", compression="gzip").groupby("task").count()[['status']].rename({'status': 'Count'}, axis=1)
-        if len(df.index) > 0:
-            dfs.append(df)
+    pool = Pool()
+    dfs = pool.map(_parse_std_chunk, chunks)
+    pool.close()
+    pool.join()
 
+    dfs = [df for df in dfs if len(df) > 0]
     # if no case was found, return an empty dataframe
     if len(dfs) == 0:
         df = pd.DataFrame([], columns=["Count", "Category"])
@@ -550,7 +648,16 @@ def _parse_std_chunks(chunks: List[str]) -> DataFrame:
     df["Category"] = df.index.map(lambda x: x.replace('filter_', ''))
     # df['Perc_status'] = df['Count'].map(lambda x: f"{x/tot_mols:.2%}")
 
-    return df
+    return df.reset_index(drop=True)
+
+
+def parse_chunk_load(c: str):
+    df = pd.read_csv(c, sep="@", header=None)
+    records = df[df[0].str.contains("FAILURE")].iloc[0][0].split()
+    errors = int(records[9])
+    passed = int(df[df[0].str.contains("SAVED")].iloc[0][0].split()[6])
+
+    return (passed, errors)
 
 
 def get_df_load(WD: str) -> DataFrame:
@@ -564,18 +671,17 @@ def get_df_load(WD: str) -> DataFrame:
     pattern = ".*([0-9]{3})?.log"
     chunks = _get_chunks(f"{WD}/log", pattern)
     logger.info(f"FOUND {len(chunks):,d} CHUNKS")
-    # initiate counts
-    num_passed = 0
-    num_errors = 0
-    for c in chunks:
-        df = pd.read_csv(c, sep="@", header=None)  # char not found in the log file so we can extract all lines as one column
-        records = df[df[0].str.contains("FAILURE")].iloc[0][0].split()
-        total = int(records[6])
-        errors = int(records[9])
-        passed = int(df[df[0].str.contains("SAVED")].iloc[0][0].split()[6])
-        logger.debug(f"{c} => PASSED: {passed}/{total} ({errors} ERRORS)")
-        num_passed += passed
-        num_errors += errors
+
+    pool = Pool()
+    results = pool.map(parse_chunk_load, chunks)
+    pool.close()
+    pool.join()
+
+    # sum of tuples
+    df = pd.DataFrame(results, columns=['passed', 'errors'])
+    num_passed = df.passed.sum()
+    num_errors = df.errors.sum()
+
     # create a dataframe with counts
     df = pd.DataFrame({'Category': ['loaded', 'cannot_load'], 'Count': [num_passed, num_errors]})
     logger.info(f"PREP -- RESULTS FOR LOADING MOLECULES:\n\n{df}\n")
@@ -583,106 +689,8 @@ def get_df_load(WD: str) -> DataFrame:
     return df
 
 
-def get_df_deglyco(WD: str) -> DataFrame:
-    """Get a DF summarizing the deglycoslyation step.
-
-    :param WD: the directory of the deglyco step
-    :return: a DF summarizing the deglycoslyation step
-    """
-    if WD.endswith('/'):
-        WD = WD[0:-1]
-    logger.info("PREP -- COMPUTING DEGLYCO RESULTS")
-    # iterate over the log files to count status
-    pattern = ".*([0-9]{3})?_deglyco.csv"
-    chunks = _get_chunks(f"{WD}/log", pattern)
-    logger.info(f"PREP -- FOUND {len(chunks):,d} CHUNKS")
-    # initiate counts
-    num_tot = 0
-    num_unchanged = 0
-    num_deglycosylated = 0
-    num_failed = 0
-    num_error = 0
-    # count status
-    for c in chunks:
-        df = pd.read_csv(c, sep="|")
-        num_tot += len(df.index)
-        num_unchanged += len(df[df['status'] == 'unchanged'].index)
-        num_deglycosylated += len(df[df['status'] == 'deglycosylated'].index)
-        num_failed += len(df[df['status'] == 'failed'].index)
-        num_error += len(df[df['status'] == 'error'].index)
-    # create a dataframe with counts
-    df = pd.DataFrame({'Category': ['deglycosylated', 'unchanged', 'failed', 'error'], 'Count': [num_deglycosylated, num_unchanged, num_failed, num_error]})
-    logger.info(f"PREP -- RESULTS FOR DEGLYCO:\n\n{df}\n")
-
-    return df
-
-
-def save_examples_deglyco(WD: str, WD_out: str, n: int = -1) -> int:
-    """Save examples of deglycosylated molecules to specified WD_out.
-
-    :param WD: the directory of the deglyco step (deglyco or deglyco/data)
-    :param WD_out: the directory where to store the results. In case there are chunks, subfolders will be generated (i.e. 002, 002, etc.).
-    :param n: the number of examples to display for each chunk. By default all examples are depicted.
-    :return: the total number of examples that were depicted
-    """
-    if n == 0:
-        logger.info("PREP -- NOT COMPUTING DEGLYCO EXAMPLES")
-        return n
-    if WD.endswith('/'):
-        WD = WD[0:-1]
-
-    WD_DEGLYCO = [str(x) for x in list(Path(WD).glob("*_deglyco"))]
-    if len(WD_DEGLYCO) < 1:
-        logging.debug(f"NO DEGLYCO STEP COULD BE FOUND AT '{WD}'")
-        return 0
-    else:
-        WD_DEGLYCO = WD_DEGLYCO[0]
-    logger.info("PREP -- COMPUTING DEGLYCO EXAMPLES")
-    # iterate over the log files to count status
-    pattern = ".*([0-9]{3})?_deglyco.csv"
-    chunks = _get_chunks(f"{WD_DEGLYCO}/log", pattern)
-    logger.info(f"PREP -- FOUND {len(chunks):,d} CHUNKS")
-
-    # initiate counts
-    num_examples_tot = 0
-    # count status
-    for c in chunks:
-        m = re.search('.*_([0-9]{3})_deglyco.*', c)
-        if m:
-            chunk_id = m.group(1)
-        else:
-            chunk_id = ''  # no chunks (i.e. in case of fragments)
-        df = pd.read_csv(c, sep="|")
-        if n > 0:
-            df = df.head(n)
-        df = df[df['status'] == 'deglycosylated']
-        num_examples = len(df.index)
-
-        # create an empty folder in case there are no examples (better than missing chunk ids?)
-        if chunk_id == '':
-            WD_chunk = f"{WD_out}"
-        else:
-            WD_chunk = f"{WD_out}/{chunk_id}"
-        Path(WD_chunk).mkdir(parents=True, exist_ok=True)
-
-        if num_examples == 0:
-            logger.debug(f"PREP -- NO EXAMPLES FOUND IN CHUNKID '{chunk_id}'")
-            continue
-
-        num_examples_tot += num_examples
-        # generate the examples
-        for i in range(num_examples):
-            row = df.iloc[i]
-            idm = row['_Name']
-            output_img = f"{WD_chunk}/{idm}.svg"
-            # this is a transformation, so use the reaction scheme for displaying a nice arrow
-            rxn_str = f"{row['smiles_cdk']}>>{row['smiles_cdk_deglyco']}"
-            rxn = rdChemReactions.ReactionFromSmarts(rxn_str, useSmiles=True)
-            img = Draw.ReactionToImage(rxn, subImgSize=(400, 400), useSVG=True)
-            with open(output_img, 'w') as IMG:
-                IMG.write(img)
-
-    return num_examples_tot
+def parse_chunk_std_passed(c: str):
+    return len(load.file(c, decode=False).index)
 
 
 def get_df_std_passed(WD: str) -> DataFrame:
@@ -697,10 +705,13 @@ def get_df_std_passed(WD: str) -> DataFrame:
     chunks = _get_chunks(f"{WD}/data", pattern)
     logger.info(f"PREP -- FOUND {len(chunks):,d} CHUNKS")
     # initiate counts
-    num_passed = 0
-    for c in chunks:
-        df = pd.read_csv(c, sep="|")
-        num_passed += len(df.index)
+    pool = Pool()
+    results = pool.map(parse_chunk_std_passed, chunks)
+    pool.close()
+    pool.join()
+
+    # gather data
+    num_passed = sum(results)
     df = pd.DataFrame({"Category": ['passed'], 'Count': [num_passed]})
     logger.info(f"PREP -- RESULTS FOR STD PASSED:\n\n{df}\n")
 
@@ -743,6 +754,14 @@ def get_df_std_error(WD: str) -> DataFrame:
     return df
 
 
+def parse_chunk_dedupl(c):
+
+    df = pd.read_csv(c, sep="@", header=None)  # char not found in the log file so we can extract all lines as one column
+    passed, total = [int(x) for x in df[df[0].str.contains("REMAINING MOLECULES")].iloc[0][0].split("MOLECULES:")[1].split("/")]
+    filtered = total - passed
+    return (passed, filtered)
+
+
 def get_df_dedupl(WD: str) -> DataFrame:
     """Get a DF summarizing the results of the deduplication step.
 
@@ -757,15 +776,20 @@ def get_df_dedupl(WD: str) -> DataFrame:
     # print(f"{chunks=}")
     logger.info(f"PREP -- FOUND {len(chunks):,d} CHUNKS")
     # initiate counts
-    num_tot = 0
     num_passed = 0
     num_filtered = 0
-    for c in chunks:
-        df = pd.read_csv(c, sep="@", header=None)  # char not found in the log file so we can extract all lines as one column
-        passed, total = [int(x) for x in df[df[0].str.contains("REMAINING MOLECULES")].iloc[0][0].split("MOLECULES:")[1].split("/")]
-        num_passed += passed
-        num_filtered += total - passed
-        num_tot += total
+
+    # initiate counts
+    pool = Pool()
+    results = pool.map(parse_chunk_dedupl, chunks)
+    pool.close()
+    pool.join()
+
+    # sum of tuples
+    df = pd.DataFrame(results, columns=['passed', 'filtered'])
+    num_passed = df.passed.sum()
+    num_filtered = df.filtered.sum()
+
     # create a dataframe with counts
     df = pd.DataFrame({'Category': ['unique', 'duplicate'], 'Count': [num_passed, num_filtered]})
     logger.info(f"PREP -- RESULTS FOR DEDUPL:\n\n{df}\n")
@@ -773,39 +797,15 @@ def get_df_dedupl(WD: str) -> DataFrame:
     return df
 
 
-def get_dfs_prep_frags(WD: str) -> Tuple[DataFrame]:
-    """
-    Same as dfs_prep but adapted to the fragments protocol.
-    The latter differs from other protocols in several ways:
-
-        - no deglycoslyation step
-        - 2 competiting murcko scaffold extraction schemes:
-            - A: load > murcko > std
-            - B: load > std > murcko > stdms
-        - concatenation of A and B to prioritize B over A
-
-        (with std without filters)
-    """
-
-    p = Path(WD)
-    WD_LOAD = [str(x) for x in list(p.glob("*_load"))][0]
-    WD_STD = [str(x) for x in list(p.glob("*_std*"))]
-    print(WD_STD)
-    WD_DEDUPL = [str(x) for x in list(p.glob("*_dedupl"))][0]
-
-    sys.exit(0)
-
-
 def get_dfs_prep(WD: str) -> Tuple[DataFrame]:
-    """Get a list of DFs summarizing the whole preprocess superstep: load, deglyco, std and dedupl.
+    """Get a list of DFs summarizing the whole preprocess superstep: load, std and dedupl.
 
-    - DF_deglyco is the detailed summary of deglycosylation appended with the number of mols that did not get processed because they could not be loaded (NA).
     - DF_prep_filtered is the detailed summary of std and dedupl
     - DF_prep_error is the detailed summary of std and load
     - DF_prep_all is the general summary with the final number of passed, filtered and error molecules.
 
     :param WD: the main directory of the dataset data (i.e. 'natural/dnp/data')
-    :return: a list of DFs of interest: [DF_deglyco, DF_prep_filtered, DF_prep_error, DF_prep_all]
+    :return: a list of DFs of interest: [DF_prep_filtered, DF_prep_error, DF_prep_all]
     """
 
     logger.info("PREP -- COMPUTE RESULTS FOR PREPROCESS")
@@ -814,19 +814,11 @@ def get_dfs_prep(WD: str) -> Tuple[DataFrame]:
     # define subfolders
     p = Path(WD)
     WD_LOAD = [str(x) for x in list(p.glob("*_load"))][0]
-    # there is no deglyco step anymore for fragments
-    WD_DEGLYCO = [str(x) for x in list(Path(WD).glob("*_deglyco"))]
-    if len(WD_DEGLYCO) < 1:
-        logging.debug(f"NO DEGLYCO STEP COULD BE FOUND AT '{WD}'")
-        WD_DEGLYCO = ''
-    else:
-        WD_DEGLYCO = WD_DEGLYCO[0]
     WD_STD = [str(x) for x in list(p.glob("*_std"))][0]
     WD_DEDUPL = [str(x) for x in list(p.glob("*_dedupl"))][0]
 
     # get dfs
     df_load = get_df_load(WD_LOAD)
-    df_deglyco = get_df_deglyco(WD_DEGLYCO)
     df_std_passed = get_df_std_passed(WD_STD)
     df_std_filtered = get_df_std_filtered(WD_STD)
     df_std_error = get_df_std_error(WD_STD)
@@ -834,16 +826,6 @@ def get_dfs_prep(WD: str) -> Tuple[DataFrame]:
 
     # get total of molecules in input
     num_mols_tot = df_load['Count'].sum()
-    if WD_DEGLYCO != '':
-        # count not loaded molecules as well in deglyco
-        num_mols_deglyco_na = df_load[df_load['Category'] == 'cannot_load']['Count']
-        df_deglyco = pd.concat([df_deglyco, pd.DataFrame({'Category': ['NA'], 'Count': [num_mols_deglyco_na]})])
-        df_deglyco.reset_index(inplace=True, drop=True)
-        df_deglyco['Count'] = df_deglyco['Count'].astype(int)
-        df_deglyco['Perc_Status'] = df_deglyco['Count'].map(lambda x: f"{x/num_mols_tot:.2%}")
-        logger.info(f"PREP -- RESULTS FOR DEGLYCOSYLATION:\n\n{df_deglyco}\n")
-    else:
-        df_deglyco = None
 
     # gather all filtered molecules
     df_dedupl_dupl = df_dedupl[df_dedupl['Category'] == 'duplicate']
@@ -875,11 +857,20 @@ def get_dfs_prep(WD: str) -> Tuple[DataFrame]:
     num_tot_filtered = df_std_filtered['Count'].sum()
     num_tot_passed = df_std_passed['Count'].sum() - num_dedupl_dupl  # dedupl happens after std, so std contains passsed mols that get filtered
     num_tot_errors = df_std_error['Count'].sum()
-    df_std_all = pd.DataFrame({'Category': ['passed', 'filtered', 'errors'], 'Count': [num_tot_passed, num_tot_filtered, num_tot_errors]})
-    df_std_all['Perc_Status'] = df_std_all['Count'].map(lambda x: f"{x/num_mols_tot:.2%}")
-    logger.info(f"PREP -- RESULTS FOR STD_ALL:\n\n{df_std_all}\n")
+    df_prep_overview = pd.DataFrame({'Category': ['passed', 'filtered', 'errors'], 'Count': [num_tot_passed, num_tot_filtered, num_tot_errors]})
+    df_prep_overview['Perc_Status'] = df_prep_overview['Count'].map(lambda x: f"{x/num_mols_tot:.2%}")
+    logger.info(f"PREP -- RESULTS FOR STD_ALL:\n\n{df_prep_overview}\n")
 
-    return {'df_prep_overview': df_std_all, 'df_prep_filtered': df_std_filtered, 'df_prep_error': df_std_error, 'df_prep_deglyco': df_deglyco}
+    return {'df_prep_overview': df_prep_overview, 'df_prep_filtered': df_std_filtered, 'df_prep_error': df_std_error}
+
+
+def parse_chunk_subset(c):
+    df = pd.read_csv(c, sep="@", header=None)  # char not found in the log file so we can extract all lines as one column
+    records = df[df[0].str.contains("NUMBER OF REMAINING RECORDS IN SUBSET")].iloc[0][0].split()[-1].split('/')
+    passed = int(records[0])
+    total = int(records[1])
+    filtered = total - passed
+    return (passed, filtered)
 
 
 def get_df_subset(WD: Path) -> DataFrame:
@@ -898,23 +889,72 @@ def get_df_subset(WD: Path) -> DataFrame:
     WD_SUBSET = [str(x) for x in list(WD.glob("*_subset"))][0]    # get latest step
     pattern = ".*([0-9]{3})?.log"
     chunks = _get_chunks(f"{WD_SUBSET}/log", pattern)
-    num_passed = 0
-    num_filtered = 0
-    num_total = 0
-    for c in chunks:
-        df = pd.read_csv(c, sep="@", header=None)  # char not found in the log file so we can extract all lines as one column
-        records = df[df[0].str.contains("NUMBER OF REMAINING RECORDS IN SUBSET")].iloc[0][0].split()[-1].split('/')
-        passed = int(records[0])
-        total = int(records[1])
-        num_filtered += total - passed
-        num_passed += passed
-        num_total += total
+
+    pool = Pool()
+    results = pool.map(parse_chunk_subset, chunks)
+    pool.close()
+    pool.join()
+
+    # sum of tuples
+    df = pd.DataFrame(results, columns=['passed', 'filtered'])
+    num_passed = df.passed.sum()
+    num_filtered = df.filtered.sum()
+    num_total = num_passed + num_filtered
+
     # create a dataframe with counts
     df = pd.DataFrame({'Category': ['passed', 'filtered'], 'Count': [num_passed, num_filtered]})
     df['Perc_Status'] = df['Count'].map(lambda x: f"{x/num_total:.2%}")
     logger.info(f"SUB -- RESULTS FOR SUBSETTING {num_total:,} MOLECULES:\n\n{df}\n")
 
     return df
+
+
+def parse_chunk_fs_pstep(c):
+    return len(load.file(c, decode=False))
+
+
+def parse_chunk_fs(c):
+    d = {}
+    df_fsearch = load.file(c)
+    df_fsearch['_aidxf'] = df_fsearch['_aidxf'].map(list)
+    df_fsearch['mol_frag'] = df_fsearch['mol_frag'].map(Chem.MolToSmiles)
+    df_fsearch['hac_mol'] = df_fsearch['mol'].map(lambda x: x.GetNumAtoms())
+
+    # fragment hits per mol
+    groups = df_fsearch.groupby('idm')
+    n_fs_nhits_tot = len(df_fsearch.index)
+    n_fs_mols_tot = len(groups)  # there are no duplicate ids at this point, each chunk contain unique and non-redundant mols
+    df_fs_nhits = groups.count()[['idf']].reset_index().rename({'idf': 'NumFrags'}, axis=1).groupby('NumFrags').count().rename({'idm': 'Count'}, axis=1).reset_index()  # this counts >0 hits
+    # top fragments
+    df_top_frags = df_fsearch[['idf', 'idm', 'mol_frag']].groupby(['idf', 'mol_frag']).count().reset_index().rename({'idm': 'Count'}, axis=1).sort_values('Count', ascending=False).reset_index(drop=True)
+    # fragment ratio per molecule (to do last)
+    df_fsearch['hac_mol'] = df_fsearch['mol'].map(lambda x: x.GetNumAtoms())
+    df_frag_ratio = df_fsearch.copy()
+    df_frag_ratio = groups.agg({'_aidxf': 'sum', 'hac_mol': 'first'}).reset_index()
+    df_frag_ratio['_aidxf'] = df_frag_ratio['_aidxf'].map(lambda x: len(set(x)))
+    df_frag_ratio.rename({'_aidxf': 'hac_frags'}, axis=1, inplace=True)
+    df_frag_ratio['frag_ratio'] = df_frag_ratio['hac_frags'] / df_frag_ratio['hac_mol']
+
+    # unique fragments per molecule only
+    df_fsearch_u = df_fsearch.groupby(['idm', 'idf']).first().reset_index()
+    n_fs_nhits_tot_u = len(df_fsearch_u.index)
+
+    # unique fragment hits per mol
+    df_fs_nhits_u = df_fsearch_u.groupby('idm').count()[['idf']].reset_index().rename({'idf': 'NumFrags'}, axis=1).groupby('NumFrags').count().rename({'idm': 'Count'}, axis=1).reset_index()  # this counts >0 hits
+
+    # top unique fragments
+    df_top_frags_u = df_fsearch_u[['idf', 'idm', 'mol_frag']].groupby(['idf', 'mol_frag']).count().reset_index().rename({'idm': 'Count'}, axis=1).sort_values('Count', ascending=False).reset_index(drop=True)
+
+    d['n_fs_nhits_tot'] = n_fs_nhits_tot
+    d['df_fs_nhits'] = df_fs_nhits
+    d['n_fs_mols_tot'] = n_fs_mols_tot
+    d['df_top_frags'] = df_top_frags
+    d['df_frag_ratio'] = df_frag_ratio
+    d['n_fs_nhits_tot_u'] = n_fs_nhits_tot_u
+    d['df_fs_nhits_u'] = df_fs_nhits_u
+    d['df_top_frags_u'] = df_top_frags_u
+
+    return d
 
 
 def get_dfs_fs(WD: Path) -> Tuple[DataFrame]:
@@ -941,62 +981,38 @@ def get_dfs_fs(WD: Path) -> Tuple[DataFrame]:
     logger.info(f"FS -- COUNTING MOLECULES IN PREVIOUS STEP='{pstep_direname}'")
 
     # previous step to assess how many (1 row = 1 mol!)
-    chunks_pstep = sorted([str(x) for x in list(WD.parent.glob(f"{pstep_direname}/data/*_[0-9][0-9][0-9]_*.csv.gz"))])
-    n_tot = sum([len(pd.read_csv(x, sep='|', compression='gzip')) for x in chunks_pstep])
+    pattern = ".*([0-9]{3})?.csv.gz"
+    chunks_pstep = _get_chunks(f"{WD.parent}/{pstep_direname}/data", pattern)
+    pool = Pool()
+    results = pool.map(parse_chunk_fs_pstep, chunks_pstep)
+    pool.close()
+    pool.join()
+    n_tot = sum(results)
     logger.info(f"FS -- TOTAL NUMBER OF MOLECULES IN PREVIOUS STEP: {n_tot:,}")
     logger.info(f"FS -- NOW INVESTIGATING RESULTS IN WD='{fsearch_dirname}'")
 
     # parse chunks
-    chunks_fsearch = sorted([str(x) for x in list(WD.glob(f"{fsearch_dirname}/data/*_[0-9][0-9][0-9]_*.csv.gz"))])
+    pattern = ".*([0-9]{3})?_fsearch.csv.gz"
+    chunks_fsearch = _get_chunks(f"{WD}/{fsearch_dirname}/data", pattern)
 
-    logger.info(f"FS -- STARTING CHUNK ITERATION...")
-    n_fs_nhits_tot = 0
-    n_fs_mols_tot = 0
-    n_fs_nhits_tot_u = 0
-    dfs_fs_nhits = []
-    dfs_top_frags = []
-    dfs_frag_ratio = []
-    dfs_fs_nhits_u = []
-    dfs_top_frags_u = []
-    for x in chunks_fsearch:  # chunk-wise iteration to save up memory
-        df_fsearch = load.file(x)
-        df_fsearch['_aidxf'] = df_fsearch['_aidxf'].map(list)
-        df_fsearch['mol_frag'] = df_fsearch['mol_frag'].map(Chem.MolToSmiles)
-        df_fsearch['hac_mol'] = df_fsearch['mol'].map(lambda x: x.GetNumAtoms())
+    logger.info("FS -- STARTING CHUNK ITERATION...")
+    pool = Pool()
+    results = pool.map(parse_chunk_fs, chunks_fsearch)
+    pool.close()
+    pool.join()
 
-        # fragment hits per mol
-        groups = df_fsearch.groupby('idm')
-        n_fs_nhits_tot += len(df_fsearch.index)
-        n_fs_mols_tot += len(groups)  # there are no duplicate ids at this point, each chunk contain unique and non-redundant mols
-        df_fs_nhits = groups.count()[['idf']].reset_index().rename({'idf': 'NumFrags'}, axis=1).groupby('NumFrags').count().rename({'idm': 'Count'}, axis=1).reset_index()  # this counts >0 hits
-        dfs_fs_nhits.append(df_fs_nhits)
+    # counts
+    n_fs_nhits_tot = sum([x['n_fs_nhits_tot'] for x in results])
+    n_fs_mols_tot = sum([x['n_fs_mols_tot'] for x in results])
+    n_fs_nhits_tot_u = sum([x['n_fs_nhits_tot_u'] for x in results])
+    # dataframes
+    df_fs_nhits = pd.concat([x['df_fs_nhits'] for x in results if x is not None])
+    df_top_frags = pd.concat([x['df_top_frags'] for x in results if x is not None])
+    df_frag_ratio = pd.concat([x['df_frag_ratio'] for x in results if x is not None])
+    df_fs_nhits_u = pd.concat([x['df_fs_nhits_u'] for x in results if x is not None])
+    df_top_frags_u = pd.concat([x['df_top_frags_u'] for x in results if x is not None])
 
-        # top fragments
-        df_top_frags = df_fsearch[['idf', 'idm', 'mol_frag']].groupby(['idf', 'mol_frag']).count().reset_index().rename({'idm': 'Count'}, axis=1).sort_values('Count', ascending=False).reset_index(drop=True)
-        dfs_top_frags.append(df_top_frags)
-
-        # fragment ratio per molecule (to do last)
-        df_fsearch['hac_mol'] = df_fsearch['mol'].map(lambda x: x.GetNumAtoms())
-        df_frag_ratio = df_fsearch.copy()
-        df_frag_ratio = groups.agg({'_aidxf': 'sum', 'hac_mol': 'first'}).reset_index()
-        df_frag_ratio['_aidxf'] = df_frag_ratio['_aidxf'].map(lambda x: len(set(x)))
-        df_frag_ratio.rename({'_aidxf': 'hac_frags'}, axis=1, inplace=True)
-        df_frag_ratio['frag_ratio'] = df_frag_ratio['hac_frags'] / df_frag_ratio['hac_mol']
-        dfs_frag_ratio.append(df_frag_ratio)
-
-        # unique fragments per molecule only
-        df_fsearch_u = df_fsearch.groupby(['idm', 'idf']).first().reset_index()
-        n_fs_nhits_tot_u += len(df_fsearch_u.index)
-
-        # unique fragment hits per mol
-        df_fs_nhits_u = df_fsearch_u.groupby('idm').count()[['idf']].reset_index().rename({'idf': 'NumFrags'}, axis=1).groupby('NumFrags').count().rename({'idm': 'Count'}, axis=1).reset_index()  # this counts >0 hits
-        dfs_fs_nhits_u.append(df_fs_nhits_u)
-
-        # top unique fragments
-        df_top_frags_u = df_fsearch_u[['idf', 'idm', 'mol_frag']].groupby(['idf', 'mol_frag']).count().reset_index().rename({'idm': 'Count'}, axis=1).sort_values('Count', ascending=False).reset_index(drop=True)
-        dfs_top_frags_u.append(df_top_frags_u)
-
-    logger.info(f"FS -- COMPLETED CHUNK ITERATION")
+    logger.info("FS -- COMPLETED CHUNK ITERATION")
     logger.info(f"FS -- TOTAL NUMBER OF FRAGMENTS HITS={n_fs_nhits_tot:,}")
     logger.info(f"FS -- TOTAL NUMBER OF MOLECULES={n_fs_mols_tot:,}")
     logger.info(f"FS -- AVERAGE NUMBER OF FRAGMENTS PER MOL={n_fs_nhits_tot/n_fs_mols_tot:,.2f}")
@@ -1005,44 +1021,44 @@ def get_dfs_fs(WD: Path) -> Tuple[DataFrame]:
     n_fs_nhits_0 = n_tot - n_fs_mols_tot  # this counts nhits = 0
 
     # fragment hits per mol
-    logger.info(f"FS -- INVESTIGATING THE NUMBER OF FRAGMENT HITS PER MOLECULE")
-    df_fs_nhits = pd.concat(dfs_fs_nhits).groupby('NumFrags').sum().reset_index().sort_values('NumFrags')  # concatenate counts because they do not take any memory anymore
+    logger.info("FS -- INVESTIGATING THE NUMBER OF FRAGMENT HITS PER MOLECULE")
+    df_fs_nhits = df_fs_nhits.groupby('NumFrags').sum().reset_index().sort_values('NumFrags')  # concatenate counts because they do not take any memory anymore
     df_fs_nhits = pd.concat([pd.DataFrame({'NumFrags': [0], 'Count': [n_fs_nhits_0]}), df_fs_nhits]).sort_values('NumFrags').reset_index(drop=True)  # now we have all nhits
-    df_fs_nhits['Perc_Mols'] = df_fs_nhits['Count'].map(lambda x: f"{x / n_fs_mols_tot:.2%}")
+    df_fs_nhits['Perc_Mols'] = df_fs_nhits['Count'].map(lambda x: f"{x / n_tot:.2%}")
     logger.info(f"FS -- RESULTS FOR THE NUMBER OF FRAGMENT HITS PER MOLECULE\n\n{df_fs_nhits}\n")
 
     # top fragments
-    logger.info(f"FS -- INVESTIGATING THE TOP FRAGMENTS")
-    df_top_frags = pd.concat(dfs_top_frags)
+    logger.info("FS -- INVESTIGATING THE TOP FRAGMENTS")
+    df_top_frags = df_top_frags
     df_top_frags = df_top_frags.groupby(['idf', 'mol_frag']).sum().reset_index().sort_values('Count', ascending=False).reset_index(drop=True)
     df_top_frags['Rank'] = df_top_frags.index + 1
     df_top_frags['Perc_FHits'] = df_top_frags['Count'].map(lambda x: f"{x / n_fs_nhits_tot:.2%}")
     logger.info(f"FS -- TOTAL NUMBER OF FRAGMENTS={len(df_top_frags):,}")
     logger.info(f"FS -- RESULTS FOR THE TOP FRAGMENTS\n\n{df_top_frags}\n")
     # fragment ratio per molecule
-    logger.info(f"FS -- INVESTIGATING THE RATIO OF FRAGMENT PER MOLECULE")
-    df_frag_ratio = pd.concat(dfs_frag_ratio)
+    logger.info("FS -- INVESTIGATING THE RATIO OF FRAGMENT PER MOLECULE")
     logger.info(f"FS -- RESULTS FOR THE RATIO OF FRAGMENT PER MOLECULE\n\n{df_frag_ratio}\n")
 
     # unique fragment hits per mol
-    logger.info(f"FS -- NOW COMPUTING RESULTS WHEN COUNTING ONLY UNIQUE FRAGMENTS PER MOLECULE")
-    logger.info(f"FS -- TOTAL NUMBER OF UNIQUE FRAGMENTS HITS={n_fs_nhits_tot_u:,}")
-    logger.info(f"FS -- INVESTIGATING THE NUMBER OF UNIQUE FRAGMENT HITS PER MOLECULE")
-    df_fs_nhits_u = pd.concat(dfs_fs_nhits_u).groupby('NumFrags').sum().reset_index().sort_values('NumFrags')  # concatenate counts because they do not take any memory anymore
+    logger.info("FS -- NOW COMPUTING RESULTS WHEN COUNTING ONLY UNIQUE FRAGMENTS PER MOLECULE")
+    logger.info("FS -- TOTAL NUMBER OF UNIQUE FRAGMENTS HITS={n_fs_nhits_tot_u:,}")
+    logger.info("FS -- TOTAL COUNT OF FRAGMENTS HITS INCLUDING NO HITS={n_fs_nhits_tot_u:,}")
+    logger.info("FS -- INVESTIGATING THE NUMBER OF UNIQUE FRAGMENT HITS PER MOLECULE")
+    df_fs_nhits_u = df_fs_nhits_u.groupby('NumFrags').sum().reset_index().sort_values('NumFrags')  # concatenate counts because they do not take any memory anymore
     df_fs_nhits_u = pd.concat([pd.DataFrame({'NumFrags': [0], 'Count': [n_fs_nhits_0]}), df_fs_nhits_u]).sort_values('NumFrags').reset_index(drop=True)  # now we have all nhits
-    df_fs_nhits_u['Perc_Mols'] = df_fs_nhits_u['Count'].map(lambda x: f"{x / n_fs_nhits_tot_u:.2%}")
+    df_fs_nhits_u['Perc_Mols'] = df_fs_nhits_u['Count'].map(lambda x: f"{x / (n_fs_nhits_tot_u + n_fs_nhits_0):.2%}")
     logger.info(f"FS -- TOTAL NUMBER OF UNIQUE FRAGMENT HITS={n_fs_nhits_tot_u:,}")
     logger.info(f"FS -- AVERAGE NUMBER OF UNIQUE FRAGMENTS PER MOL={n_fs_nhits_tot_u/n_fs_mols_tot:,.2f}")
     logger.info(f"FS -- RESULTS FOR THE NUMBER OF UNIQUE FRAGMENT HITS PER MOLECULE\n\n{df_fs_nhits_u}\n")
 
     # top unique fragments
-    logger.info(f"FS -- INVESTIGATING THE TOP UNIQUE FRAGMENTS")
-    df_top_frags_u = pd.concat(dfs_top_frags_u)
+    logger.info("FS -- INVESTIGATING THE TOP UNIQUE FRAGMENTS")
     df_top_frags_u = df_top_frags_u.groupby(['idf', 'mol_frag']).sum().reset_index().sort_values('Count', ascending=False).reset_index(drop=True)
     df_top_frags_u['Rank'] = df_top_frags_u.index + 1
     df_top_frags_u['Perc_FHits'] = df_top_frags_u['Count'].map(lambda x: f"{x / n_fs_nhits_tot_u:.2%}")
     logger.info(f"FS -- RESULTS FOR THE TOP UNIQUE FRAGMENTS\n\n{df_top_frags_u}\n")
     # no unique fragment ratio because I cannot think of a good way to decide what atom index to retain
+
     return (df_fs_nhits, df_fs_nhits_u, df_frag_ratio, df_top_frags, df_top_frags_u)
 
 
@@ -1139,6 +1155,24 @@ def get_dfs_fcc_from_df_fc(df_fc: DataFrame):
             }
 
 
+def parse_chunk_fc(c):
+    # load
+    df_fc = load.file(c)
+    # prep data
+    for col in ['mol_frag_1', 'mol_frag_2']:
+        if isinstance(df_fc.iloc[0][col], Mol):
+            df_fc[col] = df_fc[col].map(Chem.MolToSmiles)
+    # extract infos
+    d = get_dfs_fcc_from_df_fc(df_fc)
+
+    return d
+
+
+def save_examples_fcc(WD, fcc, max_examples=50):
+    pass
+
+
+
 def get_dfs_fcc(WD):
     """
     """
@@ -1156,79 +1190,61 @@ def get_dfs_fcc(WD):
     chunks = _get_chunks(f"{WD_FCC}/data", pattern)
 
     # count dataframes
-    dfs_fcc = []
-    dfs_fc = []
-    dfs_ffs = []
-    dfs_ffo = []
-    # counters
-    num_fc_tot = 0
-    num_fc_ffo = 0
-    num_fc_ffs = 0
-    num_fc_tp = 0
-    num_mols_tot = 0
-    num_mols_tp = 0
-    num_mols_ffo = 0
-    num_mols_noffo = 0
-    num_mols_ffs = 0
-    num_mols_noffs = 0
 
-    # iterate
-    for chunk in chunks:
-        # load
-        df_fc = load.file(chunk)
-        # prep data
-        # df_fc = df_fc.rename({'fcc': 'fcc'}, axis=1)
-        for col in ['mol_frag_1', 'mol_frag_2']:
-            if isinstance(df_fc.iloc[0][col], Mol):
-                df_fc[col] = df_fc[col].map(Chem.MolToSmiles)
-        # extract infos
-        d = get_dfs_fcc_from_df_fc(df_fc)
-        dfs_fcc.append(d['df_fcc'])
-        dfs_fc.append(d['df_fc'])
-        dfs_ffs.append(d['df_ffs'])
-        dfs_ffo.append(d['df_ffo'])
-        num_fc_tot += d['num_fc_tot']
-        num_fc_ffs += d['num_fc_ffs']
-        num_fc_ffo += d['num_fc_ffo']
-        num_fc_tp += d['num_fc_tp']
-        num_mols_tot += d['num_mols_tot']
-        num_mols_tp += d['num_mols_tp']
-        num_mols_ffo += d['num_mols_ffo']
-        num_mols_noffo += d['num_mols_noffo']
-        num_mols_ffs += d['num_mols_ffs']
-        num_mols_noffs += d['num_mols_noffs']
+    pool = Pool()
+    results = pool.map(parse_chunk_fc, chunks)  # list of dictionaries
+    pool.close()
+    pool.join()
+
+    # counts
+    num_fc_tot = sum([x['num_fc_tot'] for x in results])
+    num_fc_ffo = sum([x['num_fc_ffo'] for x in results])
+    num_fc_ffs = sum([x['num_fc_ffs'] for x in results])
+    num_fc_tp = sum([x['num_fc_tp'] for x in results])
+    num_mols_tot = sum([x['num_mols_tot'] for x in results])
+    num_mols_tp = sum([x['num_mols_tp'] for x in results])
+    num_mols_ffo = sum([x['num_mols_ffo'] for x in results])
+    num_mols_noffo = sum([x['num_mols_noffo'] for x in results])
+    num_mols_ffs = sum([x['num_mols_ffs'] for x in results])
+    num_mols_noffs = sum([x['num_mols_noffs'] for x in results])
+
+    # dataframes
+    df_fc = pd.concat([x['df_fc'] for x in results if x is not None])
+    df_fcc = pd.concat([x['df_fcc'] for x in results if x is not None])
+    df_ffs = pd.concat([x['df_ffs'] for x in results if x is not None])
+    df_ffo = pd.concat([x['df_ffo'] for x in results if x is not None])
 
     # gather chunks
     logger.info(f"TOTAL NUMBER OF MOLECULES: {num_mols_tot:,}")
-    logger.info(f"TOTAL NUMBER OF FC: {num_fc_tot:,}")
+    logger.info(f"TOTAL NUMBER OF FC: {num_fc_tp/num_fc_tot:,}")
 
     # ffs
-    dfs_ffs = [x for x in dfs_ffs if x is not None]
+    # dfs_ffs = [x for x in dfs_ffs if x is not None]
     logger.info(f"NUMBER OF MOLECULES WITH SUBSTRUCTURES: {num_mols_ffs}")
     logger.info(f"NUMBER OF MOLECULES WITHOUT SUBSTRUCTURES: {num_mols_noffs}")
-    df_ffs = pd.concat(dfs_ffs)
+    # df_ffs = pd.concat(dfs_ffs)
     df_ffs = df_ffs.groupby('NumSubstructures').sum().reset_index().sort_values('NumSubstructures')
     df_ffs['Perc_Mols'] = df_ffs['Count'].map(lambda x: f"{x / df_ffs['Count'].sum():.2%}")
     logger.info(f"RESULTS FOR SUBSTRUCTURES:\n\n{df_ffs}\n")
 
     # ffo
-    dfs_ffo = [x for x in dfs_ffo if x is not None]
+    # dfs_ffo = [x for x in dfs_ffo if x is not None]
     logger.info(f"NUMBER OF MOLECULES WITH OVERLAPS: {num_mols_ffo:,}")
     logger.info(f"NUMBER OF MOLECULES WITHOUT OVERLAPS: {num_mols_noffo:,}")
-    df_ffo = pd.concat(dfs_ffo)
+    # df_ffo = pd.concat(dfs_ffo)
     df_ffo = df_ffo.groupby('NumOverlaps').sum().reset_index().sort_values('NumOverlaps')
     df_ffo['Perc_Mols'] = df_ffo['Count'].map(lambda x: f"{x / df_ffo['Count'].sum():.2%}")
     logger.info(f"RESULTS FOR OVERLAPS:\n\n{df_ffs}\n")
 
     # fcc
-    df_fcc = pd.concat(dfs_fcc)
+    # df_fcc = pd.concat(dfs_fcc)
     df_fcc = df_fcc.groupby('fcc', sort=False).sum().reset_index()
     df_fcc['Perc'] = df_fcc['Count'].map(lambda x: f"{x / df_fcc['Count'].sum():.2%}")
     logger.info(f"TOTAL NUMBER OF IDENTIFIED FRAGMENT COMBINATION CATEGORIES: {len(df_fcc[df_fcc['Count'] > 0]):,}")
     logger.info(f"RESULTS FOR FRAGMENT COMBINATION CATEGORIES:\n\n{df_fcc}\n")
 
     # fc
-    df_fc = pd.concat(dfs_fc)
+    # df_fc = pd.concat(dfs_fc)
     df_fc = df_fc.groupby(['fc', 'mol_frag_1', 'mol_frag_2']).sum().reset_index().sort_values('Count', ascending=False).reset_index(drop=True)
     df_fc['Rank'] = df_fc.index + 1
     df_fc['Perc'] = df_fc['Count'].map(lambda x: f"{x / df_fc['Count'].sum():.2%}")
@@ -1241,175 +1257,198 @@ def get_dfs_fcc(WD):
             }
 
 
-def get_df_fg(WD: Path) -> DataFrame:
+def parse_chunk_fcg(c):
+
+    # retrieve data
+    d = {}
+    df_fcg = load.file(c, decode=['_fcg', '_d_mol_frags']).sort_values(["idm", "nfrags"], ascending=True)  # df_fcg already sorted for the best examples per case
+    num_tot_fcg_graph = len(df_fcg.index)
+
+    groups = df_fcg[['idm', 'idfcg', 'nfrags']].groupby('idm')
+    num_tot_mol_graph = len(groups)
+
+    # number of fragment graphs per molecule
+    df_fcg_nfgpermol = groups.count().rename({'idfcg': 'NumFG'}, axis=1).groupby('NumFG').count().rename({'nfrags': 'Count'}, axis=1).reset_index()
+
+    df_edges = pd.concat([nx.convert_matrix.to_pandas_edgelist(df_fcg.iloc[i]["_fcg"]) for i in range(len(df_fcg.index))]).rename({'source': 'idf1', 'target': 'idf2'}, axis=1)
+    df_edges = df_edges.rename({'source': 'idf1', 'target': 'idf2', 'fcc': 'fcc'}, axis=1)
+    df_edges['idf1'] = df_edges['idf1'].astype(str)
+    df_edges['idf2'] = df_edges['idf2'].astype(str)
+
+    # fs analysis
+
+    # initialization of a common df useful for fs analysis
+    df_fcg['frags'] = df_fcg['frags'].map(lambda x: x.replace("'", '"'))
+    df_fcg['frags'] = df_fcg['frags'].map(lambda x: json.loads(x))
+    df_fcg['aidxs'] = df_fcg['_d_aidxs'].map(lambda x: [v for l in x.values() for v in l])  # extract all values from dict: list of tuples
+    df_fcg['aidxs'] = df_fcg['aidxs'].map(lambda x: [v for l in x for v in l])   # flatten the list and identify only unique atom indices
+    groups = df_fcg.groupby('idm')
+    df_fcg_grouped = groups.agg({'frags': 'sum'}).reset_index(drop=True)  # concatenate lists in the same group
+    df_fcg_grouped['frags'] = df_fcg_grouped['frags'].map(lambda x: list(set(x)))  # count each occurrence of a fragment
+    df_fcg_grouped['n_frags'] = df_fcg_grouped['frags'].map(lambda x: len(x))
+
+    # fragment hits per mol
+    df_fcg_nhits = df_fcg_grouped[['n_frags', 'frags']].groupby('n_frags').count().reset_index().rename({'frags': 'Count', 'n_frags': 'NumFrags'}, axis=1)
+    df_fcg_nhits['Perc_Mols'] = df_fcg_nhits['Count'].map(lambda x: f"{x / num_tot_mol_graph:.2%}")
+
+    # top fragments
+
+    # process fm data
+    df_fcg_top_frags = df_fcg_grouped['frags'].apply(pd.Series).reset_index().melt(id_vars='index').dropna()[['index', 'value']]  # ungroup values by frag id in list
+    df_fcg_top_frags['value'] = df_fcg_top_frags['value'].map(lambda x: x.split(':')[0])
+    df_fcg_top_frags = df_fcg_top_frags.groupby('value').count().reset_index().rename({'value': 'idf', 'index': 'Count'}, axis=1).sort_values('Count', ascending=False).reset_index(drop=True)  # count and sort idfs
+    n_fcg_nhits_tot = df_fcg_top_frags['Count'].sum()
+
+    # fragment ratio per molecule
+    df_fcg_frag_ratio = groups.agg({'aidxs': 'sum', 'hac_mol': 'first'}).reset_index()  # concatenate all aidxs obtained previously
+    df_fcg_frag_ratio['hac_frags'] = df_fcg_frag_ratio['aidxs'].map(lambda x: len(set(x)))  # the length of atom indices is the number of hac in fragments
+    df_fcg_frag_ratio['frag_ratio'] = df_fcg_frag_ratio['hac_frags'] / df_fcg_frag_ratio['hac_mol']
+    df_fcg_frag_ratio.drop('aidxs', axis=1, inplace=True)
+
+    # unique fragment hits per mol
+    df_fcg_grouped['frags_u'] = df_fcg_grouped['frags'].map(lambda x: list(set([v.split(':')[0] for v in x])))
+    df_fcg_grouped['n_frags_u'] = df_fcg_grouped['frags_u'].map(lambda x: len(x))
+    df_fcg_nhits_u = df_fcg_grouped[['n_frags_u', 'frags_u']].groupby('n_frags_u').count().reset_index().rename({'frags_u': 'Count', 'n_frags_u': 'NumFrags'}, axis=1)
+    n_fcg_nhits_u_tot = df_fcg_nhits_u['Count'].sum()
+
+    # top unique fragments
+    df_fcg_top_frags_u = df_fcg_grouped['frags_u'].apply(pd.Series).reset_index().melt(id_vars='index').dropna()[['index', 'value']]  # ungroup values by frag id in list
+    df_fcg_top_frags_u = df_fcg_top_frags_u.groupby('value').count().reset_index().rename({'value': 'idf', 'index': 'Count'}, axis=1).sort_values('Count', ascending=False).reset_index(drop=True)  # count and sort idfs
+
+    # fragment combination categories and top fragment combinations
+    ds_frags = list(df_fcg['_d_mol_frags'].map(lambda x: {str(k): Chem.MolToSmiles(v) for k, v in x.items()}).values)
+    d_frags = {}
+    [d_frags.update(x) for x in ds_frags]
+    df_edges['mol_frag_1'] = df_edges['idf1'].map(lambda x: d_frags[x])
+    df_edges['mol_frag_2'] = df_edges['idf2'].map(lambda x: d_frags[x])
+    d_tmp = get_dfs_fcc_from_df_fc(df_edges)
+
+    d['num_tot_fcg_graph'] = num_tot_fcg_graph
+    d['num_tot_mol_graph'] = num_tot_mol_graph
+    d['n_fcg_nhits_tot'] = n_fcg_nhits_tot
+    d['n_fcg_nhits_u_tot'] = n_fcg_nhits_u_tot
+    d['df_fcg_nfgpermol'] = df_fcg_nfgpermol
+    d['df_fcg_nhits'] = df_fcg_nhits
+    d['df_fcg_top_frags'] = df_fcg_top_frags
+    d['df_fcg_frag_ratio'] = df_fcg_frag_ratio
+    d['df_fcg_nhits_u'] = df_fcg_nhits_u
+    d['df_fcg_top_frags_u'] = df_fcg_top_frags_u
+    d['df_fcg_fcc'] = d_tmp['df_fcc']
+    d['df_fcg_fc'] = d_tmp['df_fc']
+
+    return d
+
+
+def get_df_fcg(WD: Path) -> DataFrame:
     """Get a list of DFs summarizing the Fragment Graph Generation step.
     ### description to do
     """
     if not isinstance(WD, Path):
         WD = Path(WD)
     # define data
-    WD_FGRAPH = [str(x) for x in list(WD.glob("*_fgraph"))][0]    # get latest step
+    WD_FGRAPH = [str(x) for x in list(WD.glob("*_fcg"))][0]
     pattern = ".*([0-9]{3})?.csv.gz"
     chunks = _get_chunks(f"{WD_FGRAPH}/data", pattern)
     categories = fragment_combination.get_fragment_combination_categories()
 
     # initialize chunk iteration
-    logger.info(f"FG -- STARTING CHUNK ITERATION...")
-    num_tot_fg_graph = 0
-    num_tot_mol_graph = 0
-    n_fg_nhits_tot = 0
-    n_fg_nhits_u_tot = 0
-    n_fg_fcc = 0
-    dfs_fg_nfgpermol = []
-    dfs_fg_nhits = []
-    dfs_fg_top_frags = []
-    dfs_fg_frag_ratio = []
-    dfs_fg_nhits_u = []
-    dfs_fg_top_frags_u = []
-    dfs_fg_fcc = []
-    dfs_fg_fc = []
+    logger.info("FCG -- STARTING CHUNK ITERATION...")
 
     # chunk iteration
     logger.setLevel(logging.WARNING)  # function has loggings at info level that would flood the log file because of iteration
-    for chunk in chunks:
+    pool = Pool()
+    results = pool.map(parse_chunk_fcg, chunks)
+    pool.close()
+    pool.join()
 
-        # retrieve data
-        df_fg = load.file(chunk, decode=['_fgraph', '_d_mol_frags']).sort_values(["idm", "nfrags"], ascending=True)  # df_fg already sorted for the best examples per case
-        num_tot_fg_graph += len(df_fg.index)
-        groups = df_fg[['idm', 'fmid', 'nfrags']].groupby('idm')
-        num_tot_mol_graph += len(groups)
-
-        # number of fragment graphs per molecule
-        df_fg_nfgpermol = groups.count().rename({'fmid': 'NumFG'}, axis=1).groupby('NumFG').count().rename({'nfrags': 'Count'}, axis=1).reset_index()
-        dfs_fg_nfgpermol.append(df_fg_nfgpermol)
-
-        # extract the maps
-        df_edges = pd.concat([nx.convert_matrix.to_pandas_edgelist(df_fg.iloc[i]["_fgraph"]) for i in range(len(df_fg.index))]).rename({'source': 'idf1', 'target': 'idf2'}, axis=1)
-        df_edges = df_edges.rename({'source': 'idf1', 'target': 'idf2', 'fcc': 'fcc'}, axis=1)
-        df_edges['idf1'] = df_edges['idf1'].astype(str)
-        df_edges['idf2'] = df_edges['idf2'].astype(str)
-
-        # fs analysis
-
-        # initialization of a common df useful for fs analysis
-        df_fg['frags'] = df_fg['frags'].map(lambda x: x.replace("'", '"'))
-        df_fg['frags'] = df_fg['frags'].map(lambda x: json.loads(x))
-        df_fg['aidxs'] = df_fg['_d_aidxs'].map(lambda x: [v for l in x.values() for v in l])  # extract all values from dict: list of tuples
-        df_fg['aidxs'] = df_fg['aidxs'].map(lambda x: [v for l in x for v in l])   # flatten the list and identify only unique atom indices
-        groups = df_fg.groupby('idm')
-        df_fg_grouped = groups.agg({'frags': 'sum'}).reset_index(drop=True)  # concatenate lists in the same group
-        df_fg_grouped['frags'] = df_fg_grouped['frags'].map(lambda x: list(set(x)))  # count each occurrence of a fragment
-        df_fg_grouped['n_frags'] = df_fg_grouped['frags'].map(lambda x: len(x))
-
-        # fragment hits per mol
-        df_fg_nhits = df_fg_grouped[['n_frags', 'frags']].groupby('n_frags').count().reset_index().rename({'frags': 'Count', 'n_frags': 'NumFrags'}, axis=1)
-        df_fg_nhits['Perc_Mols'] = df_fg_nhits['Count'].map(lambda x: f"{x / num_tot_mol_graph:.2%}")
-        dfs_fg_nhits.append(df_fg_nhits)
-
-        # top fragments
-
-        # process fm data
-        df_fg_top_frags = df_fg_grouped['frags'].apply(pd.Series).reset_index().melt(id_vars='index').dropna()[['index', 'value']]  # ungroup values by frag id in list
-        df_fg_top_frags['value'] = df_fg_top_frags['value'].map(lambda x: x.split(':')[0])
-        df_fg_top_frags = df_fg_top_frags.groupby('value').count().reset_index().rename({'value': 'idf', 'index': 'Count'}, axis=1).sort_values('Count', ascending=False).reset_index(drop=True)  # count and sort idfs
-        dfs_fg_top_frags.append(df_fg_top_frags)
-        n_fg_nhits_tot += df_fg_top_frags['Count'].sum()
-
-        # fragment ratio per molecule
-        df_fg_frag_ratio = groups.agg({'aidxs': 'sum', 'hac_mol': 'first'}).reset_index()  # concatenate all aidxs obtained previously
-        df_fg_frag_ratio['hac_frags'] = df_fg_frag_ratio['aidxs'].map(lambda x: len(set(x)))  # the length of atom indices is the number of hac in fragments
-        df_fg_frag_ratio['frag_ratio'] = df_fg_frag_ratio['hac_frags'] / df_fg_frag_ratio['hac_mol']
-        df_fg_frag_ratio.drop('aidxs', axis=1, inplace=True)
-        dfs_fg_frag_ratio.append(df_fg_frag_ratio)
-
-        # unique fragment hits per mol
-        df_fg_grouped['frags_u'] = df_fg_grouped['frags'].map(lambda x: list(set([v.split(':')[0] for v in x])))
-        df_fg_grouped['n_frags_u'] = df_fg_grouped['frags_u'].map(lambda x: len(x))
-        df_fg_nhits_u = df_fg_grouped[['n_frags_u', 'frags_u']].groupby('n_frags_u').count().reset_index().rename({'frags_u': 'Count', 'n_frags_u': 'NumFrags'}, axis=1)
-        dfs_fg_nhits_u.append(df_fg_nhits_u)
-        n_fg_nhits_u_tot += df_fg_nhits_u['Count'].sum()
-
-        # top unique fragments
-        df_fg_top_frags_u = df_fg_grouped['frags_u'].apply(pd.Series).reset_index().melt(id_vars='index').dropna()[['index', 'value']]  # ungroup values by frag id in list
-        df_fg_top_frags_u = df_fg_top_frags_u.groupby('value').count().reset_index().rename({'value': 'idf', 'index': 'Count'}, axis=1).sort_values('Count', ascending=False).reset_index(drop=True)  # count and sort idfs
-        dfs_fg_top_frags_u.append(df_fg_top_frags_u)
-
-        # fragment combination categories and top fragment combinations
-        ds_frags = list(df_fg['_d_mol_frags'].map(lambda x: {str(k): Chem.MolToSmiles(v) for k, v in x.items()}).values)
-        d_frags = {}
-        [d_frags.update(x) for x in ds_frags]
-        df_edges['mol_frag_1'] = df_edges['idf1'].map(lambda x: d_frags[x])
-        df_edges['mol_frag_2'] = df_edges['idf2'].map(lambda x: d_frags[x])
-        d = get_dfs_fcc_from_df_fc(df_edges)
-        dfs_fg_fcc.append(d['df_fcc'])
-        dfs_fg_fc.append(d['df_fc'])
+    # counts
+    num_tot_fcg_graph = sum([x['num_tot_fcg_graph'] for x in results])
+    num_tot_mol_graph = sum([x['num_tot_mol_graph'] for x in results])
+    n_fcg_nhits_tot = sum([x['n_fcg_nhits_tot'] for x in results])
+    n_fcg_nhits_u_tot = sum([x['n_fcg_nhits_u_tot'] for x in results])
+    # dfs
+    dfs_fcg_nfgpermol = [x['df_fcg_nfgpermol'] for x in results]
+    dfs_fcg_top_frags = [x['df_fcg_top_frags'] for x in results]
+    dfs_fcg_frag_ratio = [x['df_fcg_frag_ratio'] for x in results]
+    dfs_fcg_nhits = [x['df_fcg_nhits'] for x in results]
+    dfs_fcg_nhits_u = [x['df_fcg_nhits_u'] for x in results]
+    dfs_fcg_top_frags_u = [x['df_fcg_top_frags_u'] for x in results]
+    dfs_fcg_fcc = [x['df_fcg_fcc'] for x in results]
+    dfs_fcg_fc = [x['df_fcg_fc'] for x in results]
 
     logger.setLevel(logging.INFO)  # ok now back to normal
-    logger.info(f"FG -- COMPLETED CHUNK ITERATION...")
+    logger.info("FCG -- COMPLETED CHUNK ITERATION...")
 
     # fg_nfgpermol
-    logger.info(f"FG -- RESULTS FOR THE NUMBER OF FRAGMENT GRAPHS PER MOLECULE")
-    logger.info(f"FG -- TOTAL NUMBER OF FRAGMENT GRAPHS: {num_tot_fg_graph:,d}")
-    logger.info(f"FG -- TOTAL NUMBER OF MOLECULES: {num_tot_mol_graph:,d}")
-    df_fg_nfgpermol = pd.concat(dfs_fg_nfgpermol).groupby('NumFG').sum().reset_index()
-    df_fg_nfgpermol['Perc_Mols'] = df_fg_nfgpermol['Count'].map(lambda x: f"{x / num_tot_mol_graph:.2%}")
-    logger.info(f"FG -- RESULTS FOR THE NUMBER OF FG PER MOLECULE:\n\n{df_fg_nfgpermol}\n")
+    logger.info("FCG -- RESULTS FOR THE NUMBER OF FRAGMENT GRAPHS PER MOLECULE")
+    logger.info(f"FCG -- TOTAL NUMBER OF FRAGMENT GRAPHS: {num_tot_fcg_graph:,d}")
+    logger.info(f"FCG -- TOTAL NUMBER OF MOLECULES: {num_tot_mol_graph:,d}")
+    df_fcg_nfgpermol = pd.concat(dfs_fcg_nfgpermol).groupby('NumFG').sum().reset_index()
+    df_fcg_nfgpermol['Perc_Mols'] = df_fcg_nfgpermol['Count'].map(lambda x: f"{x / num_tot_mol_graph:.2%}")
+    logger.info(f"FCG -- RESULTS FOR THE NUMBER OF FG PER MOLECULE:\n\n{df_fcg_nfgpermol}\n")
 
     # fg_nhits
-    logger.info(f"FG -- INVESTIGATING FOR THE NUMBER OF FRAGMENT HITS PER MOLECULE")
-    df_fg_nhits = pd.concat(dfs_fg_nhits).groupby('NumFrags').sum().reset_index().sort_values('NumFrags').reset_index(drop=True)
-    df_fg_nhits['Perc_Mols'] = df_fg_nhits['Count'].map(lambda x: f"{x / num_tot_mol_graph:.2%}")
-    logger.info(f"FG -- RESULTS FOR THE NUMBER OF FRAGMENT HITS PER MOLECULE\n\n{df_fg_nhits}\n")
+    logger.info("FCG -- INVESTIGATING FOR THE NUMBER OF FRAGMENT HITS PER MOLECULE")
+    df_fcg_nhits = pd.concat(dfs_fcg_nhits).groupby('NumFrags').sum().reset_index().sort_values('NumFrags').reset_index(drop=True)
+    df_fcg_nhits['Perc_Mols'] = df_fcg_nhits['Count'].map(lambda x: f"{x / num_tot_mol_graph:.2%}")
+    logger.info(f"FCG -- RESULTS FOR THE NUMBER OF FRAGMENT HITS PER MOLECULE\n\n{df_fcg_nhits}\n")
 
     # fg_top_frags
-    logger.info(f"FG -- INVESTIGATING FOR THE TOP FRAGMENTS")
-    df_fg_top_frags = pd.concat(dfs_fg_top_frags).groupby('idf').sum().reset_index().sort_values('Count', ascending=False).reset_index(drop=True)
-    df_fg_top_frags['Rank'] = df_fg_top_frags.index + 1
-    logger.info(f"FG -- TOTAL NUMBER OF FRAGMENT HITS={n_fg_nhits_tot:,}")
-    df_fg_top_frags['Perc_FHits'] = df_fg_top_frags['Count'].map(lambda x: f"{x / n_fg_nhits_tot:.2%}")
-    df_fg_top_frags['idf'] = df_fg_top_frags['idf'].astype(str)
-    logger.info(f"FG -- RESULTS FOR THE TOP FRAGMENTS\n\n{df_fg_top_frags}\n")
+    logger.info("FCG -- INVESTIGATING FOR THE TOP FRAGMENTS")
+    df_fcg_top_frags = pd.concat(dfs_fcg_top_frags).groupby('idf').sum().reset_index().sort_values('Count', ascending=False).reset_index(drop=True)
+    df_fcg_top_frags['Rank'] = df_fcg_top_frags.index + 1
+    logger.info(f"FCG -- TOTAL NUMBER OF FRAGMENT HITS={n_fcg_nhits_tot:,}")
+    df_fcg_top_frags['Perc_FHits'] = df_fcg_top_frags['Count'].map(lambda x: f"{x / n_fcg_nhits_tot:.2%}")
+    df_fcg_top_frags['idf'] = df_fcg_top_frags['idf'].astype(str)
+    logger.info(f"FCG -- RESULTS FOR THE TOP FRAGMENTS\n\n{df_fcg_top_frags}\n")
 
     # fg_frag_ratio
-    logger.info(f"FG -- INVESTIGATING FOR THE RATIO OF FRAGMENT PER MOLECULE")
-    df_fg_frag_ratio = pd.concat(dfs_fg_frag_ratio).reset_index(drop=True)
-    logger.info(f"FG -- RESULTS FOR THE RATIO OF FRAGMENT PER MOLECULE\n\n{df_fg_frag_ratio}\n")
+    logger.info("FCG -- INVESTIGATING FOR THE RATIO OF FRAGMENT PER MOLECULE")
+    df_fcg_frag_ratio = pd.concat(dfs_fcg_frag_ratio).reset_index(drop=True)
+    logger.info(f"FCG -- RESULTS FOR THE RATIO OF FRAGMENT PER MOLECULE\n\n{df_fcg_frag_ratio}\n")
 
     # fg_nhits_u
-    logger.info(f"FG -- INVESTIGATING THE NUMBER OF UNIQUE FRAGMENT HITS PER MOLECULE")
-    df_fg_nhits_u = pd.concat(dfs_fg_nhits_u).groupby('NumFrags').sum().reset_index().sort_values('NumFrags').reset_index(drop=True)
-    df_fg_nhits_u['Perc_Mols'] = df_fg_nhits_u['Count'].map(lambda x: f"{x / num_tot_mol_graph:.2%}")
-    logger.info(f"FG -- RESULTS FOR THE NUMBER OF UNIQUE FRAGMENT HITS PER MOLECULE\n\n{df_fg_nhits_u}\n")
+    logger.info("FCG -- INVESTIGATING THE NUMBER OF UNIQUE FRAGMENT HITS PER MOLECULE")
+    df_fcg_nhits_u = pd.concat(dfs_fcg_nhits_u).groupby('NumFrags').sum().reset_index().sort_values('NumFrags').reset_index(drop=True)
+    df_fcg_nhits_u['Perc_Mols'] = df_fcg_nhits_u['Count'].map(lambda x: f"{x / num_tot_mol_graph:.2%}")
+    logger.info(f"FCG -- RESULTS FOR THE NUMBER OF UNIQUE FRAGMENT HITS PER MOLECULE\n\n{df_fcg_nhits_u}\n")
 
     # fg_top_frags_u
-    logger.info(f"FG -- INVESTIGATING THE TOP UNIQUE FRAGMENTS")
-    df_fg_top_frags_u = pd.concat(dfs_fg_top_frags_u).groupby('idf').sum().reset_index().sort_values('Count', ascending=False).reset_index(drop=True)
-    df_fg_top_frags_u['Rank'] = df_fg_top_frags_u.index + 1
-    logger.info(f"FG -- TOTAL NUMBER OF UNIQUE FRAGMENT HITS={n_fg_nhits_u_tot:,}")
-    df_fg_top_frags_u['Perc_FHits'] = df_fg_top_frags_u['Count'].map(lambda x: f"{x / n_fg_nhits_u_tot:.2%}")
-    df_fg_top_frags_u['idf'] = df_fg_top_frags_u['idf'].astype(str)
-    logger.info(f"FG -- RESULTS FOR THE TOP UNIQUE FRAGMENTS\n\n{df_fg_top_frags_u}\n")
+    logger.info("FCG -- INVESTIGATING THE TOP UNIQUE FRAGMENTS")
+    df_fcg_top_frags_u = pd.concat(dfs_fcg_top_frags_u).groupby('idf').sum().reset_index().sort_values('Count', ascending=False).reset_index(drop=True)
+    df_fcg_top_frags_u['Rank'] = df_fcg_top_frags_u.index + 1
+    logger.info(f"FCG -- TOTAL NUMBER OF UNIQUE FRAGMENT HITS={n_fcg_nhits_u_tot:,}")
+    df_fcg_top_frags_u['Perc_FHits'] = df_fcg_top_frags_u['Count'].map(lambda x: f"{x / n_fcg_nhits_u_tot:.2%}")
+    df_fcg_top_frags_u['idf'] = df_fcg_top_frags_u['idf'].astype(str)
+    logger.info(f"FCG -- RESULTS FOR THE TOP UNIQUE FRAGMENTS\n\n{df_fcg_top_frags_u}\n")
 
     # fg_fcc
-    logger.info(f"FG -- INVESTIGATING THE FCC COUNTS")
-    df_fg_fcc = pd.concat(dfs_fg_fcc).groupby('fcc').sum().T  # use transposition for sorting cols in predefined order
-    df_fg_fcc = df_fg_fcc[categories].T.reset_index()  # once it is all good, transpose again to get rows in expected order
-    n_fg_fcc = len(df_fg_fcc[df_fg_fcc['Count'] > 0])
-    logger.info(f"FG -- TOTAL NUMBER OF FRAGMENT COMBINATIONS CATEGORIES IDENTIFIED={n_fg_fcc:,}")
-    n_fg_fc = df_fg_fcc['Count'].sum()
-    logger.info(f"FG -- TOTAL NUMBER OF FRAGMENT COMBINATIONS={n_fg_fc:,}")
-    df_fg_fcc['Perc'] = df_fg_fcc['Count'].map(lambda x: f"{x / n_fg_fc:.2%}")
-    logger.info(f"FG -- RESULTS FOR THE FCC COUNTS\n\n{df_fg_fcc}\n")
+    logger.info("FCG -- INVESTIGATING THE FCC COUNTS")
+    df_fcg_fcc = pd.concat(dfs_fcg_fcc).groupby('fcc').sum().T  # use transposition for sorting cols in predefined order
+    df_fcg_fcc = df_fcg_fcc[categories].T.reset_index()  # once it is all good, transpose again to get rows in expected order
+    n_fcg_fcc = len(df_fcg_fcc[df_fcg_fcc['Count'] > 0])
+    logger.info(f"FCG -- TOTAL NUMBER OF FRAGMENT COMBINATIONS CATEGORIES IDENTIFIED={n_fcg_fcc:,}")
+    n_fcg_fc = df_fcg_fcc['Count'].sum()
+    logger.info(f"FCG -- TOTAL NUMBER OF FRAGMENT COMBINATIONS={n_fcg_fc:,}")
+    df_fcg_fcc['Perc'] = df_fcg_fcc['Count'].map(lambda x: f"{x / n_fcg_fc:.2%}")
+    logger.info(f"FCG -- RESULTS FOR THE FCC COUNTS\n\n{df_fcg_fcc}\n")
 
     # fg_fc
-    logger.info(f"FG -- INVESTIGATING THE TOP FRAGMENT COMBINATIONS")
-    df_fg_fc = pd.concat(dfs_fg_fc)
-    df_fg_fc = df_fg_fc.groupby(['fc', 'mol_frag_1', 'mol_frag_2']).sum().reset_index().sort_values('Count', ascending=False).reset_index(drop=True)
-    df_fg_fc['Perc'] = df_fg_fc['Count'].map(lambda x: f"{x / n_fg_fc:.2%}")
-    df_fg_fc['Rank'] = df_fg_fc.index + 1
-    logger.info(f"FG -- RESULT FOR THE TOP FRAGMENT COMBINATIONS\n\n{df_fg_fc}\n")
+    logger.info("FCG -- INVESTIGATING THE TOP FRAGMENT COMBINATIONS")
+    df_fcg_fc = pd.concat(dfs_fcg_fc)
+    df_fcg_fc = df_fcg_fc.groupby(['fc', 'mol_frag_1', 'mol_frag_2']).sum().reset_index().sort_values('Count', ascending=False).reset_index(drop=True)
+    df_fcg_fc['Perc'] = df_fcg_fc['Count'].map(lambda x: f"{x / n_fcg_fc:.2%}")
+    df_fcg_fc['Rank'] = df_fcg_fc.index + 1
+    logger.info(f"FCG -- RESULT FOR THE TOP FRAGMENT COMBINATIONS\n\n{df_fcg_fc}\n")
 
-    return (df_fg_nhits, df_fg_nhits_u, df_fg_frag_ratio, df_fg_top_frags, df_fg_top_frags_u, df_fg_fcc, df_fg_fc, df_fg_nfgpermol)
+    return (df_fcg_nhits, df_fcg_nhits_u, df_fcg_frag_ratio, df_fcg_top_frags, df_fcg_top_frags_u, df_fcg_fcc, df_fcg_fc, df_fcg_nfgpermol)
+
+
+def parse_chunk_pnp(c):
+    df = load.file(c)
+    pnp = len(df[df['pnp_mol']])
+    non_pnp = len(df[~df['pnp_mol']])
+    return (pnp, non_pnp)
 
 
 def get_df_pnp(WD: Path) -> DataFrame:
@@ -1426,18 +1465,26 @@ def get_df_pnp(WD: Path) -> DataFrame:
         WD = Path(WD)
     # parse results before fragment search
     WD_PNP = [str(x) for x in list(WD.glob("*_pnp"))][0]    # get latest step
-    pattern = ".*([0-9]{3})?.log"
+    pattern = ".*_list_pnp.csv.gz$"
     chunks = _get_chunks(f"{WD_PNP}/log", pattern)
+    chunks = [c for c in chunks if c.endswith('.csv.gz')]
+
     num_pnp = 0
     num_non_pnp = 0
     num_total = 0
-    for c in chunks:
-        df = pd.read_csv(c, sep="@", header=None)  # char not found in the log file so we can extract all lines as one column
-        pnp = int(df[df[0].str.contains("LIST OF PNPs")].iloc[0][0].split()[-1].replace('(', '').replace(')', ''))
-        non_pnp = int(df[df[0].str.contains("LIST OF NON-PNPs")].iloc[0][0].split()[-1].replace('(', '').replace(')', ''))
-        num_pnp += pnp
-        num_non_pnp += non_pnp
+
+    pool = Pool()
+    results = pool.map(parse_chunk_pnp, chunks)
+    pool.close()
+    pool.join()
+
+    # sum of tuples
+    df = pd.DataFrame(results, columns=['PNP', 'Non-PNP'])
+    num_pnp = df['PNP'].sum()
+    num_non_pnp = df['Non-PNP'].sum()
     num_total = num_pnp + num_non_pnp
+    logger.info(f"pnp: {num_pnp} + non-pnp: {num_non_pnp} = tot: {num_total}")
+
     # create a dataframe with counts
     df = pd.DataFrame({'Category': ['PNP', 'Non-PNP'], 'Count': [num_pnp, num_non_pnp]})
     df['Perc_Mols'] = df['Count'].map(lambda x: f"{x/num_total:.2%}")
@@ -1461,7 +1508,7 @@ if __name__ == '__main__':
     parser.add_argument('-d', '--dataset', type=str, default=None, help="Dataset name for using in the csv/png outputs in the report folder.")
     parser.add_argument('-p', '--prefix', type=str, default=None, help="Prefix used for output files in the data/log folders.")
     parser.add_argument('-c', '--color', type=str, default='black', help="Color to use for plots.")
-    parser.add_argument('-e', '--examples', type=str, default='False', help="Compute examples. This means files are parsed a second time so this takes much longer. This is performed only when CSV are generated as well.")
+    parser.add_argument('-e', '--examples', type=int, default=0, help="Number of examples to generate within a corresponding subdir in the report folder. Examples are generated only when files are being parsed (skipped if output csv already present).")
     parser.add_argument('--plotformat', type=str, default='svg', help="Format to use for plots. Possible values are 'svg' and 'png'.")
     parser.add_argument('--csv', type=str, default=False, help="Generate only CSV output files")
     parser.add_argument('--clear', type=str, default=False, help="Force the generation of log, plot and CSV files by clearing all report files at any found specified levels.")
@@ -1473,7 +1520,6 @@ if __name__ == '__main__':
 
     utils.check_arg_input_dir(args.wd)
     wd_levels = find_wd_levels(args.wd, natref=args.natref, frags=args.frags)
-    print(f"wd_levels\n{wd_levels}\n")
     # natref
     if args.natref is not None and args.natref[0:7] != 'natref_':
         raise ValueError(f"ERROR! NATREF PREFIX IS EITHER WRONG OR MISSING! ('{args.natref}')")
@@ -1508,7 +1554,7 @@ if __name__ == '__main__':
                 [x.unlink() for x in Path(f"{dir}/report/").glob(f"*.{args.plotformat}")]
 
     # examples
-    if args.examples:
+    if args.examples > 0:
         logging.info("EXAMPLES WILL BE GENERATED")
     else:
         logging.info("EXAMPLES WILL NOT BE GENERATED")
@@ -1580,63 +1626,45 @@ if __name__ == '__main__':
                     print_title(f"CHECKING RESULTS IN '{dir}'", 2, pad_title)
 
                     p = Path(dir)
-                    if len(list(p.glob("*_deglyco"))) == 0:
-                        protocol_fragment = True
-                    else:
-                        protocol_fragment = False
-                    logger.info(f"PREPROCESSING: PROTOCOL FRAGMENT={protocol_fragment}")
 
                     # define csv outputs
                     output_csv_prep_overview = f"{output_folder}/{prefix}_prep_overview.csv"
                     output_csv_prep_filtered = f"{output_folder}/{prefix}_prep_filtered.csv"
                     output_csv_prep_error = f"{output_folder}/{prefix}_prep_error.csv"
-                    output_csv_prep_deglyco = f"{output_folder}/{prefix}_prep_deglyco.csv"
                     # define plot outputs
                     output_plot_prep_overview = output_csv_prep_overview.replace('.csv', f".{args.plotformat}")
                     output_plot_prep_filtered = output_csv_prep_filtered.replace('.csv', f".{args.plotformat}")
                     output_plot_prep_error = output_csv_prep_error.replace('.csv', f".{args.plotformat}")
-                    output_plot_prep_deglyco = output_csv_prep_deglyco.replace('.csv', f".{args.plotformat}")
                     logger.info("PREP -- OUTPUT_CSV_PREP_OVERVIEW".ljust(pad) + f"{output_csv_prep_overview}")
                     logger.info("PREP -- OUTPUT_CSV_PREP_FILTERED".ljust(pad) + f"{output_csv_prep_filtered}")
                     logger.info("PREP -- OUTPUT_CSV_PREP_ERROR".ljust(pad) + f"{output_csv_prep_error}")
-                    logger.info("PREP -- OUTPUT_CSV_PREP_DEGLYCO".ljust(pad) + f"{output_csv_prep_deglyco}")
                     logger.info("PREP -- OUTPUT PLOT FILE SYNTAX: OUTPUT_CSV.PLOTFORMAT")
                     # retrieve data
                     output_csv_files = [output_csv_prep_overview, output_csv_prep_filtered,
-                                        output_csv_prep_error, output_csv_prep_deglyco,
+                                        output_csv_prep_error,
                                         ]
                     output_plot_files = [output_plot_prep_overview, output_plot_prep_filtered,
-                                         output_plot_prep_error, output_plot_prep_deglyco,
+                                         output_plot_prep_error,
                                          ]
                     if all([Path(x).exists() for x in output_plot_files]):
-                        logger.info(f"PREP -- ALL OUTPUT PLOT FILES ARE ALREADY AVAILABLE, NOTHING TO DO!")
+                        logger.info("PREP -- ALL OUTPUT PLOT FILES ARE ALREADY AVAILABLE, NOTHING TO DO!")
                         continue
                     elif all([Path(x).exists() for x in output_csv_files]):
-                        logger.info(f"PREP -- PARSING OUTPUT CSV FILES INSTEAD OF COMPUTING THEM")
+                        logger.info("PREP -- PARSING OUTPUT CSV FILES INSTEAD OF COMPUTING THEM")
                         df_prep_overview = load.file(output_csv_prep_overview)
                         df_prep_filtered = load.file(output_csv_prep_filtered)
                         df_prep_error = load.file(output_csv_prep_error)
-                        try:
-                            df_prep_deglyco = load.file(output_csv_prep_deglyco)
-                        except ValueError:
-                            df_prep_deglyco = None
                     else:
-                        logger.info(f"PREP -- COMPUTING OUTPUT CSV FILES")
+                        logger.info("PREP -- COMPUTING OUTPUT CSV FILES")
                         # first examples, then df so we spare a bit of memory
-                        if args.examples:
-                            example_folder = f"{output_folder}/examples/deglyco"
-                            num_examples = save_examples_deglyco(wd_subdir, example_folder)
-                            logger.info(f"PREP -- DEGLYCO -- SAVED EXAMPLES: {num_examples:,}")
                         dfs_prep = get_dfs_prep(wd_subdir)
-                        for df_prep, output_csv_fs in zip(dfs_prep, output_csv_files):
-                            try:
-                                save.file(df_prep, output_csv_fs)
-                            except AttributeError:
-                                logger.error(f"COULD NOT SAVE '{output_csv_fs}'")
                         df_prep_overview = dfs_prep['df_prep_overview']
                         df_prep_filtered = dfs_prep['df_prep_filtered']
                         df_prep_error = dfs_prep['df_prep_error']
-                        df_prep_deglyco = dfs_prep['df_prep_deglyco']
+
+                        save.file(df_prep_overview, output_csv_prep_overview)
+                        save.file(df_prep_filtered, output_csv_prep_filtered)
+                        save.file(df_prep_error, output_csv_prep_error)
                     d1 = datetime.now()
 
                     # compute plots
@@ -1645,9 +1673,9 @@ if __name__ == '__main__':
                         continue
                     # plot output_plot_prep_overview
                     if Path(output_plot_prep_overview).exists():
-                        logger.info("PREP -- OUTPUT_PLOT_PREP_OVERVIEW".ljust(pad) + f"ALREADY DONE")
+                        logger.info("PREP -- OUTPUT_PLOT_PREP_OVERVIEW".ljust(pad) + "ALREADY DONE")
                     else:
-                        logger.info("PREP -- OUTPUT_PLOT_PREP_OVERVIEW".ljust(pad) + f"COMPUTING...")
+                        logger.info("PREP -- OUTPUT_PLOT_PREP_OVERVIEW".ljust(pad) + "COMPUTING...")
                         save_barplot(df_prep_overview,
                                      output_plot_prep_overview,
                                      'Category',
@@ -1661,9 +1689,9 @@ if __name__ == '__main__':
                                      )
                     # plot output_plot_prep_filtered
                     if Path(output_plot_prep_filtered).exists():
-                        logger.info("PREP -- OUTPUT_PLOT_PREP_FILTERED".ljust(pad) + f"ALREADY DONE")
+                        logger.info("PREP -- OUTPUT_PLOT_PREP_FILTERED".ljust(pad) + "ALREADY DONE")
                     else:
-                        logger.info("PREP -- OUTPUT_PLOT_PREP_FILTERED".ljust(pad) + f"COMPUTING...")
+                        logger.info("PREP -- OUTPUT_PLOT_PREP_FILTERED".ljust(pad) + "COMPUTING...")
                         save_barplot(df_prep_filtered,
                                      output_plot_prep_filtered,
                                      'Category',
@@ -1676,9 +1704,9 @@ if __name__ == '__main__':
                                      )
                     # plot output_plot_prep_error
                     if Path(output_plot_prep_error).exists():
-                        logger.info("PREP -- OUTPUT_PLOT_PREP_ERROR".ljust(pad) + f"ALREADY DONE")
+                        logger.info("PREP -- OUTPUT_PLOT_PREP_ERROR".ljust(pad) + "ALREADY DONE")
                     else:
-                        logger.info("PREP -- OUTPUT_PLOT_PREP_ERROR".ljust(pad) + f"COMPUTING...")
+                        logger.info("PREP -- OUTPUT_PLOT_PREP_ERROR".ljust(pad) + "COMPUTING...")
                         save_barplot(df_prep_error,
                                      output_plot_prep_error,
                                      'Category',
@@ -1689,30 +1717,13 @@ if __name__ == '__main__':
                                      color=color,
                                      perc_labels='Perc_Status',
                                      )
-                    # plot output_plot_prep_deglyco
-                    if df_prep_deglyco is None:
-                        continue
-                    if Path(output_plot_prep_deglyco).exists():
-                        logger.info("PREP -- OUTPUT_PLOT_PREP_DEGLYCO".ljust(pad) + f"ALREADY DONE")
-                    else:
-                        logger.info("PREP -- OUTPUT_PLOT_PREP_DEGLYCO".ljust(pad) + f"COMPUTING...")
-                        save_barplot(df_prep_deglyco,
-                                     output_plot_prep_deglyco,
-                                     'Category',
-                                     'Count',
-                                     f"Preprocesssing of Molecules in {dataset} - Deglycosylation",
-                                     x_label='Category',
-                                     y_label='Count',
-                                     color=color,
-                                     perc_labels='Perc_Status',
-                                     fig_size=(12, 12),
-                                     )
+
                     d2 = datetime.now()
                     logger.info("-- END OF REPORT")
                     logger.info("-- COMPUTATIONAL TIME")
-                    logger.info(f"PARSE OUTPUT FILES:".ljust(pad) + f"{d1 - d0}")
-                    logger.info(f"GENERATE PLOTS:".ljust(pad) + f"{d2 - d1}")
-                    logger.info(f"TOTAL:".ljust(pad) + f"{d2 - d0}")
+                    logger.info("PARSE OUTPUT FILES:".ljust(pad) + f"{d1 - d0}")
+                    logger.info("GENERATE PLOTS:".ljust(pad) + f"{d2 - d1}")
+                    logger.info("TOTAL:".ljust(pad) + f"{d2 - d0}")
 
             # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ SUBSET ~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
@@ -1744,12 +1755,12 @@ if __name__ == '__main__':
                     output_csv_files = [output_csv_sub_subset]
                     output_plot_files = [output_plot_sub_subset]
                     if all([Path(x).exists() for x in output_plot_files]):
-                        logger.info(f"SUB -- ALL OUTPUT PLOT FILES ARE ALREADY AVAILABLE, NOTHING TO DO!")
+                        logger.info("SUB -- ALL OUTPUT PLOT FILES ARE ALREADY AVAILABLE, NOTHING TO DO!")
                     elif all([Path(x).exists() for x in output_csv_files]):
-                        logger.info(f"SUB -- PARSING OUTPUT CSV FILES INSTEAD OF COMPUTING THEM")
+                        logger.info("SUB -- PARSING OUTPUT CSV FILES INSTEAD OF COMPUTING THEM")
                         df_sub_subset = load.file(output_csv_sub_subset)
                     else:
-                        logger.info(f"SUB -- COMPUTING OUTPUT CSV FILES")
+                        logger.info("SUB -- COMPUTING OUTPUT CSV FILES")
                         df_sub_subset = get_df_subset(dir)
                         save.file(df_sub_subset, output_csv_sub_subset)
                     d1 = datetime.now()
@@ -1759,9 +1770,9 @@ if __name__ == '__main__':
                         continue
                     # plot output_plot_sub_subset
                     if Path(output_plot_sub_subset).exists():
-                        logger.info("SUB -- OUTPUT_PLOT_SUB_SUBSET".ljust(pad) + f"ALREADY DONE")
+                        logger.info("SUB -- OUTPUT_PLOT_SUB_SUBSET".ljust(pad) + "ALREADY DONE")
                     else:
-                        logger.info("SUB -- OUTPUT_PLOT_SUB_SUBSET".ljust(pad) + f"COMPUTING...")
+                        logger.info("SUB -- OUTPUT_PLOT_SUB_SUBSET".ljust(pad) + "COMPUTING...")
                         save_barplot(df_sub_subset,
                                      output_plot_sub_subset,
                                      'Category',
@@ -1776,9 +1787,9 @@ if __name__ == '__main__':
                     d2 = datetime.now()
                     logger.info("-- END OF REPORT")
                     logger.info("-- COMPUTATIONAL TIME")
-                    logger.info(f"PARSE OUTPUT FILES:".ljust(pad) + f"{d1 - d0}")
-                    logger.info(f"GENERATE PLOTS:".ljust(pad) + f"{d2 - d1}")
-                    logger.info(f"TOTAL:".ljust(pad) + f"{d2 - d0}")
+                    logger.info("PARSE OUTPUT FILES:".ljust(pad) + f"{d1 - d0}")
+                    logger.info("GENERATE PLOTS:".ljust(pad) + f"{d2 - d1}")
+                    logger.info("TOTAL:".ljust(pad) + f"{d2 - d0}")
             # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FRAGS ~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
             if wd_level == 'frags':
@@ -1803,7 +1814,7 @@ if __name__ == '__main__':
                     print_title(f"CHECKING RESULTS IN '{dir}'", 2, pad_title)
 
                     # ~~~~~~~~~~~~~~~~~~~~~ FRAGMENT SEARCH ~~~~~~~~~~~~~~~~~~ #
-                    print_title(f"FRAGMENT SEARCH", 3, pad_title)
+                    print_title("FRAGMENT SEARCH", 3, pad_title)
 
                     # define outputs
                     output_csv_fs_nfragpermol = f"{output_folder}/{prefix}_fs_nfragpermol.csv"
@@ -1832,19 +1843,19 @@ if __name__ == '__main__':
                                          output_plot_fs_top10frags, output_plot_fs_top10frags_u,
                                          ]
                     if all([Path(x).exists() for x in output_plot_files]):
-                        logger.info(f"FS -- ALL OUTPUT PLOT FILES ARE ALREADY AVAILABLE, NOTHING TO DO!")
+                        logger.info("FS -- ALL OUTPUT PLOT FILES ARE ALREADY AVAILABLE, NOTHING TO DO!")
                     elif all([Path(x).exists() for x in output_csv_files]):
-                        logger.info(f"FS -- PARSING OUTPUT CSV FILES INSTEAD OF COMPUTING THEM")
+                        logger.info("FS -- PARSING OUTPUT CSV FILES INSTEAD OF COMPUTING THEM")
                         df_fs_nfragpermol = load.file(output_csv_fs_nfragpermol)
                         df_fs_nfragpermol_u = load.file(output_csv_fs_nfragpermol_u)
                         df_fs_fragmolcov = load.file(output_csv_fs_fragmolcov)
                         df_fs_top10frags = load.file(output_csv_fs_top10frags).head(10)
                         df_fs_top10frags_u = load.file(output_csv_fs_top10frags_u).head(10)
                     else:
-                        logger.info(f"FS -- COMPUTING OUTPUT CSV FILES")
+                        logger.info("FS -- COMPUTING OUTPUT CSV FILES")
                         dfs_fs = get_dfs_fs(dir)
                         for df_fs, output_csv_fs in zip(dfs_fs, output_csv_files):
-                            save.file(df_fs, output_csv_fs)
+                            save.file(df_fs, output_csv_fs, encode=False)
                         df_fs_nfragpermol = dfs_fs[0]
                         df_fs_nfragpermol_u = dfs_fs[1]
                         df_fs_fragmolcov = dfs_fs[2]
@@ -1858,10 +1869,10 @@ if __name__ == '__main__':
 
                     # plot output_plot_fs_nfragpermol
                     if Path(output_plot_fs_nfragpermol).exists():
-                        logger.info("FS -- OUTPUT_PLOT_FS_NFRAGPERMOL".ljust(pad) + f"ALREADY DONE")
+                        logger.info("FS -- OUTPUT_PLOT_FS_NFRAGPERMOL".ljust(pad) + "ALREADY DONE")
                     else:
-                        logger.info("FS -- OUTPUT_PLOT_FS_NFRAGPERMOL".ljust(pad) + f"COMPUTING...")
-                        save_lineplot(df_fs_nfragpermol,
+                        logger.info("FS -- OUTPUT_PLOT_FS_NFRAGPERMOL".ljust(pad) + "COMPUTING...")
+                        save_barplot(df_fs_nfragpermol,
                                       output_plot_fs_nfragpermol,
                                       'NumFrags',
                                       'Count',
@@ -1870,13 +1881,14 @@ if __name__ == '__main__':
                                       y_label='Count',
                                       color=color,
                                       perc_labels='Perc_Mols',
+                                      fig_size=(48, 12),
                                       )
 
                     # plot output_plot_fs_fragmolcov
                     if Path(output_plot_fs_fragmolcov).exists():
-                        logger.info("FS -- OUTPUT_PLOT_FS_FRAGMOLCOV".ljust(pad) + f"ALREADY DONE")
+                        logger.info("FS -- OUTPUT_PLOT_FS_FRAGMOLCOV".ljust(pad) + "ALREADY DONE")
                     else:
-                        logger.info("FS -- OUTPUT_PLOT_FS_FRAGMOLCOV".ljust(pad) + f"COMPUTING...")
+                        logger.info("FS -- OUTPUT_PLOT_FS_FRAGMOLCOV".ljust(pad) + "COMPUTING...")
                         save_kdeplot(df_fs_fragmolcov,
                                      output_plot_fs_fragmolcov,
                                      x_name='frag_ratio',
@@ -1888,9 +1900,9 @@ if __name__ == '__main__':
 
                     # plot output_plot_fs_top10frags
                     if Path(output_plot_fs_top10frags).exists():
-                        logger.info("FS -- OUTPUT_PLOT_FS_TOP10FRAGS".ljust(pad) + f"ALREADY DONE")
+                        logger.info("FS -- OUTPUT_PLOT_FS_TOP10FRAGS".ljust(pad) + "ALREADY DONE")
                     else:
-                        logger.info("FS -- OUTPUT_PLOT_FS_TOP10FRAGS".ljust(pad) + f"COMPUTING...")
+                        logger.info("FS -- OUTPUT_PLOT_FS_TOP10FRAGS".ljust(pad) + "COMPUTING...")
                         save_barplot(df_fs_top10frags,
                                      output_plot_fs_top10frags,
                                      'idf',
@@ -1908,25 +1920,25 @@ if __name__ == '__main__':
 
                     # plot output_plot_fs_nfragpermol_u
                     if Path(output_plot_fs_nfragpermol_u).exists():
-                        logger.info("FS -- OUTPUT_PLOT_FS_NFRAGPERMOL_U".ljust(pad) + f"ALREADY DONE")
+                        logger.info("FS -- OUTPUT_PLOT_FS_NFRAGPERMOL_U".ljust(pad) + "ALREADY DONE")
                     else:
-                        logger.info("FS -- OUTPUT_PLOT_FS_NFRAGPERMOL_U".ljust(pad) + f"COMPUTING...")
-                        save_lineplot(df_fs_nfragpermol_u,
-                                      output_plot_fs_nfragpermol_u,
-                                      'NumFrags',
-                                      'Count',
-                                      f"FS - Number of Unique Fragment Hits Per Molecule in {dataset}",
-                                      x_label='Number of Unique Fragment Hits Per Molecule',
-                                      y_label='Count',
-                                      color=color,
-                                      perc_labels='Perc_Mols',
-                                      )
+                        logger.info("FS -- OUTPUT_PLOT_FS_NFRAGPERMOL_U".ljust(pad) + "COMPUTING...")
+                        save_barplot(df_fs_nfragpermol_u,
+                                     output_plot_fs_nfragpermol_u,
+                                     'NumFrags',
+                                     'Count',
+                                     f"FS - Number of Unique Fragment Hits Per Molecule in {dataset}",
+                                     x_label='Number of Unique Fragment Hits Per Molecule',
+                                     y_label='Count',
+                                     color=color,
+                                     perc_labels='Perc_Mols',
+                                     )
 
                     # plot output_plot_fs_top10frags_u
                     if Path(output_plot_fs_top10frags_u).exists():
-                        logger.info("FS -- OUTPUT_PLOT_FS_TOP10FRAGS_U".ljust(pad) + f"ALREADY DONE")
+                        logger.info("FS -- OUTPUT_PLOT_FS_TOP10FRAGS_U".ljust(pad) + "ALREADY DONE")
                     else:
-                        logger.info("FS -- OUTPUT_PLOT_FS_TOP10FRAGS_U".ljust(pad) + f"COMPUTING...")
+                        logger.info("FS -- OUTPUT_PLOT_FS_TOP10FRAGS_U".ljust(pad) + "COMPUTING...")
 
                         save_barplot(df_fs_top10frags_u,
                                      output_plot_fs_top10frags_u,
@@ -1944,13 +1956,13 @@ if __name__ == '__main__':
                     d2 = datetime.now()
 
                     # ~~~~~~~~~~~~~~~~~~ FRAGMENT COMBINATIONS ~~~~~~~~~~~~~~~ #
-                    print_title(f"FRAGMENT COMBINATIONS", 3, pad_title)
+                    print_title("FRAGMENT COMBINATIONS", 3, pad_title)
 
                     # define outputs
-                    output_csv_fcc_fcc = f"{output_folder}/{dataset}_fcc_fcc.csv"
-                    output_csv_fcc_fc = f"{output_folder}/{dataset}_fcc_fc.csv"
-                    output_csv_fcc_ffo = f"{output_folder}/{dataset}_fcc_ffo.csv"
-                    output_csv_fcc_ffs = f"{output_folder}/{dataset}_fcc_ffs.csv"
+                    output_csv_fcc_fcc = f"{output_folder}/{prefix}_fcc_fcc.csv"
+                    output_csv_fcc_fc = f"{output_folder}/{prefix}_fcc_fc.csv"
+                    output_csv_fcc_ffo = f"{output_folder}/{prefix}_fcc_ffo.csv"
+                    output_csv_fcc_ffs = f"{output_folder}/{prefix}_fcc_ffs.csv"
                     output_plot_fcc_fcc = output_csv_fcc_fcc.replace('.csv', f".{args.plotformat}")
                     output_plot_fcc_fc = output_csv_fcc_fc.replace('.csv', f".{args.plotformat}")
                     output_plot_fcc_ffo = output_csv_fcc_ffo.replace('.csv', f".{args.plotformat}")
@@ -1964,22 +1976,22 @@ if __name__ == '__main__':
                     output_csv_files = [output_csv_fcc_fcc, output_csv_fcc_fc, output_csv_fcc_ffs, output_csv_fcc_ffo]
                     output_plot_files = [output_plot_fcc_fcc, output_plot_fcc_fc, output_plot_fcc_ffs, output_plot_fcc_ffo]
                     if all([Path(x).exists() for x in output_plot_files]):
-                        logger.info(f"FC -- ALL OUTPUT PLOT FILES ARE ALREADY AVAILABLE, NOTHING TO DO!")
+                        logger.info("FC -- ALL OUTPUT PLOT FILES ARE ALREADY AVAILABLE, NOTHING TO DO!")
                     elif all([Path(x).exists() for x in output_csv_files]):
-                        logger.info(f"FC -- PARSING OUTPUT CSV FILES INSTEAD OF COMPUTING THEM")
+                        logger.info("FC -- PARSING OUTPUT CSV FILES INSTEAD OF COMPUTING THEM")
                         df_fcc_fcc = load.file(output_csv_fcc_fcc)
                         df_fcc_fc = load.file(output_csv_fcc_fc, decode=False).head(10)  # plot top 10 and no need for mol objects at the moment
                         df_fcc_ffs = load.file(output_csv_fcc_ffs)
                         df_fcc_ffo = load.file(output_csv_fcc_ffo)
                     else:
-                        logger.info(f"FC -- COMPUTING OUTPUT CSV FILES")
+                        logger.info("FC -- COMPUTING OUTPUT CSV FILES")
                         d_fcc = get_dfs_fcc(dir)
                         df_fcc_fcc = d_fcc['df_fcc']
                         df_fcc_fc = d_fcc['df_fc']
                         df_fcc_ffs = d_fcc['df_ffs']
                         df_fcc_ffo = d_fcc['df_ffo']
                         save.file(df_fcc_fcc, output_csv_fcc_fcc)
-                        save.file(df_fcc_fc, output_csv_fcc_fc)
+                        save.file(df_fcc_fc, output_csv_fcc_fc, encode=False)
                         save.file(df_fcc_ffs, output_csv_fcc_ffs)
                         save.file(df_fcc_ffo, output_csv_fcc_ffo)
                         df_fcc_fc = df_fcc_fc.head(10)  # use only top 10 for plotting
@@ -1991,10 +2003,9 @@ if __name__ == '__main__':
 
                     # plot output_plot_fcc_fcc
                     if Path(output_plot_fcc_fcc).exists():
-                        logger.info("FC -- OUTPUT_PLOT_FCC_COUNTS".ljust(pad) + f"ALREADY DONE")
+                        logger.info("FC -- OUTPUT_PLOT_FCC_COUNTS".ljust(pad) + "ALREADY DONE")
                     else:
-                        logger.info("FC -- OUTPUT_PLOT_FCC_COUNTS".ljust(pad) + f"COMPUTING...")
-                        print(f"\ndf_fcc_fcc\n{df_fcc_fcc}\n")
+                        logger.info("FC -- OUTPUT_PLOT_FCC_COUNTS".ljust(pad) + "COMPUTING...")
                         save_barplot(df_fcc_fcc,
                                      output_plot_fcc_fcc,
                                      'fcc',
@@ -2008,10 +2019,10 @@ if __name__ == '__main__':
 
                     # plot output_plot_fcc_fc
                     if Path(output_plot_fcc_fc).exists():
-                        logger.info("FC -- OUTPUT_PLOT_FC_COUNTS".ljust(pad) + f"ALREADY DONE")
+                        logger.info("FC -- OUTPUT_PLOT_FC_COUNTS".ljust(pad) + "ALREADY DONE")
                     else:
                         df_fcc_fc['fc'] = df_fcc_fc['fc'].map(lambda x: x.replace('[', '\n').replace(']', '\n'))
-                        logger.info("FC -- OUTPUT_PLOT_FC_COUNTS".ljust(pad) + f"COMPUTING...")  # for that one percentage labelling go crazy...!
+                        logger.info("FC -- OUTPUT_PLOT_FC_COUNTS".ljust(pad) + "COMPUTING...")  # for that one percentage labelling go crazy...!
                         save_barplot(df_fcc_fc,
                                      output_plot_fcc_fc,
                                      'fc',
@@ -2027,151 +2038,153 @@ if __name__ == '__main__':
 
                     # plot output_plot_fcc_ffs
                     if Path(output_plot_fcc_ffs).exists():
-                        logger.info("FC -- OUTPUT_PLOT_FCC_FFS".ljust(pad) + f"ALREADY DONE")
+                        logger.info("FC -- OUTPUT_PLOT_FCC_FFS".ljust(pad) + "ALREADY DONE")
                     else:
-                        logger.info("FC -- OUTPUT_PLOT_FCC_FFS".ljust(pad) + f"COMPUTING...")  # for that one percentage labelling go crazy...!
+                        logger.info("FC -- OUTPUT_PLOT_FCC_FFS".ljust(pad) + "COMPUTING...")  # for that one percentage labelling go crazy...!
                         df_fcc_ffs['NumSubstructures'] = df_fcc_ffs['NumSubstructures'].astype(int)
-                        save_lineplot(df_fcc_ffs,
-                                      output_plot_fcc_ffs,
-                                      'NumSubstructures',
-                                      'Count',
-                                      f"FCC - Number of Substructures Fragment Combinations (ffs) per Molecule in {dataset}",
-                                      x_label='Number of Overlaps',
-                                      y_label='Count',
-                                      color=color,
-                                      perc_labels='Perc_Mols',
-                                      )
+                        save_barplot(df_fcc_ffs,
+                                     output_plot_fcc_ffs,
+                                     'NumSubstructures',
+                                     'Count',
+                                     f"FCC - Number of Substructures Fragment Combinations (ffs) per Molecule in {dataset}",
+                                     x_label='Number of Overlaps',
+                                     y_label='Count',
+                                     color=color,
+                                     perc_labels='Perc_Mols',
+                                     fig_size=(48, 12),
+                                     )
 
                     # plot output_plot_fcc_ffo
                     if Path(output_plot_fcc_ffo).exists():
-                        logger.info("FC -- OUTPUT_PLOT_FCC_FFO".ljust(pad) + f"ALREADY DONE")
+                        logger.info("FC -- OUTPUT_PLOT_FCC_FFO".ljust(pad) + "ALREADY DONE")
                     else:
-                        logger.info("FC -- OUTPUT_PLOT_FCC_FFO".ljust(pad) + f"COMPUTING...")  # for that one percentage labelling go crazy...!
-                        save_lineplot(df_fcc_ffo,
-                                      output_plot_fcc_ffo,
-                                      'NumOverlaps',
-                                      'Count',
-                                      f"FCC - Number of Overlap Fragment Combinations (ffo) per Molecule in {dataset}",
-                                      x_label='Number of Overlaps',
-                                      y_label='Count',
-                                      color=color,
-                                      perc_labels='Perc_Mols',
-                                      )
+                        logger.info("FC -- OUTPUT_PLOT_FCC_FFO".ljust(pad) + "COMPUTING...")  # for that one percentage labelling go crazy...!
+                        save_barplot(df_fcc_ffo,
+                                     output_plot_fcc_ffo,
+                                     'NumOverlaps',
+                                     'Count',
+                                     f"FCC - Number of Overlap Fragment Combinations (ffo) per Molecule in {dataset}",
+                                     x_label='Number of Overlaps',
+                                     y_label='Count',
+                                     color=color,
+                                     perc_labels='Perc_Mols',
+                                     fig_size=(48, 12),
+                                     )
                     d4 = datetime.now()
 
                     # ~~~~~~~~~~~~~~ FRAGMENT GRAPH GENERATION ~~~~~~~~~~~~~~~ #
 
-                    print_title(f"FRAGMENT GRAPH GENERATION", 3, pad_title)
+                    print_title("FRAGMENT GRAPH GENERATION", 3, pad_title)
                     # define outputs
-                    output_csv_fg_nfragpermol = f"{output_folder}/{prefix}_fg_nfragpermol.csv"
-                    output_csv_fg_nfragpermol_u = f"{output_folder}/{prefix}_fg_nfragpermol_u.csv"
-                    output_csv_fg_fragmolcov = f"{output_folder}/{prefix}_fg_fragmolcov.csv"
-                    output_csv_fg_top10frags = f"{output_folder}/{prefix}_fg_top10frags.csv"
-                    output_csv_fg_top10frags_u = f"{output_folder}/{prefix}_fg_top10frags_u.csv"
-                    output_csv_fg_fcc = f"{output_folder}/{prefix}_fg_fcc.csv"
-                    output_csv_fg_top10fc = f"{output_folder}/{prefix}_fg_fc.csv"
-                    output_csv_fg_nfgpermol = f"{output_folder}/{prefix}_fg_nfgpermol.csv"
-                    output_plot_fg_nfragpermol = output_csv_fg_nfragpermol.replace('.csv', f".{args.plotformat}")
-                    output_plot_fg_nfragpermol_u = output_csv_fg_nfragpermol_u.replace('.csv', f".{args.plotformat}")
-                    output_plot_fg_fragmolcov = output_csv_fg_fragmolcov.replace('.csv', f".{args.plotformat}")
-                    output_plot_fg_top10frags = output_csv_fg_top10frags.replace('.csv', f".{args.plotformat}")
-                    output_plot_fg_top10frags_u = output_csv_fg_top10frags_u.replace('.csv', f".{args.plotformat}")
-                    output_plot_fg_fcc = output_csv_fg_fcc.replace('.csv', f".{args.plotformat}")
-                    output_plot_fg_top10fc = output_csv_fg_top10fc.replace('.csv', f".{args.plotformat}")
-                    output_plot_fg_nfgpermol = output_csv_fg_nfgpermol.replace('.csv', f".{args.plotformat}")
-                    logger.info("FG -- OUTPUT_CSV_FG_NFRAGPERMOL".ljust(pad) + f"{output_csv_fg_nfragpermol}")
-                    logger.info("FG -- OUTPUT_CSV_FG_NFRAGPERMOL_U".ljust(pad) + f"{output_csv_fg_nfragpermol_u}")
-                    logger.info("FG -- OUTPUT_CSV_FG_FRAGMOLCOV".ljust(pad) + f"{output_csv_fg_fragmolcov}")
-                    logger.info("FG -- OUTPUT_CSV_FG_TOP10FRAGS".ljust(pad) + f"{output_csv_fg_top10frags}")
-                    logger.info("FG -- OUTPUT_CSV_FG_TOP10FRAGS_U".ljust(pad) + f"{output_csv_fg_top10frags_u}")
-                    logger.info("FG -- OUTPUT_CSV_FG_FCC".ljust(pad) + f"{output_csv_fg_fcc}")
-                    logger.info("FG -- OUTPUT_CSV_FG_TOP10FC".ljust(pad) + f"{output_csv_fg_top10fc}")
-                    logger.info("FG -- OUTPUT_CSV_FG_NFRAGGRAPHPERMOL".ljust(pad) + f"{output_csv_fg_nfgpermol}")
-                    logger.info("FG -- OUTPUT PLOT FILES HAVE THE SAME FILE NAMES AS OUTPUT CSV FILES")
+                    output_csv_fcg_nfragpermol = f"{output_folder}/{prefix}_fcg_nfragpermol.csv"
+                    output_csv_fcg_nfragpermol_u = f"{output_folder}/{prefix}_fcg_nfragpermol_u.csv"
+                    output_csv_fcg_fragmolcov = f"{output_folder}/{prefix}_fcg_fragmolcov.csv"
+                    output_csv_fcg_top10frags = f"{output_folder}/{prefix}_fcg_top10frags.csv"
+                    output_csv_fcg_top10frags_u = f"{output_folder}/{prefix}_fcg_top10frags_u.csv"
+                    output_csv_fcg_fcc = f"{output_folder}/{prefix}_fcg_fcc.csv"
+                    output_csv_fcg_top10fc = f"{output_folder}/{prefix}_fcg_fc.csv"
+                    output_csv_fcg_nfgpermol = f"{output_folder}/{prefix}_fcg_nfgpermol.csv"
+                    output_plot_fcg_nfragpermol = output_csv_fcg_nfragpermol.replace('.csv', f".{args.plotformat}")
+                    output_plot_fcg_nfragpermol_u = output_csv_fcg_nfragpermol_u.replace('.csv', f".{args.plotformat}")
+                    output_plot_fcg_fragmolcov = output_csv_fcg_fragmolcov.replace('.csv', f".{args.plotformat}")
+                    output_plot_fcg_top10frags = output_csv_fcg_top10frags.replace('.csv', f".{args.plotformat}")
+                    output_plot_fcg_top10frags_u = output_csv_fcg_top10frags_u.replace('.csv', f".{args.plotformat}")
+                    output_plot_fcg_fcc = output_csv_fcg_fcc.replace('.csv', f".{args.plotformat}")
+                    output_plot_fcg_top10fc = output_csv_fcg_top10fc.replace('.csv', f".{args.plotformat}")
+                    output_plot_fcg_nfgpermol = output_csv_fcg_nfgpermol.replace('.csv', f".{args.plotformat}")
+                    logger.info("FCG -- OUTPUT_CSV_FG_NFRAGPERMOL".ljust(pad) + f"{output_csv_fcg_nfragpermol}")
+                    logger.info("FCG -- OUTPUT_CSV_FG_NFRAGPERMOL_U".ljust(pad) + f"{output_csv_fcg_nfragpermol_u}")
+                    logger.info("FCG -- OUTPUT_CSV_FG_FRAGMOLCOV".ljust(pad) + f"{output_csv_fcg_fragmolcov}")
+                    logger.info("FCG -- OUTPUT_CSV_FG_TOP10FRAGS".ljust(pad) + f"{output_csv_fcg_top10frags}")
+                    logger.info("FCG -- OUTPUT_CSV_FG_TOP10FRAGS_U".ljust(pad) + f"{output_csv_fcg_top10frags_u}")
+                    logger.info("FCG -- OUTPUT_CSV_FG_FCC".ljust(pad) + f"{output_csv_fcg_fcc}")
+                    logger.info("FCG -- OUTPUT_CSV_FG_TOP10FC".ljust(pad) + f"{output_csv_fcg_top10fc}")
+                    logger.info("FCG -- OUTPUT_CSV_FG_NFRAGGRAPHPERMOL".ljust(pad) + f"{output_csv_fcg_nfgpermol}")
+                    logger.info("FCG -- OUTPUT PLOT FILES HAVE THE SAME FILE NAMES AS OUTPUT CSV FILES")
                     # retrieve data
-                    output_csv_files = [output_csv_fg_nfragpermol, output_csv_fg_nfragpermol_u,
-                                        output_csv_fg_fragmolcov,
-                                        output_csv_fg_top10frags, output_csv_fg_top10frags_u,
-                                        output_csv_fg_fcc, output_csv_fg_top10fc,
-                                        output_csv_fg_nfgpermol,
+                    output_csv_files = [output_csv_fcg_nfragpermol, output_csv_fcg_nfragpermol_u,
+                                        output_csv_fcg_fragmolcov,
+                                        output_csv_fcg_top10frags, output_csv_fcg_top10frags_u,
+                                        output_csv_fcg_fcc, output_csv_fcg_top10fc,
+                                        output_csv_fcg_nfgpermol,
                                         ]
-                    output_plot_files = [output_plot_fg_nfragpermol, output_plot_fg_nfragpermol_u,
-                                         output_plot_fg_fragmolcov,
-                                         output_plot_fg_top10frags, output_plot_fg_top10frags_u,
-                                         output_plot_fg_fcc, output_plot_fg_top10fc,
-                                         output_plot_fg_nfgpermol,
+                    output_plot_files = [output_plot_fcg_nfragpermol, output_plot_fcg_nfragpermol_u,
+                                         output_plot_fcg_fragmolcov,
+                                         output_plot_fcg_top10frags, output_plot_fcg_top10frags_u,
+                                         output_plot_fcg_fcc, output_plot_fcg_top10fc,
+                                         output_plot_fcg_nfgpermol,
                                          ]
                     if all([Path(x).exists() for x in output_plot_files]):
-                        logger.info(f"FG -- ALL OUTPUT PLOT FILES ARE ALREADY AVAILABLE, NOTHING TO DO!")
+                        logger.info("FCG -- ALL OUTPUT PLOT FILES ARE ALREADY AVAILABLE, NOTHING TO DO!")
                     elif all([Path(x).exists() for x in output_csv_files]):
-                        logger.info(f"FG -- PARSING OUTPUT CSV FILES INSTEAD OF COMPUTING THEM")
-                        df_fg_nfragpermol = load.file(output_csv_fg_nfragpermol)
-                        df_fg_nfragpermol_u = load.file(output_csv_fg_nfragpermol_u)
-                        df_fg_fragmolcov = load.file(output_csv_fg_fragmolcov)
-                        df_fg_top10frags = load.file(output_csv_fg_top10frags).head(10)
-                        df_fg_top10frags_u = load.file(output_csv_fg_top10frags_u).head(10)
-                        df_fg_fcc = load.file(output_csv_fg_fcc)
-                        df_fg_top10fc = load.file(output_csv_fg_top10fc).head(10)
-                        df_fg_nfgpermol = load.file(output_csv_fg_nfgpermol)
+                        logger.info("FCG -- PARSING OUTPUT CSV FILES INSTEAD OF COMPUTING THEM")
+                        df_fcg_nfragpermol = load.file(output_csv_fcg_nfragpermol)
+                        df_fcg_nfragpermol_u = load.file(output_csv_fcg_nfragpermol_u)
+                        df_fcg_fragmolcov = load.file(output_csv_fcg_fragmolcov)
+                        df_fcg_top10frags = load.file(output_csv_fcg_top10frags).head(10)
+                        df_fcg_top10frags_u = load.file(output_csv_fcg_top10frags_u).head(10)
+                        df_fcg_fcc = load.file(output_csv_fcg_fcc)
+                        df_fcg_top10fc = load.file(output_csv_fcg_top10fc).head(10)
+                        df_fcg_nfgpermol = load.file(output_csv_fcg_nfgpermol)
                     else:
-                        logger.info(f"FG -- COMPUTING OUTPUT CSV FILES")
-                        dfs_fg = get_df_fg(dir)
-                        for df_fg, output_csv_fm in zip(dfs_fg, output_csv_files):
-                            save.file(df_fg, output_csv_fm)
-                        df_fg_nfragpermol = dfs_fg[0]
-                        df_fg_nfragpermol_u = dfs_fg[1]
-                        df_fg_fragmolcov = dfs_fg[2]
-                        df_fg_top10frags = dfs_fg[3].head(10)
-                        df_fg_top10frags_u = dfs_fg[4].head(10)
-                        df_fg_fcc = dfs_fg[5]
-                        df_fg_top10fc = dfs_fg[6].head(10)
-                        df_fg_nfgpermol = dfs_fg[7]
+                        logger.info("FCG -- COMPUTING OUTPUT CSV FILES")
+                        dfs_fcg = get_df_fcg(dir)
+                        for df_fcg, output_csv_fm in zip(dfs_fcg, output_csv_files):
+                            save.file(df_fcg, output_csv_fm, encode=False)
+                        df_fcg_nfragpermol = dfs_fcg[0]
+                        df_fcg_nfragpermol_u = dfs_fcg[1]
+                        df_fcg_fragmolcov = dfs_fcg[2]
+                        df_fcg_top10frags = dfs_fcg[3].head(10)
+                        df_fcg_top10frags_u = dfs_fcg[4].head(10)
+                        df_fcg_fcc = dfs_fcg[5]
+                        df_fcg_top10fc = dfs_fcg[6].head(10)
+                        df_fcg_nfgpermol = dfs_fcg[7]
                     d5 = datetime.now()
 
                     # skip plots if computing only CSV output files
                     if args.csv:
                         continue
 
-                    # plot output_plot_fg_nfragpermol
-                    if Path(output_plot_fg_nfragpermol).exists():
-                        logger.info("FG -- OUTPUT_PLOT_FG_NFRAGPERMOL".ljust(pad) + f"ALREADY DONE")
+                    # plot output_plot_fcg_nfragpermol
+                    if Path(output_plot_fcg_nfragpermol).exists():
+                        logger.info("FCG -- OUTPUT_PLOT_FG_NFRAGPERMOL".ljust(pad) + "ALREADY DONE")
                     else:
-                        logger.info("FG -- OUTPUT_PLOT_FG_NFRAGPERMOL".ljust(pad) + f"COMPUTING...")
-                        save_lineplot(df_fg_nfragpermol,
-                                      output_plot_fg_nfragpermol,
-                                      'NumFrags',
-                                      'Count',
-                                      f"FG - Number of Fragment Hits Per Molecule in {dataset}",
-                                      x_label='Number of Fragment Hits Per Molecule',
-                                      y_label='Count',
-                                      color=color,
-                                      perc_labels='Perc_Mols',
-                                      )
+                        logger.info("FCG -- OUTPUT_PLOT_FG_NFRAGPERMOL".ljust(pad) + "COMPUTING...")
+                        save_barplot(df_fcg_nfragpermol,
+                                     output_plot_fcg_nfragpermol,
+                                     'NumFrags',
+                                     'Count',
+                                     f"FCG - Number of Fragment Hits Per Molecule in {dataset}",
+                                     x_label='Number of Fragment Hits Per Molecule',
+                                     y_label='Count',
+                                     color=color,
+                                     perc_labels='Perc_Mols',
+                                     )
 
-                    # plot output_plot_fg_fragmolcov
-                    if Path(output_plot_fg_fragmolcov).exists():
-                        logger.info("FG -- OUTPUT_PLOT_FG_FRAGMOLCOV".ljust(pad) + f"ALREADY DONE")
+                    # plot output_plot_fcg_fragmolcov
+                    if Path(output_plot_fcg_fragmolcov).exists():
+                        logger.info("FCG -- OUTPUT_PLOT_FG_FRAGMOLCOV".ljust(pad) + "ALREADY DONE")
                     else:
-                        logger.info("FG -- OUTPUT_PLOT_FG_FRAGMOLCOV".ljust(pad) + f"COMPUTING...")
-                        save_kdeplot(df_fg_fragmolcov,
-                                     output_plot_fg_fragmolcov,
+                        logger.info("FCG -- OUTPUT_PLOT_FG_FRAGMOLCOV".ljust(pad) + "COMPUTING...")
+                        save_kdeplot(df_fcg_fragmolcov,
+                                     output_plot_fcg_fragmolcov,
                                      x_name='frag_ratio',
-                                     title=f"FG - Distribution of Molecule Coverage by Fragments in {dataset}",
+                                     title=f"FCG - Distribution of Molecule Coverage by Fragments in {dataset}",
                                      x_label='Molecule Coverage by Fragments',
                                      y_label='Kernel Density Estimate of the Number of Molecules',
                                      color=color,
                                      )
 
-                    # plot output_plot_fg_top10frags
-                    if Path(output_plot_fg_top10frags).exists():
-                        logger.info("FG -- OUTPUT_PLOT_FG_TOP10FRAGS".ljust(pad) + f"ALREADY DONE")
+                    # plot output_plot_fcg_top10frags
+                    if Path(output_plot_fcg_top10frags).exists():
+                        logger.info("FCG -- OUTPUT_PLOT_FG_TOP10FRAGS".ljust(pad) + "ALREADY DONE")
                     else:
-                        logger.info("FG -- OUTPUT_PLOT_FG_TOP10FRAGS".ljust(pad) + f"COMPUTING...")
-                        save_barplot(df_fg_top10frags,
-                                     output_plot_fg_top10frags,
+                        logger.info("FCG -- OUTPUT_PLOT_FG_TOP10FRAGS".ljust(pad) + "COMPUTING...")
+                        save_barplot(df_fcg_top10frags,
+                                     output_plot_fcg_top10frags,
                                      'idf',
                                      'Count',
-                                     f"FG - Top 10 Fragments by Occurrence in {dataset}",
+                                     f"FCG - Top 10 Fragments by Occurrence in {dataset}",
                                      x_label='Fragment ID',
                                      y_label='Count',
                                      color=color,
@@ -2181,32 +2194,32 @@ if __name__ == '__main__':
                                      fig_size=(12, 12),
                                      )
 
-                    # plot output_plot_fg_nfragpermol_u
-                    if Path(output_plot_fg_nfragpermol_u).exists():
-                        logger.info("FG -- OUTPUT_PLOT_FG_NFRAGPERMOL_U".ljust(pad) + f"ALREADY DONE")
+                    # plot output_plot_fcg_nfragpermol_u
+                    if Path(output_plot_fcg_nfragpermol_u).exists():
+                        logger.info("FCG -- OUTPUT_PLOT_FG_NFRAGPERMOL_U".ljust(pad) + "ALREADY DONE")
                     else:
-                        logger.info("FG -- OUTPUT_PLOT_FG_NFRAGPERMOL_U".ljust(pad) + f"COMPUTING...")
-                        save_lineplot(df_fg_nfragpermol_u,
-                                      output_plot_fg_nfragpermol_u,
+                        logger.info("FCG -- OUTPUT_PLOT_FG_NFRAGPERMOL_U".ljust(pad) + "COMPUTING...")
+                        save_barplot(df_fcg_nfragpermol_u,
+                                      output_plot_fcg_nfragpermol_u,
                                       'NumFrags',
                                       'Count',
-                                      f"FG - Number of Unique Fragment Hits Per Molecule in {dataset}",
+                                      f"FCG - Number of Unique Fragment Hits Per Molecule in {dataset}",
                                       x_label='Number of Unique Fragment Hits Per Molecule',
                                       y_label='Count',
                                       color=color,
                                       perc_labels='Perc_Mols',
                                       )
 
-                    # plot output_plot_fg_top10frags_u
-                    if Path(output_plot_fg_top10frags_u).exists():
-                        logger.info("FG -- OUTPUT_PLOT_FG_TOP10FRAGS_U".ljust(pad) + f"ALREADY DONE")
+                    # plot output_plot_fcg_top10frags_u
+                    if Path(output_plot_fcg_top10frags_u).exists():
+                        logger.info("FCG -- OUTPUT_PLOT_FG_TOP10FRAGS_U".ljust(pad) + "ALREADY DONE")
                     else:
-                        logger.info("FG -- OUTPUT_PLOT_FG_TOP10FRAGS_U".ljust(pad) + f"COMPUTING...")
-                        save_barplot(df_fg_top10frags_u,
-                                     output_plot_fg_top10frags_u,
+                        logger.info("FCG -- OUTPUT_PLOT_FG_TOP10FRAGS_U".ljust(pad) + "COMPUTING...")
+                        save_barplot(df_fcg_top10frags_u,
+                                     output_plot_fcg_top10frags_u,
                                      'idf',
                                      'Count',
-                                     f"FG - Top 10 Unique Fragments by Occurrence in {dataset}",
+                                     f"FCG - Top 10 Unique Fragments by Occurrence in {dataset}",
                                      x_label='Fragment ID',
                                      y_label='Count',
                                      color=color,
@@ -2216,33 +2229,33 @@ if __name__ == '__main__':
                                      fig_size=(12, 12),
                                      )
 
-                    # plot output_plot_fg_fcc
-                    if Path(output_plot_fg_fcc).exists():
-                        logger.info("FG -- OUTPUT_PLOT_FG_FCC".ljust(pad) + f"ALREADY DONE")
+                    # plot output_plot_fcg_fcc
+                    if Path(output_plot_fcg_fcc).exists():
+                        logger.info("FCG -- OUTPUT_PLOT_FG_FCC".ljust(pad) + "ALREADY DONE")
                     else:
-                        logger.info("FG -- OUTPUT_PLOT_FG_FCC".ljust(pad) + f"COMPUTING...")
-                        save_barplot(df_fg_fcc,
-                                     output_plot_fg_fcc,
+                        logger.info("FCG -- OUTPUT_PLOT_FG_FCC".ljust(pad) + "COMPUTING...")
+                        save_barplot(df_fcg_fcc,
+                                     output_plot_fcg_fcc,
                                      'fcc',
                                      'Count',
-                                     f"FG - Fragment Combination Classification in {dataset}",
+                                     f"FCG - Fragment Combination Classification in {dataset}",
                                      x_label='Fragment Combination Categories',
                                      y_label='Count',
                                      color=color,
                                      perc_labels='Perc',
                                      )
 
-                    # plot output_plot_fg_top10fc
-                    if Path(output_plot_fg_top10fc).exists():
-                        logger.info("FG -- OUTPUT_PLOT_FC_COUNTS".ljust(pad) + f"ALREADY DONE")
+                    # plot output_plot_fcg_top10fc
+                    if Path(output_plot_fcg_top10fc).exists():
+                        logger.info("FCG -- OUTPUT_PLOT_FC_COUNTS".ljust(pad) + "ALREADY DONE")
                     else:
-                        logger.info("FG -- OUTPUT_PLOT_FC_COUNTS".ljust(pad) + f"COMPUTING...")  # for that one percentage labelling go crazy...!
-                        df_fg_top10fc['fc'] = df_fg_top10fc['fc'].map(lambda x: x.replace('[', '\n').replace(']', '\n'))
-                        save_barplot(df_fg_top10fc,
-                                     output_plot_fg_top10fc,
+                        logger.info("FCG -- OUTPUT_PLOT_FC_COUNTS".ljust(pad) + "COMPUTING...")  # for that one percentage labelling go crazy...!
+                        df_fcg_top10fc['fc'] = df_fcg_top10fc['fc'].map(lambda x: x.replace('[', '\n').replace(']', '\n'))
+                        save_barplot(df_fcg_top10fc,
+                                     output_plot_fcg_top10fc,
                                      'fc',
                                      'Count',
-                                     f"FG - Top 10 Fragment Combinations by Occurence in {dataset}",
+                                     f"FCG - Top 10 Fragment Combinations by Occurence in {dataset}",
                                      x_label='Fragment Combinations',
                                      y_label='Count',
                                      color=color,
@@ -2251,16 +2264,16 @@ if __name__ == '__main__':
                                      fig_size=(28, 12)
                                      )
 
-                    # plot output_plot_fg_nfmpermol
-                    if Path(output_plot_fg_nfgpermol).exists():
-                        logger.info("FG -- OUTPUT_PLOT_FG_NFGPERMOL".ljust(pad) + "ALREADY DONE")
+                    # plot output_plot_fcg_nfmpermol
+                    if Path(output_plot_fcg_nfgpermol).exists():
+                        logger.info("FCG -- OUTPUT_PLOT_FG_NFGPERMOL".ljust(pad) + "ALREADY DONE")
                     else:
-                        logger.info("FG -- OUTPUT_PLOT_FG_NFGPERMOL".ljust(pad) + "COMPUTING...")
-                        save_lineplot(df_fg_nfgpermol,
-                                      output_plot_fg_nfgpermol,
+                        logger.info("FCG -- OUTPUT_PLOT_FG_NFGPERMOL".ljust(pad) + "COMPUTING...")
+                        save_barplot(df_fcg_nfgpermol,
+                                      output_plot_fcg_nfgpermol,
                                       'NumFG',
                                       'Count',
-                                      f"FG - Number of Fragment Graphs Per Molecule in {dataset}",
+                                      f"FCG - Number of Fragment Graphs Per Molecule in {dataset}",
                                       x_label='Number of Fragment Graphs Per Molecule',
                                       y_label='Count',
                                       color=color,
@@ -2270,7 +2283,7 @@ if __name__ == '__main__':
 
                     # ~~~~~~~~~ PSEUDO-NATURAL PRODUCTS ANNOTATIONS ~~~~~~~~~~ #
 
-                    print_title(f"PSEUDO-NATURAL PRODCUTS ANNOTATION", 3, pad_title)
+                    print_title("PSEUDO-NATURAL PRODCUTS ANNOTATION", 3, pad_title)
                     WD_PNP = [str(x) for x in list(Path(dir).glob("*_pnp"))]
                     if len(WD_PNP) == 0:
                         logger.info(f"NO PNP FOLDER COULD BE FOUND AT '{dir}', SKIPPING THIS STEP.")
@@ -2287,12 +2300,12 @@ if __name__ == '__main__':
                     output_csv_files = [output_csv_pnp_pnp]
                     output_plot_files = [output_plot_pnp_pnp]
                     if all([Path(x).exists() for x in output_plot_files]):
-                        logger.info(f"PNP -- ALL OUTPUT PLOT FILES ARE ALREADY AVAILABLE, NOTHING TO DO!")
+                        logger.info("PNP -- ALL OUTPUT PLOT FILES ARE ALREADY AVAILABLE, NOTHING TO DO!")
                     elif all([Path(x).exists() for x in output_csv_files]):
-                        logger.info(f"PNP -- PARSING OUTPUT CSV FILES INSTEAD OF COMPUTING THEM")
+                        logger.info("PNP -- PARSING OUTPUT CSV FILES INSTEAD OF COMPUTING THEM")
                         df_pnp_pnp = load.file(output_csv_pnp_pnp)
                     else:
-                        logger.info(f"PNP -- COMPUTING OUTPUT CSV FILES")
+                        logger.info("PNP -- COMPUTING OUTPUT CSV FILES")
                         df_pnp_pnp = get_df_pnp(dir)
                         save.file(df_pnp_pnp, output_csv_pnp_pnp)
                     d7 = datetime.now()
@@ -2302,9 +2315,9 @@ if __name__ == '__main__':
                         continue
                     # plot output_plot_pnp_pnp
                     if Path(output_plot_pnp_pnp).exists():
-                        logger.info("PNP -- OUTPUT_PLOT_PNP_PNP".ljust(pad) + f"ALREADY DONE")
+                        logger.info("PNP -- OUTPUT_PLOT_PNP_PNP".ljust(pad) + "ALREADY DONE")
                     else:
-                        logger.info("PNP -- OUTPUT_PLOT_PNP_PNP".ljust(pad) + f"COMPUTING...")
+                        logger.info("PNP -- OUTPUT_PLOT_PNP_PNP".ljust(pad) + "COMPUTING...")
                         save_barplot(df_pnp_pnp,
                                      output_plot_pnp_pnp,
                                      'Category',
@@ -2319,12 +2332,12 @@ if __name__ == '__main__':
                     d8 = datetime.now()
                     logger.info("-- END OF REPORT")
                     logger.info("-- COMPUTATIONAL TIME")
-                    logger.info(f"FS - PARSE OUTPUT FILES:".ljust(pad) + f"{d1 - d0}")
-                    logger.info(f"FS - GENERATE PLOTS:".ljust(pad) + f"{d2 - d1}")
-                    logger.info(f"FC - PARSE OUTPUT FILES:".ljust(pad) + f"{d3 - d2}")
-                    logger.info(f"FC - GENERATE PLOTS:".ljust(pad) + f"{d4 - d3}")
-                    logger.info(f"FG - PARSE OUTPUT FILES:".ljust(pad) + f"{d5 - d4}")
-                    logger.info(f"FG - GENERATE PLOTS:".ljust(pad) + f"{d6 - d5}")
-                    logger.info(f"PNP - PARSE OUTPUT FILES:".ljust(pad) + f"{d7 - d6}")
-                    logger.info(f"PNP - GENERATE PLOTS:".ljust(pad) + f"{d8 - d7}")
-                    logger.info(f"TOTAL:".ljust(pad) + f"{d8 - d0}")
+                    logger.info("FS - PARSE OUTPUT FILES:".ljust(pad) + f"{d1 - d0}")
+                    logger.info("FS - GENERATE PLOTS:".ljust(pad) + f"{d2 - d1}")
+                    logger.info("FC - PARSE OUTPUT FILES:".ljust(pad) + f"{d3 - d2}")
+                    logger.info("FC - GENERATE PLOTS:".ljust(pad) + f"{d4 - d3}")
+                    logger.info("FCG - PARSE OUTPUT FILES:".ljust(pad) + f"{d5 - d4}")
+                    logger.info("FCG - GENERATE PLOTS:".ljust(pad) + f"{d6 - d5}")
+                    logger.info("PNP - PARSE OUTPUT FILES:".ljust(pad) + f"{d7 - d6}")
+                    logger.info("PNP - GENERATE PLOTS:".ljust(pad) + f"{d8 - d7}")
+                    logger.info("TOTAL:".ljust(pad) + f"{d8 - d0}")
