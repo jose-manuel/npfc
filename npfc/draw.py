@@ -237,7 +237,6 @@ def _get_edge_info(G: Graph, edge_attributes: List[str], attribute_names: bool, 
 
         # format them
         d[(edge[0], edge[1])] = '; '.join(data)
-    print(f"d_edges_info={d}")
     return d
 
 
@@ -271,7 +270,7 @@ def graph(G: Graph,
         # define a 2D list instead of a single tuple to avoid matplotlib warning
         colormap_nodes = [(0.7, 0.7, 0.7)] * len(list(G.nodes()))
     elif isinstance(colormap_nodes, ColorMap):
-        colormap_nodes = list(colormap_nodes.fragments.values())
+        colormap_nodes = [x[0] for x in colormap_nodes.fragments.values()]
 
     pos = nx.spring_layout(G)
     edges_info = _get_edge_info(G, edge_attributes, attribute_names, label_node_names_on_edges)

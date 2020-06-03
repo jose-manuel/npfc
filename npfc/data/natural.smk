@@ -58,7 +58,7 @@ rule FCC:
     input: "{WD}" + f"/{frags_subdir}" + "/06_fsearch/data/{prefix}_{cid}_fsearch.csv.gz"
     output: "{WD}" + f"/{frags_subdir}" + "/07_fcc/data/{prefix}_{cid}_fcc.csv.gz"
     log: "{WD}" + f"/{frags_subdir}" + "/07_fcc/log/{prefix}_{cid}_fcc.log"
-    shell: "fc_classify {input} {output} -c 3 >{log} 2>&1"
+    shell: "fc_classify {input} {output} -c 3  -e True >{log} 2>&1"
 
 rule FSEARCH:
     priority: 13

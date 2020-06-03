@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 
 """
-Script classify_frags_comb
+Script fc_classify
 ==========================
-This script is used for classifying fragment combinations (fc).
+This script is used for classifying fragment combinations (fc) into
+fragment combination categories (fcc).
 """
 
 # standard
@@ -50,6 +51,7 @@ def main():
     parser.add_argument('input_sub', type=str, default=None, help="Input file for substructures hits.")
     parser.add_argument('output_fcc', type=str, default=None, help="Output file basename. It gets appended with the type of output being produced: raw, clean and map.")
     parser.add_argument('-c', '--cutoff', type=int, default=3, help="Threshold value on intermediary atoms between 2 fragments. Any value combination with a higher number than this value will be rejected and flagged as false positive (cfc)")
+    parser.add_argument('-e', '--exclude-exclude_exocyclic', type=bool, default=True, help="Exclude exocyclic atoms in fragments during the fragment combination classifcation (no more methyls turning connections into fusions).")
     parser.add_argument('--keep-raw', type=bool, default=False, help="Also save raw fragment combination classification (fcc) in addition to clean fcc (without false positives)")
     parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
     args = parser.parse_args()
@@ -103,7 +105,7 @@ def main():
     logger.info(f"FOUND {len(df_sub.index)} SUBSTRUCTURE MATCHES")
 
     # run fcc
-    logger.info(f"CLASSIFYING FRAGMENT COMBINATIONS")
+    logger.info("CLASSIFYING FRAGMENT COMBINATIONS")
     d2 = datetime.now()
     if not args.keep_raw:
         d3 = datetime.now()
@@ -121,11 +123,11 @@ def main():
         save.file(df_fcc, output_raw)
 
         # run cleaning
-        logger.info(f"CLEANING COMBINATIONS")
+        logger.info("CLEANING COMBINATIONS")
         d5 = datetime.now()
         df_fcc = df_fcc[df_fcc['abbrev'] != 'cfc']
         logger.info(f"NUMBER OF FRAGMENT COMBINATIONS REMAINING: {len(df_fcc.index)}")
-    logging.warning(f"OVERLAPPING FRAGMENTS ARE STILL CONSIDERED A FRAGMENT COMBINATION HERE,")
+    logging.warning("OVERLAPPING FRAGMENTS ARE STILL CONSIDERED A FRAGMENT COMBINATION HERE,")
     logging.warning("THIS IS NEEDED FOR ALTERNATIVE MAPPING FRAGMENT COMBINATIONS.")
 
     # save clean results
