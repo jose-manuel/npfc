@@ -251,6 +251,7 @@ def classify(mol: Mol,
             sssr = [set(x) for x in RI.AtomRings()]  # smallest sets of smallest rings
             # filter equivalent intermediary rings
             intermediary_rings = _filter_intermediary_rings(mol, intermediary_rings, sssr)
+            intermediary_rings = _filter_intermediary_rings_smallest_sssr(intermediary_rings, aidxf1_list, aidxf2_list)
             logging.debug("Number of intermediary rings: %s", len(intermediary_rings))
             # attribute the type depending on the number of intermediary rings. 1 ring -> 2 paths (bipodal), 2 rings -> 3 paths (tripodal), >2 rings -> >3 paths (other)
             # subtype is deduced from the number of atoms in common between each fragment and each intermediary ring
@@ -265,7 +266,34 @@ def classify(mol: Mol,
                 return _get_combination_subtype(category, type, aidxf1_list, aidxf2_list, intermediary_rings)
 
 
-def _filter_intermediary_rings(mol: Mol, intermediary_rings: list, sssr: list):
+def _filter_intermediary_rings_smallest_sssr(intermediary_rings: list, aidxf1_list: list, aidxf2_list: list) -> list:
+    """Group intermediary rings by common atoms with respectively fragment 1 or fragment 2 and
+    return only the smallest ring of each group.
+
+    This is to avoid such cases where cbb are labelled as ctb because of an extra ring found by RDKit:
+    Oc1c2c(c(O)n1-c1cccc(C(F)(F)F)c1)C1CCCC2CC1  (ChEMBL183882)
+    """
+    aidxf1 = frozenset(aidxf1_list)
+    aidxf2 = frozenset(aidxf2_list)
+    logging.info(f"IR: {intermediary_rings}")
+
+    df = DataFrame({'IR': intermediary_rings})
+    df['aidxf1'] = [aidxf1] * len(df)
+    df['aidxf2'] = [aidxf2] * len(df)
+
+    df['intersect_1'] = df.apply(lambda x: frozenset(x.IR.intersection(x.aidxf1)), axis=1)
+    df['intersect_2'] = df.apply(lambda x: frozenset(x.IR.intersection(x.aidxf2)), axis=1)
+    df['IR_size'] = df['IR'].map(lambda x: len(x))
+    # put smallest IR first
+    df = df.sort_values('IR_size')
+    logging.debug("IR before grouping by intersection with either fragment:\n%s\n", df)
+    df = df.groupby('intersect_1').first()
+    df = df.groupby('intersect_2').first()
+
+    return list(df['IR'].values)
+
+
+def _filter_intermediary_rings(mol: Mol, intermediary_rings: list, sssr: list) -> list:
     """Filter the intermediary rings found within a molecule using the Smallest
     Set of Smallest Rings (SSSR). The idea is that if two fragments have 2 intermediary
     rings that are almost identical but for a few atoms, and these atoms actually are

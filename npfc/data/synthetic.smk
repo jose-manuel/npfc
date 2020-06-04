@@ -94,7 +94,7 @@ rule FCC:
     input: "{WD}" + f"/{natref_subdir}/{frags_subdir}" + "/07_fsearch/data/{prefix}_{cid}_fsearch.csv.gz"
     output: "{WD}" + f"/{natref_subdir}/{frags_subdir}" + "/08_fcc/data/{prefix}_{cid}_fcc.csv.gz"
     log: "{WD}" + f"/{natref_subdir}/{frags_subdir}" + "/08_fcc/log/{prefix}_{cid}_fcc.log"
-    shell: "fc_classify {input} {output} -c 3 -e True  >{log} 2>&1"
+    shell: "fc_classify {input} {output} -c 3 >{log} 2>&1"
 
 rule FSEARCH:
     priority: 3

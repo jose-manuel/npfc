@@ -154,7 +154,7 @@ def mols(mols: List[Mol],
     Draw an Image of a list of molecules with highlighted atoms and bonds
     according to a list of colormaps.
 
-    This function is based on the old RDKit drawing code (< 2020.03)
+    ..warning:: This function is based on the old RDKit drawing code (< 2020.03) and thus it is necessary to blend colors (i.e. colormap.blend()) first to represent common atoms/bonds between fragments.
 
     :param mols: the molecules to highlight
     :param colormaps: the colormaps to use for highlighting the molecules
