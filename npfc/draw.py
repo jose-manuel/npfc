@@ -56,15 +56,28 @@ from scipy.spatial import KDTree
 
 
 # in python 3.7+ dict are odered so red will always #1, green #2, etc.
-DEFAULT_PALETTE = {'red': (1.0, 0.6, 0.6),
-                   'green': (0.2, 1.0, 0.2),
-                   'blue': (0.4, 0.6, 1.0),
-                   'orange': (0.9569, 0.6667, 0.2588),
-                   'purple': (0.8392, 0.6275, 0.7686),
-                   'yellow': (1.0, 0.9294, 0.0),
-                   'teal': (0.5725, 0.9608, 0.9882),
-                   'gray': (0.7294, 0.7294, 0.7294),
-                   }
+# but I got a bug so now I keep using a nice defined OrderedDict
+DEFAULT_PALETTE = OrderedDict()
+DEFAULT_PALETTE['red'] = (1.0, 0.6, 0.6)
+DEFAULT_PALETTE['green'] = (0.2, 1.0, 0.2)
+DEFAULT_PALETTE['blue'] = (0.4, 0.6, 1.0)
+DEFAULT_PALETTE['orange'] = (0.9569, 0.6667, 0.2588)
+DEFAULT_PALETTE['purple'] = (0.8392, 0.6275, 0.7686)
+DEFAULT_PALETTE['yellow'] = (1.0, 0.9294, 0.0)
+DEFAULT_PALETTE['teal'] = (0.5725, 0.9608, 0.9882)
+DEFAULT_PALETTE['gray'] = (0.7294, 0.7294, 0.7294)
+#
+#
+#
+# DEFAULT_PALETTE = {'red': (1.0, 0.6, 0.6),
+#                    'green': (0.2, 1.0, 0.2),
+#                    'blue': (0.4, 0.6, 1.0),
+#                    'orange': (0.9569, 0.6667, 0.2588),
+#                    'purple': (0.8392, 0.6275, 0.7686),
+#                    'yellow': (1.0, 0.9294, 0.0),
+#                    'teal': (0.5725, 0.9608, 0.9882),
+#                    'gray': (0.7294, 0.7294, 0.7294),
+#                    }
 
 # matplotlib.colors.to_rgb('#FF0000')
 # matplotlib.colors.to_hex(((1.0, 0.0, 0.0)))
@@ -106,6 +119,7 @@ def mol(mol: Mol,
 
     :param mol: the molecule to highlight
     :param colormap: the colormap to use for highlighting the molecule
+    :param execlude_exocyclic_from_highlight: since exocyclic atoms are not used for fc classification, this option allows the user to mask exocyclic atoms from highlights
     :param output_file: if speficied, the image is saved (format is deduced from extension)
     :param img_size: the size of the resulting Image
     :param debug: display atom indices on the structure
@@ -123,6 +137,7 @@ def mol(mol: Mol,
         d2d = rdMolDraw2D.MolDraw2DCairo(img_size[0], img_size[1])
     d2d.drawOptions().addAtomIndices = debug
     d2d.drawOptions().legendFontSize = 24
+    d2d.drawOptions().padding = 0.05
     d2d.DrawMoleculeWithHighlights(mol, legend, colormap.atoms, colormap.bonds, {}, {})
     d2d.FinishDrawing()
     img = d2d.GetDrawingText()
@@ -274,7 +289,7 @@ def graph(G: Graph,
 
     pos = nx.spring_layout(G)
     edges_info = _get_edge_info(G, edge_attributes, attribute_names, label_node_names_on_edges)
-    figure = plt.figure()
+    figure = plt.figure(figsize=(8, 8))
     nx.draw(G,
             pos,
             edge_color='black',
@@ -476,7 +491,8 @@ class ColorMap:
             k = 0
             for j, aidxs in enumerate(aidxs_l):
                 # new_color = color
-                new_color = tuple((x * (1.0 - 0.10 * k) for x in color))  # 5% darker for each fragment of the same type  ## TODO: define a range for j when colors get 10% lighter instead
+                # new_color = color  # I actually find it harder to justify different shades
+                new_color = tuple((x * (1.0 - 0.05 * k) for x in color))  # 5% darker for each fragment of the same type  ## TODO: define a range for j when colors get 10% lighter instead
                 colormap_fragments[fragment_id].append(new_color)
                 # color atoms
                 for aidx in aidxs:
