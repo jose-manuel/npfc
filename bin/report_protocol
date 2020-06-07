@@ -1445,7 +1445,7 @@ def get_df_fcg(WD: Path) -> DataFrame:
 
 
 def parse_chunk_pnp(c):
-    df = load.file(c)
+    df = load.file(c).fillna(True)  # #####  I have a mean bug here, all True labels are missing so I end up with False and Na
     pnp = len(df[df['pnp_mol']])
     non_pnp = len(df[~df['pnp_mol']])
     return (pnp, non_pnp)

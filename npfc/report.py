@@ -351,6 +351,43 @@ def save_distplot(df: DataFrame,
 
 
 
+class ReporterProcess:
+
+    def __init__(self,
+                 chunk_load: str,
+                 chunk_std_passed: str,
+                 chunk_std_filtered: str,
+                 chunk_std_error: str,
+                 chunk_dedupl: str,
+                 WD_out: str,
+                 max_examples: int = 1,
+                 ):
+        pass
+
+
+class ReporterFragmentSearch:
+
+    def __init__(self):
+        pass
+
+class ReporterFragmentCombination:
+
+    def __init__(self):
+        pass
+
+class ReporterFragmentCombinationGraph:
+
+    def __init__(self):
+        pass
+
+
+class ReporterPNP:
+
+    def __init__(self):
+        pass
+
+
+
 
 def _parse_std_chunks(chunks: List[str]) -> DataFrame:
     """Parse all output files of a category (passed, filtered or error) for the std step and return a corresponding a results summary.
