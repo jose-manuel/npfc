@@ -266,7 +266,7 @@ def graph(G: Graph,
     Return a matplotlib Figure of a networkx graph.
 
     :param G: a networkx Graph object of the fragment combinations
-    :param colormap_nodes: a colormap of RGB values for the nodes (i.e. [(0, 0, 1), (0, 1, 0)])
+    :param colormap_nodes: a colormap of RGB values for the nodes (i.e. [(0, 0, 1), (0, 1, 0)]) or a ColorMap object
     :param output_file: if speficied, the image is saved (format is deduced from extension)
     :param edge_attributes: a list of edge attributes to represent on the figure
     :param attribute_names: display the attribute names on the figure (name: value)
@@ -285,7 +285,9 @@ def graph(G: Graph,
         # define a 2D list instead of a single tuple to avoid matplotlib warning
         colormap_nodes = [(0.7, 0.7, 0.7)] * len(list(G.nodes()))
     elif isinstance(colormap_nodes, ColorMap):
-        colormap_nodes = [x[0] for x in colormap_nodes.fragments.values()]
+        # define a list of colors mapped to the node iteration in G
+        val_map = {k: v[0] for k, v in colormap_nodes.fragments.items()}
+        colormap_nodes = [val_map.get(node, 0.0) for node in G.nodes()]  # if fragment id is not found in colormap, paint node in black instead
 
     pos = nx.spring_layout(G)
     edges_info = _get_edge_info(G, edge_attributes, attribute_names, label_node_names_on_edges)

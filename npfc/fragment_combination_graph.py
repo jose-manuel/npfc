@@ -348,6 +348,7 @@ def generate(df_fcc: DataFrame, min_frags: int = 2, max_frags: int = 5, max_over
             # compute the graph
             edge_attr = ['fcc', 'n_fcc', 'idm', 'cps', 'cpt']
             edge_attr = [x for x in edge_attr if x in df_fcc_clean.columns]
+            df_fcc_clean = df_fcc_clean.sort_values(['idf1', 'idf2'])
             G = nx.from_pandas_edgelist(df_fcc_clean, source="idf1", target="idf2", edge_attr=edge_attr)
             # same molecule in each row, so to use the first one is perfectly fine
             mol = df_fcc_clean.iloc[0]['mol']
