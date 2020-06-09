@@ -20,6 +20,7 @@ from rdkit.Chem import AllChem
 import networkx as nx
 # docs
 from typing import List
+from typing import Union
 # dev
 from npfc import draw
 from npfc import utils
@@ -37,8 +38,8 @@ DF_FG_COLS = ['idm',
               'hac_mol',
               'hac_frags',
               'perc_mol_cov_frags',
-              'frags',
-              'frags_u',
+              '_frags',
+              '_frags_u',
               'comb',
               'comb_u',
               'fcg_str',
@@ -365,12 +366,100 @@ def generate(df_fcc: DataFrame, min_frags: int = 2, max_frags: int = 5, max_over
             ncomb = len(comb)
             comb_u = list(set(comb))
             ncomb_u = len(comb_u)
-            ds_fcg.append({'idm': gid, 'idfcg': str(i+1).zfill(3), 'nfrags': nfrags, 'nfrags_u': nfrags_u, 'ncomb': ncomb, 'ncomb_u': ncomb_u, 'hac_mol': hac_mol, 'hac_frags': hac_frags, 'perc_mol_cov_frags': perc_mol_cov_frags, 'frags': frags, 'frags_u': frags_u, 'comb': comb, 'comb_u': comb_u, 'fcg_str': fragment_combination_graph_str, '_d_aidxs': d_aidxs, '_colormap': colormap, '_fcg': G, 'mol': mol, '_d_mol_frags': d_frags})
+            ds_fcg.append({'idm': gid, 'idfcg': str(i+1).zfill(3), 'nfrags': nfrags, 'nfrags_u': nfrags_u, 'ncomb': ncomb, 'ncomb_u': ncomb_u, 'hac_mol': hac_mol, 'hac_frags': hac_frags, 'perc_mol_cov_frags': perc_mol_cov_frags, '_frags': frags, '_frags_u': frags_u, '_comb': comb, '_comb_u': comb_u, 'fcg_str': fragment_combination_graph_str, '_d_aidxs': d_aidxs, '_colormap': colormap, '_fcg': G, 'mol': mol, '_d_mol_frags': d_frags})
 
     # put it all together
     df_fcg = DataFrame(ds_fcg, columns=DF_FG_COLS).drop_duplicates(subset=['fcg_str'])
     df_fcg['idfcg'] = df_fcg.groupby('idm').cumcount().map(lambda x: str(x+1).zfill(3))
     # incorporate the idcfg to the graphs
     df_fcg.apply(lambda x: nx.classes.function.set_edge_attributes(x['_fcg'], x['idfcg'], 'idcfg'), axis=1)
+
+    return df_fcg
+
+
+def has_only_referenced_edges(edges: tuple, edges_ref: tuple) -> bool:
+    """Check if at least one edge in edges is not present within edges_ref.
+    Edges are tuple of syntax (u, v, d) with d being the dict with the attributes.
+
+    :param edges: the edges of the target molecule fcg
+    :param edges_ref: the edges of reference molecule fcg
+    :return: False if at least 1 edge is not found in the reference, True otherwise
+    """
+    for e in edges:
+        if e not in edges_ref:
+            return False
+    return True
+
+
+def filter_edges_attributes(edges: list, cols: list) -> list:
+    """Networkx can either return one or all properties. Now that I am aware of this,
+    I extract all attributes and then filter out the ones I do not want to use.
+
+    :param edges: the edges as a list of tuple of syntax (u, v, d) with d being the dict with the attributes
+    :param cols: the list of attributes to use for PNP labelling.
+    """
+    return [(row[0], row[1], {k: v for k, v in row[2].items() if k in cols}) for row in edges]
+
+
+def get_pnp_references(edges: tuple, df_ref: DataFrame, target_node: frozenset = None) -> tuple:
+    """Return a tuple of reference idms. A reference is recorded if all edges of the target molecule are included  at once
+    within the reference row edges. In case no reference is found, an empty tuple is returned.
+
+    :param edges: the edges as a list of tuple of syntax (u, v, d) with d being the dict with the attributes
+    :param df_ref: the dataframe containing the edges to use for references.
+    :param target_nodes: a frozenset of fragment ids found in the target edges to use for filering references to compare (optimization)
+    """
+    frags_u = frozenset([x[0] for x in edges] + [x[1] for x in edges])
+
+    # avoid unnecessary graph comparisons: no way the syntehtic compound will be matching a NP fc graph if it does not even have all the nodes
+    df_ref = df_ref[df_ref['_frags_u'].map(lambda x: frags_u.issubset(x))]
+
+    # get the subset of references that match with this particular molecule
+    df_ref = df_ref[df_ref['edges'].map(lambda x: has_only_referenced_edges(edges, x))]
+
+    # if no ref is found, just label as PNP
+    if len(df_ref) < 1:
+        return tuple()
+    else:
+        df_ref['idm_idfcg'] = df_ref['idm'].astype(str) + ':' + df_ref['idfcg'].astype(str)
+        return tuple(df_ref['idm_idfcg'].values)
+
+
+def annotate_pnp_fcg(df_fcg, df_fcg_ref, data=['fcc']) -> DataFrame:
+    """Search and Identify for PNP molecules in the input DataFrame (df_fcg).
+    PNP molecules are defined as molecules containing natural fragments combinations
+    that are not found in a reference natural dataset.
+    Fragment combinations are defined by extracting information from networkx graphs containing 3 informations:
+
+        - source: id of fragment 1
+        - target: id of fragment 2
+        - attributes to consider: fcc (by default), cps, cpt, etc.
+
+    Three new columns are appended to the input DataFrame:
+
+        - _pnp_ref: the list of a references found for the target fcg
+        - pnp_fcg: True if the input fcg has no match with any reference fcg, False otherwise
+        - pnp_mol: True if the input molecule has no matching fcg with any reference fcg, False otherwise
+
+    :param df_fcg: the input DataFrame
+    :param df_fcg_ref: the reference DataFrame
+    :param data: the list of edge attributes to consider during fcg comparison
+    :return: the input DataFrame with 3 new pnp columns
+    """
+
+    # extract edge informations for targets
+    df_fcg["edges"] = df_fcg["_fcg"].map(lambda x: x.edges(data=True))
+    df_fcg["edges"] = df_fcg["edges"].map(lambda x: filter_edges_attributes(x, data))
+    df_fcg['_frags_u'] = df_fcg['_frags_u'].map(lambda x: frozenset(x))
+
+    # extract edge informations for references
+    df_fcg_ref["edges"] = df_fcg_ref["_fcg"].map(lambda x: x.edges(data=True))
+    df_fcg_ref["edges"] = df_fcg_ref["edges"].map(lambda x: filter_edges_attributes(x, data))
+    df_fcg_ref['_frags_u'] = df_fcg_ref['_frags_u'].map(lambda x: frozenset(x))
+
+    # run annotation
+    df_fcg['_pnp_ref'] = df_fcg.apply(lambda x: get_pnp_references(x['edges'], df_fcg_ref, x['_frags_u']), axis=1)
+    df_fcg['pnp_fcg'] = df_fcg['_pnp_ref'].map(lambda x: True if len(x) == 0 else False)
+    df_fcg['pnp_mol'] = df_fcg.groupby('idm')[['pnp_fcg']].transform(lambda x: True if any(x) else False)
 
     return df_fcg

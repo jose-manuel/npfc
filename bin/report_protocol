@@ -1278,8 +1278,8 @@ def parse_chunk_fcg(c):
     # fs analysis
 
     # initialization of a common df useful for fs analysis
-    df_fcg['frags'] = df_fcg['frags'].map(lambda x: x.replace("'", '"'))
-    df_fcg['frags'] = df_fcg['frags'].map(lambda x: json.loads(x))
+    # df_fcg['_frags'] = df_fcg['_frags'].map(lambda x: x.replace("'", '"'))
+    # df_fcg['_frags'] = df_fcg['_frags'].map(lambda x: json.loads(x))
     df_fcg['aidxs'] = df_fcg['_d_aidxs'].map(lambda x: [v for l in x.values() for v in l])  # extract all values from dict: list of tuples
     df_fcg['aidxs'] = df_fcg['aidxs'].map(lambda x: [v for l in x for v in l])   # flatten the list and identify only unique atom indices
     groups = df_fcg.groupby('idm')

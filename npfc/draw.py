@@ -137,7 +137,7 @@ def mol(mol: Mol,
         d2d = rdMolDraw2D.MolDraw2DCairo(img_size[0], img_size[1])
     d2d.drawOptions().addAtomIndices = debug
     d2d.drawOptions().legendFontSize = 24
-    d2d.drawOptions().padding = 0.05
+    d2d.drawOptions().padding = 0.1
     d2d.DrawMoleculeWithHighlights(mol, legend, colormap.atoms, colormap.bonds, {}, {})
     d2d.FinishDrawing()
     img = d2d.GetDrawingText()
