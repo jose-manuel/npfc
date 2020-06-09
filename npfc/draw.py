@@ -470,12 +470,15 @@ class ColorMap:
     It is represented by the count of fragments, atom- and bond colors.
     """
 
-    def __init__(self, mol: Mol, d_aidxs: dict, palette: str = None):
+    def __init__(self, mol: Mol, d_aidxs: dict, palette: str = None, color_shades: float = 0.0):
         """
         :param mol: the molecule to highlight. Atom/Bond properties '_color' and 'num_colors' are modified in place.
         :param d_aidxs: a dictionary containing fragment ids as keys and molecule atom indices as values, i.e. {'frag1': [(0, 1, 2)]. 'frag2': [(2, 3, 4), (5, 6, 7)]}
-        :param palette: a seaborn palette defined by a string. A list of possible palette names can be found at: http://www.python-simple.com/img/img45.png. If none is provided, an intern palette is used instead. Please note that a same fragment occuring mulitple times will be displayed with only one color, but each time with a 10% darker shade. This can happen up to 5x, after what the color shade is reset to default to prevent colors from turning pitch black.
+        :param palette: a seaborn palette defined by a string. A list of possible palette names can be found at: http://www.python-simple.com/img/img45.png. If none is provided, an intern palette is used instead.
+        ;param color_shades: use a darker color shade each time a fragment is repeated in the molecule. By default the same color shade is applied each time. On the opposite, a value of 0.05 means 5% darker)
         """
+        if color_shades < 0.0 or color_shades > 1.0:
+            raise ValueError(f"Error! Argument color_shades value is expected to be found in the range [0.0, 1.0], but '{color_shades}' was found instead!")
         colormap_atoms = {}  # atoms
         colormap_bonds = {}  # bonds
         colormap_fragments = {}  # fragments are colored and stored in order
@@ -494,7 +497,7 @@ class ColorMap:
             for j, aidxs in enumerate(aidxs_l):
                 # new_color = color
                 # new_color = color  # I actually find it harder to justify different shades
-                new_color = tuple((x * (1.0 - 0.05 * k) for x in color))  # 5% darker for each fragment of the same type  ## TODO: define a range for j when colors get 10% lighter instead
+                new_color = tuple((x * (1.0 - color_shades * k) for x in color))  # 5% darker for each fragment of the same type  ## TODO: define a range for j when colors get 10% lighter instead
                 colormap_fragments[fragment_id].append(new_color)
                 # color atoms
                 for aidx in aidxs:
