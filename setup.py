@@ -8,7 +8,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="npfc",
-    version='0.6.6-6-gd413dbc',
+    version='0.6.6-7-g5a4d5c3',
     author="Jose-Manuel Gally",
     author_email="josemanuel.gally@mpi-dortmund.mpg.de",
     description="A package for analyzing fragment combinations in natural and synthetic molecules",
@@ -35,6 +35,8 @@ setuptools.setup(
              # chunks
              'bin/chunk_check',
              'bin/chunk_sdf',
+             # fragment hits
+             'bin/fs_filter_fhits',
              # fragment combinations
              'bin/fc_classify',
              # fragment combination graphs

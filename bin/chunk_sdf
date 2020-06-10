@@ -18,6 +18,7 @@ function config {
     echo -e "- input_sdf: $input_sdf"
     echo -e "- output_dir: $output_dir"
     echo -e "- nrecords: $nrecords"
+    echo -e "- prefix: $prefix"
     echo -e "\nStart time: $(date)"
     echo ""
 }
@@ -32,10 +33,11 @@ function exitcodes {
 
 function usage {
     echo -e "\nUsage is:"
-    echo -e "\nchunk_sdf -i <INPUT_SDF> [-o <OUTPUT_DIR> -n <NRECORDS>]\n"
+    echo -e "\nchunk_sdf -i <INPUT_SDF> [-o <OUTPUT_DIR> -n <NRECORDS> -p <PREFIX>]\n"
     echo -e "with <INPUT_SDF> the SDF to split into chunks"
     echo -e "with <OUTPUT_DIR> the output folder, by default the parent_dir from input_sdf"
     echo -e "with <NRECORDS> the maximum number of records per chunk"
+    echo -e "with <PREFIX> the prefix to use for output chunks. If none is provided, basename is used."
     echo -e "\n"
     exitcodes
 }
@@ -44,6 +46,7 @@ function chunk_sdf {
     input_sdf=$1
     output_dir=$2
     nrecords=$3
+    prefix=$4
 
 
     # 0/ determine gunzip version so we know if argument k is available or not
@@ -54,7 +57,6 @@ function chunk_sdf {
     ext=$(echo $input_sdf | rev | cut -d. -f1 | rev)
     if [ $ext = 'gz' ]
     then
-        echo "here"
         echo -e "Uncompressing $input_sdf"
         # use k arg on gunzip version higher than 1.5, will fail for lower versions than 1.5
         if [ $gunzip_version = '1.5' ]
@@ -73,7 +75,12 @@ function chunk_sdf {
     # 2/ split the sdf file
     nb_records=$(grep -c '$$$$' $input_sdf)
     echo -e "Number of records in input_sdf: $nb_records"
-    input_base=$(basename $input_sdf .sdf)
+    if [$prefix = '']
+        then
+            input_base=$(basename $input_sdf .sdf)
+        else
+            input_base=$prefix
+    fi
 
     chunk_base="$output_dir/$input_base"
     echo -e "Splitting $input_sdf into chunks of n=$nrecords and chunk_base=$chunk_base"
@@ -101,6 +108,10 @@ function chunk_sdf {
     echo -e "Compressing chunks"
     gzip -f ${chunk_base}_[0-9][0-9][0-9].sdf
 
+    # 4/ print chunks
+    echo -e "Results:"
+    ls "${output_dir}"
+
 }
 
 
@@ -108,7 +119,7 @@ function chunk_sdf {
 
 
 NRECORDS=5000
-
+PREFIX=''
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ARGUMENTS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
@@ -125,11 +136,12 @@ fi
 
 # parse arguments
 echo ""
-while getopts "i:o:n:h" opt; do
+while getopts "i:o:n:p:h" opt; do
     case $opt in
         i) input_sdf=$(realpath $OPTARG);;
         o) output_dir=$(realpath $OPTARG);;
         n) nrecords=$OPTARG;;
+        p) prefix=$OPTARG;;
         h) usage; exit 1;;
         :)  echo "Option -$OPTARG requires an argument." >&2 ; exit 2;;
         \?) echo "Invalid option: -$OPTARG" >&2 ; exit 2;;
@@ -175,6 +187,15 @@ elif [ $nrecords -lt 1 ]; then
     errors=$[errors + 1]
 fi
 
+
+# nrecords
+if [ -z ${prefix+x} ]
+then
+    echo "Warning! Argument prefix is unset, using default."
+    prefix=$PREFIX
+fi
+
+
 # result of checking
 if [ $errors -gt 0 ]
 then
@@ -186,7 +207,7 @@ fi
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ MAIN ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 config
-chunk_sdf $input_sdf $output_dir $nrecords
+chunk_sdf "$input_sdf" "$output_dir" "$nrecords" "$prefix"
 d1="$(date -u +%s)"  # time in seconds
 echo -e "\nTotal elapsed time (s): $(($d1-$d0))"
 exit 0

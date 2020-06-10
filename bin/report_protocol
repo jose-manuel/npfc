@@ -500,11 +500,11 @@ def print_title(title: str, level: int = 2, pad: int = 160):
         raise ValueError(f"ERROR! UNKNOWN LEVEL! ({level})")
 
 
-def find_wd_levels(WD: str, natref: str = None, frags: str = None) -> dict:
+def find_wd_levels(WD: str, prep: str = None, natref: str = None, frags: str = None) -> dict:
     """Starting from specified WD, iterate over subfolders using globbing to find
     the three possible levels of working directories:
 
-        - preprocess: the WD where all the preprocessing of the dataset is performed
+        - prep: the WDs for preprocessing the datasets. Concerns: chunk, load, standardize, dedupl and depict.
         - natref: the WDs for synthetic datasets specifying reference natural datasets (contains only the subset step)
         - frags: the WDs where the results involving fragments are stored. Concerns: fragment search, fragment_combination, fragment_graph, pnp and fragment_tree.
 
@@ -513,14 +513,19 @@ def find_wd_levels(WD: str, natref: str = None, frags: str = None) -> dict:
     :param frags: the frags subdir to use for reporting. If None, all frags subdirs are considered.
     :return: a dictionary with keys preprocess, natref and frags and values the found working directories. For preprocess, only one wd can be found for each dataset, but a list was used for easier iteration over keys.
     """
-
-    # preprocess wd
-    if Path(WD).name == 'data':
-        wd_preprocess = [WD]
+    # find prep dirs
+    if prep is None:
+        wd_prep = [str(p) for p in list(Path(WD).glob('**')) if p.name[0:5] == 'prep']
     else:
-        if not Path(f"{WD}/data").exists():
-            raise ValueError(f"Error! '{WD}/data' could not be found!")
-        wd_preprocess = [f"{WD}/data".replace('//', '/')]
+        wd_prep = [str(p) for p in list(Path(WD).glob('**')) if p.name == prep]
+
+    # find frags dirs
+    if frags is None:
+        wd_frags = []
+    else:
+        wd_frags = [str(p) for p in list(Path(WD).glob('**')) if p.name == frags]
+
+
     # find natref dirs
     if natref is None:
         wd_natref = [str(p) for p in list(Path(WD).glob('**')) if p.name[0:7] == 'natref_']
@@ -536,7 +541,7 @@ def find_wd_levels(WD: str, natref: str = None, frags: str = None) -> dict:
     if natref is not None:
         wd_frags = [wd for wd in wd_frags if Path(wd).parent.name == natref]
 
-    return {'preprocess': wd_preprocess, 'natref': wd_natref, 'frags': wd_frags}
+    return {'prep': wd_prep, 'natref': wd_natref, 'frags': wd_frags}
 
 
 def find_wd_level_steps(wd_level: str, pattern: str = '[0-9][0-9]_.*') -> list:
@@ -575,7 +580,7 @@ def filter_wd_levels_with_missing_chunks(wd_levels: OrderedDict) -> OrderedDict:
                     continue
                 if p_subdir.name == '00_raw':
                     continue
-                count = len(list(p_subdir.glob('data/*')))
+                count = len(list(p_subdir.glob('data/prep*/*')))
                 if p_subdir.name.split('_')[0] == '01':  # 01_load for fragments, 01_chunk for natural and synthetic
                     count_ref = count
                     logging.debug(f"CHUNKS -- NUMBER OF REFERENCE CHUNKS: {count_ref}")
@@ -592,7 +597,7 @@ def filter_wd_levels_with_missing_chunks(wd_levels: OrderedDict) -> OrderedDict:
         # filter subdirs that raised an error based on index in list
         wd_levels[wd_level] = [wd_levels[wd_level][i] for i, e in enumerate(errors) if not e]
         # apply logical thinking: if the earlier step failed, it is better not to run the later step
-        if len(wd_levels['preprocess']) == 0:
+        if len(wd_levels['prep']) == 0:
             logging.debug("CHUNKS -- ERROR! SINCE PREPROCESS IS NOT GOOD, ABORT PARSING OF NATREF AND FRAGS SUBDIRS.")
             wd_levels['natref'] = []
             wd_levels['frags'] = []
@@ -975,7 +980,7 @@ def get_dfs_fs(WD: Path) -> Tuple[DataFrame]:
         WD = Path(WD)
     # parse results before fragment search
     logger.info("FS -- COMPUTING TOTAL NUMBER OF MOLECULES BEFORE FRAGMENT SEARCH")
-    WD_FSEARCH = [str(x) for x in list(WD.glob("*_fsearch"))][0]    # get latest step
+    WD_FSEARCH = [str(x) for x in list(WD.glob("*_fs"))][0]    # get latest step
     fsearch_dirname = Path(WD_FSEARCH).name
     pstep_direname = list(WD.parent.glob(f"{str(int(fsearch_dirname.split('_')[0]) - 1).zfill(2)}_*"))[0].name
     logger.info(f"FS -- COUNTING MOLECULES IN PREVIOUS STEP='{pstep_direname}'")
@@ -992,8 +997,10 @@ def get_dfs_fs(WD: Path) -> Tuple[DataFrame]:
     logger.info(f"FS -- NOW INVESTIGATING RESULTS IN WD='{fsearch_dirname}'")
 
     # parse chunks
-    pattern = ".*([0-9]{3})?_fsearch.csv.gz"
+    pattern = ".*([0-9]{3})?_fs.csv.gz"
     chunks_fsearch = _get_chunks(f"{WD}/{fsearch_dirname}/data", pattern)
+
+    print('\n\n', chunks_fsearch, '\n')
 
     logger.info("FS -- STARTING CHUNK ITERATION...")
     pool = Pool()
@@ -1503,10 +1510,11 @@ if __name__ == '__main__':
     d0 = datetime.now()
     parser = argparse.ArgumentParser(description="Compute all required files for analyzing FCC results", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('wd', type=str, default='./', help="Working directory from the job to analyse (root folder, where the smk file is)")
-    parser.add_argument('-n', '--natref', type=str, default=None, help="The name of the natref subdir to focus the report on. If None, then all identified natref subdirs are considered for reporting. Requires the natref_ prefix.")
-    parser.add_argument('-f', '--frags', type=str, default=None, help="The name of the frags subdir to focus the report on. If None, then all identified natref subdirs are considered for reporting. Requires the frags_ prefix.")
+    parser.add_argument('-p', '--prep', type=str, default=None, help="The name of the prep subdir to focus the report on. If None, then no reporting is done for prep.")
+    parser.add_argument('-n', '--natref', type=str, default=None, help="The name of the natref subdir to focus the report on. If None, then no reporting is done for natref.")
+    parser.add_argument('-f', '--frags', type=str, default=None, help="The name of the frags subdir to focus the report on. If None, then no reporting is done for frags.")
     parser.add_argument('-d', '--dataset', type=str, default=None, help="Dataset name for using in the csv/png outputs in the report folder.")
-    parser.add_argument('-p', '--prefix', type=str, default=None, help="Prefix used for output files in the data/log folders.")
+    parser.add_argument('--prefix', type=str, default=None, help="Prefix used for output files in the data/log folders.")
     parser.add_argument('-c', '--color', type=str, default='black', help="Color to use for plots.")
     parser.add_argument('-e', '--examples', type=int, default=0, help="Number of examples to generate within a corresponding subdir in the report folder. Examples are generated only when files are being parsed (skipped if output csv already present).")
     parser.add_argument('--plotformat', type=str, default='svg', help="Format to use for plots. Possible values are 'svg' and 'png'.")
@@ -1519,7 +1527,7 @@ if __name__ == '__main__':
     # check arguments
 
     utils.check_arg_input_dir(args.wd)
-    wd_levels = find_wd_levels(args.wd, natref=args.natref, frags=args.frags)
+    wd_levels = find_wd_levels(args.wd, prep=args.prep, natref=args.natref, frags=args.frags)
     # natref
     if args.natref is not None and args.natref[0:7] != 'natref_':
         raise ValueError(f"ERROR! NATREF PREFIX IS EITHER WRONG OR MISSING! ('{args.natref}')")

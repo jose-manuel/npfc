@@ -37,10 +37,10 @@ def test_init():
 def test_run():
     """Run the 'fragments' protocol applied to the cr dataset."""
 
-    output_files = ["tests/tmp/fragments/crms/data/04_depict/data/crms_depict.csv.gz"]
+    output_files = ["tests/tmp/fragments/crms/data/prep/04_depict/data/crms_depict.csv.gz"]
     output_svg = 'tests/tmp/fragments/crms/fragments_crms_tasktree.svg'
     # run protocol
-    command_smk = 'run_protocol fragments --chunksize 100'
+    command_smk = 'run_protocol fragments -c fragments/crms/fragments_crms.json'
     subprocess.run(command_smk, shell=True, check=True, cwd='tests/tmp')
     assert Path(output_svg).exists()
     assert all([Path(f).exists() for f in output_files])
