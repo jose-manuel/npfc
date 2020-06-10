@@ -3,11 +3,13 @@
 """
 Script filter_bn
 ==========================
-This is quick and dirty script to filter out benzene fragment hits from DNP/ChEMBL runs (fsearch).
+This is quick and dirty script to filter out benzene fragment hits from DNP/ChEMBL runs (fs and fcc).
 
-It creates a new folder next to the specified input fragment subdir (i.e. frags_crms, frags_crms_nobn)
-
+It creates a new folder next to the specified input fragment subdir (i.e. frags_crms, frags_crms_nobn),
+filled with relevent data and logs. It does not work with fcg because the presence of absence of a single fragment
+can drastically change the outcome.
 """
+
 from pathlib import Path
 import re
 import argparse
@@ -21,17 +23,31 @@ import sys
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 
-def filter_fragments(input_file, output_file, idfs=['32']):
-
+def fs_filter_fragments(input_file, output_file, idfs=['32']):
+    """This function removes any occurrence of specified idfs from Fragment Hits
+    """
     df = load.file(input_file, decode=False)
+    n_ini = len(df)
     df = df[~df['idf'].isin(idfs)]
     save.file(df, output_file, encode=False)
 
-    return len(df)
+    return (len(df), n_ini - len(df), n_ini)
 
 
-def edit_log(log_in, log_out, new_count):
-    """This function is not smart at all and just helps me remember which data files were edited.
+def fc_filter_fragments(input_file, output_file, idfs=['32']):
+    """This function removes any occurrence of specified idfs from Fragment Combinations
+    """
+    df = load.file(input_file, decode=False)
+    n_ini = len(df)
+    df = df[~df['idf1'].isin(idfs)]
+    df = df[~df['idf2'].isin(idfs)]
+    save.file(df, output_file, encode=False)
+
+    return (len(df), n_ini - len(df), n_ini)
+
+
+def fs_edit_log(log_in, log_out, new_count):
+    """This function is not smart at all and just helps me remember that data files were edited.
     I just add a header to the log file stating that it was modified.
     """
     reading_file = open(log_in, "r")
@@ -42,6 +58,27 @@ def edit_log(log_in, log_out, new_count):
         new_line = stripped_line
         new_line = re.sub('RUNNING', "RUNNING (EDITED!!!)", new_line)
         new_line = re.sub('FOUND [0-9]+ HITS', f"FOUND {new_count} HITS", new_line)
+        new_line = re.sub('SAVED [0-9]+ RECORDS', f"SAVED {new_count} RECORDS", new_line)
+        new_file_content += new_line + "\n"
+
+    reading_file.close()
+    writing_file = open(log_out, "w+")
+    writing_file.write(new_file_content)
+    writing_file.close()
+
+
+def fc_edit_log(log_in, log_out, new_count):
+    """This function is not smart at all and just helps me remember that data files were edited.
+    I just add a header to the log file stating that it was modified.
+    """
+    reading_file = open(log_in, "r")
+    new_file_content = ""
+
+    for line in reading_file:
+        stripped_line = line.strip()
+        new_line = stripped_line
+        new_line = re.sub('RUNNING', "RUNNING (EDITED!!!)", new_line)
+        new_line = re.sub('FOUND [0-9]+ COMBINATIONS', f"FOUND {new_count} COMBINATIONS", new_line)
         new_line = re.sub('SAVED [0-9]+ RECORDS', f"SAVED {new_count} RECORDS", new_line)
         new_file_content += new_line + "\n"
 
@@ -90,7 +127,8 @@ def main():
 
     # GET STEPS
     steps = sorted([d for d in Path(WD_IN).glob('*') if d.is_dir()])
-    step = [x for x in steps if x.name.endswith('fsearch')][0]
+    subdir_fs = [x for x in steps if x.name.endswith('_fs')][0]
+    subdir_fcc = [x for x in steps if x.name.endswith('_fcc')][0]
 
     # display infos
     logger.info("LIBRARY VERSIONS:")
@@ -98,33 +136,76 @@ def main():
     logger.info("ARGUMENTS:")
     logger.info('INPUT FRAGS SUBDIR'.ljust(pad) + f"{WD_IN}")
     logger.info('OUTPUT FRAGS SUBDIR'.ljust(pad) + f"{WD_OUT}")
-    logger.info('STEP'.ljust(pad) + f"{step}")
+    logger.info('STEP FS'.ljust(pad) + f"{subdir_fs}")
+    logger.info('STEP FCC'.ljust(pad) + f"{subdir_fcc}")
     logger.info("LOG".ljust(pad) + f"{args.log}")
 
     # BEGIN
     logger.info("RUNNING FILTER BN")
 
-    logger.info(f"\nPROCESSING: {step.name}")
-    new_counts = []
-    WD_OUT_LOG_p = Path(f"{WD_OUT}/{step.name}/log")
+    # FS
+    logger.info(f"\nPROCESSING: {subdir_fs.name}")
+    counts_ini = []
+    counts_passed = []
+    counts_filtered = []
+    WD_OUT_LOG_p = Path(f"{WD_OUT}/{subdir_fs.name}/log")
     if not WD_OUT_LOG_p.exists():
         WD_OUT_LOG_p.mkdir(parents=True, exist_ok=True)
-
     # data
     logger.info("NOW UPDATING DATA...")
-    chunks_in = sorted([x for x in step.glob('data/*')])
-    chunks_out = [f"{WD_OUT}/{step.name}/data/{x.name}" for x in chunks_in]
+    chunks_in = sorted([x for x in subdir_fs.glob('data/*')])
+    chunks_out = [f"{WD_OUT}/{subdir_fs.name}/data/{x.name}" for x in chunks_in]
     chunks = [(str(x), y) for x, y in zip(chunks_in, chunks_out)]
     for chunk_in, chunk_out in chunks:
-        new_counts.append(filter_fragments(chunk_in, chunk_out))
-
+        passed, filtered, ini = fs_filter_fragments(chunk_in, chunk_out)
+        counts_passed.append(passed)
+        counts_filtered.append(filtered)
+        counts_ini.append(ini)
     # logs
     logger.info("NOW UPDATING LOGS...")
-    logs_in = sorted([x for x in step.glob('log/*log')])
-    logs_out = [f"{WD_OUT}/{step.name}/log/{x.name}" for x in logs_in]
-    logs = [(str(x), y, new_count) for x, y, new_count in zip(logs_in, logs_out, new_counts)]
+    logs_in = sorted([x for x in subdir_fs.glob('log/*log')])
+    logs_out = [f"{WD_OUT}/{subdir_fs.name}/log/{x.name}" for x in logs_in]
+    logs = [(str(x), y, new_count) for x, y, new_count in zip(logs_in, logs_out, counts_passed)]
     for log_in, log_out, new_count in logs:
-        edit_log(log_in, log_out, new_count)
+        fs_edit_log(log_in, log_out, new_count)
+    passed = sum(counts_passed)
+    filtered = sum(counts_filtered)
+    initial = sum(counts_ini)
+    logger.info(f"TOTAL OF FRAGMENT HITS INITIAL: {initial:,}")
+    logger.info(f"TOTAL OF FRAGMENT HITS REMAINING: {passed:,} ({passed/initial:.2%})")
+    logger.info(f"TOTAL OF FRAGMENT HITS FILTERED: {filtered:,} ({filtered/initial:.2%})")
+    # FCC
+    counts_ini = []
+    counts_passed = []
+    counts_filtered = []
+    logger.info(f"\nPROCESSING: {subdir_fcc.name}")
+    counts_passed = []
+    WD_OUT_LOG_p = Path(f"{WD_OUT}/{subdir_fcc.name}/log")
+    if not WD_OUT_LOG_p.exists():
+        WD_OUT_LOG_p.mkdir(parents=True, exist_ok=True)
+    # data
+    logger.info("NOW UPDATING DATA...")
+    chunks_in = sorted([x for x in subdir_fcc.glob('data/*')])
+    chunks_out = [f"{WD_OUT}/{subdir_fcc.name}/data/{x.name}" for x in chunks_in]
+    chunks = [(str(x), y) for x, y in zip(chunks_in, chunks_out)]
+    for chunk_in, chunk_out in chunks:
+        passed, filtered, ini = fc_filter_fragments(chunk_in, chunk_out)
+        counts_passed.append(passed)
+        counts_filtered.append(filtered)
+        counts_ini.append(ini)
+    # logs
+    logger.info("NOW UPDATING LOGS...")
+    logs_in = sorted([x for x in subdir_fcc.glob('log/*log')])
+    logs_out = [f"{WD_OUT}/{subdir_fcc.name}/log/{x.name}" for x in logs_in]
+    logs = [(str(x), y, new_count) for x, y, new_count in zip(logs_in, logs_out, counts_passed)]
+    for log_in, log_out, new_count in logs:
+        fc_edit_log(log_in, log_out, new_count)
+    passed = sum(counts_passed)
+    filtered = sum(counts_filtered)
+    initial = sum(counts_ini)
+    logger.info(f"TOTAL OF FRAGMENT COMBINATIONS INITIAL: {initial:,}")
+    logger.info(f"TOTAL OF FRAGMENT COMBINATIONS REMAINING: {passed:,} ({passed/initial:.2%})")
+    logger.info(f"TOTAL OF FRAGMENT COMBINATIONS FILTERED: {filtered:,} ({filtered/initial:.2%})")
 
     d1 = datetime.now()
     logger.info("COMPUTATIONAL TIME: TOTAL".ljust(pad * 2) + f"{d1-d0}")

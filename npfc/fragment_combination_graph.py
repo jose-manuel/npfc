@@ -15,12 +15,10 @@ from pandas import DataFrame
 from collections import OrderedDict
 # chemoinformatics
 from rdkit.Chem import Mol
-from rdkit.Chem import AllChem
 # graph
 import networkx as nx
 # docs
 from typing import List
-from typing import Union
 # dev
 from npfc import draw
 from npfc import utils
@@ -425,7 +423,7 @@ def get_pnp_references(edges: tuple, df_ref: DataFrame, target_node: frozenset =
         return tuple(df_ref['idm_idfcg'].values)
 
 
-def annotate_pnp_fcg(df_fcg, df_fcg_ref, data=['fcc']) -> DataFrame:
+def annotate_pnp(df_fcg, df_fcg_ref, data=['fcc']) -> DataFrame:
     """Search and Identify for PNP molecules in the input DataFrame (df_fcg).
     PNP molecules are defined as molecules containing natural fragments combinations
     that are not found in a reference natural dataset.
@@ -456,6 +454,11 @@ def annotate_pnp_fcg(df_fcg, df_fcg_ref, data=['fcc']) -> DataFrame:
     df_fcg_ref["edges"] = df_fcg_ref["_fcg"].map(lambda x: x.edges(data=True))
     df_fcg_ref["edges"] = df_fcg_ref["edges"].map(lambda x: filter_edges_attributes(x, data))
     df_fcg_ref['_frags_u'] = df_fcg_ref['_frags_u'].map(lambda x: frozenset(x))
+
+    import pandas as pd
+    pd.set_option('display.max_columns', 1000)
+    pd.set_option('max_colwidth', 70)
+    print(df_fcg_ref)
 
     # run annotation
     df_fcg['_pnp_ref'] = df_fcg.apply(lambda x: get_pnp_references(x['edges'], df_fcg_ref, x['_frags_u']), axis=1)

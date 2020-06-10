@@ -10,7 +10,6 @@ This script is used for annotating Pseudo Natural Products (PNP).
 import warnings
 import sys
 from datetime import datetime
-import logging
 import pandas as pd
 import argparse
 from pathlib import Path
@@ -24,64 +23,6 @@ from npfc import utils
 from npfc import fragment_combination_graph
 # disable SettingWithCopyWarning warnings
 pd.options.mode.chained_assignment = None  # default='warn'
-
-
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
-
-
-def label_pnp_fcgs(df, df_ref, data):
-    """Iterate over df and df_ref graphs to see if molecules in df are pseudo-natural-products
-    in regards to df_ref, which contains only natural products.
-
-    As the input dataframes contain 1 fragment fcg per row, a same molecule might be
-    labelled both as PNP and non-PNP (respect. True and False).
-
-    The refining of these results by grouping entries by idm is performed outside
-    of this function.
-
-    """
-    results = []
-    for i in range(len(df.index)):
-        if data is None:
-            edges = df.iloc[i]['_fcg'].edges()
-        else:
-            edges = df.iloc[i]['_fcg'].edges(data=True)
-            edges = filter_edges_attributes(edges, data)
-
-        pnp = True
-        for j in range(len(df_ref.index)):
-            # if all edges of tested mol are present in ref edges, then it is not PNP
-            if all(edge_ref in edges for edge_ref in df_ref.iloc[j]['edges_ref']):
-                pnp = False
-                logging.debug(f"FGRAPH {df.iloc[i]['idm']}#{df.iloc[i]['idfcg']} IS NOT PNP BECAUSE OF REF FGRAPH{ df_ref.iloc[j]['idm']}#{df_ref.iloc[j]['idfcg']}")
-                break
-
-        results.append(pnp)
-
-    return results
-
-
-def _label_pnp_mols(group):
-    """Applied on the group of fragment combination graph (fcg) dataframe after annotation by pnp_fm.
-    If any fcg of a molecule has a label set to True, then the molecule should be considered
-    as PNP, even if some fcgs are not True.
-    """
-    if any(group["pnp_fm"]):
-        group["pnp_mol"] = True
-    else:
-        group["pnp_mol"] = False
-
-    return group
-
-
-def filter_edges_attributes(edges: list, cols: list) -> list:
-    """Networkx can either return one or all properties. Now that I am aware of this,
-    I extract all attributes and then filter out the ones I do not want to use.
-
-    :param edges: the edges are a list of tuple of syntax (u, v, d) with d being the dict with the attributes
-    :param cols: the list of attributes to use for PNP labelling.
-    """
-    return [(row[0], row[1], {k: v for k, v in row[2].items() if k in cols}) for row in edges]
 
 
 def main():
@@ -167,7 +108,7 @@ def main():
     logger.info("BEGIN")
 
     # load fcg
-    logger.info("LOADING FRAGMENT GRAPHS")
+    logger.info("LOADING FRAGMENT COMBINATION GRAPHS")
     df_fcg = load.file(args.input_fcg, decode=True)
     n_fcg = len(df_fcg.index)
     logger.info(f"FOUND {n_fcg:,} FRAGMENT COMBINATION GRAPHS")
@@ -175,14 +116,13 @@ def main():
 
     # avoid crash due to groupby method on empty dataframe
     if n_fcg < 1:
-        logger.warning("NO FRAGMENT GRAPHS TO WORK WITH, ABORTING NOW. EMPTY OUTPUT FILE IS GENERATED FOR PIPELINE HANDLING.")
+        logger.warning("NO FRAGMENT COMBINATION GRAPHS TO WORK WITH, ABORTING NOW. EMPTY OUTPUT FILE IS GENERATED FOR PIPELINE HANDLING.")
         df_fcg = pd.DataFrame(columns=fragment_combination_graph.DF_PNP_COLS)
         # saving results
         logger.info("SAVING RESULTS")
         d5 = datetime.now()
         logger.info(f"SAVING PNP RESULTS AT '{args.output_fcg}'")
         save.file(df_fcg, args.output_fcg, encode=True)
-
         if args.list_pnp_mols is not None:
             save.file(pd.DataFrame(columns=['idm', 'pnp_mol']), args.list_pnp_mols)
 
@@ -190,7 +130,7 @@ def main():
         d6 = datetime.now()
         logger.info("SUMMARY")
         logger.info("COMPUTATIONAL TIME: CONFIGURING JOB".ljust(pad * 2) + f"{d1-d0}")
-        logger.info("COMPUTATIONAL TIME: LOADING INPUT FRAGMENT GRAPHS".ljust(pad * 2) + f"{d2-d1}")
+        logger.info("COMPUTATIONAL TIME: LOADING INPUT FRAGMENT COMBINATION GRAPHS".ljust(pad * 2) + f"{d2-d1}")
         logger.info("COMPUTATIONAL TIME: SAVING EMPTY OUTPUT".ljust(pad * 2) + f"{d5-d2}")
         logger.info("COMPUTATIONAL TIME: DISPLAYING RESULTS".ljust(pad * 2) + f"{d6-d5}")
         logger.info("COMPUTATIONAL TIME: TOTAL".ljust(pad * 2) + f"{d6-d0}")
@@ -198,54 +138,38 @@ def main():
         return None
 
     # load fcg_refs
-    logger.info("LOADING ALL REFERENCE FRAGMENT GRAPHS")
+    logger.info("LOADING ALL REFERENCE FRAGMENT COMBINATION GRAPHS")
     df_fcg_ref = pd.concat([load.file(x) for x in ref_files])
     # df_fcg_ref.drop("Unnamed: 0", axis=1, inplace=True)
-    logger.info(f"FOUND {len(df_fcg_ref.index):,} REFERENCE FRAGMENT GRAPHS")
-    logger.info("EXTRACTING EDGES FROM FRAGMENT GRAPHS")
-    if data is None:
-        df_fcg_ref["edges_ref"] = df_fcg_ref["_fcg"].map(lambda x: x.edges())
-    else:
-        df_fcg_ref["edges_ref"] = df_fcg_ref["_fcg"].map(lambda x: x.edges(data=True))
-        df_fcg_ref["edges_ref"] = df_fcg_ref["edges_ref"].map(lambda x: filter_edges_attributes(x, data))
+    logger.info(f"FOUND {len(df_fcg_ref.index):,} REFERENCE FRAGMENT COMBINATION GRAPHS")
 
-    # fcgping fragment combinations
-    logger.info("ANNOTATING FRAGMENT GRAPHS")
+    logger.info("ANNOTATING FRAGMENT COMBINATION GRAPHS")
     d3 = datetime.now()
-    df_fcg["pnp_fm"] = label_pnp_fcgs(df_fcg, df_fcg_ref, data=data)
-
-    logger.info("DISPLAYING RESULTS")
-    d4 = datetime.now()
-    # pnp mols
-    df_pnps = df_fcg[df_fcg["pnp_fm"]].groupby("idm").first().reset_index()[["idm"]].sort_values('idm')
-    df_pnps['pnp_mol'] = True
-    df_others = df_fcg[~df_fcg["idm"].isin(df_pnps['idm'])].groupby("idm").first().reset_index()[["idm"]].sort_values('idm')
-    df_pnps['pnp_mol'] = False
-
-    if args.list_pnp_mols is not None:
-        save.file(pd.concat([df_pnps, df_others]), args.list_pnp_mols)
-    logger.info("NUMBER OF PNP MOLS".ljust(pad) + f"{len(df_pnps.index):,}")
-    logger.info("NUMBER OF NON-PNP MOLS".ljust(pad) + f"{len(df_others.index):,}")
-
-    # curating results
-    logger.info("CURATING RESULTS")
-    df_fcg['pnp_mol'] = df_fcg.groupby('idm').apply(_label_pnp_mols)['pnp_mol']  # cringy but works.... ok for now...
+    df_pnp = fragment_combination_graph.annotate_pnp(df_fcg, df_fcg_ref, data=data)
 
     # saving results
     logger.info("SAVING RESULTS")
-    d5 = datetime.now()
+    d4 = datetime.now()
     logger.info(f"SAVING PNP RESULTS AT '{args.output_fcg}'")
-    save.file(df_fcg, args.output_fcg, encode=True)
+    save.file(df_pnp, args.output_fcg, encode=True)
+
+    logger.info("EXPORTING PNP LISTS")
+    d5 = datetime.now()
+    df_pnp_list = df_pnp[['idm', 'pnp_fcg', 'pnp_mol', '_pnp_ref']]
+    if args.list_pnp_mols is not None:
+        save.file(df_pnp_list, args.list_pnp_mols)
+    logger.info("NUMBER OF PNP MOLS".ljust(pad) + f"{len(df_pnp_list[df_pnp_list['pnp_mol']]):,}")
+    logger.info("NUMBER OF NON-PNP MOLS".ljust(pad) + f"{len(df_pnp_list[~df_pnp_list['pnp_mol']]):,}")
 
     # end
     d6 = datetime.now()
     logger.info("SUMMARY")
     logger.info("COMPUTATIONAL TIME: CONFIGURING JOB".ljust(pad * 2) + f"{d1-d0}")
-    logger.info("COMPUTATIONAL TIME: LOADING INPUT FRAGMENT GRAPHS".ljust(pad * 2) + f"{d2-d1}")
-    logger.info("COMPUTATIONAL TIME: LOADING REFERENCE FRAGMENT GRAPHS".ljust(pad * 2) + f"{d3-d2}")
-    logger.info("COMPUTATIONAL TIME: ANNOTATING FRAGMENT GRAPHS".ljust(pad * 2) + f"{d4-d3}")
-    logger.info("COMPUTATIONAL TIME: SAVING ANNOTATED FRAGMENT GRAPHS".ljust(pad * 2) + f"{d5-d4}")
-    logger.info("COMPUTATIONAL TIME: DISPLAYING RESULTS".ljust(pad * 2) + f"{d6-d5}")
+    logger.info("COMPUTATIONAL TIME: LOADING INPUT FRAGMENT COMBINATION GRAPHS".ljust(pad * 2) + f"{d2-d1}")
+    logger.info("COMPUTATIONAL TIME: LOADING REFERENCE FRAGMENT COMBINATION GRAPHS".ljust(pad * 2) + f"{d3-d2}")
+    logger.info("COMPUTATIONAL TIME: ANNOTATING FRAGMENT COMBINATION GRAPHS".ljust(pad * 2) + f"{d4-d3}")
+    logger.info("COMPUTATIONAL TIME: SAVING ANNOTATED FRAGMENT COMBINATION GRAPHS".ljust(pad * 2) + f"{d5-d4}")
+    logger.info("COMPUTATIONAL TIME: EXPORTING PNP LISTS".ljust(pad * 2) + f"{d6-d5}")
     logger.info("COMPUTATIONAL TIME: TOTAL".ljust(pad * 2) + f"{d6-d0}")
     logger.info("END")
 
