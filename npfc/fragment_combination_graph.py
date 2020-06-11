@@ -455,11 +455,6 @@ def annotate_pnp(df_fcg, df_fcg_ref, data=['fcc']) -> DataFrame:
     df_fcg_ref["edges"] = df_fcg_ref["edges"].map(lambda x: filter_edges_attributes(x, data))
     df_fcg_ref['_frags_u'] = df_fcg_ref['_frags_u'].map(lambda x: frozenset(x))
 
-    import pandas as pd
-    pd.set_option('display.max_columns', 1000)
-    pd.set_option('max_colwidth', 70)
-    print(df_fcg_ref)
-
     # run annotation
     df_fcg['_pnp_ref'] = df_fcg.apply(lambda x: get_pnp_references(x['edges'], df_fcg_ref, x['_frags_u']), axis=1)
     df_fcg['pnp_fcg'] = df_fcg['_pnp_ref'].map(lambda x: True if len(x) == 0 else False)
