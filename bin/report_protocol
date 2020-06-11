@@ -1545,6 +1545,7 @@ if __name__ == '__main__':
         dataset = prefix
     else:
         dataset = args.dataset
+
     # plotformat
     if args.plotformat not in ('svg', 'png'):
         raise ValueError(f"ERROR! UNKNOWN PLOT FORMAT! ('{args.plotformat}')")
@@ -1570,6 +1571,7 @@ if __name__ == '__main__':
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ INIT ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
     # logging
+    global logger  # desperate attempt
     pd.options.mode.chained_assignment = None  # disable pd.io.pytables.SettingWithCopyWarning
     warnings.filterwarnings('ignore', category=pd.io.pytables.PerformanceWarning)  # if None is returned instead of a molecule, do not complain about mixed types
     lg = RDLogger.logger()
@@ -1577,7 +1579,7 @@ if __name__ == '__main__':
     # display rendering
     pd.set_option('display.max_columns', 20)
     pd.set_option('display.max_rows', 20)
-    pd.set_option('max_colwidth', 50)
+    pd.set_option('max_colwidth', 70)
     pad_title = 80
     pad = 40
 
@@ -1593,9 +1595,6 @@ if __name__ == '__main__':
     except KeyError:
         color = args.color
 
-    # desperate attempt
-    global logger
-
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~ DEFINE ITERATION  ~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
     # exclude folders to analyze
@@ -1606,7 +1605,7 @@ if __name__ == '__main__':
 
             # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ PREP ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
-            if wd_level == 'preprocess':
+            if wd_level == 'prep':
                 for dir in wd_levels[wd_level]:
                     d0 = datetime.now()
                     output_folder = f"{dir}/report"
@@ -1743,7 +1742,7 @@ if __name__ == '__main__':
                     log_file = f"{output_folder}/report_{wd_level}_{prefix}.log"
                     Path(output_folder).mkdir(parents=True, exist_ok=True)
                     if Path(log_file).exists():
-                        logging.warning(f"REPORT LOG ALREADY PRESENT, SKIPPING DIR='{dir}'.")
+                        logger.warning(f"REPORT LOG ALREADY PRESENT, SKIPPING DIR='{dir}'.")
                         continue
                     logger = utils._configure_logger(log_level=args.log, log_file=log_file, logger_name=log_file)
                     print_header(pad)
@@ -1808,7 +1807,7 @@ if __name__ == '__main__':
                     log_file = f"{output_folder}/report_{wd_level}_{prefix}.log"
                     Path(output_folder).mkdir(parents=True, exist_ok=True)
                     if Path(log_file).exists():
-                        logging.warning(f"REPORT LOG ALREADY PRESENT, SKIPPING DIR='{dir}'.")
+                        logger.warning(f"REPORT LOG ALREADY PRESENT, SKIPPING DIR='{dir}'.")
                         continue
                     logger = utils._configure_logger(log_level=args.log, log_file=log_file, logger_name=log_file)
                     print_header(pad)
