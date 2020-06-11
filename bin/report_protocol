@@ -999,9 +999,6 @@ def get_dfs_fs(WD: Path) -> Tuple[DataFrame]:
     # parse chunks
     pattern = ".*([0-9]{3})?_fs.csv.gz"
     chunks_fsearch = _get_chunks(f"{WD}/{fsearch_dirname}/data", pattern)
-
-    print('\n\n', chunks_fsearch, '\n')
-
     logger.info("FS -- STARTING CHUNK ITERATION...")
     pool = Pool()
     results = pool.map(parse_chunk_fs, chunks_fsearch)
@@ -1271,6 +1268,9 @@ def parse_chunk_fcg(c):
     df_fcg = load.file(c, decode=['_fcg', '_d_mol_frags']).sort_values(["idm", "nfrags"], ascending=True)  # df_fcg already sorted for the best examples per case
     num_tot_fcg_graph = len(df_fcg.index)
 
+    df_fcg = df_fcg.rename({'_frags': 'frags', '_frags_u': 'frags_u'}, axis=1)
+    df_fcg['frags'] = df_fcg['frags'].map(list)
+    df_fcg['frags_u'] = df_fcg['frags_u'].map(list)
     groups = df_fcg[['idm', 'idfcg', 'nfrags']].groupby('idm')
     num_tot_mol_graph = len(groups)
 
@@ -1726,8 +1726,8 @@ if __name__ == '__main__':
                                      )
 
                     d2 = datetime.now()
-                    logger.info("-- END OF REPORT")
-                    logger.info("-- COMPUTATIONAL TIME")
+                    logger.info("PREP -- END OF REPORT")
+                    logger.info("PREP-- COMPUTATIONAL TIME")
                     logger.info("PARSE OUTPUT FILES:".ljust(pad) + f"{d1 - d0}")
                     logger.info("GENERATE PLOTS:".ljust(pad) + f"{d2 - d1}")
                     logger.info("TOTAL:".ljust(pad) + f"{d2 - d0}")
@@ -1742,7 +1742,7 @@ if __name__ == '__main__':
                     log_file = f"{output_folder}/report_{wd_level}_{prefix}.log"
                     Path(output_folder).mkdir(parents=True, exist_ok=True)
                     if Path(log_file).exists():
-                        logger.warning(f"REPORT LOG ALREADY PRESENT, SKIPPING DIR='{dir}'.")
+                        logging.warning(f"REPORT LOG ALREADY PRESENT, SKIPPING DIR='{dir}'.")
                         continue
                     logger = utils._configure_logger(log_level=args.log, log_file=log_file, logger_name=log_file)
                     print_header(pad)
@@ -1807,7 +1807,7 @@ if __name__ == '__main__':
                     log_file = f"{output_folder}/report_{wd_level}_{prefix}.log"
                     Path(output_folder).mkdir(parents=True, exist_ok=True)
                     if Path(log_file).exists():
-                        logger.warning(f"REPORT LOG ALREADY PRESENT, SKIPPING DIR='{dir}'.")
+                        logging.warning(f"REPORT LOG ALREADY PRESENT, SKIPPING DIR='{dir}'.")
                         continue
                     logger = utils._configure_logger(log_level=args.log, log_file=log_file, logger_name=log_file)
                     print_header(pad)
@@ -1880,16 +1880,16 @@ if __name__ == '__main__':
                     else:
                         logger.info("FS -- OUTPUT_PLOT_FS_NFRAGPERMOL".ljust(pad) + "COMPUTING...")
                         save_barplot(df_fs_nfragpermol,
-                                      output_plot_fs_nfragpermol,
-                                      'NumFrags',
-                                      'Count',
-                                      f"FS - Number of Fragment Hits Per Molecule in {dataset}",
-                                      x_label='Number of Fragment Hits Per Molecule',
-                                      y_label='Count',
-                                      color=color,
-                                      perc_labels='Perc_Mols',
-                                      fig_size=(48, 12),
-                                      )
+                                     output_plot_fs_nfragpermol,
+                                     'NumFrags',
+                                     'Count',
+                                     f"FS - Number of Fragment Hits Per Molecule in {dataset}",
+                                     x_label='Number of Fragment Hits Per Molecule',
+                                     y_label='Count',
+                                     color=color,
+                                     perc_labels='Perc_Mols',
+                                     fig_size=(48, 12),
+                                     )
 
                     # plot output_plot_fs_fragmolcov
                     if Path(output_plot_fs_fragmolcov).exists():
