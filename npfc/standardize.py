@@ -149,6 +149,7 @@ class Standardizer(Filter):
         - **depict**: find the "best" possible 2D depiction of the molecule among Input/rdDepictor/Avalon/CoordGen methods
         - **extract_murcko**: return the Murcko Scaffold from the molecule
         - **clear_side_chains**: remove any exocyclic atom that is not part of a linker
+        - **reset_mol**: reset the molecule by converting to and then from smiles
 
     This results in new columns in the input DataFrame:
 
@@ -322,7 +323,7 @@ class Standardizer(Filter):
         for i, submol in enumerate(submols):
             # is_medchem
             is_medchem = self.filter_mol(submol, f'elements in {", ".join(str(x) for x in self.elements_medchem)}')
-            is_non_linear = self.filter_mol(submol, f"nrings > 0")
+            is_non_linear = self.filter_mol(submol, "nrings > 0")
             # molweight
             molweight = Descriptors.ExactMolWt(submol)
             logging.debug("submol #%s: IM=%s, INL=%s, MW=%s", i, is_medchem, is_non_linear, molweight)
@@ -716,6 +717,12 @@ class Standardizer(Filter):
             elif task == 'depict':
                 try:
                     mol = depict_mol(mol)
+                except ValueError:
+                    return (mol, 'error', task)
+
+            elif task == 'reset_mol':
+                try:
+                    mol = Chem.MolFromSmiles(Chem.MolToSmiles(mol))
                 except ValueError:
                     return (mol, 'error', task)
 

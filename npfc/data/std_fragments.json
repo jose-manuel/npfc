@@ -7,5 +7,7 @@
               "uncharge",
               "canonicalize",
               "clear_stereo",
-              "extract_murcko"]
+              "extract_murcko",
+              "reset_mol",
+              "uncharge"]
 }

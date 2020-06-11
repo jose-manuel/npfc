@@ -117,7 +117,7 @@ def main():
     logger.info("LOADING INPUT FILE")
     df = load.file(args.input_file)
     if 'mol' not in df.columns:
-        logger.error(f"ERROR! COLUMN 'mol' NOT FOUND IN INPUT FILE, ABORTING!")
+        logger.error("ERROR! COLUMN 'mol' NOT FOUND IN INPUT FILE, ABORTING!")
         sys.exit(1)
     nentries = len(df.index)
     df = df.groupby('idm').first().reset_index()
@@ -128,17 +128,18 @@ def main():
     ds.append(('LOADING INPUT FILE', datetime.now()))
 
     # configuring the drawer
-    rdkit_drawer = Draw.DrawingOptions()
-    rdkit_drawer.atomLabelFontSize = args.atomLabelFontSize
-    rdkit_drawer.bondLineWidth = args.bondLineWidth
+    # rdkit_drawer = Draw.DrawingOptions()
+    # rdkit_drawer.atomLabelFontSize = args.atomLabelFontSize
+    # rdkit_drawer.bondLineWidth = args.bondLineWidth
 
     # compute images
-    logger.info(f"GENERATING DRAWINGS")
+    logger.info("GENERATING DRAWINGS")
     for i in range(len(df.index)):
         row = df.iloc[i]
         # print(drawer)
         try:
-            img = Draw.MolToImage(row['mol'], size=args.size, options=rdkit_drawer, fitImage=True)
+            img = draw.mol(row['mol'], img_size=size, svg=use_svg)
+            # img = Draw.MolToImage(row['mol'], size=args.size, options=rdkit_drawer, fitImage=True)
             # img = Draw.MolsToGridImage([row['mol']],
             #                            molsPerRow=1,
             #                            subImgSize=size,
