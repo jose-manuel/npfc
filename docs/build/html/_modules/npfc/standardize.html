@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.standardize &mdash; npfc 0.6.8-3-gd1060b1 documentation</title>
+  <title>npfc.standardize &mdash; npfc 0.6.9 documentation</title>
   
 
   
@@ -58,7 +58,7 @@
             
             
               <div class="version">
-                0.6.8-3-gd1060b1
+                0.6.9
               </div>
             
           
@@ -308,6 +308,7 @@
 <span class="sd">        - **depict**: find the &quot;best&quot; possible 2D depiction of the molecule among Input/rdDepictor/Avalon/CoordGen methods</span>
 <span class="sd">        - **extract_murcko**: return the Murcko Scaffold from the molecule</span>
 <span class="sd">        - **clear_side_chains**: remove any exocyclic atom that is not part of a linker</span>
+<span class="sd">        - **reset_mol**: reset the molecule by converting to and then from smiles</span>
 
 <span class="sd">    This results in new columns in the input DataFrame:</span>
 
@@ -481,7 +482,7 @@
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">submol</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">submols</span><span class="p">):</span>
             <span class="c1"># is_medchem</span>
             <span class="n">is_medchem</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter_mol</span><span class="p">(</span><span class="n">submol</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;elements in </span><span class="si">{</span><span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">elements_medchem</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
-            <span class="n">is_non_linear</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter_mol</span><span class="p">(</span><span class="n">submol</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;nrings &gt; 0&quot;</span><span class="p">)</span>
+            <span class="n">is_non_linear</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter_mol</span><span class="p">(</span><span class="n">submol</span><span class="p">,</span> <span class="s2">&quot;nrings &gt; 0&quot;</span><span class="p">)</span>
             <span class="c1"># molweight</span>
             <span class="n">molweight</span> <span class="o">=</span> <span class="n">Descriptors</span><span class="o">.</span><span class="n">ExactMolWt</span><span class="p">(</span><span class="n">submol</span><span class="p">)</span>
             <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;submol #</span><span class="si">%s</span><span class="s2">: IM=</span><span class="si">%s</span><span class="s2">, INL=</span><span class="si">%s</span><span class="s2">, MW=</span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">is_medchem</span><span class="p">,</span> <span class="n">is_non_linear</span><span class="p">,</span> <span class="n">molweight</span><span class="p">)</span>
@@ -875,6 +876,12 @@
             <span class="k">elif</span> <span class="n">task</span> <span class="o">==</span> <span class="s1">&#39;depict&#39;</span><span class="p">:</span>
                 <span class="k">try</span><span class="p">:</span>
                     <span class="n">mol</span> <span class="o">=</span> <span class="n">depict_mol</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="s1">&#39;error&#39;</span><span class="p">,</span> <span class="n">task</span><span class="p">)</span>
+
+            <span class="k">elif</span> <span class="n">task</span> <span class="o">==</span> <span class="s1">&#39;reset_mol&#39;</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">mol</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">MolFromSmiles</span><span class="p">(</span><span class="n">Chem</span><span class="o">.</span><span class="n">MolToSmiles</span><span class="p">(</span><span class="n">mol</span><span class="p">))</span>
                 <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
                     <span class="k">return</span> <span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="s1">&#39;error&#39;</span><span class="p">,</span> <span class="n">task</span><span class="p">)</span>
 
