@@ -397,7 +397,7 @@ def save_distplot(df: DataFrame,
     ax.set_title(title, fontsize=24, y=1.02)
     ax.tick_params(labelsize=20)
     ax.tick_params(axis='x', rotation=0)
-    ax.set_yticklabels(['{:,}'.format(x) for x in ax.get_yticks()])
+    ax.set_yticklabels(['{:,}'.format(int(x)) for x in ax.get_yticks()])
     ax.set_xlabel(x_label, fontsize=25, labelpad=20)
     ax.set_ylabel(y_label, fontsize=25, labelpad=20)
 
