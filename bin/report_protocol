@@ -1133,9 +1133,10 @@ def parse_chunk_fc(c):
     # load
     df_fc = load.file(c)
     # prep data
-    for col in ['mol_frag_1', 'mol_frag_2']:
-        if isinstance(df_fc.iloc[0][col], Mol):
-            df_fc[col] = df_fc[col].map(Chem.MolToSmiles)
+    if len(df_fc) > 0:
+        for col in ['mol_frag_1', 'mol_frag_2']:
+            if isinstance(df_fc.iloc[0][col], Mol):
+                df_fc[col] = df_fc[col].map(Chem.MolToSmiles)
     # extract infos
     d = get_dfs_fcc_from_df_fc(df_fc)
 
@@ -1144,7 +1145,6 @@ def parse_chunk_fc(c):
 
 def save_examples_fcc(WD, fcc, max_examples=50):
     pass
-
 
 
 def get_dfs_fcc(WD):
@@ -1164,8 +1164,7 @@ def get_dfs_fcc(WD):
     chunks = _get_chunks(f"{WD_FCC}/data", pattern)
 
     # count dataframes
-
-    pool = Pool()
+    pool = Pool(1)
     results = pool.map(parse_chunk_fc, chunks)  # list of dictionaries
     pool.close()
     pool.join()
@@ -1422,13 +1421,21 @@ def get_df_fcg(WD: Path) -> DataFrame:
 
 
 def parse_chunk_pnp(c):
-    df = load.file(c).fillna(True)  # #####  I have a mean bug here, all True labels are missing so I end up with False and Na
+    df = load.file(c, decode=False)
+
+    # ratio PNP mols
     pnp = len(df[df['pnp_mol']])
     non_pnp = len(df[~df['pnp_mol']])
-    return (pnp, non_pnp)
+
+    # number of PNP references per FCG
+    df = df[['idm', '_pnp_ref']]
+    df['_pnp_ref'] = df['_pnp_ref'].map(lambda x: len(utils.decode_object(x)))
+    df = df.rename({'_pnp_ref': 'NumNPRef', 'idm': 'Count'}, axis=1).groupby('NumNPRef').count().reset_index()
+
+    return {'pnp': pnp, 'non_pnp': non_pnp, 'df_pnp_nnprefperfcg': df}
 
 
-def get_df_pnp(WD: Path) -> DataFrame:
+def get_dfs_pnp(WD: Path) -> DataFrame:
     """Get a DF summarizing the results of the pnp step.
 
     At the moment only one subset is recognized (i.e. 'subset' subfolder in WD).
@@ -1456,18 +1463,27 @@ def get_df_pnp(WD: Path) -> DataFrame:
     pool.join()
 
     # sum of tuples
-    df = pd.DataFrame(results, columns=['PNP', 'Non-PNP'])
-    num_pnp = df['PNP'].sum()
-    num_non_pnp = df['Non-PNP'].sum()
+    num_pnp = sum([x['pnp'] for x in results])
+    num_non_pnp = sum([x['non_pnp'] for x in results])
+    # dfs
+    dfs_pnp_nnprefperfcg = [x['df_pnp_nnprefperfcg'] for x in results]
+
+    # ratio PNP/non-PNP
     num_total = num_pnp + num_non_pnp
     logger.info(f"pnp: {num_pnp} + non-pnp: {num_non_pnp} = tot: {num_total}")
-
     # create a dataframe with counts
-    df = pd.DataFrame({'Category': ['PNP', 'Non-PNP'], 'Count': [num_pnp, num_non_pnp]})
-    df['Perc_Mols'] = df['Count'].map(lambda x: f"{x/num_total:.2%}")
-    logger.info(f"PNP -- RESULTS FOR LABELLING PNPs IN {num_total:,} MOLECULES:\n\n{df}\n")
+    df_pnp_ratio = pd.DataFrame({'Category': ['PNP', 'Non-PNP'], 'Count': [num_pnp, num_non_pnp]})
+    df_pnp_ratio['Perc_Mols'] = df_pnp_ratio['Count'].map(lambda x: f"{x/num_total:.2%}")
+    logger.info(f"PNP -- RESULTS FOR LABELLING PNPs IN {num_total:,} MOLECULES:\n\n{df_pnp_ratio}\n")
 
-    return df
+    # Number of NP refs per FCG
+    df_pnp_nnprefperfcg = pd.concat(dfs_pnp_nnprefperfcg)
+    df_pnp_nnprefperfcg = df_pnp_nnprefperfcg[['NumNPRef', 'Count']].groupby('NumNPRef').sum().reset_index()
+    tot = df_pnp_nnprefperfcg['Count'].sum()
+    df_pnp_nnprefperfcg['Perc'] = df_pnp_nnprefperfcg['Count'].map(lambda x: f"{x / tot:.2%}")
+    logger.info(f"PNP -- RESULTS NUMBER OF NP REFERENCES PER FCG:\n\n{df_pnp_nnprefperfcg}\n")
+
+    return {'df_pnp_ratio': df_pnp_ratio, 'df_pnp_nnprefperfcg': df_pnp_nnprefperfcg}
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ BEGIN ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
@@ -2135,7 +2151,7 @@ if __name__ == '__main__':
                         df_fcg_top10frags = load.file(output_csv_fcg_top10frags).head(10)
                         df_fcg_top10frags_u = load.file(output_csv_fcg_top10frags_u).head(10)
                         df_fcg_fcc = load.file(output_csv_fcg_fcc)
-                        df_fcg_top10fc = load.file(output_csv_fcg_top10fc).head(10)
+                        df_fcg_top10fc = load.file(output_csv_fcg_top10fc, decode=False).head(10)  # mol_frag_1/2 but actually smiles
                         df_fcg_nfcgpermol = load.file(output_csv_fcg_nfcgpermol)
                     else:
                         logger.info("FCG -- COMPUTING OUTPUT CSV FILES")
@@ -2350,20 +2366,27 @@ if __name__ == '__main__':
 
                     # define outputs
                     output_csv_pnp_pnp = f"{output_folder}/{prefix}_pnp_pnp.csv"
+                    output_csv_pnp_nnprefperfcg = f"{output_folder}/{prefix}_pnp_nnprefperfcg.csv"
                     output_plot_pnp_pnp = output_csv_pnp_pnp.replace('.csv', f".{args.plotformat}")
+                    output_plot_pnp_nnprefperfcg = output_csv_pnp_nnprefperfcg.replace('.csv', f".{args.plotformat}")
+                    output_plot_pnp_nnprefperfcg_zoom = output_csv_pnp_nnprefperfcg.replace('.csv', f"_zoom.{args.plotformat}")
                     logger.info("FC -- OUTPUT PLOT FILES HAVE THE SAME FILE NAMES AS OUTPUT CSV FILES")
                     # retrieve data
-                    output_csv_files = [output_csv_pnp_pnp]
-                    output_plot_files = [output_plot_pnp_pnp]
+                    output_csv_files = [output_csv_pnp_pnp, output_csv_pnp_nnprefperfcg]
+                    output_plot_files = [output_plot_pnp_pnp, output_plot_pnp_nnprefperfcg, output_plot_pnp_nnprefperfcg_zoom]
                     if all([Path(x).exists() for x in output_plot_files]):
                         logger.info("PNP -- ALL OUTPUT PLOT FILES ARE ALREADY AVAILABLE, NOTHING TO DO!")
                     elif all([Path(x).exists() for x in output_csv_files]):
                         logger.info("PNP -- PARSING OUTPUT CSV FILES INSTEAD OF COMPUTING THEM")
                         df_pnp_pnp = load.file(output_csv_pnp_pnp)
+                        df_pnp_nnprefperfcg = load.file(output_csv_pnp_nnprefperfcg)
                     else:
                         logger.info("PNP -- COMPUTING OUTPUT CSV FILES")
-                        df_pnp_pnp = get_df_pnp(dir)
+                        d_pnp = get_dfs_pnp(dir)
+                        df_pnp_pnp = d_pnp['df_pnp_ratio']
+                        df_pnp_nnprefperfcg = d_pnp['df_pnp_nnprefperfcg']
                         save.file(df_pnp_pnp, output_csv_pnp_pnp)
+                        save.file(df_pnp_nnprefperfcg, output_csv_pnp_nnprefperfcg)
                     d7 = datetime.now()
 
                     # skip plots if computing only CSV output files
@@ -2385,6 +2408,38 @@ if __name__ == '__main__':
                                      perc_labels='Perc_Mols',
                                      fig_size=(12, 12),
                                      )
+                    # plot output_plot_pnp_nnprefperfcg
+                    if Path(output_plot_pnp_nnprefperfcg).exists():
+                        logger.info("PNP -- OUTPUT_PLOT_PNP_NNPREFPERFCG".ljust(pad) + "ALREADY DONE")
+                    else:
+                        logger.info("PNP -- OUTPUT_PLOT_PNP_NNPREFPERFCG".ljust(pad) + "COMPUTING...")
+                        save_distplot(df_pnp_nnprefperfcg,
+                                      output_plot_pnp_nnprefperfcg,
+                                      'NumNPRef',
+                                      title=f"PNP - Number of NP FCG References per FCG in {dataset}",
+                                      color=color,
+                                      x_label='Number of NP FCG References per FCG',
+                                      y_label='Count',
+                                      fig_size=(24, 12),
+                                      bins=None,
+                                      )
+                    # plot output_plot_fs_nfragpermol
+                    if Path(output_plot_pnp_nnprefperfcg_zoom).exists():
+                        logger.info("FS -- OUTPUT_PLOT_FS_NFRAGPERMOL_ZOOM".ljust(pad) + "ALREADY DONE")
+                    else:
+                        logger.info("FS -- OUTPUT_PLOT_FS_NFRAGPERMOL_ZOOM".ljust(pad) + "COMPUTING...")
+                        save_barplot(df_pnp_nnprefperfcg.head(20),
+                                     output_plot_pnp_nnprefperfcg_zoom,
+                                     'NumNPRef',
+                                     'Count',
+                                     title=f"PNP - Number of NP FCG References per FCG in {dataset} (zoom)",
+                                     x_label='Number of NP FCG References per FCG',
+                                     y_label='Count',
+                                     color=color,
+                                     perc_labels='Perc',
+                                     fig_size=(24, 12),
+                                     )
+
                     d8 = datetime.now()
                     logger.info("-- END OF REPORT")
                     logger.info("-- COMPUTATIONAL TIME")

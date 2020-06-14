@@ -208,7 +208,7 @@ def _split_unconnected(dfs_fcc_clean: List[DataFrame]) -> List[DataFrame]:
     dfs_fcc_ready = []
     for i, df_fcc_clean in enumerate(dfs_fcc_clean):
         # compute a graph with each fid as a node, one row means an edge between 2 fid
-        G = nx.from_pandas_edgelist(df_fcc_clean, "fid1", "fid2")
+        G = nx.from_pandas_edgelist(df_fcc_clean, "fid1", "fid2")  # we do not care for parallel edges here, just for the node ids in each subgraphs
         fc_subgraphs = list(G.subgraph(c) for c in nx.connected_components(G))
         num_fc_subgraphs = len(fc_subgraphs)
         # splitting up subgraphs
@@ -348,7 +348,8 @@ def generate(df_fcc: DataFrame, min_frags: int = 2, max_frags: int = 5, max_over
             edge_attr = ['fcc', 'n_fcc', 'idm', 'cps', 'cpt']
             edge_attr = [x for x in edge_attr if x in df_fcc_clean.columns]
             df_fcc_clean = df_fcc_clean.sort_values(['idf1', 'idf2'])
-            G = nx.from_pandas_edgelist(df_fcc_clean, source="idf1", target="idf2", edge_attr=edge_attr)
+            df_fcc_edges = df_fcc_clean.copy()[['idf1', 'idf2'] + edge_attr]
+            G = nx.from_pandas_edgelist(df_fcc_edges, source="idf1", target="idf2", edge_attr=edge_attr, create_using=nx.MultiGraph())  # multigraph instead of grpah to store parallel edges
             # same molecule in each row, so to use the first one is perfectly fine
             mol = df_fcc_clean.iloc[0]['mol']
 

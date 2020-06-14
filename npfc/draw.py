@@ -150,7 +150,7 @@ def mol(mol: Mol,
         if output_ext == 'SVG':
             with open(output_file, 'w') as SVG:
                 SVG.write(img)
-        else:
+        elif output_ext != 'PNG':
             raise ValueError(f"Error! Unsupported extension '{output_ext}'!")
 
     return img
@@ -217,7 +217,7 @@ def mols(mols: List[Mol],
         if output_ext == 'SVG':
             with open(output_file, 'w') as SVG:
                 SVG.write(img.data)
-        else:
+        elif output_ext != 'PNG':
             raise ValueError(f"Error! Unsupported extension '{output_ext}'!")
 
     return img
@@ -258,6 +258,7 @@ def _get_edge_info(G: Graph, edge_attributes: List[str], attribute_names: bool, 
 def graph(G: Graph,
           colormap_nodes: List[Tuple[float]] = None,
           output_file: str = None,
+          fig_size: tuple = (8, 8),
           edge_attributes: List[str] = ['fcc'],
           attribute_names: bool = False,
           orientate: bool = False,
@@ -291,7 +292,7 @@ def graph(G: Graph,
 
     pos = nx.spring_layout(G)
     edges_info = _get_edge_info(G, edge_attributes, attribute_names, label_node_names_on_edges)
-    figure = plt.figure(figsize=(8, 8))
+    figure = plt.figure(figsize=fig_size)
     nx.draw(G,
             pos,
             edge_color='black',
@@ -560,6 +561,13 @@ class ColorMap:
 
         # keep only bidx that appear > 1
         return set({x: counter[x] for x in counter if counter[x] > 1}.keys())
+
+    # def get_fragment_colors_hex(self):
+    #     """Return the fragment colors as a dictionary of syntax: idf: color.
+    #     Returned format is hexadecimal.
+    #     """
+    #     for idf, color_rgb in self.fragments.items():
+
 
     def blend(self):
         """Blend colors found in a ColorMap.
