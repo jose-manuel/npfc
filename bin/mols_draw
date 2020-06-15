@@ -138,13 +138,13 @@ def main():
         row = df.iloc[i]
         # print(drawer)
         try:
-            img = draw.mol(row['mol'], img_size=size, svg=use_svg)
+            # img = draw.mol(row['mol'], img_size=size, svg=use_svg)
             # img = Draw.MolToImage(row['mol'], size=args.size, options=rdkit_drawer, fitImage=True)
-            # img = Draw.MolsToGridImage([row['mol']],
-            #                            molsPerRow=1,
-            #                            subImgSize=size,
-            #                            useSVG=use_svg,
-            #                            )
+            img = Draw.MolsToGridImage([row['mol']],
+                                        molsPerRow=1,
+                                        subImgSize=size,
+                                        useSVG=use_svg,
+                                        )
             if format == 'SVG':
                 output_svg = f"{args.output_dir}/{row['idm']}.svg"
                 with open(output_svg, "w") as FILE:

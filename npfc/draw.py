@@ -36,6 +36,7 @@ import matplotlib
 import matplotlib.pyplot as plt  # required for creating a canvas for displaying graphs
 from matplotlib.figure import Figure
 from networkx.classes.graph import Graph
+from networkx.drawing.nx_agraph import to_agraph
 import seaborn as sns
 from PIL.Image import Image
 from typing import Union
@@ -50,6 +51,8 @@ from npfc import fragment_combination_graph
 from rdkit import Chem, Geometry
 from rdkit.Chem import AllChem, rdCoordGen
 from scipy.spatial import KDTree
+from IPython.display import Image
+
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ GLOBALS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
@@ -316,6 +319,109 @@ def graph(G: Graph,
         plt.savefig(output_file, format=output_file_format)
     plt.close()
     return figure
+
+
+def compress_parallel_edges(G):
+    """This is an extremely unoptimized function for preprocessing FCG (networkx MultiGraphs) so
+    they can be drawn more nicely without parallel edges.
+    """
+
+    # get the edges as a df
+    df_edges = nx.convert_matrix.to_pandas_edgelist(G)
+    # init
+    idm = df_edges.iloc[0]['idm']
+    idfcg = df_edges.iloc[0]['idcfg']
+    df_edges['n_fcc'] = 1
+    # 1st groupby: get the count of occurrences in groups of s, t, and fcc
+    df_edges['n_fcc'] = df_edges.groupby(['source', 'target', 'fcc'])['n_fcc'].transform('sum')
+    df_edges = df_edges.drop_duplicates(['source', 'target', 'fcc'])
+    df_edges['fcc'] = df_edges['fcc'].map(lambda x: [x])
+    df_edges['n_fcc'] = df_edges['n_fcc'].map(lambda x: [x])
+    # currently unused
+    # df_edges['cps'] = df_edges['cps'].map(lambda x: [x])  # display makes it hard to see but cps and cpt are string
+    # df_edges['cpt'] = df_edges['cpt'].map(lambda x: [x])
+
+    # 2nd groupby: get the count of occurrences in groups of s, t
+    df_edges = df_edges.groupby(['source', 'target']).agg({'fcc': 'sum',
+                                                           'n_fcc': 'sum',
+                                                           # 'cps': 'sum',
+                                                           # 'cpt': 'sum',
+                                                           })
+    # apply general values
+    df_edges['idm'] = idm
+    df_edges['idcfg'] = idfcg
+    df_edges['title'] = f"{idm}:{idfcg}"
+    # format labels: "cm x4", "fs,fe"
+    df_edges['label'] = df_edges.apply(lambda x: ', '.join([f"{x['fcc'][i]}" if x['n_fcc'][i] == 1 else f"{x['fcc'][i]} x{x['n_fcc'][i]}" for i in range(len(x['fcc']))]), axis=1)
+    df_edges = df_edges.reset_index()
+
+    return nx.from_pandas_edgelist(df_edges, source="source", target="target", edge_attr=['idm', 'idcfg', 'label', 'title'])  # simple graph because no more parallel edges
+
+
+def fcg(G, colormap, WD_img='/home/gally/Projects/NPFC/data/fragments/crms/data/prep/report/depict', output_file=None):
+    """A very Q&D function to draw FCGs.
+    It loads a PNG image (with transparent background) for each fragment from within the specified folder.
+
+    """
+    # preprocess nx G
+    G = compress_parallel_edges(G)
+    # export from nx to Graphviz
+    A = to_agraph(G)
+
+    # configure graph attributes
+    #A.graph_attr.update(ratio="fill")
+    A.graph_attr.update(size="12, 25")
+    A.graph_attr['outputorder'] = 'edgesfirst'
+    A.graph_attr['forcelabels'] = 'true'
+    A.graph_attr['nodesep'] = '2'
+    A.graph_attr['dpi'] = '1200'
+    A.graph_attr['label'] = "\n\n" + list(G.edges(data=True))[0][2]['title']
+    A.graph_attr['fontsize'] = 25
+
+
+    # init node/attribute mapping
+    node_labels = G.nodes()
+    d_colors = colormap.fragments
+
+    # configure node attributes
+    for nl in node_labels:
+        n = A.get_node(nl)
+        image = f"{WD_img}/{nl}.png"
+        n.attr['image'] = image
+        n.attr['fillcolor'] = matplotlib.colors.to_hex(d_colors[nl][0])
+        n.attr['color'] = 'black'
+        n.attr['style'] = 'filled'
+        n.attr['imagescale'] = True
+        n.attr['fixedsize'] = True
+        n.attr['shape'] = 'circle'
+        n.attr['labeldistance'] = 1
+        n.attr['penwidth'] = 1
+        n.attr['label'] = "\n\n\n\n\n" + nl
+        n.attr['height'] = 2
+        n.attr['width'] = 2
+        n.attr['fontsize'] = 20
+
+    # configure edge attributes
+    for nxe, e in zip(sorted(G.edges(data=True), key=lambda x: (x[0], x[1])), A.edges()):
+        e = A.get_edge(nxe[0], nxe[1])
+        e.attr['label'] = " " + nxe[2]['label']
+        e.attr['labelfontcolor'] = 'red'
+
+    # setup export
+    if output_file is None:
+        output_file = '/tmp/_tmp_fcg.img'
+    if Path(output_file).exists():
+        Path(output_file).unlink()
+
+    # export the graph as SVG
+    A.draw(output_file, format='png', prog='dot')
+
+    # read back the export
+    return Image(output_file)
+
+from IPython.display import Image
+
+
 
 
 def rescale(mol: Mol, f: float = 1.4):
