@@ -384,8 +384,15 @@ def has_only_referenced_edges(edges: tuple, edges_ref: tuple) -> bool:
     :param edges_ref: the edges of reference molecule fcg
     :return: False if at least 1 edge is not found in the reference, True otherwise
     """
+    # hotfix: ####
+    edges_ref = [tuple([set([er[0], er[1]]), er[2]]) for er in edges_ref]
+    edges = [tuple([set([e[0], e[1]]), e[2]]) for e in edges]
+
+    logging.debug('Reference edges: %s', edges_ref)
     for e in edges:
+        logging.debug('current edge: %s', e)
         if e not in edges_ref:
+            logging.debug('edge is not present within references!')
             return False
     return True
 
@@ -409,9 +416,10 @@ def get_pnp_references(edges: tuple, df_ref: DataFrame, target_node: frozenset =
     :param target_nodes: a frozenset of fragment ids found in the target edges to use for filering references to compare (optimization)
     """
     frags_u = frozenset([x[0] for x in edges] + [x[1] for x in edges])
-
+    logging.debug('Input unique idfs to use: %s', frags_u)
     # avoid unnecessary graph comparisons: no way the syntehtic compound will be matching a NP fc graph if it does not even have all the nodes
     df_ref = df_ref[df_ref['_frags_u'].map(lambda x: frags_u.issubset(x))]
+    logging.debug('Remaining reference entries after filtering by unique idfs: %s', len(df_ref))
 
     # get the subset of references that match with this particular molecule
     df_ref = df_ref[df_ref['edges'].map(lambda x: has_only_referenced_edges(edges, x))]

@@ -8,6 +8,7 @@ A special care was given to blending colors for overlapping fragments.
 
 # standard
 import logging
+from pathlib import Path
 from math import sqrt
 from copy import deepcopy
 import math
@@ -358,7 +359,7 @@ def compress_parallel_edges(G):
     return nx.from_pandas_edgelist(df_edges, source="source", target="target", edge_attr=['idm', 'idcfg', 'label', 'title'])  # simple graph because no more parallel edges
 
 
-def fcg(G, colormap, WD_img='/home/gally/Projects/NPFC/data/fragments/crms/data/prep/report/depict', output_file=None):
+def fcg(G, colormap, WD_img='/home/gally/Projects/NPFC/data/fragments/crms/data/prep/report/depict', output_file=None, size=(400, 400)):
     """A very Q&D function to draw FCGs.
     It loads a PNG image (with transparent background) for each fragment from within the specified folder.
 
@@ -410,18 +411,12 @@ def fcg(G, colormap, WD_img='/home/gally/Projects/NPFC/data/fragments/crms/data/
     # setup export
     if output_file is None:
         output_file = '/tmp/_tmp_fcg.img'
-    if Path(output_file).exists():
-        Path(output_file).unlink()
 
     # export the graph as SVG
     A.draw(output_file, format='png', prog='dot')
 
     # read back the export
-    return Image(output_file)
-
-from IPython.display import Image
-
-
+    return Image(output_file, width=size[0], height=size[1])
 
 
 def rescale(mol: Mol, f: float = 1.4):
