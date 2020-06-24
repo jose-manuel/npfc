@@ -26,7 +26,7 @@ def idx_to_label(n: int) -> str:
     In case the number is higher than the number of letters in the english alphabet, then
     a second character is appended.
 
-    For instance:
+    >>> For instance:
     >>>idx_to_label(0)
     >>> 'a'
     >>> idx_to_label(25)
@@ -81,7 +81,9 @@ def get_fcp_labels(mol: Mol) -> dict:
         - a suffix: sequential letter or string that gets incremented for each element in group
 
 
-    This means that equivalent atoms (within the same group) are given the same prefix but different suffixes:
+    This means that equivalent atoms (within the same group) are given the same prefix but different suffixes.
+
+    >>> For instance:
     >>> '1a', '1b', '2'  # 2 equivalent atoms in position 1
     >>> '1', '2', '3', '4', '5', '6'  # a 6-atoms fragment with no symmetry group
     >>> '1a', '1b', '1c', '1d', '1e', '1f'  # a benzene or cyclohexane
@@ -107,6 +109,7 @@ def get_fcp_labels(mol: Mol) -> dict:
 
 def simplify_fcp(fcp: List[str]) -> List[str]:
     """Remove suffixes from each fcp within provided list.
+
     >>> For instance:
     >>> '1a', '1b', '2' becomes: '1', '1', '2'
 
