@@ -26,6 +26,7 @@ available. Please have a look and enjoy, any feedback is welcome!
    fragment_search
    fragment_combination
    fragment_combination_graph
+   fragment_combination_point
    draw
 
 Indices and tables

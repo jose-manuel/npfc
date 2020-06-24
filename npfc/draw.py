@@ -370,7 +370,7 @@ def fcg(G, colormap, WD_img='/home/gally/Projects/NPFC/data/fragments/crms/data/
     A = to_agraph(G)
 
     # configure graph attributes
-    #A.graph_attr.update(ratio="fill")
+    # A.graph_attr.update(ratio="fill")
     A.graph_attr.update(size="12, 25")
     A.graph_attr['outputorder'] = 'edgesfirst'
     A.graph_attr['forcelabels'] = 'true'
@@ -378,7 +378,6 @@ def fcg(G, colormap, WD_img='/home/gally/Projects/NPFC/data/fragments/crms/data/
     A.graph_attr['dpi'] = '1200'
     A.graph_attr['label'] = "\n\n" + list(G.edges(data=True))[0][2]['title']
     A.graph_attr['fontsize'] = 25
-
 
     # init node/attribute mapping
     node_labels = G.nodes()
