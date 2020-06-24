@@ -88,6 +88,8 @@ def get_fcp_labels(mol: Mol) -> dict:
     >>> '1', '2', '3', '4', '5', '6'  # a 6-atoms fragment with no symmetry group
     >>> '1a', '1b', '1c', '1d', '1e', '1f'  # a benzene or cyclohexane
 
+    ..note:: labels prefixes begin at 1, not 0 like atom indices.
+
     :param mol: the input molecule
     :return: a dictionary with the correspondance between atom indices (keys) and atom labels (values)
     """
