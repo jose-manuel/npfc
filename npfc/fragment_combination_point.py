@@ -14,6 +14,7 @@ from collections import defaultdict
 # chemoinformatics
 from rdkit.Chem import Mol
 # docs
+from typing import Union
 from typing import Tuple
 from typing import List
 
@@ -88,7 +89,7 @@ def get_fcp_labels(mol: Mol) -> dict:
     >>> '1', '2', '3', '4', '5', '6'  # a 6-atoms fragment with no symmetry group
     >>> '1a', '1b', '1c', '1d', '1e', '1f'  # a benzene or cyclohexane
 
-    ..note:: labels prefixes begin at 1, not 0 like atom indices.
+    .. note:: labels prefixes begin at 1, not 0 like atom indices.
 
     :param mol: the input molecule
     :return: a dictionary with the correspondance between atom indices (keys) and atom labels (values)
@@ -119,3 +120,32 @@ def simplify_fcp(fcp: List[str]) -> List[str]:
     :return: the simplified list
     """
     return [re.sub("[^0-9]", "", x) for x in fcp]
+
+
+def count_symmetry_groups(val: Union[Mol, List[str]]) -> int:
+    """Return the number of symmetry groups found in a fragment.
+
+    :param val: either a fragment as Mol object or the fragment connection points as dict
+    :return: the count of symmetry groups
+    """
+    # init
+    if isinstance(val, Mol):
+        val = get_fcp_labels(val)
+    elif not isinstance(val, dict):
+        raise ValueError(f"Error! Input value is neither a Molecule nor a dictionary: '{val}' ({type(val)})")
+    fcp = list(val.values())
+    # regroup by symmetry group
+    d = {}
+    # populate each groups with the equivalent atom indices
+    for s in fcp:
+        m = re.search(r"[a-z]", s)
+        if m:
+            idx = m.start()
+            prefix = s[:idx]
+            if prefix in d.keys():
+                d[prefix] += 1
+            else:
+                d[prefix] = 1
+
+    # count only groups with more than 1 element
+    return len([x for x in d.values() if x > 1])
