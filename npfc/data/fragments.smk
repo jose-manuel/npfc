@@ -54,17 +54,26 @@ if fallback_default_std_frags:
 
 
 rule all:
-    input: WD + '/' + prep_subdir + "/04_depict/data/" + prefix + "_depict.csv.gz"  # rule all does not accept wildcards
+    input: WD + '/' + prep_subdir + "/05_depict/data/" + prefix + "_depict.csv.gz"  # rule all does not accept wildcards
 
 rule DEPICT:
     priority: 100
-    input: "{WD}/{prep_subdir}/03_dedupl/data/{prefix}_dedupl.csv.gz"
-    output: "{WD}/{prep_subdir}/04_depict/data/{prefix}_depict.csv.gz"
-    log: "{WD}/{prep_subdir}/04_depict/log/{prefix}_depict.log"
+    input: "{WD}/{prep_subdir}/04_dedupl/data/{prefix}_fcp.csv.gz"
+    output: "{WD}/{prep_subdir}/05_depict/data/{prefix}_depict.csv.gz"
+    log: "{WD}/{prep_subdir}/05_depict/log/{prefix}_depict.log"
     shell: "mols_depict {input} {output} 2>{log}"
 
-rule DEDUPL:
+rule FCP:
     priority: 101
+    input: frags = "{WD}/{prep_subdir}/03_dedupl/data/{prefix}_dedupl.csv.gz"
+    output:
+        frags = "{WD}/{prep_subdir}/04_fcp/data/{prefix}_fcp.csv.gz",
+        counts = "{WD}/{prep_subdir}/03_dedupl/log/{prefix}_fcp_symcounts.csv"
+    log: "{WD}/{prep_subdir}/04_depict/log/{prefix}_fcp.log"
+    shell: "frags_annotate_fcp {input} {output.frags} -c {output.counts} 2>{log}"
+
+rule DEDUPL:
+    priority: 102
     input: "{WD}/{prep_subdir}/02_std/data/{prefix}_std.csv.gz"
     output:
         passed = "{WD}/{prep_subdir}/03_dedupl/data/{prefix}_dedupl.csv.gz",
@@ -73,7 +82,7 @@ rule DEDUPL:
     shell: "mols_dedupl {input} {output.passed} -d {output.filtered} -r {WD}/{prep_subdir}/03_dedupl/{prefix}_ref.hdf 2>{log}"
 
 rule STD_MURCKO:
-    priority: 102
+    priority: 103
     input: "{WD}/{prep_subdir}/01_load/data/{prefix}.csv.gz"
     output:
         std = "{WD}/{prep_subdir}/02_std/data/{prefix}_std.csv.gz",
@@ -83,7 +92,7 @@ rule STD_MURCKO:
     shell: "mols_standardize {input} {output.std} -f {output.filtered} -e {output.error} -p " + config_std_frags + " 2>{log}"
 
 rule LOAD:
-    priority: 103
+    priority: 104
     input: input_file
     output: "{WD}/{prep_subdir}/01_load/data/{prefix}.csv.gz"
     log: "{WD}/{prep_subdir}/01_load/log/{prefix}.log"
