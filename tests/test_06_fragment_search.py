@@ -22,7 +22,11 @@ logging.basicConfig(level=logging.ERROR)
 @pytest.fixture
 def df_frags():
     """Two fragments used for most of substructue searches."""
-    return pd.DataFrame({'mol': [Chem.MolFromSmiles(x) for x in ['C1NCCC1', 'C1CCCOC1']]}, index=['QA', 'QB'])
+    df = pd.DataFrame([['QA', Chem.MolFromSmiles('C1NCCC1'), {1: '1', 0: '2a', 2: '2b', 3: '3a', 4: '3b'}],
+                       ['QB', Chem.MolFromSmiles('C1CCCOC1'), {1: '1', 0: '2a', 2: '2b', 4: '3', 3: '4a', 5: '4b'}],
+                       ], columns=['idf', 'mol', '_fcp_labels'])
+    df.index = [x for x in df['idf'].astype(str)]
+    return df
 
 
 @pytest.fixture

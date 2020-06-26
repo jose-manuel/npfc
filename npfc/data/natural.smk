@@ -74,7 +74,7 @@ rule FS:
         frags = ancient(frags_file)
     output: "{WD}/{prep_subdir}" + f"/{frags_subdir}" + "/06_fs/data/{prefix}_{cid}_fs.csv.gz"
     log: "{WD}/{prep_subdir}" + f"/{frags_subdir}" + "/06_fs/log/{prefix}_{cid}_fs.log"
-    shell: "mols_fsearch {input.mols} {input.frags} {output} >{log} 2>&1"
+    shell: "frags_search {input.mols} {input.frags} {output} >{log} 2>&1"
 
 rule DEPICT:
     priority: 14

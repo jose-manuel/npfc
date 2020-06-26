@@ -74,5 +74,7 @@ def get_fragment_hits(df_mols: DataFrame,
 
     df_fs = DataFrame(d)
     df_fs['idf_idx'] = df_fs.groupby(['idm', 'idf']).cumcount()  # rank seems to be working with np.float types only...
+    df_frags = df_frags.rename({'idm': 'idf'}, axis=1)
+    df_fs = df_fs.merge(df_frags[['idf', '_fcp_labels']], on='idf', how='left')
 
     return df_fs

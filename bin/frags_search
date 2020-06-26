@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """
-Script mols_fsearch
+Script frags_search
 ==========================
 This script is used for searching for fragments in molecules.
 """
@@ -160,7 +160,6 @@ def main():
                          out_id=args.fid,
                          in_mol=args.fmol,
                          out_mol=args.fmol,
-                         keep_props=False,
                          csv_sep=args.fsep,
                          decode=args.fdecode,
                          )
