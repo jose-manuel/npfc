@@ -110,16 +110,42 @@ def get_fcp_labels(mol: Mol) -> dict:
     return d_fcp_labels
 
 
-def simplify_fcp(fcp: List[str]) -> List[str]:
-    """Remove suffixes from each fcp within provided list.
+# def simplify_fcp(fcp: List[str]) -> List[str]:
+#     """Remove suffixes from each fcp within provided list.
+#
+#     >>> For instance:
+#     >>> '1a', '1b', '2' becomes: '1', '1', '2'
+#
+#     :param fcp: a list of Fragment Connection Points
+#     :return: the simplified list
+#     """
+#     return [re.sub("[^0-9]", "", x) for x in fcp]
+
+
+def clear_fcp_suffixes(fcp_str: str) -> List[str]:
+    """Remove suffixes from each fcp within provided string.
 
     >>> For instance:
-    >>> '1a', '1b', '2' becomes: '1', '1', '2'
+    >>> '1a,1b,2' becomes: '1,1,2'
 
     :param fcp: a list of Fragment Connection Points
     :return: the simplified list
     """
-    return [re.sub("[^0-9]", "", x) for x in fcp]
+    return re.sub("[^0-9,]", "", fcp_str)
+
+
+def clear_fcp_suffixes_in_edges(edges: list) -> list:
+    """Remove suffixes from each fcp within the attributes found in a list of edges
+
+    :param edges: a list of edges ([[u1, v1, d1], [u2, v2, d2]]), with u and v the nodes and d a dictionary of attributes
+    :return: the updated edges
+    """
+    for e in edges:
+        e[2]['fcp_1'] = clear_fcp_suffixes(e[2]['fcp_1'])
+        e[2]['fcp_2'] = clear_fcp_suffixes(e[2]['fcp_2'])
+
+    return edges
+
 
 
 def count_symmetry_groups(val: Union[Mol, List[str]]) -> int:

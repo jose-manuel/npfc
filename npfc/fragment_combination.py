@@ -511,7 +511,16 @@ def classify_df(df_aidxf: DataFrame,
                 logging.debug("Classifying m=%s, f1=%s:%s, f2=%s:%s", gid, idf1, idf1_idx, idf2, idf2_idx)
                 d_fcc = classify(mol, aidxf1, aidxf2, cutoff=cutoff, exclude_exocyclic=exclude_exocyclic)
                 if len(d_fcc['cp1']) > 0:
-                    fc = f"{idf1}:{idf1_idx}@{','.join([str(x) for x in sorted(d_fcc['cp1'])])}[{d_fcc['fcc']}]{idf2}:{idf2_idx}@{','.join([str(x) for x in sorted(d_fcc['cp2'])])}"
+                    # here I need to find the corresponding cp1 but with fcp labels
+                    try:
+                        fcp1 = [row_f1['_fcp_labels'][x] for x in sorted(d_fcc['cp1'])]
+                        fcp2 = [row_f2['_fcp_labels'][x] for x in sorted(d_fcc['cp2'])]
+                    except KeyError:
+                        logging.warning('FCP labels are not available')
+                        fcp1 = sorted(d_fcc['cp1'])
+                        fcp2 = sorted(d_fcc['cp2'])
+
+                    fc = f"{idf1}:{idf1_idx}@{','.join([str(x) for x in fcp1])}[{d_fcc['fcc']}]{idf2}:{idf2_idx}@{','.join([str(x) for x in fcp2])}"
                 else:  # useful only for cfc combinations
                     fc = f"{idf1}:{idf1_idx}[{d_fcc['fcc']}]{idf2}:{idf2_idx}"
                 logging.debug(f"fc={fc}")
@@ -530,11 +539,17 @@ def classify_df(df_aidxf: DataFrame,
                 d_fcc['hac'] = hac
                 d_fcc['mol_frag_1'] = molf1
                 d_fcc['mol_frag_2'] = molf2
+                try:
+                    d_fcc['_fcp_labels_1'] = row_f1['_fcp_labels']
+                    d_fcc['_fcp_labels_2'] = row_f2['_fcp_labels']
+                except KeyError:
+                    d_fcc['_fcp_labels_1'] = {}
+                    d_fcc['_fcp_labels_1'] = {}
                 d_fcc['fc'] = fc
                 ds_fcc.append(d_fcc)
     logging.debug("="*80)
     # dataframe with columns in given order
-    df_fcc = DataFrame(ds_fcc, columns=['idm', 'idf1', 'idf1_idx', 'fid1', 'idf2', 'idf2_idx', 'fid2', 'fcc', 'category', 'type', 'subtype', '_aidxf1', '_aidxf2', 'hac', 'mol', 'mol_frag_1', 'mol_frag_2', 'fc'])
+    df_fcc = DataFrame(ds_fcc, columns=['idm', 'idf1', 'idf1_idx', 'fid1', 'idf2', 'idf2_idx', 'fid2', 'fcc', 'category', 'type', 'subtype', '_aidxf1', '_aidxf2', 'hac', 'mol', 'mol_frag_1', 'mol_frag_2', 'fc', '_fcp_labels_1', '_fcp_labels_2'])
     # clear_cfc
     if clear_cfc:
         df_fcc = df_fcc[df_fcc['fcc'] != 'cfc']

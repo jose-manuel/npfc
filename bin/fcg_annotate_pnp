@@ -51,7 +51,8 @@ def main():
     parser.add_argument('input_fcg', type=str, default=None, help="Fragment Map file to annotate")
     parser.add_argument('ref_dir', type=str, default=None, help="Directory with Fragment Map files to use as references (currently wiht syntax: <name>_fcg.csv.gz)")
     parser.add_argument('output_fcg', type=str, default=None, help="Output file for annoated fragment graphs.")
-    parser.add_argument('-d', '--data', type=str, default='fcc', help="Graph properties to consider for annotating pnps. (i.e. 'fcc' or 'fcc,cps,cpt').")
+    parser.add_argument('-d', '--data', type=str, default='fcc,fcp_1,fcp_2', help="Graph edge attributes to consider for annotating pnps (no space, separated with ',').")
+    parser.add_argument('-s', '--symmetry', type=bool, default=True, help="Consider symmetry when comparing FCPs. If activated, the suffixes ('1a,2') are removed ('1,2') so equivalent FCPs are considered the same.")
     parser.add_argument('-l', '--list-pnp-mols', type=str, default=None, help="Output file with the list of molecules labelled as PNP or not. It is useful to avoid loading the whole dataset just to count the proportion of PNP/non-PNP molecules.")
     parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
     args = parser.parse_args()
@@ -101,6 +102,7 @@ def main():
     logger.info("OUT_COMPRESSION".ljust(pad) + f"{out_compression}")
     logger.info("LIST_PNP_MOLS".ljust(pad) + f"{args.list_pnp_mols}")
     logger.info("PNP_ATTRIBUTES".ljust(pad) + f"{', '.join(data)}")
+    logger.info("SYMMETRY".ljust(pad) + f"{args.symmetry}")
     logger.info("LOG".ljust(pad) + f"{args.log}")
     d1 = datetime.now()
 
@@ -145,7 +147,7 @@ def main():
 
     logger.info("ANNOTATING FRAGMENT COMBINATION GRAPHS")
     d3 = datetime.now()
-    df_pnp = fragment_combination_graph.annotate_pnp(df_fcg, df_fcg_ref, data=data)
+    df_pnp = fragment_combination_graph.annotate_pnp(df_fcg, df_fcg_ref, data=data, consider_symmetry=args.symmetry)
 
     # saving results
     logger.info("SAVING RESULTS")

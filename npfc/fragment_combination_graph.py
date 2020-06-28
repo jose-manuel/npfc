@@ -20,6 +20,7 @@ import networkx as nx
 # docs
 from typing import List
 # dev
+from npfc import fragment_combination_point
 from npfc import draw
 from npfc import utils
 
@@ -46,6 +47,7 @@ DF_FG_COLS = ['idm',
               '_fcg',
               'mol',
               '_d_mol_frags',
+              '_d_fcp_labels',
               ]
 
 # for annotating fragment graphs with PNP
@@ -263,6 +265,7 @@ def generate(df_fcc: DataFrame, min_frags: int = 2, max_frags: int = 5, max_over
 
     logging.debug("Mapping fragments")
 
+    use_fcp_labels = True
     ds_fcg = []
     for gid, g in df_fcc.groupby('idm'):
         logging.debug("Current Molecule: %s", gid)
@@ -296,23 +299,45 @@ def generate(df_fcc: DataFrame, min_frags: int = 2, max_frags: int = 5, max_over
             # d_aidxs: a dict containing the occurrences of each fragment type
             d_aidxs = {}
             d_frags = {}
+            d_fcp_labels = {}
             for j in range(len(df_fcc_clean.index)):
                 row = df_fcc_clean.iloc[j]
                 # idf1
                 if row["idf1"] not in d_aidxs.keys():
                     d_aidxs[row["idf1"]] = [row["_aidxf1"]]
                     d_frags[row["idf1"]] = row["mol_frag_1"]
+                    try:
+                        d_fcp_labels[row['idf1']] = row['_fcp_labels_1']
+                    except KeyError:
+                        use_fcp_labels = False
                 elif row["_aidxf1"] not in d_aidxs[row["idf1"]]:
                     d_aidxs[row["idf1"]].append(row["_aidxf1"])
+                    try:
+                        d_fcp_labels[row['idf1']] = row['_fcp_labels_1']
+                    except KeyError:
+                        use_fcp_labels = False
                 # idf2
                 if row["idf2"] not in d_aidxs.keys():
                     d_aidxs[row["idf2"]] = [row["_aidxf2"]]
                     d_frags[row["idf2"]] = row["mol_frag_2"]
+                    try:
+                        d_fcp_labels[row['idf2']] = row['_fcp_labels_2']
+                    except KeyError:
+                        use_fcp_labels = False
                 elif row["_aidxf2"] not in d_aidxs[row["idf2"]]:
                     d_aidxs[row["idf2"]].append(row["_aidxf2"])
+                    try:
+                        d_fcp_labels[row['idf2']] = row['_fcp_labels_2']
+                    except KeyError:
+                        use_fcp_labels = False
 
             # sort d_aidxs for reproducible colormaps  ### might be the cause of the wrong coloration in alternative fgraphs due to overlaps
             d_aidxs = OrderedDict(sorted(d_aidxs.items()))
+            if use_fcp_labels:
+                d_fcp_labels = OrderedDict(sorted(d_fcp_labels.items()))
+            else:
+                logging.warning('FCP labels are not available')
+
             # count fragment occurrences (non-unique)
             frags = list(set([x for x in df_fcc_clean['fid1'].map(str).values] + [x for x in df_fcc_clean['fid2'].map(str).values]))
             nfrags = len(frags)
@@ -342,10 +367,10 @@ def generate(df_fcc: DataFrame, min_frags: int = 2, max_frags: int = 5, max_over
             # here I used to compress all combinations in common
             # df_fcc_clean['n_fcc'] = df_fcc_clean.groupby(['idf1', 'idf2', 'fcc'])['fcc'].transform('count')
             # df_fcc_clean.drop_duplicates(subset=["idf1", "idf2", "fcc"], keep="first", inplace=True)
-            # create two new columns: cps and cpt for indicating connection points of source and target
-            df_fcc_clean['cps'], df_fcc_clean['cpt'] = zip(*df_fcc_clean['fc'].map(lambda x: (x.split('[')[0].split('@')[1], x.split(']')[1].split('@')[1])))
+            # create two new columns: fcp_1 and fcp_2 for indicating fragment connection points of source and target
+            df_fcc_clean['fcp_1'], df_fcc_clean['fcp_2'] = zip(*df_fcc_clean['fc'].map(lambda x: (x.split('[')[0].split('@')[1], x.split(']')[1].split('@')[1])))
             # compute the graph
-            edge_attr = ['fcc', 'n_fcc', 'idm', 'cps', 'cpt']
+            edge_attr = ['fcc', 'n_fcc', 'idm', 'fcp_1', 'fcp_2']
             edge_attr = [x for x in edge_attr if x in df_fcc_clean.columns]
             df_fcc_clean = df_fcc_clean.sort_values(['idf1', 'idf2'])
             df_fcc_edges = df_fcc_clean.copy()[['idf1', 'idf2'] + edge_attr]
@@ -365,7 +390,10 @@ def generate(df_fcc: DataFrame, min_frags: int = 2, max_frags: int = 5, max_over
             ncomb = len(comb)
             comb_u = list(set(comb))
             ncomb_u = len(comb_u)
-            ds_fcg.append({'idm': gid, 'idfcg': str(i+1).zfill(3), 'nfrags': nfrags, 'nfrags_u': nfrags_u, 'ncomb': ncomb, 'ncomb_u': ncomb_u, 'hac_mol': hac_mol, 'hac_frags': hac_frags, 'perc_mol_cov_frags': perc_mol_cov_frags, '_frags': frags, '_frags_u': frags_u, '_comb': comb, '_comb_u': comb_u, 'fcg_str': fragment_combination_graph_str, '_d_aidxs': d_aidxs, '_colormap': colormap, '_fcg': G, 'mol': mol, '_d_mol_frags': d_frags})
+            if not use_fcp_labels:
+                d_fcp_labels = {}
+
+            ds_fcg.append({'idm': gid, 'idfcg': str(i+1).zfill(3), 'nfrags': nfrags, 'nfrags_u': nfrags_u, 'ncomb': ncomb, 'ncomb_u': ncomb_u, 'hac_mol': hac_mol, 'hac_frags': hac_frags, 'perc_mol_cov_frags': perc_mol_cov_frags, '_frags': frags, '_frags_u': frags_u, '_comb': comb, '_comb_u': comb_u, 'fcg_str': fragment_combination_graph_str, '_d_aidxs': d_aidxs, '_colormap': colormap, '_fcg': G, 'mol': mol, '_d_mol_frags': d_frags, '_d_fcp_labels': d_fcp_labels})
 
     # put it all together
     df_fcg = DataFrame(ds_fcg, columns=DF_FG_COLS).drop_duplicates(subset=['fcg_str'])
@@ -404,7 +432,7 @@ def filter_edges_attributes(edges: list, cols: list) -> list:
     :param edges: the edges as a list of tuple of syntax (u, v, d) with d being the dict with the attributes
     :param cols: the list of attributes to use for PNP labelling.
     """
-    return [(row[0], row[1], {k: v for k, v in row[2].items() if k in cols}) for row in edges]
+    return [list([row[0], row[1], {k: v for k, v in row[2].items() if k in cols}]) for row in edges]
 
 
 def get_pnp_references(edges: tuple, df_ref: DataFrame, target_node: frozenset = None) -> tuple:
@@ -432,7 +460,7 @@ def get_pnp_references(edges: tuple, df_ref: DataFrame, target_node: frozenset =
         return tuple(df_ref['idm_idfcg'].values)
 
 
-def annotate_pnp(df_fcg, df_fcg_ref, data=['fcc']) -> DataFrame:
+def annotate_pnp(df_fcg, df_fcg_ref, data=['fcc', 'fcp_1', 'fcp_2'], consider_symmetry=True) -> DataFrame:
     """Search and Identify for PNP molecules in the input DataFrame (df_fcg).
     PNP molecules are defined as molecules containing natural fragments combinations
     that are not found in a reference natural dataset.
@@ -440,7 +468,7 @@ def annotate_pnp(df_fcg, df_fcg_ref, data=['fcc']) -> DataFrame:
 
         - source: id of fragment 1
         - target: id of fragment 2
-        - attributes to consider: fcc (by default), cps, cpt, etc.
+        - attributes to consider: by default: fcc, fcp_1, fcp_2, etc.
 
     Three new columns are appended to the input DataFrame:
 
@@ -448,9 +476,13 @@ def annotate_pnp(df_fcg, df_fcg_ref, data=['fcc']) -> DataFrame:
         - pnp_fcg: True if the input fcg has no match with any reference fcg, False otherwise
         - pnp_mol: True if the input molecule has no matching fcg with any reference fcg, False otherwise
 
+    When considering FCP, it is recommanded to consider symmetry. This results in ignoring the suffixes in FCPs,
+    i.e. '1a' and '1b' become both '1'.
+
     :param df_fcg: the input DataFrame
     :param df_fcg_ref: the reference DataFrame
     :param data: the list of edge attributes to consider during fcg comparison
+    :param consider_symmetry: consider fragment symmetry during annotating when using FCPs. To use FCPs data must include 'fcp_1' and/or 'fcp_2' (using or would not make sense here).
     :return: the input DataFrame with 3 new pnp columns
     """
 
@@ -464,9 +496,17 @@ def annotate_pnp(df_fcg, df_fcg_ref, data=['fcc']) -> DataFrame:
     df_fcg_ref["edges"] = df_fcg_ref["edges"].map(lambda x: filter_edges_attributes(x, data))
     df_fcg_ref['_frags_u'] = df_fcg_ref['_frags_u'].map(lambda x: frozenset(x))
 
+    # handle symmetry in case it is wished for
+    if consider_symmetry and 'fcp_1' in data and 'fcp_2' in data:
+        df_fcg['edges'] = df_fcg['edges'].map(fragment_combination_point.clear_fcp_suffixes_in_edges)
+        df_fcg_ref['edges'] = df_fcg_ref['edges'].map(fragment_combination_point.clear_fcp_suffixes_in_edges)
+
     # run annotation
     df_fcg['_pnp_ref'] = df_fcg.apply(lambda x: get_pnp_references(x['edges'], df_fcg_ref, x['_frags_u']), axis=1)
     df_fcg['pnp_fcg'] = df_fcg['_pnp_ref'].map(lambda x: True if len(x) == 0 else False)
     df_fcg['pnp_mol'] = df_fcg.groupby('idm')[['pnp_fcg']].transform(lambda x: True if any(x) else False)
+
+    # drop edges column since edges are included intact in G
+    df_fcg = df_fcg.drop('edges', axis=1)
 
     return df_fcg
