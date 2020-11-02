@@ -77,9 +77,10 @@ rule DEDUPL:
     input: "{WD}/{prep_subdir}/02_std/data/{prefix}_std.csv.gz"
     output:
         passed = "{WD}/{prep_subdir}/03_dedupl/data/{prefix}_dedupl.csv.gz",
-        filtered = "{WD}/{prep_subdir}/03_dedupl/log/{prefix}_filtered.csv.gz"
+        filtered = "{WD}/{prep_subdir}/03_dedupl/log/{prefix}_filtered.csv.gz",
+        synonyms = "{WD}/{prep_subdir}/03_dedupl/log/{prefix}_synonyms.csv.gz"
     log: "{WD}/{prep_subdir}/03_dedupl/log/{prefix}_dedupl.log"
-    shell: "mols_dedupl {input} {output.passed} -d {output.filtered} -r {WD}/{prep_subdir}/03_dedupl/{prefix}_ref.hdf 2>{log}"
+    shell: "mols_dedupl {input} {output.passed} -d {output.filtered} -s {output.synonyms} -r {WD}/{prep_subdir}/03_dedupl/{prefix}_ref.hdf 2>{log}"
 
 rule STD_MURCKO:
     priority: 103

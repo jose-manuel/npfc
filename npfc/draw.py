@@ -110,6 +110,7 @@ def mol(mol: Mol,
         output_file: str = None,
         img_size: Tuple[int] = (400, 400),
         debug: bool = False,
+        # force_depict: bool = False,
         svg: bool = True,
         legend: str = '') -> Image:
     """

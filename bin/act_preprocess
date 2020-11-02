@@ -120,7 +120,7 @@ def main():
 
     # update act idm with kept idm from ref file
     d3 = datetime.now()
-    logger.info(f"LOADING IDMS OF FILTERED/KEPT ENTRIES")
+    logger.info("LOADING IDMS OF FILTERED/KEPT ENTRIES")
 
     # filtered entries
     p_dir_log_uni = Path(args.dir_log_uni)
