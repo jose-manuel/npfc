@@ -29,6 +29,7 @@ from npfc import utils
 
 # for computing fragment graphs
 DF_FG_COLS = ['idm',
+              'inchikey',
               'idfcg',
               'nfrags',
               'nfrags_u',
@@ -58,7 +59,7 @@ DF_PNP_COLS = DF_FG_COLS + ['pnp_fm', 'pnp_mol']
 
 
 def _clear_ffs(df_fcc: DataFrame) -> DataFrame:
-    """Clear ffs combinations by discarding any combination in which  the smaller
+    """Clear ffs combinations by discarding any combination in which the smaller
     fragments is involved.
 
     :param df_fcc: a fcc DataFrame
@@ -393,7 +394,7 @@ def generate(df_fcc: DataFrame, min_frags: int = 2, max_frags: int = 5, max_over
             if not use_fcp_labels:
                 d_fcp_labels = {}
 
-            ds_fcg.append({'idm': gid, 'idfcg': str(i+1).zfill(3), 'nfrags': nfrags, 'nfrags_u': nfrags_u, 'ncomb': ncomb, 'ncomb_u': ncomb_u, 'hac_mol': hac_mol, 'hac_frags': hac_frags, 'perc_mol_cov_frags': perc_mol_cov_frags, '_frags': frags, '_frags_u': frags_u, '_comb': comb, '_comb_u': comb_u, 'fcg_str': fragment_combination_graph_str, '_d_aidxs': d_aidxs, '_colormap': colormap, '_fcg': G, 'mol': mol, '_d_mol_frags': d_frags, '_d_fcp_labels': d_fcp_labels})
+            ds_fcg.append({'idm': gid, 'inchikey': g.iloc[0]['inchikey'], 'idfcg': str(i+1).zfill(3), 'nfrags': nfrags, 'nfrags_u': nfrags_u, 'ncomb': ncomb, 'ncomb_u': ncomb_u, 'hac_mol': hac_mol, 'hac_frags': hac_frags, 'perc_mol_cov_frags': perc_mol_cov_frags, '_frags': frags, '_frags_u': frags_u, '_comb': comb, '_comb_u': comb_u, 'fcg_str': fragment_combination_graph_str, '_d_aidxs': d_aidxs, '_colormap': colormap, '_fcg': G, 'mol': mol, '_d_mol_frags': d_frags, '_d_fcp_labels': d_fcp_labels})
 
     # put it all together
     df_fcg = DataFrame(ds_fcg, columns=DF_FG_COLS).drop_duplicates(subset=['fcg_str'])

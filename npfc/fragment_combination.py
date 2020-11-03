@@ -528,6 +528,7 @@ def classify_df(df_aidxf: DataFrame,
                 # record fragment combination
                 d_fcc['idm'] = gid
                 d_fcc['mol'] = mol
+                d_fcc['inchikey'] = row_f1['inchikey']
                 d_fcc['idf1'] = idf1
                 d_fcc['idf1_idx'] = idf1_idx
                 d_fcc['fid1'] = str(idf1) + ":" + str(idf1_idx)
@@ -549,7 +550,7 @@ def classify_df(df_aidxf: DataFrame,
                 ds_fcc.append(d_fcc)
     logging.debug("="*80)
     # dataframe with columns in given order
-    df_fcc = DataFrame(ds_fcc, columns=['idm', 'idf1', 'idf1_idx', 'fid1', 'idf2', 'idf2_idx', 'fid2', 'fcc', 'category', 'type', 'subtype', '_aidxf1', '_aidxf2', 'hac', 'mol', 'mol_frag_1', 'mol_frag_2', 'fc', '_fcp_labels_1', '_fcp_labels_2'])
+    df_fcc = DataFrame(ds_fcc, columns=['idm', 'inchikey', 'idf1', 'idf1_idx', 'fid1', 'idf2', 'idf2_idx', 'fid2', 'fcc', 'category', 'type', 'subtype', '_aidxf1', '_aidxf2', 'hac', 'mol', 'mol_frag_1', 'mol_frag_2', 'fc', '_fcp_labels_1', '_fcp_labels_2'])
     # clear_cfc
     if clear_cfc:
         df_fcc = df_fcc[df_fcc['fcc'] != 'cfc']
