@@ -95,7 +95,7 @@ def mols_timeout():
 @pytest.fixture
 def mols_bad():
     """An example of a DataFrame with molecules with errors."""
-    d = {'valence': 'C1CCCC1O=C',
+    d = {'incorrect_valence': 'C1CCCC1O=C',
          'bad_minor_cpd': 'C1CCCCC1.Cl=O(=Cl)(=Cl)(=Cl)',
          'incorrect_smiles': 'C1CCCC',
          'no_smiles': '',

@@ -104,10 +104,11 @@ def main():
     # check on args values not already checked by argparse
     utils.check_arg_input_file(args.input_mols)
     utils.check_arg_output_file(args.output_mols_std)
-    utils.check_arg_config_file(args.protocol)
-
+    if args.protocol == 'None' or args.protocol == 'DEFAULT' or args.protocol == '':
+        args.protocol = None
     if args.protocol is None:
-        logger.warning("PROTOCOL IS NOT DEFINED, USING DEFAULT")
+        logger.warning("USING DEFAULT STANDARDIZATION PROTOCOL")
+    utils.check_arg_config_file(args.protocol)
 
     # in infos
     in_format, in_compression = utils.get_file_format(args.input_mols)
@@ -183,8 +184,8 @@ def main():
     logger.info("BEGIN")
 
     # describe protocol
-    logger.info(f"STANDARDIZING MOLECULES")
-    logger.info(f"PROTOCOL:")
+    logger.info("STANDARDIZING MOLECULES")
+    logger.info("PROTOCOL:")
     s = standardize.Standardizer(protocol=args.protocol, timeout=args.timeout)
     [logger.info(f"TASK #{str(i+1).zfill(2)} {task}") for i, task in enumerate(s._protocol['tasks'])]
     [logger.info(f"OPTION {opt}".ljust(pad) + f"{value}") for opt, value in s._protocol.items() if opt != 'tasks']
@@ -199,9 +200,9 @@ def main():
 
     # standardize molecules
     d2 = datetime.now()
-    logger.info(f"RUN STANDARDIZATION")
+    logger.info("RUN STANDARDIZATION")
     df_passed, df_filtered, df_error = s.run_df(df_mols)
-    logger.info(f"RESULTS:")
+    logger.info("RESULTS:")
     num_passed = len(df_passed.index)
     num_filtered = len(df_filtered.index)
     num_error = len(df_error.index)
@@ -209,7 +210,7 @@ def main():
     logger.info(''.join([f"{header}".ljust(10) for header in ('COUNT', num_passed, num_filtered, num_error)]))
 
     d3 = datetime.now()
-    logger.info(f"SAVING OUTPUTS")
+    logger.info("SAVING OUTPUTS")
     # std
     outputs = save.file(df_passed, args.output_mols_std, csv_sep=csv_sep)
     logger.info(f"SAVED {outputs[0][1]:,} STD RECORDS AT {outputs[0][0]}")

@@ -48,6 +48,15 @@ except KeyError:
 # from master script
 num_chunks = config['num_chunks']
 
+# protocol for standardizing molecules
+fallback_default_std_mols = False
+try:
+    config_std_mols = config['std_protocol']
+    if config_std_mols == '' or config_std_mols == 'DEFAULT':
+        fallback_default_std_mols = True
+except KeyError:
+    fallback_default_std_mols = True
+
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ INITIALIZATION ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
@@ -66,6 +75,10 @@ if natref_fcg_dir.endswith('/'):
 
 # define chunk_ids for wildcard expansion
 chunk_ids = [str(i+1).zfill(3) for i in range(num_chunks)]
+
+# fall back to default std configuration in case either missing from JSON file or empty string
+if fallback_default_std_mols:
+    config_std_mols = pkg_resources.resource_filename('npfc', 'data/std_mols.json')
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ PIPELINE ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
@@ -140,7 +153,7 @@ rule STD:
         filtered = "{WD}/{prep_subdir}/03_std/log/{prefix}_{cid}_filtered.csv.gz",
         error = "{WD}/{prep_subdir}/03_std/log/{prefix}_{cid}_error.csv.gz"
     log: "{WD}/{prep_subdir}/03_std/log/{prefix}_{cid}_std.log"
-    shell: "mols_standardize {input} {output.std} -f {output.filtered} -e {output.error} 2>{log}"  # mols_standardize takes a dir as output
+    shell: "mols_standardize {input} {output.std} -f {output.filtered} -e {output.error} -p " + config_std_mols + " 2>{log}"  # mols_standardize takes a dir as output
 
 rule LOAD:
     priority: 9
