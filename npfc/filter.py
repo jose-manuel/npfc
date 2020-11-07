@@ -10,8 +10,118 @@ import logging
 import re
 # chemoinformatics
 from rdkit.Chem import Mol
+from rdkit.Chem import Crippen
 from rdkit.Chem import Descriptors
 from rdkit.Chem import rdMolDescriptors
+# docs
+from typing import List
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
+def count_drug_like_violations(molecular_weight, slogp, num_hbd, num_hba):
+    """Lipinski, J Pharmacol Toxicol Methods. 2000 Jul-Aug;44(1):235-49.
+    """
+    n = 0
+    if molecular_weight < 150 or molecular_weight > 500:
+        n += 1
+    if slogp > 5:
+        n += 1
+    if num_hbd > 5:
+        n += 1
+    if num_hba > 10:
+        n += 1
+    return n
+
+
+def count_drug_like_ext_violations(num_drug_like_violations, num_rotatable_bonds, tpsa):
+    """Veber DF, Johnson SR, Cheng HY, Smith BR, Ward KW, Kopple KD (June 2002).
+    "Molecular properties that influence the oral bioavailability of drug candidates".
+    J. Med. Chem. 45 (12): 2615–23.
+    """
+    n = num_drug_like_violations
+    if num_rotatable_bonds > 10:
+        n += 1
+    if tpsa > 140:
+        n += 1
+    return n
+
+
+def count_lead_like_violations(molecular_weight, slogp, num_rotatable_bond):
+    """http://zinc.docking.org/browse/subsets/
+    Teague, Davis, Leeson, Oprea, Angew Chem Int Ed Engl. 1999 Dec 16;38(24):3743-3748.
+
+    """
+    n = 0
+    if molecular_weight < 250 or molecular_weight > 350:
+        n += 1
+    if slogp > 3.5:
+        n += 1
+    if num_rotatable_bond > 7:
+        n += 1
+    return n
+
+
+def count_ppi_like_violations(molecular_weight, slogp, num_hba, num_ring):
+    """Hamon, V., Bourgeas, R., Ducrot, P., Theret, I., Xuereb, L., Basse, M.J., Brunel, J.M., Combes, S., Morelli, X., Roche, P., 2013.
+    2P2IHUNTER: a tool for filtering orthosteric protein–protein interaction modulators via a dedicated support vector machine.
+    Journal of The Royal Society Interface 11. doi:10.1098/rsif.2013.0860
+    """
+    n = 0
+    if molecular_weight > 400:
+        n += 1
+    if slogp < 4:
+        n += 1
+    if num_hba < 4:
+        n += 1
+    if num_ring < 4:
+        n += 1
+    return n
+
+
+def count_fragment_like_violations(molecular_weight, slogp, num_hba, num_hbd):
+    """Congreve, M., Carr, R., Murray, C., Jhoti, H., 2003. A “Rule of Three” for fragment-based lead discovery?
+    Drug Discovery Today 8, 876–877. doi:10.1016/S1359-6446(03)02831-9
+    """
+    n = 0
+    if molecular_weight >= 300:
+        n += 1
+    if slogp > 3:
+        n += 1
+    if num_hba > 3:
+        n += 1
+    if num_hbd > 3:
+        n += 1
+    return n
+
+
+def count_fragment_like_ext_violations(num_fragment_like_violations, tpsa, num_rotatable_bond):
+    """Congreve, M., Carr, R., Murray, C., Jhoti, H., 2003.
+    A “Rule of Three” for fragment-based lead discovery? Drug Discovery Today 8, 876–877.
+    doi:10.1016/S1359-6446(03)02831-9
+    """
+    n = num_fragment_like_violations
+    if tpsa > 60:
+        n += 1
+    if num_rotatable_bond:
+        n += 1
+    return n
+
+
+def get_min_max_ring_sizes(mol):
+    """Return a tuple wih (minimum, maximum) ring sizes of the input molecule.
+    In case the molecule is linear, (0, 0) is returned.
+    """
+    ring_sizes = [len(x) for x in mol.GetRingInfo().AtomRings()]
+    if len(ring_sizes) > 0:
+        min_ring_size = min(ring_sizes)
+        max_ring_size = max(ring_sizes)
+    else:
+        min_ring_size = 0
+        max_ring_size = 0
+
+    return (min_ring_size, max_ring_size)
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ CLASSES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
@@ -22,13 +132,49 @@ class Filter:
 
     def __init__(self):
         """Create a Filter object."""
-        self.descriptors = {'hac': lambda x: x.GetNumAtoms(),
-                            'molweight': lambda x: round(Descriptors.ExactMolWt(x), 4),
-                            'nrings': lambda x: rdMolDescriptors.CalcNumRings(x),
+
+        self.descriptors = {
+                            # classical molecular descriptors
+                            'num_heavy_atom': lambda x: x.GetNumAtoms(),
+                            'molecular_weight': lambda x: round(Descriptors.ExactMolWt(x), 4),
+                            'num_ring': lambda x: rdMolDescriptors.CalcNumRings(x),
+                            'num_ring_arom': lambda x: rdMolDescriptors.CalcNumAromaticRings(x),
                             'elements': lambda x: set([a.GetSymbol() for a in x.GetAtoms()]),
+                            'molecular_formula': lambda x: rdMolDescriptors.CalcMolFormula(x),
+                            'num_hbd': lambda x: rdMolDescriptors.CalcNumLipinskiHBD(x),
+                            'num_hba': lambda x: rdMolDescriptors.CalcNumLipinskiHBA(x),
+                            'slogp': lambda x: round(Crippen.MolLogP(x), 4),
+                            'tpsa': lambda x: round(rdMolDescriptors.CalcTPSA(x), 4),
+                            'num_rotatable_bond': lambda x: rdMolDescriptors.CalcNumRotatableBonds(x),
+                            # custom molecular descriptors
+                            'ring_size_min': lambda x: min([len(y) for y in x.GetRingInfo().AtomRings()]),
+                            'ring_size_max': lambda x: max([len(y) for y in x.GetRingInfo().AtomRings()]),
                             }
 
-    def filter_mol(self, mol: Mol, expr: str) -> bool:  # TODO: add docstring for listing implemented descriptors
+    def compute_descriptors(self, mol: Mol, descriptors: List = None) -> dict:
+        """Compute descriptors. A subset of descriptors can be computed if a list
+        of descriptor names is provided. To get an idea of what descriptors can be computed,
+        the method get_possible_descriptors can be used.
+
+        :param mol: the input molecule
+        :param descriptors: the list of descriptors to compute. If none is provided, all possible
+        descriptors are computed.
+        :return: a dictionary with all descriptors
+        """
+        # if no descriptor is specified, compute them all
+        if descriptors is None:
+            descriptors = list(self.descriptor.keys())
+
+        return {descriptors[i]: self.descriptors[descriptors[i]](mol) for i in range(len(descriptors))}
+
+    def get_possible_descriptors(self) -> List:
+        """Return a list of all descriptors that can be computed using this module.
+
+        :return: the list of descriptors that can be computed
+        """
+        return sorted(list((self.descriptors.keys())))
+
+    def filter_mol(self, mol: Mol, expr: str) -> bool:
         """Filter a molecule based on an expression.
         Two types of expressions are currently supported:
 

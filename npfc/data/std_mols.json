@@ -13,8 +13,8 @@
                               "uncharge",
                               "canonicalize",
                               "clear_stereo"],
-                    "filter_hac": "hac > 3",
-                    "filter_molweight": "molweight <= 1000.0",
-                    "filter_nrings": "nrings > 0",
+                    "filter_hac": "num_heavy_atom > 3",
+                    "filter_molweight": "molecular_weight <= 1000.0",
+                    "filter_nrings": "num_ring > 0",
                     "filter_medchem": "elements in {H, B, C, N, O, F, P, S, Cl, Br, I}"
 }
