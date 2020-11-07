@@ -18,12 +18,6 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     install_requires=[
           'pip',
-          'timeout-decorator',
-          'rdkit',
-          'snakemake',
-          'psycopg2',
-          'seaborn',
-          'jupyterlab',
       ],
     setup_requires=["pytest-runner"],
     tests_require=["pytest"],

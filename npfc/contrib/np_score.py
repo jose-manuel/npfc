@@ -18,7 +18,8 @@ import pickle
 # chemoinformatics
 from rdkit.Chem import Mol
 from rdkit.Chem import rdMolDescriptors
-
+# docs
+from typing import Union
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ CLASSES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
@@ -37,16 +38,21 @@ class NPScorer:
 
     def __init__(self, file_model: str):
         self.fscores = pickle.load(gzip.open(file_model))
+        self.file_model = file_model
 
-    def score(self, mol: Mol) -> dict:
+    def __repr__(self):
+        return f"NPScorer with model loaded at '{self.file_model}'"
+
+    def score(self, mol: Mol, confidence=False) -> Union[float, dict]:
         """Compute the Natural-Product-Likeness of a molecule.
         This scores varies between -5.0 (synthetic) and +5.0 (natural). It relies
         on the predefined fragment scores from the model, therefore a confidence
-        value (0-1.0) is also computed to estimate the proportion of the molecule that
+        value (0-1.0) can be computed to estimate the proportion of the molecule that
         was actually assessed and thus, how reliable the score is.
 
         :param mol: the input molecule
-        :return: a dictioary with the 'np_score' and the 'confidence' values.
+        :param confidence: compute the confidence value
+        :return: either directly the 'np_score' or a dictionary with the 'np_score' and the 'confidence' values.
         """
 
         if mol is None:
@@ -65,14 +71,20 @@ class NPScorer:
                 score += self.fscores[bit]
         score /= float(mol.GetNumAtoms())
 
-        # confidence score to asses how much of the tested fragments of the molecule
-        # represent of the molecule (the higher, the better)
-        confidence = float(bits_found / len(bits))
-
         # preventing score explosion for exotic molecules
         if score > 4:
             score = 4. + math.log10(score - 4. + 1.)
         elif score < -4:
             score = -4. - math.log10(-4. - score + 1.)
 
-        return {'np_score': score, 'confidence': confidence}
+        # avoiding unnecessary float precision
+        score = round(score, 4)
+
+        if confidence:
+            # confidence score to asses how much of the tested fragments of the molecule
+            # represent of the molecule (the higher, the better)
+            confidence = float(bits_found / len(bits))
+
+            return {'np_score': score, 'confidence': round(confidence, 4)}
+        else:
+            return score
