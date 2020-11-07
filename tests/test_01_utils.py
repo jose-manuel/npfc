@@ -88,8 +88,8 @@ def test_arg_config_file():
     # write file, it will be also tested for standardization later
     with open(json_config, 'w') as JSON:
         JSON.write('''{
-                    "tasks": ["sanitize", "filter_molweight"],
-                    "filter_molweight": "100.0 <= molweight <= 1000.0"\n}''')
+                    "tasks": ["sanitize", "filter_molecular_weight"],
+                    "filter_molecular_weight": "100.0 <= molecular_weight <= 1000.0"\n}''')
     # should pass
     utils.check_arg_config_file(json_config)
     # should throw a ValueError

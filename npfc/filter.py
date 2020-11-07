@@ -163,7 +163,10 @@ class Filter:
         """
         # if no descriptor is specified, compute them all
         if descriptors is None:
-            descriptors = list(self.descriptor.keys())
+            descriptors = list(self.descriptors.keys())
+
+        if len(descriptors) == 0:
+            raise ValueError('Error! No descriptor is specified for computation!')
 
         return {descriptors[i]: self.descriptors[descriptors[i]](mol) for i in range(len(descriptors))}
 
@@ -182,10 +185,11 @@ class Filter:
                 - 'elements not in C, N, O'
                 - 'elements in C, N, O'
             - numeric
-                - 'hac > 3'
-                - '100.0 < molweight <= 1000.0'
-                - 'nrings' != 0'
-                - 'nrings == 0'
+                - 'num_heavy_atom > 3'
+                - '100.0 < molecular_weight <= 1000.0'
+                - 'num_ring' != 0'
+                - 'num_ring == 0'
+
 
         :param mol: the input molecule
         :param expr: the filter to apply
@@ -196,14 +200,14 @@ class Filter:
         # filters of type: 'elements in C, N, O'
         if 'in' in split_expr:  # 'in' or 'not in'
             return self._eval_set_expr(mol, expr)
-        # filters of type: 'hac > 3'
+        # filters of type: 'num_heavy_atom > 3'
         return self._eval_numeric_expr(mol, expr.lower())
 
     def _eval_numeric_expr(self, mol, expr):
         """
         Evaluate if the statements stored in the expression are True or False.
         For now statement is composed of either 3 elements (['molweiht', '<=', '1000'])
-        or 5 elements: (['0', '<=', 'molweight', '<=', '1000']).
+        or 5 elements: (['0', '<=', 'molecular_weight', '<=', '1000']).
         ### No check has been added on this number because there might be an expanded functionality
         later on (combining statements with ';'?).
         Descriptors used for the comparisons need to be provided as a dictionary (name: value).
@@ -211,7 +215,7 @@ class Filter:
         Possible values for how: numeric, set or literal.
         """
         expr = expr.replace(" ", "")
-        split_expr = self._split_expr(expr)  # something like 'molweight', '<=', '1000'
+        split_expr = self._split_expr(expr)  # something like 'molecular_weight', '<=', '1000'
         # replace descriptor names by their values
         split_expr = [self.descriptors[k](mol) if k in self.descriptors.keys() else k for k in split_expr]  # now it is '250.0', '<=', '1000'
         logging.debug("Applying numeric filter: %s", ' '.join(str(v) for v in split_expr))
@@ -268,8 +272,8 @@ class Filter:
 
     def _split_expr(self, expr):
         """Helper function for _eval_expr.
-        From a string containing an expression (i.e. 'molweight < 1000'), return
-        a list of values and operators (['molweight', '<', '1000']).
+        From a string containing an expression (i.e. 'molecular_weight < 1000'), return
+        a list of values and operators (['molecular_weight', '<', '1000']).
         """
         opidx_eq = self._find_opidx("==", expr)
         opidx_diff = self._find_opidx("!=", expr)

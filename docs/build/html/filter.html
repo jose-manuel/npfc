@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Module filter &mdash; npfc 0.7.0-2-g4b310b9 documentation</title>
+  <title>Module filter &mdash; npfc 0.7.0-3-g9442184 documentation</title>
   
 
   
@@ -60,7 +60,7 @@
             
             
               <div class="version">
-                0.7.0-2-g4b310b9
+                0.7.0-3-g9442184
               </div>
             
           
@@ -172,6 +172,25 @@ molecular descriptors.</p>
 <dd><p>A class for filtering molecules based on molecular descriptors.</p>
 <p>Create a Filter object.</p>
 <dl class="py method">
+<dt id="npfc.filter.Filter.compute_descriptors">
+<code class="sig-name descname">compute_descriptors</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mol</span></em>, <em class="sig-param"><span class="n">descriptors</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/filter.html#Filter.compute_descriptors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.filter.Filter.compute_descriptors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute descriptors. A subset of descriptors can be computed if a list
+of descriptor names is provided. To get an idea of what descriptors can be computed,
+the method get_possible_descriptors can be used.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mol</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Mol</span></code>) – the input molecule</p></li>
+<li><p><strong>descriptors</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.9)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a>]) – the list of descriptors to compute. If none is provided, all possible</p></li>
+</ul>
+</dd>
+</dl>
+<p>descriptors are computed.
+:rtype: <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>
+:return: a dictionary with all descriptors</p>
+</dd></dl>
+
+<dl class="py method">
 <dt id="npfc.filter.Filter.filter_mol">
 <code class="sig-name descname">filter_mol</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mol</span></em>, <em class="sig-param"><span class="n">expr</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/filter.html#Filter.filter_mol"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.filter.Filter.filter_mol" title="Permalink to this definition">¶</a></dt>
 <dd><p>Filter a molecule based on an expression.
@@ -214,6 +233,71 @@ Two types of expressions are currently supported:</p>
 </dl>
 </dd></dl>
 
+<dl class="py method">
+<dt id="npfc.filter.Filter.get_possible_descriptors">
+<code class="sig-name descname">get_possible_descriptors</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/filter.html#Filter.get_possible_descriptors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.filter.Filter.get_possible_descriptors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a list of all descriptors that can be computed using this module.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a></p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the list of descriptors that can be computed</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="npfc.filter.count_drug_like_ext_violations">
+<code class="sig-prename descclassname">npfc.filter.</code><code class="sig-name descname">count_drug_like_ext_violations</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">num_drug_like_violations</span></em>, <em class="sig-param"><span class="n">num_rotatable_bonds</span></em>, <em class="sig-param"><span class="n">tpsa</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/filter.html#count_drug_like_ext_violations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.filter.count_drug_like_ext_violations" title="Permalink to this definition">¶</a></dt>
+<dd><p>Veber DF, Johnson SR, Cheng HY, Smith BR, Ward KW, Kopple KD (June 2002).
+“Molecular properties that influence the oral bioavailability of drug candidates”.
+J. Med. Chem. 45 (12): 2615–23.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="npfc.filter.count_drug_like_violations">
+<code class="sig-prename descclassname">npfc.filter.</code><code class="sig-name descname">count_drug_like_violations</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">molecular_weight</span></em>, <em class="sig-param"><span class="n">slogp</span></em>, <em class="sig-param"><span class="n">num_hbd</span></em>, <em class="sig-param"><span class="n">num_hba</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/filter.html#count_drug_like_violations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.filter.count_drug_like_violations" title="Permalink to this definition">¶</a></dt>
+<dd><p>Lipinski, J Pharmacol Toxicol Methods. 2000 Jul-Aug;44(1):235-49.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="npfc.filter.count_fragment_like_ext_violations">
+<code class="sig-prename descclassname">npfc.filter.</code><code class="sig-name descname">count_fragment_like_ext_violations</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">num_fragment_like_violations</span></em>, <em class="sig-param"><span class="n">tpsa</span></em>, <em class="sig-param"><span class="n">num_rotatable_bond</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/filter.html#count_fragment_like_ext_violations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.filter.count_fragment_like_ext_violations" title="Permalink to this definition">¶</a></dt>
+<dd><p>Congreve, M., Carr, R., Murray, C., Jhoti, H., 2003.
+A “Rule of Three” for fragment-based lead discovery? Drug Discovery Today 8, 876–877.
+doi:10.1016/S1359-6446(03)02831-9</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="npfc.filter.count_fragment_like_violations">
+<code class="sig-prename descclassname">npfc.filter.</code><code class="sig-name descname">count_fragment_like_violations</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">molecular_weight</span></em>, <em class="sig-param"><span class="n">slogp</span></em>, <em class="sig-param"><span class="n">num_hba</span></em>, <em class="sig-param"><span class="n">num_hbd</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/filter.html#count_fragment_like_violations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.filter.count_fragment_like_violations" title="Permalink to this definition">¶</a></dt>
+<dd><p>Congreve, M., Carr, R., Murray, C., Jhoti, H., 2003. A “Rule of Three” for fragment-based lead discovery?
+Drug Discovery Today 8, 876–877. doi:10.1016/S1359-6446(03)02831-9</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="npfc.filter.count_lead_like_violations">
+<code class="sig-prename descclassname">npfc.filter.</code><code class="sig-name descname">count_lead_like_violations</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">molecular_weight</span></em>, <em class="sig-param"><span class="n">slogp</span></em>, <em class="sig-param"><span class="n">num_rotatable_bond</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/filter.html#count_lead_like_violations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.filter.count_lead_like_violations" title="Permalink to this definition">¶</a></dt>
+<dd><p><a class="reference external" href="http://zinc.docking.org/browse/subsets/">http://zinc.docking.org/browse/subsets/</a>
+Teague, Davis, Leeson, Oprea, Angew Chem Int Ed Engl. 1999 Dec 16;38(24):3743-3748.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="npfc.filter.count_ppi_like_violations">
+<code class="sig-prename descclassname">npfc.filter.</code><code class="sig-name descname">count_ppi_like_violations</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">molecular_weight</span></em>, <em class="sig-param"><span class="n">slogp</span></em>, <em class="sig-param"><span class="n">num_hba</span></em>, <em class="sig-param"><span class="n">num_ring</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/filter.html#count_ppi_like_violations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.filter.count_ppi_like_violations" title="Permalink to this definition">¶</a></dt>
+<dd><p>Hamon, V., Bourgeas, R., Ducrot, P., Theret, I., Xuereb, L., Basse, M.J., Brunel, J.M., Combes, S., Morelli, X., Roche, P., 2013.
+2P2IHUNTER: a tool for filtering orthosteric protein–protein interaction modulators via a dedicated support vector machine.
+Journal of The Royal Society Interface 11. doi:10.1098/rsif.2013.0860</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="npfc.filter.get_min_max_ring_sizes">
+<code class="sig-prename descclassname">npfc.filter.</code><code class="sig-name descname">get_min_max_ring_sizes</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mol</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/filter.html#get_min_max_ring_sizes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.filter.get_min_max_ring_sizes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a tuple wih (minimum, maximum) ring sizes of the input molecule.
+In case the molecule is linear, (0, 0) is returned.</p>
 </dd></dl>
 
 </div>

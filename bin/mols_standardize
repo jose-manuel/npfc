@@ -25,6 +25,7 @@ from npfc import save
 from npfc import utils
 from npfc import standardize
 
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 
@@ -49,10 +50,10 @@ def main():
         1) filter_empty
         2) disconnect_metal
         3) keep_best
-        4) filter_hac
-        5) filter_molweight
-        6) filter_nrings
-        7) filter_medchem
+        4) filter_num_heavy_atom
+        5) filter_molecular_weight
+        6) filter_num_ring
+        7) filter_elements
         8) remove_isotopes
         9) normalize
         10) uncharge

@@ -40,20 +40,20 @@ DEFAULT_PROTOCOL = {'tasks': ['filter_empty',
                               'disconnect_metal',
                               'keep_best',
                               'deglycosylate',
-                              'filter_hac',
-                              'filter_molweight',
-                              'filter_nrings',
-                              'filter_medchem',
+                              'filter_num_heavy_atom',
+                              'filter_molecular_weight',
+                              'filter_num_ring',
+                              'filter_elements',
                               'clear_isotopes',
                               'normalize',
                               'uncharge',
                               'canonicalize',
                               'clear_stereo',
                               ],
-                    'filter_hac': 'hac > 3',
-                    'filter_molweight': 'molweight <= 1000.0',
-                    'filter_nrings': 'nrings > 0',
-                    'filter_medchem': f'elements in {", ".join(str(x) for x in DEFAULT_ELEMENTS)}',
+                    'filter_num_heavy_atom': 'num_heavy_atom > 3',
+                    'filter_molecular_weight': 'molecular_weight <= 1000.0',
+                    'filter_num_ring': 'num_ring > 0',
+                    'filter_elements': f'elements in {", ".join(str(x) for x in DEFAULT_ELEMENTS)}',
                     }
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ CLASSES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
@@ -134,10 +134,10 @@ class Standardizer(Filter):
         3) **disconnect_metal**: break bonds involving metallic atoms, resulting in potentially several molecules per structure.
         4) **keep_best**: retrieve only the "best" molecule from a mixture, which might not always be the largest one.
         5) **deglycosylate**: remove all external sugars-like rings from the molecule and return the remaining non-linear entity.
-        6) **filter_hac**: filter molecules with a heavy atom count not in the accepted range. By default: hac > 3.
-        7) **filter_molweight**: filter molecules with a molecular weight not in the accepted range. By default: molweight <= 1000.0.
-        8) **filter_nrings**: filter molecules with a number of rings (Smallest Sets of Smallest Rings or SSSR) not in the accepted range. By default: nrings > 0.
-        9) **filter_medchem**: filter molecules with elements not considered as medchem. By default: elements in H, B, C, N, O, F, P, S, Cl, Br, I.
+        6) **filter_num_heavy_atom**: filter molecules with a heavy atom count not in the accepted range. By default: num_heavy_atom > 3.
+        7) **filter_molecular_weight**: filter molecules with a molecular weight not in the accepted range. By default: molecular_weight <= 1000.0.
+        8) **filter_num_ring**: filter molecules with a number of rings (Smallest Sets of Smallest Rings or SSSR) not in the accepted range. By default: num_ring > 0.
+        9) **filter_elements**: filter molecules with elements not considered as medchem. By default: elements in H, B, C, N, O, F, P, S, Cl, Br, I.
         10) **clear_isotopes**: set all atoms to their most common isotope (i.e. 14C becomes 12C which is C).
         11) **normalize**: always write the same functional groups in the same manner.
         12) **uncharge**: remove all charges on a molecule when it is possible. This is different from rdkit.Chem.MolStandardize.charge module as there is no attempt for reaching the zwitterion.
@@ -315,7 +315,7 @@ class Standardizer(Filter):
         # otherwise, we have to compare the submols
         # init
         logging.debug("found %s submols", len(submols))
-        best_molweight = -1.0  # so we are sure to update this on the first iteration
+        best_molecular_weight = -1.0  # so we are sure to update this on the first iteration
         best_submol = None
         best_is_medchem = False
         best_is_non_linear = False
@@ -323,10 +323,10 @@ class Standardizer(Filter):
         for i, submol in enumerate(submols):
             # is_medchem
             is_medchem = self.filter_mol(submol, f'elements in {", ".join(str(x) for x in self.elements_medchem)}')
-            is_non_linear = self.filter_mol(submol, "nrings > 0")
-            # molweight
-            molweight = Descriptors.ExactMolWt(submol)
-            logging.debug("submol #%s: IM=%s, INL=%s, MW=%s", i, is_medchem, is_non_linear, molweight)
+            is_non_linear = self.filter_mol(submol, "num_ring > 0")
+            # molecular_weight
+            molecular_weight = Descriptors.ExactMolWt(submol)
+            logging.debug("submol #%s: IM=%s, INL=%s, MW=%s", i, is_medchem, is_non_linear, molecular_weight)
             # compare to the current best fragment
             update_best = False
             compute_diff = False  # check which
@@ -350,8 +350,8 @@ class Standardizer(Filter):
                 else:
                     compute_diff = True
 
-            # check molweights only in case of doubt
-            if not update_best and compute_diff and molweight > best_molweight:
+            # check molecular_weights only in case of doubt
+            if not update_best and compute_diff and molecular_weight > best_molecular_weight:
                 update_best = True
 
             # update best with the properties of the current mol
@@ -359,7 +359,7 @@ class Standardizer(Filter):
                 best_is_medchem = is_medchem
                 best_is_non_linear = is_non_linear
                 best_submol = submol
-                best_molweight = molweight
+                best_molecular_weight = molecular_weight
 
         return best_submol
 
@@ -650,7 +650,7 @@ class Standardizer(Filter):
                     return (mol, 'error', task)
 
             # filters
-            elif task == 'filter_medchem' or task == 'filter_hac' or task == 'filter_molweight' or task == 'filter_nrings':
+            elif task == 'filter_elements' or task == 'filter_num_heavy_atom' or task == 'filter_molecular_weight' or task == 'filter_num_ring':
                 try:
                     if not self.filter_mol(mol, self._protocol[task]):
                         return (mol, 'filtered', task)

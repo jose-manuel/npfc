@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.filter &mdash; npfc 0.7.0-2-g4b310b9 documentation</title>
+  <title>npfc.filter &mdash; npfc 0.7.0-3-g9442184 documentation</title>
   
 
   
@@ -58,7 +58,7 @@
             
             
               <div class="version">
-                0.7.0-2-g4b310b9
+                0.7.0-3-g9442184
               </div>
             
           
@@ -171,8 +171,118 @@
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="c1"># chemoinformatics</span>
 <span class="kn">from</span> <span class="nn">rdkit.Chem</span> <span class="kn">import</span> <span class="n">Mol</span>
+<span class="kn">from</span> <span class="nn">rdkit.Chem</span> <span class="kn">import</span> <span class="n">Crippen</span>
 <span class="kn">from</span> <span class="nn">rdkit.Chem</span> <span class="kn">import</span> <span class="n">Descriptors</span>
 <span class="kn">from</span> <span class="nn">rdkit.Chem</span> <span class="kn">import</span> <span class="n">rdMolDescriptors</span>
+<span class="c1"># docs</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span>
+
+
+<span class="c1"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #</span>
+
+
+<div class="viewcode-block" id="count_drug_like_violations"><a class="viewcode-back" href="../../filter.html#npfc.filter.count_drug_like_violations">[docs]</a><span class="k">def</span> <span class="nf">count_drug_like_violations</span><span class="p">(</span><span class="n">molecular_weight</span><span class="p">,</span> <span class="n">slogp</span><span class="p">,</span> <span class="n">num_hbd</span><span class="p">,</span> <span class="n">num_hba</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Lipinski, J Pharmacol Toxicol Methods. 2000 Jul-Aug;44(1):235-49.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">if</span> <span class="n">molecular_weight</span> <span class="o">&lt;</span> <span class="mi">150</span> <span class="ow">or</span> <span class="n">molecular_weight</span> <span class="o">&gt;</span> <span class="mi">500</span><span class="p">:</span>
+        <span class="n">n</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="n">slogp</span> <span class="o">&gt;</span> <span class="mi">5</span><span class="p">:</span>
+        <span class="n">n</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="n">num_hbd</span> <span class="o">&gt;</span> <span class="mi">5</span><span class="p">:</span>
+        <span class="n">n</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="n">num_hba</span> <span class="o">&gt;</span> <span class="mi">10</span><span class="p">:</span>
+        <span class="n">n</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">n</span></div>
+
+
+<div class="viewcode-block" id="count_drug_like_ext_violations"><a class="viewcode-back" href="../../filter.html#npfc.filter.count_drug_like_ext_violations">[docs]</a><span class="k">def</span> <span class="nf">count_drug_like_ext_violations</span><span class="p">(</span><span class="n">num_drug_like_violations</span><span class="p">,</span> <span class="n">num_rotatable_bonds</span><span class="p">,</span> <span class="n">tpsa</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Veber DF, Johnson SR, Cheng HY, Smith BR, Ward KW, Kopple KD (June 2002).</span>
+<span class="sd">    &quot;Molecular properties that influence the oral bioavailability of drug candidates&quot;.</span>
+<span class="sd">    J. Med. Chem. 45 (12): 2615–23.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="n">num_drug_like_violations</span>
+    <span class="k">if</span> <span class="n">num_rotatable_bonds</span> <span class="o">&gt;</span> <span class="mi">10</span><span class="p">:</span>
+        <span class="n">n</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="n">tpsa</span> <span class="o">&gt;</span> <span class="mi">140</span><span class="p">:</span>
+        <span class="n">n</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">n</span></div>
+
+
+<div class="viewcode-block" id="count_lead_like_violations"><a class="viewcode-back" href="../../filter.html#npfc.filter.count_lead_like_violations">[docs]</a><span class="k">def</span> <span class="nf">count_lead_like_violations</span><span class="p">(</span><span class="n">molecular_weight</span><span class="p">,</span> <span class="n">slogp</span><span class="p">,</span> <span class="n">num_rotatable_bond</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;http://zinc.docking.org/browse/subsets/</span>
+<span class="sd">    Teague, Davis, Leeson, Oprea, Angew Chem Int Ed Engl. 1999 Dec 16;38(24):3743-3748.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">if</span> <span class="n">molecular_weight</span> <span class="o">&lt;</span> <span class="mi">250</span> <span class="ow">or</span> <span class="n">molecular_weight</span> <span class="o">&gt;</span> <span class="mi">350</span><span class="p">:</span>
+        <span class="n">n</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="n">slogp</span> <span class="o">&gt;</span> <span class="mf">3.5</span><span class="p">:</span>
+        <span class="n">n</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="n">num_rotatable_bond</span> <span class="o">&gt;</span> <span class="mi">7</span><span class="p">:</span>
+        <span class="n">n</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">n</span></div>
+
+
+<div class="viewcode-block" id="count_ppi_like_violations"><a class="viewcode-back" href="../../filter.html#npfc.filter.count_ppi_like_violations">[docs]</a><span class="k">def</span> <span class="nf">count_ppi_like_violations</span><span class="p">(</span><span class="n">molecular_weight</span><span class="p">,</span> <span class="n">slogp</span><span class="p">,</span> <span class="n">num_hba</span><span class="p">,</span> <span class="n">num_ring</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Hamon, V., Bourgeas, R., Ducrot, P., Theret, I., Xuereb, L., Basse, M.J., Brunel, J.M., Combes, S., Morelli, X., Roche, P., 2013.</span>
+<span class="sd">    2P2IHUNTER: a tool for filtering orthosteric protein–protein interaction modulators via a dedicated support vector machine.</span>
+<span class="sd">    Journal of The Royal Society Interface 11. doi:10.1098/rsif.2013.0860</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">if</span> <span class="n">molecular_weight</span> <span class="o">&gt;</span> <span class="mi">400</span><span class="p">:</span>
+        <span class="n">n</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="n">slogp</span> <span class="o">&lt;</span> <span class="mi">4</span><span class="p">:</span>
+        <span class="n">n</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="n">num_hba</span> <span class="o">&lt;</span> <span class="mi">4</span><span class="p">:</span>
+        <span class="n">n</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="n">num_ring</span> <span class="o">&lt;</span> <span class="mi">4</span><span class="p">:</span>
+        <span class="n">n</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">n</span></div>
+
+
+<div class="viewcode-block" id="count_fragment_like_violations"><a class="viewcode-back" href="../../filter.html#npfc.filter.count_fragment_like_violations">[docs]</a><span class="k">def</span> <span class="nf">count_fragment_like_violations</span><span class="p">(</span><span class="n">molecular_weight</span><span class="p">,</span> <span class="n">slogp</span><span class="p">,</span> <span class="n">num_hba</span><span class="p">,</span> <span class="n">num_hbd</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Congreve, M., Carr, R., Murray, C., Jhoti, H., 2003. A “Rule of Three” for fragment-based lead discovery?</span>
+<span class="sd">    Drug Discovery Today 8, 876–877. doi:10.1016/S1359-6446(03)02831-9</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">if</span> <span class="n">molecular_weight</span> <span class="o">&gt;=</span> <span class="mi">300</span><span class="p">:</span>
+        <span class="n">n</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="n">slogp</span> <span class="o">&gt;</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="n">n</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="n">num_hba</span> <span class="o">&gt;</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="n">n</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="n">num_hbd</span> <span class="o">&gt;</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="n">n</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">n</span></div>
+
+
+<div class="viewcode-block" id="count_fragment_like_ext_violations"><a class="viewcode-back" href="../../filter.html#npfc.filter.count_fragment_like_ext_violations">[docs]</a><span class="k">def</span> <span class="nf">count_fragment_like_ext_violations</span><span class="p">(</span><span class="n">num_fragment_like_violations</span><span class="p">,</span> <span class="n">tpsa</span><span class="p">,</span> <span class="n">num_rotatable_bond</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Congreve, M., Carr, R., Murray, C., Jhoti, H., 2003.</span>
+<span class="sd">    A “Rule of Three” for fragment-based lead discovery? Drug Discovery Today 8, 876–877.</span>
+<span class="sd">    doi:10.1016/S1359-6446(03)02831-9</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="n">num_fragment_like_violations</span>
+    <span class="k">if</span> <span class="n">tpsa</span> <span class="o">&gt;</span> <span class="mi">60</span><span class="p">:</span>
+        <span class="n">n</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="n">num_rotatable_bond</span><span class="p">:</span>
+        <span class="n">n</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">n</span></div>
+
+
+<div class="viewcode-block" id="get_min_max_ring_sizes"><a class="viewcode-back" href="../../filter.html#npfc.filter.get_min_max_ring_sizes">[docs]</a><span class="k">def</span> <span class="nf">get_min_max_ring_sizes</span><span class="p">(</span><span class="n">mol</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return a tuple wih (minimum, maximum) ring sizes of the input molecule.</span>
+<span class="sd">    In case the molecule is linear, (0, 0) is returned.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ring_sizes</span> <span class="o">=</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">mol</span><span class="o">.</span><span class="n">GetRingInfo</span><span class="p">()</span><span class="o">.</span><span class="n">AtomRings</span><span class="p">()]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ring_sizes</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">min_ring_size</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">ring_sizes</span><span class="p">)</span>
+        <span class="n">max_ring_size</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">ring_sizes</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">min_ring_size</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">max_ring_size</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">return</span> <span class="p">(</span><span class="n">min_ring_size</span><span class="p">,</span> <span class="n">max_ring_size</span><span class="p">)</span></div>
 
 
 <span class="c1"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ CLASSES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #</span>
@@ -183,13 +293,49 @@
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Create a Filter object.&quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">descriptors</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;hac&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">GetNumAtoms</span><span class="p">(),</span>
-                            <span class="s1">&#39;molweight&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="n">Descriptors</span><span class="o">.</span><span class="n">ExactMolWt</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="mi">4</span><span class="p">),</span>
-                            <span class="s1">&#39;nrings&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">rdMolDescriptors</span><span class="o">.</span><span class="n">CalcNumRings</span><span class="p">(</span><span class="n">x</span><span class="p">),</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">descriptors</span> <span class="o">=</span> <span class="p">{</span>
+                            <span class="c1"># classical molecular descriptors</span>
+                            <span class="s1">&#39;num_heavy_atom&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">GetNumAtoms</span><span class="p">(),</span>
+                            <span class="s1">&#39;molecular_weight&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="n">Descriptors</span><span class="o">.</span><span class="n">ExactMolWt</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="mi">4</span><span class="p">),</span>
+                            <span class="s1">&#39;num_ring&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">rdMolDescriptors</span><span class="o">.</span><span class="n">CalcNumRings</span><span class="p">(</span><span class="n">x</span><span class="p">),</span>
+                            <span class="s1">&#39;num_ring_arom&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">rdMolDescriptors</span><span class="o">.</span><span class="n">CalcNumAromaticRings</span><span class="p">(</span><span class="n">x</span><span class="p">),</span>
                             <span class="s1">&#39;elements&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">set</span><span class="p">([</span><span class="n">a</span><span class="o">.</span><span class="n">GetSymbol</span><span class="p">()</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">x</span><span class="o">.</span><span class="n">GetAtoms</span><span class="p">()]),</span>
+                            <span class="s1">&#39;molecular_formula&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">rdMolDescriptors</span><span class="o">.</span><span class="n">CalcMolFormula</span><span class="p">(</span><span class="n">x</span><span class="p">),</span>
+                            <span class="s1">&#39;num_hbd&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">rdMolDescriptors</span><span class="o">.</span><span class="n">CalcNumLipinskiHBD</span><span class="p">(</span><span class="n">x</span><span class="p">),</span>
+                            <span class="s1">&#39;num_hba&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">rdMolDescriptors</span><span class="o">.</span><span class="n">CalcNumLipinskiHBA</span><span class="p">(</span><span class="n">x</span><span class="p">),</span>
+                            <span class="s1">&#39;slogp&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="n">Crippen</span><span class="o">.</span><span class="n">MolLogP</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="mi">4</span><span class="p">),</span>
+                            <span class="s1">&#39;tpsa&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="n">rdMolDescriptors</span><span class="o">.</span><span class="n">CalcTPSA</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="mi">4</span><span class="p">),</span>
+                            <span class="s1">&#39;num_rotatable_bond&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">rdMolDescriptors</span><span class="o">.</span><span class="n">CalcNumRotatableBonds</span><span class="p">(</span><span class="n">x</span><span class="p">),</span>
+                            <span class="c1"># custom molecular descriptors</span>
+                            <span class="s1">&#39;ring_size_min&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">min</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">x</span><span class="o">.</span><span class="n">GetRingInfo</span><span class="p">()</span><span class="o">.</span><span class="n">AtomRings</span><span class="p">()]),</span>
+                            <span class="s1">&#39;ring_size_max&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">max</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">x</span><span class="o">.</span><span class="n">GetRingInfo</span><span class="p">()</span><span class="o">.</span><span class="n">AtomRings</span><span class="p">()]),</span>
                             <span class="p">}</span>
 
-<div class="viewcode-block" id="Filter.filter_mol"><a class="viewcode-back" href="../../filter.html#npfc.filter.Filter.filter_mol">[docs]</a>    <span class="k">def</span> <span class="nf">filter_mol</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mol</span><span class="p">:</span> <span class="n">Mol</span><span class="p">,</span> <span class="n">expr</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>  <span class="c1"># TODO: add docstring for listing implemented descriptors</span>
+<div class="viewcode-block" id="Filter.compute_descriptors"><a class="viewcode-back" href="../../filter.html#npfc.filter.Filter.compute_descriptors">[docs]</a>    <span class="k">def</span> <span class="nf">compute_descriptors</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mol</span><span class="p">:</span> <span class="n">Mol</span><span class="p">,</span> <span class="n">descriptors</span><span class="p">:</span> <span class="n">List</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Compute descriptors. A subset of descriptors can be computed if a list</span>
+<span class="sd">        of descriptor names is provided. To get an idea of what descriptors can be computed,</span>
+<span class="sd">        the method get_possible_descriptors can be used.</span>
+
+<span class="sd">        :param mol: the input molecule</span>
+<span class="sd">        :param descriptors: the list of descriptors to compute. If none is provided, all possible</span>
+<span class="sd">        descriptors are computed.</span>
+<span class="sd">        :return: a dictionary with all descriptors</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># if no descriptor is specified, compute them all</span>
+        <span class="k">if</span> <span class="n">descriptors</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">descriptors</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">descriptor</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+
+        <span class="k">return</span> <span class="p">{</span><span class="n">descriptors</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span> <span class="bp">self</span><span class="o">.</span><span class="n">descriptors</span><span class="p">[</span><span class="n">descriptors</span><span class="p">[</span><span class="n">i</span><span class="p">]](</span><span class="n">mol</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">descriptors</span><span class="p">))}</span></div>
+
+<div class="viewcode-block" id="Filter.get_possible_descriptors"><a class="viewcode-back" href="../../filter.html#npfc.filter.Filter.get_possible_descriptors">[docs]</a>    <span class="k">def</span> <span class="nf">get_possible_descriptors</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Return a list of all descriptors that can be computed using this module.</span>
+
+<span class="sd">        :return: the list of descriptors that can be computed</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">descriptors</span><span class="o">.</span><span class="n">keys</span><span class="p">())))</span></div>
+
+<div class="viewcode-block" id="Filter.filter_mol"><a class="viewcode-back" href="../../filter.html#npfc.filter.Filter.filter_mol">[docs]</a>    <span class="k">def</span> <span class="nf">filter_mol</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mol</span><span class="p">:</span> <span class="n">Mol</span><span class="p">,</span> <span class="n">expr</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Filter a molecule based on an expression.</span>
 <span class="sd">        Two types of expressions are currently supported:</span>
 

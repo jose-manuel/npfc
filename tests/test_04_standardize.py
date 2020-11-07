@@ -185,15 +185,15 @@ def test_std_init(standardizer):
 
     # default parameters
     standardizer = deepcopy(standardizer)  # if the standardizer is modified in place, then other tests will fail
-    assert set(standardizer.protocol.keys()) == set(['tasks', 'filter_hac', 'filter_molweight', 'filter_nrings', 'filter_medchem'])
+    assert set(standardizer.protocol.keys()) == set(['tasks', 'filter_num_heavy_atom', 'filter_molecular_weight', 'filter_num_ring', 'filter_elements'])
     assert standardizer.protocol['tasks'] == ['filter_empty',
                                               'disconnect_metal',
                                               'keep_best',
                                               'deglycosylate',
-                                              'filter_hac',
-                                              'filter_molweight',
-                                              'filter_nrings',
-                                              'filter_medchem',
+                                              'filter_num_heavy_atom',
+                                              'filter_molecular_weight',
+                                              'filter_num_ring',
+                                              'filter_elements',
                                               'clear_isotopes',
                                               'normalize',
                                               'uncharge',
@@ -208,8 +208,8 @@ def test_std_init(standardizer):
     # from a json file
     json_config = 'tests/tmp/std_protocol.json'
     standardizer.protocol = json_config
-    assert standardizer.protocol['tasks'] == ["sanitize", "filter_molweight"]
-    assert standardizer.protocol['filter_molweight'] == "100.0 <= molweight <= 1000.0"
+    assert standardizer.protocol['tasks'] == ["sanitize", "filter_molecular_weight"]
+    assert standardizer.protocol['filter_molecular_weight'] == "100.0 <= molecular_weight <= 1000.0"
 
 
 def test_std_keep_best(standardizer, mols):
