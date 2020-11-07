@@ -495,7 +495,6 @@ def find_wd_levels(WD: str, prep: str = None, natref: str = None, frags: str = N
     else:
         wd_frags = [str(p) for p in list(Path(WD).glob('**')) if p.name == frags]
 
-
     # find natref dirs
     if natref is None:
         wd_natref = [str(p) for p in list(Path(WD).glob('**')) if p.name[0:7] == 'natref_']

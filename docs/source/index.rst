@@ -28,6 +28,7 @@ available. Please have a look and enjoy, any feedback is welcome!
    fragment_combination_graph
    fragment_combination_point
    draw
+   np_score
 
 Indices and tables
 ==================
