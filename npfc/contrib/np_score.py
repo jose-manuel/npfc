@@ -2,6 +2,7 @@
 Module np_score
 =================
 This modules contains the functions provided by Ertl et al at:
+
 https://github.com/rdkit/rdkit/blob/master/Contrib/NP_Score/npscorer.py
 
 It was simply edited to suit my needs and tastes, I do not take credit for it.
