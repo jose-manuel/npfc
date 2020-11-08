@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.load &mdash; npfc 0.7.0-4-gfae5da1 documentation</title>
+  <title>npfc.load &mdash; npfc 0.7.0-5-g1924243 documentation</title>
   
 
   
@@ -58,7 +58,7 @@
             
             
               <div class="version">
-                0.7.0-4-gfae5da1
+                0.7.0-5-g1924243
               </div>
             
           
@@ -318,7 +318,7 @@
     <span class="c1"># decode</span>
     <span class="k">if</span> <span class="n">decode</span><span class="p">:</span>
         <span class="c1"># faster way for mols</span>
-        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;mol&#39;</span><span class="p">,</span> <span class="s1">&#39;mol_frag&#39;</span><span class="p">,</span> <span class="s1">&#39;mol_frag_1&#39;</span><span class="p">,</span> <span class="s1">&#39;mol_frag_2&#39;</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;mol&#39;</span><span class="p">,</span> <span class="s1">&#39;mol_frag&#39;</span><span class="p">,</span> <span class="s1">&#39;mol_frag_1&#39;</span><span class="p">,</span> <span class="s1">&#39;mol_frag_2&#39;</span><span class="p">,</span> <span class="s1">&#39;mol_rdkit&#39;</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
                 <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Decoding column=&#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span><span class="p">,</span> <span class="n">col</span><span class="p">)</span>
                 <span class="n">df</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">utils</span><span class="o">.</span><span class="n">decode_mol</span><span class="p">)</span>
