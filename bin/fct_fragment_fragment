@@ -8,7 +8,6 @@ This script generates the fragment_fragment relationships file for a given input
 import argparse
 from datetime import datetime
 import sys
-import json
 # data
 import pandas as pd
 # chemoinformatics
@@ -21,18 +20,6 @@ from npfc import utils
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
-
-
-# def get_one_row_one_fhit(row):
-#     d = {'fragment_id': [], 'atom_indices': []}
-#     for k, v in row.atom_indices.items():
-#         for l in v:
-#             d['fragment_id'].append(k)
-#             d['atom_indices'].append(l)
-#
-#     df = pd.DataFrame(d)
-#     df['molecule_id'] = row.molecule_id
-#     return df
 
 
 def main():
