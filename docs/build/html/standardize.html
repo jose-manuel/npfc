@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Module standardize &mdash; npfc 0.7.0-3-g9442184 documentation</title>
+  <title>Module standardize &mdash; npfc 0.7.0-4-gfae5da1 documentation</title>
   
 
   
@@ -60,7 +60,7 @@
             
             
               <div class="version">
-                0.7.0-3-g9442184
+                0.7.0-4-gfae5da1
               </div>
             
           
@@ -219,10 +219,10 @@ on a protocol that the user can modify.</p>
 <li><p><strong>disconnect_metal</strong>: break bonds involving metallic atoms, resulting in potentially several molecules per structure.</p></li>
 <li><p><strong>keep_best</strong>: retrieve only the “best” molecule from a mixture, which might not always be the largest one.</p></li>
 <li><p><strong>deglycosylate</strong>: remove all external sugars-like rings from the molecule and return the remaining non-linear entity.</p></li>
-<li><p><strong>filter_hac</strong>: filter molecules with a heavy atom count not in the accepted range. By default: hac &gt; 3.</p></li>
-<li><p><strong>filter_molweight</strong>: filter molecules with a molecular weight not in the accepted range. By default: molweight &lt;= 1000.0.</p></li>
-<li><p><strong>filter_nrings</strong>: filter molecules with a number of rings (Smallest Sets of Smallest Rings or SSSR) not in the accepted range. By default: nrings &gt; 0.</p></li>
-<li><p><strong>filter_medchem</strong>: filter molecules with elements not considered as medchem. By default: elements in H, B, C, N, O, F, P, S, Cl, Br, I.</p></li>
+<li><p><strong>filter_num_heavy_atom</strong>: filter molecules with a heavy atom count not in the accepted range. By default: num_heavy_atom &gt; 3.</p></li>
+<li><p><strong>filter_molecular_weight</strong>: filter molecules with a molecular weight not in the accepted range. By default: molecular_weight &lt;= 1000.0.</p></li>
+<li><p><strong>filter_num_ring</strong>: filter molecules with a number of rings (Smallest Sets of Smallest Rings or SSSR) not in the accepted range. By default: num_ring &gt; 0.</p></li>
+<li><p><strong>filter_elements</strong>: filter molecules with elements not considered as medchem. By default: elements in H, B, C, N, O, F, P, S, Cl, Br, I.</p></li>
 <li><p><strong>clear_isotopes</strong>: set all atoms to their most common isotope (i.e. 14C becomes 12C which is C).</p></li>
 <li><p><strong>normalize</strong>: always write the same functional groups in the same manner.</p></li>
 <li><p><strong>uncharge</strong>: remove all charges on a molecule when it is possible. This is different from rdkit.Chem.MolStandardize.charge module as there is no attempt for reaching the zwitterion.</p></li>

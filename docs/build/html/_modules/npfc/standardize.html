@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.standardize &mdash; npfc 0.7.0-3-g9442184 documentation</title>
+  <title>npfc.standardize &mdash; npfc 0.7.0-4-gfae5da1 documentation</title>
   
 
   
@@ -58,7 +58,7 @@
             
             
               <div class="version">
-                0.7.0-3-g9442184
+                0.7.0-4-gfae5da1
               </div>
             
           
@@ -201,20 +201,20 @@
                               <span class="s1">&#39;disconnect_metal&#39;</span><span class="p">,</span>
                               <span class="s1">&#39;keep_best&#39;</span><span class="p">,</span>
                               <span class="s1">&#39;deglycosylate&#39;</span><span class="p">,</span>
-                              <span class="s1">&#39;filter_hac&#39;</span><span class="p">,</span>
-                              <span class="s1">&#39;filter_molweight&#39;</span><span class="p">,</span>
-                              <span class="s1">&#39;filter_nrings&#39;</span><span class="p">,</span>
-                              <span class="s1">&#39;filter_medchem&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;filter_num_heavy_atom&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;filter_molecular_weight&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;filter_num_ring&#39;</span><span class="p">,</span>
+                              <span class="s1">&#39;filter_elements&#39;</span><span class="p">,</span>
                               <span class="s1">&#39;clear_isotopes&#39;</span><span class="p">,</span>
                               <span class="s1">&#39;normalize&#39;</span><span class="p">,</span>
                               <span class="s1">&#39;uncharge&#39;</span><span class="p">,</span>
                               <span class="s1">&#39;canonicalize&#39;</span><span class="p">,</span>
                               <span class="s1">&#39;clear_stereo&#39;</span><span class="p">,</span>
                               <span class="p">],</span>
-                    <span class="s1">&#39;filter_hac&#39;</span><span class="p">:</span> <span class="s1">&#39;hac &gt; 3&#39;</span><span class="p">,</span>
-                    <span class="s1">&#39;filter_molweight&#39;</span><span class="p">:</span> <span class="s1">&#39;molweight &lt;= 1000.0&#39;</span><span class="p">,</span>
-                    <span class="s1">&#39;filter_nrings&#39;</span><span class="p">:</span> <span class="s1">&#39;nrings &gt; 0&#39;</span><span class="p">,</span>
-                    <span class="s1">&#39;filter_medchem&#39;</span><span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;elements in </span><span class="si">{</span><span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">DEFAULT_ELEMENTS</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;filter_num_heavy_atom&#39;</span><span class="p">:</span> <span class="s1">&#39;num_heavy_atom &gt; 3&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;filter_molecular_weight&#39;</span><span class="p">:</span> <span class="s1">&#39;molecular_weight &lt;= 1000.0&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;filter_num_ring&#39;</span><span class="p">:</span> <span class="s1">&#39;num_ring &gt; 0&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;filter_elements&#39;</span><span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;elements in </span><span class="si">{</span><span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">DEFAULT_ELEMENTS</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
                     <span class="p">}</span>
 
 <span class="c1"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ CLASSES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #</span>
@@ -295,10 +295,10 @@
 <span class="sd">        3) **disconnect_metal**: break bonds involving metallic atoms, resulting in potentially several molecules per structure.</span>
 <span class="sd">        4) **keep_best**: retrieve only the &quot;best&quot; molecule from a mixture, which might not always be the largest one.</span>
 <span class="sd">        5) **deglycosylate**: remove all external sugars-like rings from the molecule and return the remaining non-linear entity.</span>
-<span class="sd">        6) **filter_hac**: filter molecules with a heavy atom count not in the accepted range. By default: hac &gt; 3.</span>
-<span class="sd">        7) **filter_molweight**: filter molecules with a molecular weight not in the accepted range. By default: molweight &lt;= 1000.0.</span>
-<span class="sd">        8) **filter_nrings**: filter molecules with a number of rings (Smallest Sets of Smallest Rings or SSSR) not in the accepted range. By default: nrings &gt; 0.</span>
-<span class="sd">        9) **filter_medchem**: filter molecules with elements not considered as medchem. By default: elements in H, B, C, N, O, F, P, S, Cl, Br, I.</span>
+<span class="sd">        6) **filter_num_heavy_atom**: filter molecules with a heavy atom count not in the accepted range. By default: num_heavy_atom &gt; 3.</span>
+<span class="sd">        7) **filter_molecular_weight**: filter molecules with a molecular weight not in the accepted range. By default: molecular_weight &lt;= 1000.0.</span>
+<span class="sd">        8) **filter_num_ring**: filter molecules with a number of rings (Smallest Sets of Smallest Rings or SSSR) not in the accepted range. By default: num_ring &gt; 0.</span>
+<span class="sd">        9) **filter_elements**: filter molecules with elements not considered as medchem. By default: elements in H, B, C, N, O, F, P, S, Cl, Br, I.</span>
 <span class="sd">        10) **clear_isotopes**: set all atoms to their most common isotope (i.e. 14C becomes 12C which is C).</span>
 <span class="sd">        11) **normalize**: always write the same functional groups in the same manner.</span>
 <span class="sd">        12) **uncharge**: remove all charges on a molecule when it is possible. This is different from rdkit.Chem.MolStandardize.charge module as there is no attempt for reaching the zwitterion.</span>
@@ -476,7 +476,7 @@
         <span class="c1"># otherwise, we have to compare the submols</span>
         <span class="c1"># init</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;found </span><span class="si">%s</span><span class="s2"> submols&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">submols</span><span class="p">))</span>
-        <span class="n">best_molweight</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span>  <span class="c1"># so we are sure to update this on the first iteration</span>
+        <span class="n">best_molecular_weight</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span>  <span class="c1"># so we are sure to update this on the first iteration</span>
         <span class="n">best_submol</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="n">best_is_medchem</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="n">best_is_non_linear</span> <span class="o">=</span> <span class="kc">False</span>
@@ -484,10 +484,10 @@
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">submol</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">submols</span><span class="p">):</span>
             <span class="c1"># is_medchem</span>
             <span class="n">is_medchem</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter_mol</span><span class="p">(</span><span class="n">submol</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;elements in </span><span class="si">{</span><span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">elements_medchem</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
-            <span class="n">is_non_linear</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter_mol</span><span class="p">(</span><span class="n">submol</span><span class="p">,</span> <span class="s2">&quot;nrings &gt; 0&quot;</span><span class="p">)</span>
-            <span class="c1"># molweight</span>
-            <span class="n">molweight</span> <span class="o">=</span> <span class="n">Descriptors</span><span class="o">.</span><span class="n">ExactMolWt</span><span class="p">(</span><span class="n">submol</span><span class="p">)</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;submol #</span><span class="si">%s</span><span class="s2">: IM=</span><span class="si">%s</span><span class="s2">, INL=</span><span class="si">%s</span><span class="s2">, MW=</span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">is_medchem</span><span class="p">,</span> <span class="n">is_non_linear</span><span class="p">,</span> <span class="n">molweight</span><span class="p">)</span>
+            <span class="n">is_non_linear</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter_mol</span><span class="p">(</span><span class="n">submol</span><span class="p">,</span> <span class="s2">&quot;num_ring &gt; 0&quot;</span><span class="p">)</span>
+            <span class="c1"># molecular_weight</span>
+            <span class="n">molecular_weight</span> <span class="o">=</span> <span class="n">Descriptors</span><span class="o">.</span><span class="n">ExactMolWt</span><span class="p">(</span><span class="n">submol</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;submol #</span><span class="si">%s</span><span class="s2">: IM=</span><span class="si">%s</span><span class="s2">, INL=</span><span class="si">%s</span><span class="s2">, MW=</span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">is_medchem</span><span class="p">,</span> <span class="n">is_non_linear</span><span class="p">,</span> <span class="n">molecular_weight</span><span class="p">)</span>
             <span class="c1"># compare to the current best fragment</span>
             <span class="n">update_best</span> <span class="o">=</span> <span class="kc">False</span>
             <span class="n">compute_diff</span> <span class="o">=</span> <span class="kc">False</span>  <span class="c1"># check which</span>
@@ -511,8 +511,8 @@
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">compute_diff</span> <span class="o">=</span> <span class="kc">True</span>
 
-            <span class="c1"># check molweights only in case of doubt</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">update_best</span> <span class="ow">and</span> <span class="n">compute_diff</span> <span class="ow">and</span> <span class="n">molweight</span> <span class="o">&gt;</span> <span class="n">best_molweight</span><span class="p">:</span>
+            <span class="c1"># check molecular_weights only in case of doubt</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">update_best</span> <span class="ow">and</span> <span class="n">compute_diff</span> <span class="ow">and</span> <span class="n">molecular_weight</span> <span class="o">&gt;</span> <span class="n">best_molecular_weight</span><span class="p">:</span>
                 <span class="n">update_best</span> <span class="o">=</span> <span class="kc">True</span>
 
             <span class="c1"># update best with the properties of the current mol</span>
@@ -520,7 +520,7 @@
                 <span class="n">best_is_medchem</span> <span class="o">=</span> <span class="n">is_medchem</span>
                 <span class="n">best_is_non_linear</span> <span class="o">=</span> <span class="n">is_non_linear</span>
                 <span class="n">best_submol</span> <span class="o">=</span> <span class="n">submol</span>
-                <span class="n">best_molweight</span> <span class="o">=</span> <span class="n">molweight</span>
+                <span class="n">best_molecular_weight</span> <span class="o">=</span> <span class="n">molecular_weight</span>
 
         <span class="k">return</span> <span class="n">best_submol</span></div>
 
@@ -811,7 +811,7 @@
                     <span class="k">return</span> <span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="s1">&#39;error&#39;</span><span class="p">,</span> <span class="n">task</span><span class="p">)</span>
 
             <span class="c1"># filters</span>
-            <span class="k">elif</span> <span class="n">task</span> <span class="o">==</span> <span class="s1">&#39;filter_medchem&#39;</span> <span class="ow">or</span> <span class="n">task</span> <span class="o">==</span> <span class="s1">&#39;filter_hac&#39;</span> <span class="ow">or</span> <span class="n">task</span> <span class="o">==</span> <span class="s1">&#39;filter_molweight&#39;</span> <span class="ow">or</span> <span class="n">task</span> <span class="o">==</span> <span class="s1">&#39;filter_nrings&#39;</span><span class="p">:</span>
+            <span class="k">elif</span> <span class="n">task</span> <span class="o">==</span> <span class="s1">&#39;filter_elements&#39;</span> <span class="ow">or</span> <span class="n">task</span> <span class="o">==</span> <span class="s1">&#39;filter_num_heavy_atom&#39;</span> <span class="ow">or</span> <span class="n">task</span> <span class="o">==</span> <span class="s1">&#39;filter_molecular_weight&#39;</span> <span class="ow">or</span> <span class="n">task</span> <span class="o">==</span> <span class="s1">&#39;filter_num_ring&#39;</span><span class="p">:</span>
                 <span class="k">try</span><span class="p">:</span>
                     <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter_mol</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_protocol</span><span class="p">[</span><span class="n">task</span><span class="p">]):</span>
                         <span class="k">return</span> <span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="s1">&#39;filtered&#39;</span><span class="p">,</span> <span class="n">task</span><span class="p">)</span>

@@ -157,7 +157,7 @@ def file(input_file: str,
     # decode
     if decode:
         # faster way for mols
-        for col in ('mol', 'mol_frag', 'mol_frag_1', 'mol_frag_2'):
+        for col in ('mol', 'mol_frag', 'mol_frag_1', 'mol_frag_2', 'mol_rdkit'):
             if col in df.columns:
                 logging.debug("Decoding column='%s'", col)
                 df[col] = df[col].map(utils.decode_mol)

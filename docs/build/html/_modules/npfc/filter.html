@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.filter &mdash; npfc 0.7.0-3-g9442184 documentation</title>
+  <title>npfc.filter &mdash; npfc 0.7.0-4-gfae5da1 documentation</title>
   
 
   
@@ -58,7 +58,7 @@
             
             
               <div class="version">
-                0.7.0-3-g9442184
+                0.7.0-4-gfae5da1
               </div>
             
           
@@ -324,7 +324,10 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># if no descriptor is specified, compute them all</span>
         <span class="k">if</span> <span class="n">descriptors</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">descriptors</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">descriptor</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+            <span class="n">descriptors</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">descriptors</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">descriptors</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Error! No descriptor is specified for computation!&#39;</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="p">{</span><span class="n">descriptors</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span> <span class="bp">self</span><span class="o">.</span><span class="n">descriptors</span><span class="p">[</span><span class="n">descriptors</span><span class="p">[</span><span class="n">i</span><span class="p">]](</span><span class="n">mol</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">descriptors</span><span class="p">))}</span></div>
 
@@ -343,10 +346,11 @@
 <span class="sd">                - &#39;elements not in C, N, O&#39;</span>
 <span class="sd">                - &#39;elements in C, N, O&#39;</span>
 <span class="sd">            - numeric</span>
-<span class="sd">                - &#39;hac &gt; 3&#39;</span>
-<span class="sd">                - &#39;100.0 &lt; molweight &lt;= 1000.0&#39;</span>
-<span class="sd">                - &#39;nrings&#39; != 0&#39;</span>
-<span class="sd">                - &#39;nrings == 0&#39;</span>
+<span class="sd">                - &#39;num_heavy_atom &gt; 3&#39;</span>
+<span class="sd">                - &#39;100.0 &lt; molecular_weight &lt;= 1000.0&#39;</span>
+<span class="sd">                - &#39;num_ring&#39; != 0&#39;</span>
+<span class="sd">                - &#39;num_ring == 0&#39;</span>
+
 
 <span class="sd">        :param mol: the input molecule</span>
 <span class="sd">        :param expr: the filter to apply</span>
@@ -357,14 +361,14 @@
         <span class="c1"># filters of type: &#39;elements in C, N, O&#39;</span>
         <span class="k">if</span> <span class="s1">&#39;in&#39;</span> <span class="ow">in</span> <span class="n">split_expr</span><span class="p">:</span>  <span class="c1"># &#39;in&#39; or &#39;not in&#39;</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_eval_set_expr</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">expr</span><span class="p">)</span>
-        <span class="c1"># filters of type: &#39;hac &gt; 3&#39;</span>
+        <span class="c1"># filters of type: &#39;num_heavy_atom &gt; 3&#39;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_eval_numeric_expr</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">expr</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span></div>
 
     <span class="k">def</span> <span class="nf">_eval_numeric_expr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mol</span><span class="p">,</span> <span class="n">expr</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Evaluate if the statements stored in the expression are True or False.</span>
 <span class="sd">        For now statement is composed of either 3 elements ([&#39;molweiht&#39;, &#39;&lt;=&#39;, &#39;1000&#39;])</span>
-<span class="sd">        or 5 elements: ([&#39;0&#39;, &#39;&lt;=&#39;, &#39;molweight&#39;, &#39;&lt;=&#39;, &#39;1000&#39;]).</span>
+<span class="sd">        or 5 elements: ([&#39;0&#39;, &#39;&lt;=&#39;, &#39;molecular_weight&#39;, &#39;&lt;=&#39;, &#39;1000&#39;]).</span>
 <span class="sd">        ### No check has been added on this number because there might be an expanded functionality</span>
 <span class="sd">        later on (combining statements with &#39;;&#39;?).</span>
 <span class="sd">        Descriptors used for the comparisons need to be provided as a dictionary (name: value).</span>
@@ -372,7 +376,7 @@
 <span class="sd">        Possible values for how: numeric, set or literal.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">expr</span> <span class="o">=</span> <span class="n">expr</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
-        <span class="n">split_expr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_split_expr</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span>  <span class="c1"># something like &#39;molweight&#39;, &#39;&lt;=&#39;, &#39;1000&#39;</span>
+        <span class="n">split_expr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_split_expr</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span>  <span class="c1"># something like &#39;molecular_weight&#39;, &#39;&lt;=&#39;, &#39;1000&#39;</span>
         <span class="c1"># replace descriptor names by their values</span>
         <span class="n">split_expr</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">descriptors</span><span class="p">[</span><span class="n">k</span><span class="p">](</span><span class="n">mol</span><span class="p">)</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">descriptors</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">else</span> <span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">split_expr</span><span class="p">]</span>  <span class="c1"># now it is &#39;250.0&#39;, &#39;&lt;=&#39;, &#39;1000&#39;</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Applying numeric filter: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">split_expr</span><span class="p">))</span>
@@ -429,8 +433,8 @@
 
     <span class="k">def</span> <span class="nf">_split_expr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expr</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Helper function for _eval_expr.</span>
-<span class="sd">        From a string containing an expression (i.e. &#39;molweight &lt; 1000&#39;), return</span>
-<span class="sd">        a list of values and operators ([&#39;molweight&#39;, &#39;&lt;&#39;, &#39;1000&#39;]).</span>
+<span class="sd">        From a string containing an expression (i.e. &#39;molecular_weight &lt; 1000&#39;), return</span>
+<span class="sd">        a list of values and operators ([&#39;molecular_weight&#39;, &#39;&lt;&#39;, &#39;1000&#39;]).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">opidx_eq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_find_opidx</span><span class="p">(</span><span class="s2">&quot;==&quot;</span><span class="p">,</span> <span class="n">expr</span><span class="p">)</span>
         <span class="n">opidx_diff</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_find_opidx</span><span class="p">(</span><span class="s2">&quot;!=&quot;</span><span class="p">,</span> <span class="n">expr</span><span class="p">)</span>

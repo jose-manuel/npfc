@@ -28,7 +28,9 @@ from typing import List
 EXTS_INPUT = [['.sdf'], ['.sdf', '.gz'],
               ['.csv'], ['.csv', '.gz'],
               ['.log'],  # for loading formatted log files
-              ['.hdf']]  # , ['.feather']]  # tests with feather work but not in production, dig into that later
+              ['.hdf'],
+              ['.pkl', '.gz'], ['.model', '.gz']  # model files for computing sa and np scores
+              ]  # , ['.feather']]  # tests with feather work but not in production, dig into that later
 
 EXTS_CONFIG = [['.json']]
 

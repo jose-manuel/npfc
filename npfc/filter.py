@@ -184,12 +184,12 @@ class Filter:
             - inclusion/exclusion
                 - 'elements not in C, N, O'
                 - 'elements in C, N, O'
+
             - numeric
                 - 'num_heavy_atom > 3'
                 - '100.0 < molecular_weight <= 1000.0'
                 - 'num_ring' != 0'
                 - 'num_ring == 0'
-
 
         :param mol: the input molecule
         :param expr: the filter to apply
