@@ -28,6 +28,25 @@ from npfc import load
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
+
+def count_required_chunks(input_file, chunksize):
+    """Count the number of required chunks for a given input file, depending on
+    the chunk size.
+    """
+
+    # count mols for natural and synthetic
+    # for counting mols, need to process the unzipped file
+    input_file_uncompressed = input_file.split('.gz')[0]
+    # count mols + uncompress input file
+    num_mols = load.count_mols(input_file, keep_uncompressed=True)
+    # uncompressed input file works not in smk file (makes the whole pipeline to overwrite any output) so just discard it. The archive will be unziped again.
+    Path(input_file_uncompressed).unlink()
+    # determine the number of chunks to generate
+    num_chunks = ceil(num_mols / chunksize)
+    return {'num_mols': num_mols, 'num_chunks': num_chunks}
+
+
+
 def main():
 
     # init
@@ -61,7 +80,6 @@ def main():
     parser.add_argument('-m', '--molid', type=str, default=None, help="SDF property to use for setting idm.")
     parser.add_argument('-i', '--input_file', type=str, default=None, help="SDF with molecules to process.")
     parser.add_argument('-f', '--frags_file', type=str, default=None, help="SDF with the fragments to use for substructure seach.")
-    parser.add_argument('-a', '--act_file', type=str, default=None, help="File with activity data for annotating fragment combinations in case of synthetic dataset.")
     parser.add_argument('-n', '--natref', type=str, default=None, help="Root folder of the dataset to use for natural reference when running synthetic protocol.")
     parser.add_argument('--chunksize', type=int, default=None, help="Overwrite config file chunksize property.")
     args = parser.parse_args()
@@ -95,7 +113,7 @@ def main():
     logger.info("JOBS".ljust(pad) + f"{args.jobs}")
 
     # default keys set to None
-    config = ['molid', 'prefix', 'WD', 'input_file', 'frags_file', 'chunksize', 'natref', 'act_file']
+    config = ['molid', 'prefix', 'WD', 'input_file', 'frags_file', 'chunksize', 'natref']
     config = {k: None for k in config}
 
     # begin
@@ -150,14 +168,6 @@ def main():
     if config['frags_file'] is not None and not utils.check_arg_input_file(config['frags_file']):
         errors.append(f"ERROR! FRAGS_FILE COULD NOT BE FOUND AT '{config['frags_file']}'!")
 
-    # act_file
-    if args.act_file is not None:
-        logger.info(f"OVERWRITING PREFIX TO {args.act_file}")
-        config['act_file'] = args.act_file
-    if config['act_file'] is not None:
-        if not utils.check_arg_input_file(config['act_file']):
-            errors.append(f"ERROR! ACT_FILE COULD NOT BE FOUND AT '{config['act_file']}'!")
-
     # natref
     if args.natref is not None:
         logger.info(f"OVERWRITING WD TO {args.natref}")
@@ -183,7 +193,7 @@ def main():
     logger.info(f"PROTOCOL - {args.protocol}".center(pad))
     # automatically retrieve all variables and append them to command string using key=value
     if Path(args.protocol).is_file():
-        smk_file = args.protocol
+        smk_file = args.protocolarg
     else:
         try:
             smk_file = pkg_resources.resource_filename('npfc', f"data/{args.protocol}.smk")
@@ -217,17 +227,19 @@ def main():
 
     # add specific arguments when chunks are needed
     if protocol in ['natural', 'synthetic', 'other']:
-        # count mols for natural and synthetic
-        # for counting mols, need to process the unzipped file
-        input_file_uncompressed = config['input_file'].split('.gz')[0]
-        # count mols + uncompress input file
-        num_mols = load.count_mols(config['input_file'], keep_uncompressed=True)
-        # uncompressed input file works not in smk file (makes the whole pipeline to overwrite any output) so just discard it. The archive will be unziped again.
-        Path(input_file_uncompressed).unlink()
-        # determine the number of chunks to generate
-        num_chunks = ceil(num_mols / config['chunksize'])
-        config['num_chunks'] = num_chunks
-        logger.info("NUMBER OF CHUNKS:".ljust(pad) + f"{num_mols:,d} / {config['chunksize']:,d} = {num_chunks:,d}")
+        # estimate the number of chunks required based on the number of molecules in the input file
+        num_mols_file = f"{config['WD']}/data/00_raw/data/{config['prefix']}_num_mols.txt"
+        if Path(num_mols_file).exists():
+            with open(num_mols_file, 'r') as FILE:
+                d = json.load(FILE)
+        else:
+            # count mols for natural and synthetic
+            d = count_required_chunks(config['input_file'], config['chunksize'])
+            with open(num_mols_file, 'w+') as FILE:
+                json.dump(d, FILE)
+        # add the counts of mols/chunks to the configuration
+        config.update(d)
+        logger.info("NUMBER OF CHUNKS:".ljust(pad) + f"{config['num_mols']:,d} / {config['chunksize']:,d} = {config['num_chunks']:,d}")
     # add arguments to the smk command
     smk_command += "--config "
     for k, v in config.items():

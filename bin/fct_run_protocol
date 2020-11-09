@@ -86,9 +86,9 @@ def main():
     logger.info("JOBS".ljust(pad) + f"{args.jobs}")
 
     # default keys set to None
-    config = ['fragments_root', 'fragments_prep_subdir', 'fragments_prefix',
-              'natural_root', 'natural_prep_subdir', 'natural_frags_subdir', 'natural_prefix',
-              'synthetic_root', 'synthetic_prep_subdir', 'synthetic_natref_subdir', 'synthetic_frags_subdir', 'synthetic_prefix',
+    config = ['fragments_root_dir', 'fragments_prep_subdir', 'fragments_prefix',
+              'natural_root_dir', 'natural_prep_subdir', 'natural_frags_subdir', 'natural_prefix',
+              'root_dir', 'prep_subdir', 'frags_subdir', 'natref_subdir', 'prefix',
               ]
     config = {k: None for k in config}
 
@@ -106,6 +106,8 @@ def main():
     with open(config_file, 'r') as CONFIG:
         config_parsed = json.load(CONFIG)
     config.update(config_parsed)
+    logger.info("OPTIONS IN CONFIGURATION FILE:")
+    [logger.info(f"OPTION {opt}".ljust(pad) + f"{value}") for opt, value in config.items()]
 
     # check arguments
 

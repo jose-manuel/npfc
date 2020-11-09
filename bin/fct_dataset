@@ -92,16 +92,17 @@ def main():
     # date_raw_file
     # https://thispointer.com/python-get-last-modification-date-time-of-a-file-os-stat-os-path-getmtime/
     modTimesinceEpoc = os.path.getmtime(c['input_file'])
-    date_raw_file = time.strftime('%Y-%m-%d, %H:%M:%S', time.localtime(modTimesinceEpoc))
+    date_raw_file = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(modTimesinceEpoc))
 
     df = pd.DataFrame([[c['prefix'],
                         args.type,
                         Path(Path(c['input_file']).stem).stem,
-                        datetime.now().strftime("%Y-%m-%d, %H:%M:%S"),
+                        datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                         date_raw_file,
                         c['protocol_std'],
+                        args.input_conf_file,
                         json.dumps(c),
-                        ]], columns=['dataset_id', 'type', 'version', 'date_latest_update', 'date_raw_file', 'protocol_std', 'config'])
+                        ]], columns=['dataset_id', 'type', 'version', 'date_latest_update', 'date_raw_file', 'protocol_std', 'config_file', 'config'])
     d3 = datetime.now()
 
     # save file

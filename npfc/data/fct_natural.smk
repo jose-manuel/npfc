@@ -27,23 +27,13 @@ from npfc import utils
 
 # common
 WD = config['WD']
-# fragments
+# natural
 root_dir = config['root_dir']
 prep_subdir = config['prep_subdir']
 prefix = config['prefix']
 config_file = config['config_file']
-
-# # natural
-# natural_root = config['root_dir']
-# natural_prep_subdir = config['natural_prep_subdir']
-# natural_frags_subdir = config['natural_frags_subdir']
-# natural_prefix = config['natural_prefix']
-# # synthetic
-# synthetic_root = config['synthetic_root']
-# synthetic_prep_subdir = config['synthetic_prep_subdir']
-# synthetic_frags_subdir = config['synthetic_frags_subdir']
-# synthetic_frags_subdir = config['synthetic_natref_subdir']
-# synthetic_prefix = config['synthetic_prefix']
+# fragments
+frags_subdir = config['frags_subdir']
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ INITIALIZATION ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
@@ -92,7 +82,7 @@ rule DATASET:
 
 rule MOL_MOL:
     input:
-        synonyms = root_dir + "/data/" + prep_subdir + "/03_dedupl/log/" + prefix + "_synonyms.csv.gz",
+        synonyms = root_dir + "/data/" + prep_subdir + "/04_dedupl/log/" + prefix + "_synonyms.csv.gz",
         molecule = WD + "/data/molecule.csv.gz"
     output: WD + "/data/molecule_molecule.csv.gz"
     log: WD + "/log/molecule_molecule.log"
@@ -100,10 +90,8 @@ rule MOL_MOL:
 
 rule MOL:
     input:
-        # load_step = expand("{a}/data/{b}/01_load/data/{c}.csv.gz", a=[root_dir], b=[prep_subdir], c=[prefix]),
-        # latest_step = expand("{a}/data/{b}/05_depict/data/{c}_depict.csv.gz", a=[root_dir], b=[prep_subdir], c=[prefix])
         load_step = root_dir + "/data/" + prep_subdir + "/01_load/data/" + prefix + ".csv.gz",
-        latest_step = root_dir + "/data/" + prep_subdir + "/05_depict/data/" + prefix + "_depict.csv.gz"
+        latest_step = root_dir + "/data/" + prep_subdir + "/" + frags_subdir + "/08_fcg/data/" + prefix + "_fcg.csv.gz"
     output: WD + "/data/molecule.csv.gz"
     log: WD + "/log/molecule.log"
     shell: "fct_molecule {input.load_step} {input.latest_step} {output}  >{log} 2>&1"
@@ -114,7 +102,7 @@ rule START:
     # as it would certainly erase the outputs from the other pipelines (load and latest step)!
     output:
         load_step = root_dir + "/data/" + prep_subdir + "/01_load/data/" + prefix + ".csv.gz",
-        latest_step = root_dir + "/data/" + prep_subdir + "/05_depict/data/" + prefix + "_depict.csv.gz",
+        latest_step = root_dir + "/data/" + prep_subdir + "/" + frags_subdir + "/08_fcg/data/" + prefix + "_fcg.csv.gz",
         config_file = config_file
     shell:
         """

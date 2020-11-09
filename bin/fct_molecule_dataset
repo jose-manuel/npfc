@@ -95,9 +95,9 @@ def main():
     # process data
     df = df_molecule[['molecule_id']].copy()
     df['dataset_id'] = df_dataset.iloc[0]['dataset_id']
-    d = {'fragments': 'FOUND_IN_FRAGMENTS',
-         'natural': 'FOUND_IN_NATURAL',
-         'synthetic': 'FOUND_IN_SYNTHETIC',
+    d = {'fragments': 'FRAGMENT_FROM',
+         'natural': 'NATURAL_PRODUCT_FROM',
+         'synthetic': 'SYNTHETIC_COMPOUND_FROM',
          }
     df['relationship'] = d[args.type]
     df = df[['molecule_id', 'relationship', 'dataset_id']]
