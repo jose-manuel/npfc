@@ -59,25 +59,29 @@ rule END:
         assay = expand("{WD}/assay/data/assay_{cid}.csv.gz", WD=WD, cid=chunk_ids),
         dataset = WD + "/dataset/data/dataset.csv.gz",
         document = expand("{WD}/document/data/document_{cid}.csv.gz", WD=WD, cid=chunk_ids),
-        fragment_fragment = expand("{WD}/fragment_fragment/data/fragment_fragment_{cid}.csv.gz", WD=WD, cid=chunk_ids),
         molecule = expand("{WD}/molecule/data/molecule_{cid}.csv.gz", WD=WD, cid=chunk_ids),
+        species = expand("{WD}/species/data/species_{cid}.csv.gz", WD=WD, cid=chunk_ids),
+        target = expand("{WD}/target/data/target_{cid}.csv.gz", WD=WD, cid=chunk_ids),
         # relationships
         assay_document = expand("{WD}/assay_document/data/assay_document_{cid}.csv.gz", WD=WD, cid=chunk_ids),
         assay_species = expand("{WD}/assay_species/data/assay_species_{cid}.csv.gz", WD=WD, cid=chunk_ids),
+        fragment_fragment = expand("{WD}/fragment_fragment/data/fragment_fragment_{cid}.csv.gz", WD=WD, cid=chunk_ids),
         molecule_assay = expand("{WD}/molecule_assay/data/molecule_assay_{cid}.csv.gz", WD=WD, cid=chunk_ids),
         molecule_dataset = expand("{WD}/molecule_dataset/data/molecule_dataset_{cid}.csv.gz", WD=WD, cid=chunk_ids),
         molecule_document = expand("{WD}/molecule_document/data/molecule_document_{cid}.csv.gz", WD=WD, cid=chunk_ids),
-        molecule_molecule = expand("{WD}/molecule_molecule/data/molecule_molecule_{cid}.csv.gz", WD=WD, cid=chunk_ids)
+        molecule_molecule = expand("{WD}/molecule_molecule/data/molecule_molecule_{cid}.csv.gz", WD=WD, cid=chunk_ids),
+        target_assay = expand("{WD}/target_assay/data/target_assay_{cid}.csv.gz", WD=WD, cid=chunk_ids),
+        target_species = expand("{WD}/target_species/data/target_species_{cid}.csv.gz", WD=WD, cid=chunk_ids)
 
-# rule TARGET:
-#     pass
-#
-# rule SPECIES:
-#     pass
-#
-# rule TARGET_SPECIES:
-#     pass
-#
+rule SPECIES:
+    input:
+        species_raw = "{WD}/raw/data/species.csv.gz",
+        target_species = "{WD}/target_species/data/target_species_{cid}.csv.gz",
+        assay_species = "{WD}/assay_species/data/assay_species_{cid}.csv.gz",
+    output: "{WD}/species/data/species_{cid}.csv.gz"
+    log: "{WD}/species/log/species_{cid}.log"
+    shell: "fct_species {input.species_raw} {input.target_species} {input.assay_species} {output} >{log} 2>&1"
+
 
 rule TARGET_SPECIES:
     input:
@@ -86,6 +90,23 @@ rule TARGET_SPECIES:
     output: "{WD}/target_species/data/target_species_{cid}.csv.gz"
     log: "{WD}/target_species/log/target_species_{cid}.log"
     shell: "fct_target_species {input.target_species_raw} {input.target} {output} >{log} 2>&1"
+
+
+rule TARGET:
+    input:
+        target_raw = "{WD}/raw/data/target.csv.gz",
+        target_assay = "{WD}/target_assay/data/target_assay_{cid}.csv.gz"
+    output: "{WD}/target/data/target_{cid}.csv.gz"
+    log: "{WD}/target/log/target_{cid}.log"
+    shell: "fct_target {input.target_raw} {input.target_assay} {output} >{log} 2>&1"
+
+rule TARGET_ASSAY:
+    input:
+        target_assay_raw = "{WD}/raw/data/target_assay.csv.gz",
+        assay = "{WD}/assay/data/assay_{cid}.csv.gz"
+    output: "{WD}/target_assay/data/target_assay_{cid}.csv.gz"
+    log: "{WD}/target_assay/log/target_assay_{cid}.log"
+    shell: "fct_target_assay {input.target_assay_raw} {input.assay} {output} >{log} 2>&1"
 
 rule ASSAY_SPECIES:
     input:

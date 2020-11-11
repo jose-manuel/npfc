@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
 """
-Script fct_assay_species
+Script fct_target_assay
 =============================
-This script generates the assay - species relationships file for a given input chunk.
+This script generates the target - target relationships file for a given input chunk.
 """
 import argparse
 from datetime import datetime
@@ -26,31 +26,31 @@ def main():
 
     # init
     d0 = datetime.now()
-    description = """Script for generating the assay - species relationships.
+    description = """Script for generating the target - assay relationships.
     One relationship type is supported:
-        - assay -[ASSAY_ORGANISM_ID]-> species
+        - target -[TESTED_IN]-> assay
 
     Example:
 
-        >>> fct_assay_species fct/assay/assay.csv.gz fct/raw/assay_species.csv.gz fct/assay_species/data/assay_species.csv.gz
+        >>> fct_target_assay fct/assay/assay.csv.gz fct/raw/target_assay.csv.gz fct/target_assay/data/target_assay.csv.gz
 
     """
 
     # parameters CLI
     parser = argparse.ArgumentParser(description=description, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('input_assay_species_table', type=str, default=None, help="The raw input assay_species table for the corresponding dataset.")
+    parser.add_argument('input_target_assay_table', type=str, default=None, help="The raw input target_assay table for the corresponding dataset.")
     parser.add_argument('input_assay_table', type=str, default=None, help="The input assay table.")
-    parser.add_argument('output_table', type=str, default=None, help="Output file with the fragment - assay relationships.")
+    parser.add_argument('output_table', type=str, default=None, help="Output file with the target - assay relationships.")
     parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
     args = parser.parse_args()
 
     # logging
     logger = utils._configure_logger(args.log)
-    logger.info("RUNNING FCT_ASSAY_SPECIES")
+    logger.info("RUNNING FCT_TARGET_ASSAY")
     pad = 40
 
     # parse arguments
-    utils.check_arg_input_file(args.input_assay_species_table)
+    utils.check_arg_input_file(args.input_target_assay_table)
     utils.check_arg_input_file(args.input_assay_table)
     utils.check_arg_output_file(args.output_table)
 
@@ -63,9 +63,9 @@ def main():
     logger.info("npfc".ljust(pad) + f"{npfc.__version__}")
     # arguments
     logger.info("ARGUMENTS:")
-    logger.info("INPUT_ASSAY_SPECIES_TABLE".ljust(pad) + f"{args.input_assay_species_table}")
+    logger.info("INPUT_TARGET_ASSAY_TABLE".ljust(pad) + f"{args.input_target_assay_table}")
     logger.info("INPUT_ASSAY_TABLE".ljust(pad) + f"{args.input_assay_table}")
-    logger.info("OUTPUT_ASSAY_SPECIES_TABLE".ljust(pad) + f"{args.output_table}")
+    logger.info("OUTPUT_TARGET_ASSAY_TABLE".ljust(pad) + f"{args.output_table}")
     # log
     logger.info("LOG".ljust(pad) + f"{args.log}")
 
@@ -76,23 +76,22 @@ def main():
 
     # load inputs
     logger.info("LOADING INPUT FILES")
-    df_assay_species_raw = load.file(args.input_assay_species_table)
-    logger.info(f"LOADED {len(df_assay_species_raw):,} ASSAY-SPECIES RELATIONSHIPS")
-    df_assay = load.file(args.input_assay_table, decode=False)[['assay_id']].groupby('assay_id', as_index=False).first()
-    logger.info(f"LOADED {len(df_assay)} ASSAY ENTRIES")
+    df_target_assay_raw = load.file(args.input_target_assay_table)
+    logger.info(f"LOADED {len(df_target_assay_raw):,} TARGET-ASSAY RELATIONSHIPS")
+    logger.debug(f"df_target_assay_raw\n{df_target_assay_raw}")
+    df_assay = load.file(args.input_assay_table)[['assay_id']].groupby('assay_id', as_index=False).first()
+    logger.info(f"LOADED {len(df_assay)} ASSAY NODES")
+    logger.debug(f"df_assay\n{df_assay}")
     d2 = datetime.now()
 
     # process data
 
     d3 = datetime.now()
-    df_assay_species = df_assay_species_raw[df_assay_species_raw['assay_id'].isin(df_assay['assay_id'])]
-    df_assay_species['species_id'] = df_assay_species['species_id'].map(lambda x: str(x).split('.')[1] if x else '')
-    logger.info(f"REMAINING NUMBER OF ASSAY-SPECIES RELATIONSHIPS: {len(df_assay_species)}")
-    logger.info(f"NUMBER OF ASSAYS WITH UNKNOWN SPECIES: {len(df_assay[~df_assay['assay_id'].isin(df_assay_species_raw['assay_id'])]):,}")
-    logger.warning("ASSAYS WITH UNKOWN SPECIES ARE NOT SAVED IN THIS TABLE!")
+    df_target_assay = df_target_assay_raw[df_target_assay_raw['assay_id'].isin(df_assay['assay_id'])]
+    logger.info(f"REMAINING NUMBER OF TARGET - ASSAY RLATIONSHIPS: {len(df_target_assay)}")
     # save file
     logger.info("SAVING OUTPUT")
-    save.file(df_assay_species, args.output_table)
+    save.file(df_target_assay, args.output_table)
     d4 = datetime.now()
 
     # end
@@ -105,6 +104,7 @@ def main():
     logger.info("COMPUTATIONAL TIME: TOTAL".ljust(pad * 2) + f"{d4-d0}")
     logger.info("END")
     sys.exit(0)
+
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ MAIN ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 

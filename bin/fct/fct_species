@@ -1,9 +1,12 @@
 #!/usr/bin/env python
 
 """
-Script fct_target_species
+Script fct_species
 =============================
-This script generates the target - species relationships file for a given input chunk.
+This script generates the species nodes file for a given input chunk.
+
+It will certainly be important to make sure not to create duplicate species when
+assembling the network.
 """
 import argparse
 from datetime import datetime
@@ -26,32 +29,35 @@ def main():
 
     # init
     d0 = datetime.now()
-    description = """Script for generating the target - species relationships.
-    One relationship type is supported:
-        - target -[PRODUCED_BY]-> species
+    description = """Script for generating the species nodes table.
+    Rather than directly using the raw table, I prefer to filter it with the
+    molecule ids found in the provided chunk. This will hopefully prevents from
+    having a lot of single nodes in the network.
 
     Example:
 
-        >>> fct_target_species fct/target/target.csv.gz fct/raw/target_species.csv.gz fct/target_species/data/target_species.csv.gz
+        >>> fct_species fct/data/03_synthetic/raw/species.csv.gz fct/data/species_assay/data/target_species.csv.gz fct/data/03_synthetic/species/species.csv.gz
 
     """
 
     # parameters CLI
     parser = argparse.ArgumentParser(description=description, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('input_target_species_table', type=str, default=None, help="The raw input target_species table for the corresponding dataset.")
-    parser.add_argument('input_target_table', type=str, default=None, help="The input target table.")
+    parser.add_argument('input_species_table', type=str, default=None, help="The raw input species table for the corresponding dataset.")
+    parser.add_argument('input_target_species_table', type=str, default=None, help="The input target_species table.")
+    parser.add_argument('input_assay_species_table', type=str, default=None, help="The input assay_species table.")
     parser.add_argument('output_table', type=str, default=None, help="Output file with the target - species relationships.")
     parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
     args = parser.parse_args()
 
     # logging
     logger = utils._configure_logger(args.log)
-    logger.info("RUNNING FCT_TARGET_SPECIES")
+    logger.info("RUNNING FCT_SPECIES")
     pad = 40
 
     # parse arguments
+    utils.check_arg_input_file(args.input_species_table)
     utils.check_arg_input_file(args.input_target_species_table)
-    utils.check_arg_input_file(args.input_target_table)
+    utils.check_arg_input_file(args.input_assay_species_table)
     utils.check_arg_output_file(args.output_table)
 
     # display infos
@@ -63,9 +69,10 @@ def main():
     logger.info("npfc".ljust(pad) + f"{npfc.__version__}")
     # arguments
     logger.info("ARGUMENTS:")
+    logger.info("INPUT_SPECIES_TABLE".ljust(pad) + f"{args.input_species_table}")
     logger.info("INPUT_TARGET_SPECIES_TABLE".ljust(pad) + f"{args.input_target_species_table}")
-    logger.info("INPUT_TARGET_TABLE".ljust(pad) + f"{args.input_target_table}")
-    logger.info("OUTPUT_TARGET_SPECIES_TABLE".ljust(pad) + f"{args.output_table}")
+    logger.info("INPUT_ASSAY_SPECIES_TABLE".ljust(pad) + f"{args.input_assay_species_table}")
+    logger.info("OUTPUT_SPECIES_TABLE".ljust(pad) + f"{args.output_table}")
     # log
     logger.info("LOG".ljust(pad) + f"{args.log}")
 
@@ -76,23 +83,25 @@ def main():
 
     # load inputs
     logger.info("LOADING INPUT FILES")
-    df_target_species_raw = load.file(args.input_target_species_table)
-    logger.info(f"LOADED {len(df_target_species_raw):,} TARGET-SPECIES RELATIONSHIPS")
-    df_target = load.file(args.input_target_table)[['target_id']].groupby('target_id', as_index=False).first()
-    logger.info(f"LOADED {len(df_target)} TARGET ENTRIES")
+    df_species_raw = load.file(args.input_species_table).fillna('')
+    print(df_species_raw)
+    print(df_species_raw.columns)
+    df_species_raw['species_id'] = df_species_raw['species_id'].map(lambda x: str(x).replace('.0', '') if x != '' else '')
+    logger.info(f"LOADED {len(df_species_raw)} SPECIES NODES")
+    df_target_species = load.file(args.input_target_species_table)[['species_id']]
+    logger.info(f"LOADED {len(df_target_species):,} TARGET-SPECIES RELATIONSHIPS")
+    df_assay_species = load.file(args.input_assay_species_table)
+    logger.info(f"LOADED {len(df_assay_species):,} ASSAY-SPECIES RELATIONSHIPS")
     d2 = datetime.now()
 
     # process data
-
+    df_species = df_species_raw[(df_species_raw['species_id'].isin(df_target_species['species_id'])) | (df_species_raw['species_id'].isin(df_assay_species['species_id']))]
+    logger.info(f"REMAINING NUMBER OF SPECIES NODES: {len(df_species)}")
     d3 = datetime.now()
-    df_target_species = df_target_species_raw[df_target_species_raw['target_id'].isin(df_target['target_id'])]
-    df_target_species['species_id'] = df_target_species['species_id'].map(lambda x: str(x).split('.')[1] if x else '')
-    logger.info(f"REMAINING NUMBER OF TARGET-SPECIES RELATIONSHIPS: {len(df_target_species)}")
-    logger.info(f"NUMBER OF TARGETS WITH UNKNOWN SPECIES: {len(df_target[~df_target['target_id'].isin(df_target_species_raw['target_id'])]):,}")
-    logger.warning("TARGETS WITH UNKOWN SPECIES ARE NOT SAVED IN THIS TABLE!")
+
     # save file
     logger.info("SAVING OUTPUT")
-    save.file(df_target_species, args.output_table)
+    save.file(df_species, args.output_table)
     d4 = datetime.now()
 
     # end
@@ -105,6 +114,7 @@ def main():
     logger.info("COMPUTATIONAL TIME: TOTAL".ljust(pad * 2) + f"{d4-d0}")
     logger.info("END")
     sys.exit(0)
+
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ MAIN ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 

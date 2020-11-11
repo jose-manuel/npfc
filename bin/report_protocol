@@ -838,6 +838,49 @@ def get_dfs_prep(WD: str) -> Tuple[DataFrame]:
     return {'df_prep_overview': df_prep_overview, 'df_prep_filtered': df_std_filtered, 'df_prep_error': df_std_error}
 
 
+def parse_chunk_fcp(c):
+    df = load.file(c, decode=False)[['idm', 'num_symmetry_groups']]
+    df_counts = df.groupby('num_symmetry_groups').count().reset_index().rename({'idm': 'Count', 'num_symmetry_groups': 'NumSymGroups'}, axis=1)
+    return df_counts
+
+
+def get_df_fcp(WD: str) -> DataFrame:
+    """Get a DF summarizing the results of the fcp step.
+
+    :param WD: the directory of the std step
+    :return: a DF summarizing results of the fcp step
+    """
+    logger.info("PREP -- COMPUTING FCP RESULTS")
+    # iterate over the log files to count status
+    pattern = ".*([0-9]{3})?_fcp.csv.gz"
+    chunks = _get_chunks(f"{WD}/04_fcp/data", pattern)
+    # print(f"{chunks=}")
+    logger.info(f"PREP -- FOUND {len(chunks):,d} CHUNKS")
+
+    # parse all files
+    dfs = []
+    pool = Pool()
+    dfs = pool.map(parse_chunk_fcp, chunks)
+    pool.close()
+    pool.join()
+
+    dfs = [df for df in dfs if len(df) > 0]
+
+    # if no case was found, return an empty dataframe
+    if len(dfs) == 0:
+        df = pd.DataFrame([], columns=["NumSymGroups", "Count", "Perc_Mols"])
+        return df
+
+    # concatenate all dataframes and compute the sum of all counts
+    df = pd.concat(dfs)
+    df = df.groupby("NumSymGroups").sum().reset_index()[['NumSymGroups', 'Count']]
+    tot_mols = df['Count'].sum()
+    df['Perc_Mols'] = df['Count'].map(lambda x: f"{x/tot_mols:.2%}")
+    logger.info(f"PREP -- RESULTS FOR FCP:\n\n{df}\n")
+
+    return df
+
+
 def parse_chunk_subset(c):
     df = pd.read_csv(c, sep="@", header=None)  # char not found in the log file so we can extract all lines as one column
     records = df[df[0].str.contains("NUMBER OF REMAINING RECORDS IN SUBSET")].iloc[0][0].split()[-1].split('/')
@@ -1638,6 +1681,20 @@ if __name__ == '__main__':
                     output_plot_files = [output_plot_prep_overview, output_plot_prep_filtered,
                                          output_plot_prep_error,
                                          ]
+
+                    # #### I do not have any idea anymore how this script works, sp super Q&D here
+                    if dir.split('/')[0] == 'fragments':
+                        compute_nsymgroups = True
+                    else:
+                        compute_nsymgroups = False
+
+                    # ##### I do not have any idea anymore how this script works, sp super Q&D here
+                    if compute_nsymgroups:
+                        output_csv_prep_nsymgroups = f"{output_folder}/{prefix}_prep_nsymgroups.csv"
+                        output_plot_prep_nsymgroups = output_csv_prep_nsymgroups.replace('.csv', f".{args.plotformat}")
+                        output_csv_files.append(output_csv_prep_nsymgroups)
+                        output_plot_files.append(output_plot_prep_nsymgroups)
+
                     if all([Path(x).exists() for x in output_plot_files]):
                         logger.info("PREP -- ALL OUTPUT PLOT FILES ARE ALREADY AVAILABLE, NOTHING TO DO!")
                         continue
@@ -1646,6 +1703,8 @@ if __name__ == '__main__':
                         df_prep_overview = load.file(output_csv_prep_overview)
                         df_prep_filtered = load.file(output_csv_prep_filtered)
                         df_prep_error = load.file(output_csv_prep_error)
+                        if compute_nsymgroups:
+                            df_prep_nsymgroups = load.file(output_csv_prep_nsymgroups)
                     else:
                         logger.info("PREP -- COMPUTING OUTPUT CSV FILES")
                         # first examples, then df so we spare a bit of memory
@@ -1653,10 +1712,15 @@ if __name__ == '__main__':
                         df_prep_overview = dfs_prep['df_prep_overview']
                         df_prep_filtered = dfs_prep['df_prep_filtered']
                         df_prep_error = dfs_prep['df_prep_error']
+                        if compute_nsymgroups:
+                            df_prep_nsymgroups = get_df_fcp(wd_subdir)
 
                         save.file(df_prep_overview, output_csv_prep_overview)
                         save.file(df_prep_filtered, output_csv_prep_filtered)
                         save.file(df_prep_error, output_csv_prep_error)
+                        if compute_nsymgroups:
+                            save.file(df_prep_nsymgroups, output_csv_prep_nsymgroups)
+
                     d1 = datetime.now()
 
                     # compute plots
@@ -1708,6 +1772,19 @@ if __name__ == '__main__':
                                      y_label='Count',
                                      color=color,
                                      perc_labels='Perc_Status',
+                                     )
+
+                    if compute_nsymgroups:
+                        logger.info("PREP -- OUTPUT_PLOT_PREP_FCP".ljust(pad) + "COMPUTING...")
+                        save_barplot(df_prep_nsymgroups,
+                                     output_plot_prep_nsymgroups,
+                                     'NumSymGroups',
+                                     'Count',
+                                     f"Number of Symmetry Groups in {dataset}",
+                                     x_label='NumSymGroups',
+                                     y_label='Count',
+                                     color=color,
+                                     perc_labels='Perc_Mols',
                                      )
 
                     d2 = datetime.now()

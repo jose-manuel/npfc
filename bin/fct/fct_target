@@ -36,26 +36,26 @@ def main():
 
     Example:
 
-        >>> fct_target fct/data/03_synthetic/molecule.csv.gz fct/data/00_raw/data/target.csv.gz fct/data/03_synthetic/target/target.csv.gz
+        >>> fct_target fct/data/03_synthetic/raw/target.csv.gz fct/data/target_assay/data/target.csv.gz fct/data/03_synthetic/target/target.csv.gz
 
     """
 
     # parameters CLI
     parser = argparse.ArgumentParser(description=description, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('input_target_table', type=str, default=None, help="The raw input target table for the corresponding dataset.")
-    parser.add_argument('input_molecule_table', type=str, default=None, help="The input molecule table.")
-    parser.add_argument('output_table', type=str, default=None, help="Output file with the fragment - fragment relationships.")
+    parser.add_argument('input_target_assay_table', type=str, default=None, help="The input molecule table.")
+    parser.add_argument('output_table', type=str, default=None, help="Output file with the target - assay relationships.")
     parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
     args = parser.parse_args()
 
     # logging
     logger = utils._configure_logger(args.log)
-    logger.info("RUNNING FCT_ASSAY")
+    logger.info("RUNNING FCT_TARGET_ASSAY")
     pad = 40
 
     # parse arguments
-    utils.check_arg_input_file(args.input_assay_table)
-    utils.check_arg_input_file(args.input_molecule_table)
+    utils.check_arg_input_file(args.input_target_table)
+    utils.check_arg_input_file(args.input_target_assay_table)
     utils.check_arg_output_file(args.output_table)
 
     # display infos
@@ -67,9 +67,9 @@ def main():
     logger.info("npfc".ljust(pad) + f"{npfc.__version__}")
     # arguments
     logger.info("ARGUMENTS:")
-    logger.info("INPUT_ASSAY_TABLE".ljust(pad) + f"{args.input_assay_table}")
-    logger.info("INPUT_MOLECULE_TABLE".ljust(pad) + f"{args.input_molecule_table}")
-    logger.info("OUTPUT_ASSSAY_TABLE".ljust(pad) + f"{args.output_table}")
+    logger.info("INPUT_TARGET_TABLE".ljust(pad) + f"{args.input_target_table}")
+    logger.info("INPUT_TARGET_ASSAY_TABLE".ljust(pad) + f"{args.input_target_assay_table}")
+    logger.info("OUTPUT_TARGET_TABLE".ljust(pad) + f"{args.output_table}")
     # log
     logger.info("LOG".ljust(pad) + f"{args.log}")
 
@@ -80,19 +80,20 @@ def main():
 
     # load inputs
     logger.info("LOADING INPUT FILES")
-    df_molecule = load.file(args.input_molecule_table)[['molecule_id']]
-    df_assay_raw = load.file(args.input_assay_table)
+    df_target_raw = load.file(args.input_target_assay_table)[['target_id']]
+    logger.info(f"LOADED {len(df_target_raw)} TARGET NODES")
+    df_target_assay = load.file(args.input_target_table)
+    logger.info(f"LOADED {len(df_target_assay):,} TARGET-ASSAY RELATIONSHIPS")
     d2 = datetime.now()
 
     # process data
-    print(df_assay_raw)
-    df_assay = df_assay_raw[df_assay_raw['molecule_id'].isin(df_molecule['molecule_id'])]
-    print(df_assay)
+    df_target = df_target_raw[df_target_raw['target_id'].isin(df_target_assay['target_id'])]
+    logger.info(f"REMAINING NUMBER OF TARGET NODES: {len(df_target)}")
     d3 = datetime.now()
 
     # save file
     logger.info("SAVING OUTPUT")
-    save.file(df_assay, args.output_table)
+    save.file(df_target, args.output_table)
     d4 = datetime.now()
 
     # end
