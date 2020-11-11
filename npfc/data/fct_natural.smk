@@ -48,6 +48,8 @@ for wd in [WD,
     if wd.endswith('/'):
         wd = wd[:-1]
 
+chunk_ids = [str(i+1).zfill(3) for i in range(config['num_chunks'])]
+
 # # count the number of chunks for naturral and synthetic runs
 # natural_num_chunks = len(list(Path(natural_prep_subdir).glob('01_chunk/data/*')))
 # synthetic_num_chunks = len(list(Path(synthetic_prep_subdir).glob('01_chunk/data/*')))
@@ -61,52 +63,44 @@ for wd in [WD,
 
 rule END:
     input:
-        dataset = WD + "/data/dataset.csv.gz",
-        molecule = WD + "/data/molecule.csv.gz",
-        molecule_dataset = WD + "/data/molecule_dataset.csv.gz",
-        molecule_molecule = WD + "/data/molecule_molecule.csv.gz"
+        dataset = WD + "/dataset/data/dataset.csv.gz",
+        fragment_fragment = expand("{WD}/fragment_fragment/data/fragment_fragment_{cid}.csv.gz", WD=WD, cid=chunk_ids),
+        molecule = expand("{WD}/molecule/data/molecule_{cid}.csv.gz", WD=WD, cid=chunk_ids),
+        molecule_dataset = expand("{WD}/molecule_dataset/data/molecule_dataset_{cid}.csv.gz", WD=WD, cid=chunk_ids),
+        molecule_molecule = expand("{WD}/molecule_molecule/data/molecule_molecule_{cid}.csv.gz", WD=WD, cid=chunk_ids)
 
-rule MOLECULE_DATASET:
+rule FRAG_FRAG:
+    input: root_dir + "/data/" + prep_subdir + "/" + frags_subdir + "/08_fcg/data/" + prefix + "_{cid}_fcg.csv.gz"
+    output: WD + "/fragment_fragment/data/fragment_fragment_{cid}.csv.gz"
+    log: WD + "/fragment_fragment/log/fragment_fragment_{cid}.log"
+    shell: "fct_fragment_fragment {input} {output}  >{log} 2>&1"
+
+rule MOL_DATASET:
     input:
-        molecule = WD + "/data/molecule.csv.gz",
-        dataset = WD + "/data/dataset.csv.gz"
-    output: WD + "/data/molecule_dataset.csv.gz"
-    log: WD + "/log/molecule_dataset.log"
-    shell: "fct_molecule_dataset fragments {input.molecule} {input.dataset} {output}  >{log} 2>&1"
+        molecule = "{WD}/molecule/data/molecule_{cid}.csv.gz",
+        dataset = "{WD}/dataset/data/dataset.csv.gz"
+    output: "{WD}/molecule_dataset/data/molecule_dataset_{cid}.csv.gz"
+    log: "{WD}/molecule_dataset/log/molecule_dataset_{cid}.log"
+    shell: "fct_molecule_dataset natural {input.molecule} {input.dataset} {output}  >{log} 2>&1"
 
 rule DATASET:
     input: config_file
-    output: WD + "/data/dataset.csv.gz"
-    log: WD + "/log/dataset.log"
-    shell: "fct_dataset fragments {input} {output}  >{log} 2>&1"
+    output: WD + "/dataset/data/dataset.csv.gz"
+    log: WD + "/dataset/log/dataset.log"
+    shell: "fct_dataset natural {input} {output}  >{log} 2>&1"
 
 rule MOL_MOL:
     input:
-        synonyms = root_dir + "/data/" + prep_subdir + "/04_dedupl/log/" + prefix + "_synonyms.csv.gz",
-        molecule = WD + "/data/molecule.csv.gz"
-    output: WD + "/data/molecule_molecule.csv.gz"
-    log: WD + "/log/molecule_molecule.log"
+        synonyms = root_dir + "/data/" + prep_subdir + "/04_dedupl/log/" + prefix + "_{cid}_synonyms.csv.gz",
+        molecule = WD + "/molecule/data/molecule_{cid}.csv.gz"
+    output: WD + "/molecule_molecule/data/molecule_molecule_{cid}.csv.gz"
+    log: WD + "/molecule_molecule/log/molecule_molecule_{cid}.csv.gz"
     shell: "fct_molecule_molecule {input.synonyms} {input.molecule} {output}  >{log} 2>&1"
 
 rule MOL:
     input:
-        load_step = root_dir + "/data/" + prep_subdir + "/01_load/data/" + prefix + ".csv.gz",
-        latest_step = root_dir + "/data/" + prep_subdir + "/" + frags_subdir + "/08_fcg/data/" + prefix + "_fcg.csv.gz"
-    output: WD + "/data/molecule.csv.gz"
-    log: WD + "/log/molecule.log"
+        load_step = root_dir + "/data/" + prep_subdir + "/02_load/data/" + prefix + "_{cid}.csv.gz",
+        latest_step = root_dir + "/data/" + prep_subdir + "/" + frags_subdir + "/08_fcg/data/" + prefix + "_{cid}_fcg.csv.gz"
+    output: WD + "/molecule/data/molecule_{cid}.csv.gz"
+    log: WD + "/molecule/log/molecule_{cid}.log"
     shell: "fct_molecule {input.load_step} {input.latest_step} {output}  >{log} 2>&1"
-
-rule START:
-    # This step has for unique goal to define the outputs that will be used later on.
-    # But this is not without risk... Never run this pipeline while forcing it from the beginning
-    # as it would certainly erase the outputs from the other pipelines (load and latest step)!
-    output:
-        load_step = root_dir + "/data/" + prep_subdir + "/01_load/data/" + prefix + ".csv.gz",
-        latest_step = root_dir + "/data/" + prep_subdir + "/" + frags_subdir + "/08_fcg/data/" + prefix + "_fcg.csv.gz",
-        config_file = config_file
-    shell:
-        """
-        mv {output.load_step} {output.load_step}.tmp; mv {output.load_step}.tmp {output.load_step}
-        mv {output.latest_step} {output.latest_step}.tmp; mv {output.latest_step}.tmp {output.latest_step}
-        mv {output.config_file} {output.config_file}.tmp; mv {output.config_file}.tmp {output.config_file}
-        """

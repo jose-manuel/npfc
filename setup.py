@@ -8,7 +8,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="npfc",
-    version='0.7.0-7-g1a45225',
+    version='0.7.1',
     author="Jose-Manuel Gally",
     author_email="josemanuel.gally@mpi-dortmund.mpg.de",
     description="A package for analyzing fragment combinations in natural and synthetic molecules",
@@ -36,17 +36,22 @@ setuptools.setup(
              'bin/chunk_check',
              'bin/chunk_sdf',
              # fct nodes
-             'bin/fct_assay',
-             'bin/fct_dataset',
-             'bin/fct_fragment',
-             'bin/fct_molecule',
+             'bin/fct/fct_assay',
+             'bin/fct/fct_dataset',
+             'bin/fct/fct_document',
+             'bin/fct/fct_fragment',
+             'bin/fct/fct_molecule',
              # fct relationships
-             'bin/fct_fragment_fragment',
-             'bin/fct_fragment_molecule',
-             'bin/fct_molecule_dataset',
-             'bin/fct_molecule_molecule',
+             'bin/fct/fct_assay_document',
+             'bin/fct/fct_assay_species',
+             'bin/fct/fct_fragment_fragment',
+             'bin/fct/fct_fragment_molecule',
+             'bin/fct/fct_molecule_assay',
+             'bin/fct/fct_molecule_dataset',
+             'bin/fct/fct_molecule_document',
+             'bin/fct/fct_molecule_molecule',
              # fct commands
-             'bin/fct_run_protocol',
+             'bin/fct/fct_run_protocol',
              # fragments
              'bin/frags_annotate_fcp',
              'bin/frags_search',

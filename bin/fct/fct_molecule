@@ -153,15 +153,19 @@ def main():
 
     # run annotations
     logger.info("RUNNING ANNOTATIONS")
-    df = pd.concat([df, df.apply(lambda x: compute_annotations(x['mol_rdkit'], filterer, np_scorer, sa_scorer), axis=1).apply(pd.Series)], axis=1)
-    df = df[['molecule_id', 'inchikey', 'smiles', 'smiles_ini', 'molecular_formula',
-             'molecular_weight', 'num_heavy_atom', 'num_rotatable_bond', 'num_hbd',
-             'num_hba', 'slogp', 'tpsa', 'num_ring', 'num_ring_arom', 'ring_size_min', 'ring_size_max',
-             'num_drug_like_violations', 'num_drug_like_ext_violations', 'num_ppi_like_violations',
-             'num_fragment_like_violations', 'num_fragment_like_ext_violations',
-             'np_score', 'sa_score',
-             'mol_rdkit',
-             ]]
+    # If the input df is empty, then the apply command below fails dramatically
+    columns = ['molecule_id', 'inchikey', 'smiles', 'smiles_ini', 'molecular_formula',
+               'molecular_weight', 'num_heavy_atom', 'num_rotatable_bond', 'num_hbd',
+               'num_hba', 'slogp', 'tpsa', 'num_ring', 'num_ring_arom', 'ring_size_min', 'ring_size_max',
+               'num_drug_like_violations', 'num_drug_like_ext_violations', 'num_ppi_like_violations',
+               'num_fragment_like_violations', 'num_fragment_like_ext_violations',
+               'np_score', 'sa_score',
+               'mol_rdkit',
+               ]
+    if len(df) < 1:
+        df = pd.DataFrame({k: [] for k in columns})
+    else:
+        df = pd.concat([df, df.apply(lambda x: compute_annotations(x['mol_rdkit'], filterer, np_scorer, sa_scorer), axis=1).apply(pd.Series)], axis=1)
     d4 = datetime.now()
 
     # save file

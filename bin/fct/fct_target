@@ -1,9 +1,12 @@
 #!/usr/bin/env python
 
 """
-Script fct_fragment_fragment
+Script fct_target
 =============================
-This script generates the fragment_fragment relationships file for a given input chunk.
+This script generates the target nodes file for a given input chunk.
+
+It will certainly be important to make sure not to create duplicate targets when
+assembling the network.
 """
 import argparse
 from datetime import datetime
@@ -26,41 +29,33 @@ def main():
 
     # init
     d0 = datetime.now()
-    description = """Script for generating the fragment - fragment relationships (fragment combinations).
-    There is a relationship type for each possible fragment combination category (COMBINED_FS_WITH, COMBINED_FE_WITH, etc.).
-
-    Properties are included within the relationship:
-        - category
-        - type
-        - subtype
-        - fcps
-        - fcpt
-        - molecule_id
-        - fcg_id
-
-    I feel I had to put molecule_id as property as well because I was afraid I would not be
-    able to select all fragment combinations for a given molecule otherwise.
+    description = """Script for generating the target nodes table.
+    Rather than directly using the raw table, I prefer to filter it with the
+    molecule ids found in the provided chunk. This will hopefully prevents from
+    having a lot of single nodes in the network.
 
     Example:
 
-        >>> fct_fragment_fragment dataset/12_pnp/data/file.csv.gz fct/fragment_fragment.csv.gz
+        >>> fct_target fct/data/03_synthetic/molecule.csv.gz fct/data/00_raw/data/target.csv.gz fct/data/03_synthetic/target/target.csv.gz
 
     """
 
     # parameters CLI
     parser = argparse.ArgumentParser(description=description, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('input_latest_step', type=str, default=None, help="Input from the latest step (fcg for natural products and pnp for synthetic compounds).")
+    parser.add_argument('input_target_table', type=str, default=None, help="The raw input target table for the corresponding dataset.")
+    parser.add_argument('input_molecule_table', type=str, default=None, help="The input molecule table.")
     parser.add_argument('output_table', type=str, default=None, help="Output file with the fragment - fragment relationships.")
     parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
     args = parser.parse_args()
 
     # logging
     logger = utils._configure_logger(args.log)
-    logger.info("RUNNING FCT_FRAGMENT_FRAGMENT")
+    logger.info("RUNNING FCT_ASSAY")
     pad = 40
 
     # parse arguments
-    utils.check_arg_input_file(args.input_latest_step)
+    utils.check_arg_input_file(args.input_assay_table)
+    utils.check_arg_input_file(args.input_molecule_table)
     utils.check_arg_output_file(args.output_table)
 
     # display infos
@@ -72,8 +67,9 @@ def main():
     logger.info("npfc".ljust(pad) + f"{npfc.__version__}")
     # arguments
     logger.info("ARGUMENTS:")
-    logger.info("INPUT_LATEST_STEP".ljust(pad) + f"{args.input_latest_step}")
-    logger.info("OUTPUT_FRAGMENT_FRAGMENT_TABLE".ljust(pad) + f"{args.output_table}")
+    logger.info("INPUT_ASSAY_TABLE".ljust(pad) + f"{args.input_assay_table}")
+    logger.info("INPUT_MOLECULE_TABLE".ljust(pad) + f"{args.input_molecule_table}")
+    logger.info("OUTPUT_ASSSAY_TABLE".ljust(pad) + f"{args.output_table}")
     # log
     logger.info("LOG".ljust(pad) + f"{args.log}")
 
@@ -84,25 +80,19 @@ def main():
 
     # load inputs
     logger.info("LOADING INPUT FILES")
-    df = load.file(args.input_latest_step)[['_fcg']]
-    df["edges"] = df["_fcg"].map(lambda x: x.edges(data=True))
-    # print(df.iloc[0])
+    df_molecule = load.file(args.input_molecule_table)[['molecule_id']]
+    df_assay_raw = load.file(args.input_assay_table)
     d2 = datetime.now()
 
     # process data
-    ds = []
-    for row in df.itertuples():
-        for edge in row.edges:
-            ds.append(dict({'fragment_id_1': edge[0], 'fragment_id_2': edge[1]}, **edge[2]))  # the | operand from python 3.9 would be nice here...
-
-    df = pd.DataFrame(ds).rename({'idcfg': 'fcg_id', 'idm': 'molecule_id'}, axis=1)
-    df['relationship'] = df['fcc'].map(lambda x: f"COMBINED_{x.upper()}")
-    df = df[['fragment_id_1', 'relationship', 'fragment_id_2', 'molecule_id', 'fcp_1', 'fcp_2', 'fcg_id']]
+    print(df_assay_raw)
+    df_assay = df_assay_raw[df_assay_raw['molecule_id'].isin(df_molecule['molecule_id'])]
+    print(df_assay)
     d3 = datetime.now()
 
     # save file
     logger.info("SAVING OUTPUT")
-    save.file(df, args.output_table)
+    save.file(df_assay, args.output_table)
     d4 = datetime.now()
 
     # end

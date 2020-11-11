@@ -43,7 +43,7 @@ def count_required_chunks(input_file, chunksize):
     Path(input_file_uncompressed).unlink()
     # determine the number of chunks to generate
     num_chunks = ceil(num_mols / chunksize)
-    return {'num_mols': num_mols, 'num_chunks': num_chunks}
+    return {'num_mols': num_mols, 'num_chunks': num_chunks, 'chunksize': chunksize}
 
 
 
@@ -228,11 +228,13 @@ def main():
     # add specific arguments when chunks are needed
     if protocol in ['natural', 'synthetic', 'other']:
         # estimate the number of chunks required based on the number of molecules in the input file
-        num_mols_file = f"{config['WD']}/data/00_raw/data/{config['prefix']}_num_mols.txt"
+        num_mols_file = f"{config['WD']}/data/00_raw/data/{config['prefix']}_num_mols.json"
         if Path(num_mols_file).exists():
             with open(num_mols_file, 'r') as FILE:
                 d = json.load(FILE)
-        else:
+                if config['chunksize'] != d['chunksize']:
+                    Path(num_mols_file).unlink()
+        if not Path(num_mols_file).exists():
             # count mols for natural and synthetic
             d = count_required_chunks(config['input_file'], config['chunksize'])
             with open(num_mols_file, 'w+') as FILE:

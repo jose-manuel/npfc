@@ -11,6 +11,6 @@
                     "natref_fcg_dir": "natural/dnp/data/prep/frags_crms/08_fcg/data",
                     "pnp_attributes": "fcc",
                     "chunksize": 20,
-                    "act_file": "synthetic/chembl/data/00_raw/data/chembl_act.csv.gz"
+                    "protocol_std" : "DEFAULT"
 }
 

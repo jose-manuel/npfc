@@ -1,0 +1,128 @@
+#!/usr/bin/env python
+
+"""
+Script fct_fragment_fragment
+=============================
+This script generates the fragment_fragment relationships file for a given input chunk.
+"""
+import argparse
+from datetime import datetime
+import sys
+# data
+import pandas as pd
+# chemoinformatics
+import rdkit
+# dev
+import npfc
+from npfc import load
+from npfc import save
+from npfc import utils
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
+def main():
+
+    # init
+    d0 = datetime.now()
+    description = """Script for generating the fragment - fragment relationships (fragment combinations).
+    There is a relationship type for each possible fragment combination category (COMBINED_FS_WITH, COMBINED_FE_WITH, etc.).
+
+    Properties are included within the relationship:
+        - category
+        - type
+        - subtype
+        - fcps
+        - fcpt
+        - molecule_id
+        - fcg_id
+
+    I feel I had to put molecule_id as property as well because I was afraid I would not be
+    able to select all fragment combinations for a given molecule otherwise.
+
+    Example:
+
+        >>> fct_fragment_fragment dataset/12_pnp/data/file.csv.gz fct/fragment_fragment.csv.gz
+
+    """
+
+    # parameters CLI
+    parser = argparse.ArgumentParser(description=description, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument('input_latest_step', type=str, default=None, help="Input from the latest step (fcg for natural products and pnp for synthetic compounds).")
+    parser.add_argument('output_table', type=str, default=None, help="Output file with the fragment - fragment relationships.")
+    parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
+    args = parser.parse_args()
+
+    # logging
+    logger = utils._configure_logger(args.log)
+    logger.info("RUNNING FCT_FRAGMENT_FRAGMENT")
+    pad = 40
+
+    # parse arguments
+    utils.check_arg_input_file(args.input_latest_step)
+    utils.check_arg_output_file(args.output_table)
+
+    # display infos
+
+    # versions
+    logger.info("LIBRARY VERSIONS:")
+    logger.info("rdkit".ljust(pad) + f"{rdkit.__version__}")
+    logger.info("pandas".ljust(pad) + f"{pd.__version__}")
+    logger.info("npfc".ljust(pad) + f"{npfc.__version__}")
+    # arguments
+    logger.info("ARGUMENTS:")
+    logger.info("INPUT_LATEST_STEP".ljust(pad) + f"{args.input_latest_step}")
+    logger.info("OUTPUT_FRAGMENT_FRAGMENT_TABLE".ljust(pad) + f"{args.output_table}")
+    # log
+    logger.info("LOG".ljust(pad) + f"{args.log}")
+
+    # begin
+
+    logger.info("BEGIN")
+    d1 = datetime.now()
+
+    # load inputs
+    logger.info("LOADING INPUT FILES")
+    columns = ['fragment_id_1', 'relationship', 'fragment_id_2', 'molecule_id', 'fcp_1', 'fcp_2', 'fcg_id']
+    df = load.file(args.input_latest_step)[['_fcg']]
+    df["edges"] = df["_fcg"].map(lambda x: x.edges(data=True))
+    d2 = datetime.now()
+
+    # process data
+    if len(df) > 0:  # script fails in case the input is empty
+        ds = []
+        for row in df.itertuples():
+            for edge in row.edges:
+                ds.append(dict({'fragment_id_1': edge[0], 'fragment_id_2': edge[1]}, **edge[2]))  # the | operand from python 3.9 would be nice here...
+
+        df = pd.DataFrame(ds).rename({'idcfg': 'fcg_id', 'idm': 'molecule_id'}, axis=1)
+        df['relationship'] = df['fcc'].map(lambda x: f"COMBINED_{x.upper()}")
+        df = df[columns]
+    else:
+        df = pd.DataFrame({k: [] for k in columns})
+    d3 = datetime.now()
+
+    # save file
+    logger.info("SAVING OUTPUT")
+    save.file(df, args.output_table)
+    d4 = datetime.now()
+
+    # end
+
+    logger.info("SUMMARY")
+    logger.info("COMPUTATIONAL TIME: CONFIGURING JOB".ljust(pad * 2) + f"{d1-d0}")
+    logger.info("COMPUTATIONAL TIME: LOADING INPUTS".ljust(pad * 2) + f"{d2-d1}")
+    logger.info("COMPUTATIONAL TIME: PROCESSING DATA".ljust(pad * 2) + f"{d3-d2}")
+    logger.info("COMPUTATIONAL TIME: SAVING OUTPUT".ljust(pad * 2) + f"{d4-d3}")
+    logger.info("COMPUTATIONAL TIME: TOTAL".ljust(pad * 2) + f"{d4-d0}")
+    logger.info("END")
+    sys.exit(0)
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ MAIN ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
+if __name__ == '__main__':
+    main()
+    sys.exit(0)
