@@ -188,7 +188,7 @@ class Standardizer(Filter):
         self._col_mol = col_mol
 
         if protocol is None:
-            self._protocol = pkg_resources.resource_filename('npfc', 'data/std_mols.json')
+            self._protocol = json.load(open(pkg_resources.resource_filename('npfc', 'data/std_mols.json'), 'r'))
         else:
             if isinstance(protocol, str):
                 self._protocol = json.load(open(protocol, 'r'))

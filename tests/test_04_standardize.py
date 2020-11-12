@@ -194,11 +194,11 @@ def test_std_init(standardizer):
                                               'filter_molecular_weight',
                                               'filter_num_ring',
                                               'filter_elements',
+                                              'sanitize',
                                               'clear_isotopes',
                                               'normalize',
                                               'uncharge',
                                               'canonicalize',
-                                              'clear_stereo',
                                               ]
     # workers
     assert isinstance(standardizer.metal_disconnector, MetalDisconnector)

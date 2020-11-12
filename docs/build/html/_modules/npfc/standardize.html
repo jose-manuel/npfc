@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.standardize &mdash; npfc 0.7.2-1-g7a78cf1 documentation</title>
+  <title>npfc.standardize &mdash; npfc 0.7.3 documentation</title>
   
 
   
@@ -58,7 +58,7 @@
             
             
               <div class="version">
-                0.7.2-1-g7a78cf1
+                0.7.3
               </div>
             
           
@@ -169,6 +169,7 @@
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">Counter</span>
 <span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
+<span class="kn">import</span> <span class="nn">pkg_resources</span>
 <span class="c1"># data handling</span>
 <span class="kn">import</span> <span class="nn">json</span>
 <span class="kn">from</span> <span class="nn">pandas</span> <span class="kn">import</span> <span class="n">DataFrame</span>
@@ -197,25 +198,25 @@
 
 <span class="n">DEFAULT_ELEMENTS</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;H&#39;</span><span class="p">,</span> <span class="s1">&#39;B&#39;</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="s1">&#39;N&#39;</span><span class="p">,</span> <span class="s1">&#39;O&#39;</span><span class="p">,</span> <span class="s1">&#39;F&#39;</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">,</span> <span class="s1">&#39;S&#39;</span><span class="p">,</span> <span class="s1">&#39;Cl&#39;</span><span class="p">,</span> <span class="s1">&#39;Br&#39;</span><span class="p">,</span> <span class="s1">&#39;I&#39;</span><span class="p">}</span>
 
-<span class="n">DEFAULT_PROTOCOL</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;tasks&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;filter_empty&#39;</span><span class="p">,</span>
-                              <span class="s1">&#39;disconnect_metal&#39;</span><span class="p">,</span>
-                              <span class="s1">&#39;keep_best&#39;</span><span class="p">,</span>
-                              <span class="s1">&#39;deglycosylate&#39;</span><span class="p">,</span>
-                              <span class="s1">&#39;filter_num_heavy_atom&#39;</span><span class="p">,</span>
-                              <span class="s1">&#39;filter_molecular_weight&#39;</span><span class="p">,</span>
-                              <span class="s1">&#39;filter_num_ring&#39;</span><span class="p">,</span>
-                              <span class="s1">&#39;filter_elements&#39;</span><span class="p">,</span>
-                              <span class="s1">&#39;clear_isotopes&#39;</span><span class="p">,</span>
-                              <span class="s1">&#39;normalize&#39;</span><span class="p">,</span>
-                              <span class="s1">&#39;uncharge&#39;</span><span class="p">,</span>
-                              <span class="s1">&#39;canonicalize&#39;</span><span class="p">,</span>
-                              <span class="s1">&#39;clear_stereo&#39;</span><span class="p">,</span>
-                              <span class="p">],</span>
-                    <span class="s1">&#39;filter_num_heavy_atom&#39;</span><span class="p">:</span> <span class="s1">&#39;num_heavy_atom &gt; 3&#39;</span><span class="p">,</span>
-                    <span class="s1">&#39;filter_molecular_weight&#39;</span><span class="p">:</span> <span class="s1">&#39;molecular_weight &lt;= 1000.0&#39;</span><span class="p">,</span>
-                    <span class="s1">&#39;filter_num_ring&#39;</span><span class="p">:</span> <span class="s1">&#39;num_ring &gt; 0&#39;</span><span class="p">,</span>
-                    <span class="s1">&#39;filter_elements&#39;</span><span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;elements in </span><span class="si">{</span><span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">DEFAULT_ELEMENTS</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
-                    <span class="p">}</span>
+<span class="c1"># DEFAULT_PROTOCOL = {&#39;tasks&#39;: [&#39;filter_empty&#39;,</span>
+<span class="c1">#                               &#39;disconnect_metal&#39;,</span>
+<span class="c1">#                               &#39;keep_best&#39;,</span>
+<span class="c1">#                               &#39;deglycosylate&#39;,</span>
+<span class="c1">#                               &#39;filter_num_heavy_atom&#39;,</span>
+<span class="c1">#                               &#39;filter_molecular_weight&#39;,</span>
+<span class="c1">#                               &#39;filter_num_ring&#39;,</span>
+<span class="c1">#                               &#39;filter_elements&#39;,</span>
+<span class="c1">#                               &#39;clear_isotopes&#39;,</span>
+<span class="c1">#                               &#39;normalize&#39;,</span>
+<span class="c1">#                               &#39;uncharge&#39;,</span>
+<span class="c1">#                               &#39;canonicalize&#39;,</span>
+<span class="c1">#                               &#39;clear_stereo&#39;,</span>
+<span class="c1">#                               ],</span>
+<span class="c1">#                     &#39;filter_num_heavy_atom&#39;: &#39;num_heavy_atom &gt; 3&#39;,</span>
+<span class="c1">#                     &#39;filter_molecular_weight&#39;: &#39;molecular_weight &lt;= 1000.0&#39;,</span>
+<span class="c1">#                     &#39;filter_num_ring&#39;: &#39;num_ring &gt; 0&#39;,</span>
+<span class="c1">#                     &#39;filter_elements&#39;: f&#39;elements in {&quot;, &quot;.join(str(x) for x in DEFAULT_ELEMENTS)}&#39;,</span>
+<span class="c1">#                     }</span>
 
 <span class="c1"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ CLASSES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #</span>
 
@@ -348,7 +349,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_col_mol</span> <span class="o">=</span> <span class="n">col_mol</span>
 
         <span class="k">if</span> <span class="n">protocol</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_protocol</span> <span class="o">=</span> <span class="n">DEFAULT_PROTOCOL</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_protocol</span> <span class="o">=</span> <span class="n">pkg_resources</span><span class="o">.</span><span class="n">resource_filename</span><span class="p">(</span><span class="s1">&#39;npfc&#39;</span><span class="p">,</span> <span class="s1">&#39;data/std_mols.json&#39;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">protocol</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_protocol</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">protocol</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">))</span>
@@ -812,6 +813,8 @@
 
             <span class="c1"># filters</span>
             <span class="k">elif</span> <span class="n">task</span> <span class="o">==</span> <span class="s1">&#39;filter_elements&#39;</span> <span class="ow">or</span> <span class="n">task</span> <span class="o">==</span> <span class="s1">&#39;filter_num_heavy_atom&#39;</span> <span class="ow">or</span> <span class="n">task</span> <span class="o">==</span> <span class="s1">&#39;filter_molecular_weight&#39;</span> <span class="ow">or</span> <span class="n">task</span> <span class="o">==</span> <span class="s1">&#39;filter_num_ring&#39;</span><span class="p">:</span>
+                <span class="c1"># print(&quot;\n\nPROTOCOL\n\n&quot;)</span>
+                <span class="c1"># print(self._protocol)</span>
                 <span class="k">try</span><span class="p">:</span>
                     <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter_mol</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_protocol</span><span class="p">[</span><span class="n">task</span><span class="p">]):</span>
                         <span class="k">return</span> <span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="s1">&#39;filtered&#39;</span><span class="p">,</span> <span class="n">task</span><span class="p">)</span>
