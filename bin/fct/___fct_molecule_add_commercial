@@ -1,0 +1,166 @@
+#!/usr/bin/env python
+
+"""
+Script fct_molecule
+==========================
+This script is supposed to check for the avaibility of a compound by checking with
+all inchikeys of a given commercial reference. Then, it appends a column to the input dataframe.
+I do it like this because I have no idea how long it will take and I need some results quickly.
+"""
+import argparse
+from datetime import datetime
+import pkg_resources
+import sys
+# data
+import pandas as pd
+# chemoinformatics
+import rdkit
+from rdkit import Chem
+# dev
+import npfc
+from npfc.contrib.np_score import NPScorer
+from npfc.contrib.sa_score import SAScorer
+from npfc import filter
+from npfc import load
+from npfc import save
+from npfc import utils
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+def main():
+
+    # init
+    d0 = datetime.now()
+    description = """Script for generating the molecule node table for a given input file (or chunk).
+    The output molecule file is annotated with:
+
+        - all the npfc molecular descriptors (see the filter module)
+        - commonly used subsets (drug_like, fragment_like, etc.)
+        - NP- and SA scores (using either provided or default models included in the NPFC package)
+
+    It uses the installed npfc libary in your favorite env manager.
+
+    Example:
+
+        >>> fct_molecule dataset/02_load/data/file.csv.gz dataset/12_pnp/data/file.csv.gz molecule.csv.gz
+
+    """
+
+    # parameters CLI
+    parser = argparse.ArgumentParser(description=description, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument('input_load_step', type=str, default=None, help="Output file from the load step.")
+    parser.add_argument('input_latest_step', type=str, default=None, help="Output file from the latest step of the pipeline.")
+    parser.add_argument('output_table', type=str, default=None, help="Output file with annotated molecules.")
+    parser.add_argument('--model-file-np', type=str, default=None, help="Model to use for computing the Natural-Product-Likeness score.")
+    parser.add_argument('--model-file-sa', type=str, default=None, help="Model to use for computing the Synthetic-Likeness score.")
+    parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
+    args = parser.parse_args()
+
+    # logging
+    logger = utils._configure_logger(args.log)
+    logger.info("RUNNING FCT_MOLECULE")
+    pad = 40
+
+    # identify what model files to use
+    if args.model_file_np is None:
+        model_file_np = pkg_resources.resource_filename('npfc', 'data/model_np_score.model.gz')
+    else:
+        model_file_np = args.model_file_np
+    if args.model_file_sa is None:
+        model_file_sa = pkg_resources.resource_filename('npfc', 'data/model_sa_score.pkl.gz')
+    else:
+        model_file_sa = args.model_file_sa
+
+    # parse arguments
+    utils.check_arg_input_file(args.input_load_step)
+    utils.check_arg_input_file(args.input_latest_step)
+    utils.check_arg_input_file(model_file_np)
+    utils.check_arg_input_file(model_file_sa)
+    utils.check_arg_output_file(args.output_table)
+
+    # display infos
+
+    # versions
+    logger.info("LIBRARY VERSIONS:")
+    logger.info("rdkit".ljust(pad) + f"{rdkit.__version__}")
+    logger.info("pandas".ljust(pad) + f"{pd.__version__}")
+    logger.info("npfc".ljust(pad) + f"{npfc.__version__}")
+    # arguments
+    logger.info("ARGUMENTS:")
+    logger.info("INPUT_LOAD_STEP".ljust(pad) + f"{args.input_load_step}")
+    logger.info("INPUT_LATEST_STEP".ljust(pad) + f"{args.input_latest_step}")
+    logger.info("OUTPUT_MOLECULE_TABLE".ljust(pad) + f"{args.output_table}")
+    logger.info("MODEL_NP".ljust(pad) + f"{model_file_np}")
+    logger.info("MODEL_SA".ljust(pad) + f"{model_file_sa}")
+    # log
+    logger.info("LOG".ljust(pad) + f"{args.log}")
+
+    # begin
+
+    logger.info("BEGIN")
+    d1 = datetime.now()
+
+    # init objects
+    logger.info("INITIALIAZING OBJECTS")
+    # I would have preferred to use globals here, but I am not used to those and
+    # I had a scope error. Since I am out of time for my presentation, I will just
+    # leave this as it is and come to fix it later, if required.
+    filterer = filter.Filter()
+    np_scorer = NPScorer(model_file_np)
+    sa_scorer = SAScorer(model_file_sa)
+
+    # load inputs
+    logger.info("LOADING INPUT FILES")
+    df_load = load.file(args.input_load_step)[['idm', 'mol']].rename({'mol': 'mol_rdkit', 'idm': 'molecule_id'}, axis=1)
+    df_latest = load.file(args.input_latest_step)[['idm', 'inchikey', 'mol']].rename({'mol': 'mol_ini', 'idm': 'molecule_id'}, axis=1)
+    d2 = datetime.now()
+
+    # merge dataframes
+    logger.info("PREPARING DATA")
+    df = df_latest.merge(df_load, on='molecule_id')
+    df['smiles'] = df['mol_rdkit'].map(Chem.MolToSmiles)
+    df['smiles_ini'] = df['mol_ini'].map(Chem.MolToSmiles)
+    df = df.drop('mol_ini', axis=1)
+    d3 = datetime.now()
+
+    # run annotations
+    logger.info("RUNNING ANNOTATIONS")
+    # If the input df is empty, then the apply command below fails dramatically
+    columns = ['molecule_id', 'inchikey', 'smiles', 'smiles_ini', 'molecular_formula',
+               'molecular_weight', 'num_heavy_atom', 'num_rotatable_bond', 'num_hbd',
+               'num_hba', 'slogp', 'tpsa', 'num_ring', 'num_ring_arom', 'ring_size_min', 'ring_size_max',
+               'num_drug_like_violations', 'num_drug_like_ext_violations', 'num_ppi_like_violations',
+               'num_fragment_like_violations', 'num_fragment_like_ext_violations',
+               'np_score', 'sa_score',
+               'mol_rdkit',
+               ]
+    if len(df) < 1:
+        df = pd.DataFrame({k: [] for k in columns})
+    else:
+        df = pd.concat([df, df.apply(lambda x: compute_annotations(x['mol_rdkit'], filterer, np_scorer, sa_scorer), axis=1).apply(pd.Series)], axis=1)
+    d4 = datetime.now()
+
+    # save file
+    logger.info("SAVING OUTPUT")
+    save.file(df, args.output_table)
+    d5 = datetime.now()
+
+    # end
+
+    logger.info("SUMMARY")
+    logger.info("COMPUTATIONAL TIME: CONFIGURING JOB".ljust(pad * 2) + f"{d1-d0}")
+    logger.info("COMPUTATIONAL TIME: LOADING INPUTS".ljust(pad * 2) + f"{d2-d1}")
+    logger.info("COMPUTATIONAL TIME: PREPARING INPUTS".ljust(pad * 2) + f"{d3-d2}")
+    logger.info("COMPUTATIONAL TIME: COMPUTING ANNOTATIONS".ljust(pad * 2) + f"{d4-d3}")
+    logger.info("COMPUTATIONAL TIME: SAVING OUTPUT".ljust(pad * 2) + f"{d5-d4}")
+    logger.info("COMPUTATIONAL TIME: TOTAL".ljust(pad * 2) + f"{d5-d0}")
+    logger.info("END")
+    sys.exit(0)
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ MAIN ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
+if __name__ == '__main__':
+    main()
+    sys.exit(0)

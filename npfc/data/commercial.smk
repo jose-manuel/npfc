@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 
 """
-Script natural.smk
+Script purchasable.smk
 ===========================
-The pipeline to apply for natural scenarii. This is similar to the Synthetic scenario:
-molecules are standardized and FCs are categorized, but Natural Products are not filtered out and PNPs are not computed.
+The pipeline to apply for purchasable scenario.
 """
 
 from pathlib import Path
@@ -25,8 +24,6 @@ try:
 except KeyError:
     prefix = ''
 input_file = config['input_file']
-frags_file = config['frags_file']
-frags_subdir = config['frags_subdir']
 chunksize = config['chunksize']
 # preprocess subdir
 try:
@@ -37,7 +34,7 @@ except KeyError:
 # protocol for standardizing molecules
 fallback_default_std_mols = False
 try:
-    config_std_mols = config['protocol_std']
+    config_std_mols = config['std_protocol']
     if config_std_mols == '' or config_std_mols == 'DEFAULT':
         fallback_default_std_mols = True
 except KeyError:
@@ -62,30 +59,7 @@ if fallback_default_std_mols:
 
 
 rule all:
-    input: expand(f"{WD}/{prep_subdir}/{frags_subdir}/08_fcg/data/{prefix}" + '_{cid}_fcg.csv.gz', cid=chunk_ids)
-
-rule FCG:
-    priority: 11
-    input: ancient("{WD}" + f"/{prep_subdir}/{frags_subdir}" + "/07_fcc/data/{prefix}_{cid}_fcc.csv.gz")
-    output: "{WD}" + f"/{prep_subdir}/{frags_subdir}" + "/08_fcg/data/{prefix}_{cid}_fcg.csv.gz"
-    log: "{WD}" + f"/{prep_subdir}/{frags_subdir}" + "/08_fcg/log/{prefix}_{cid}_fcg.log"
-    shell: "fcg_generate {input} {output} --min-frags 2 --max-frags 9999 --max-overlaps 5 >{log} 2>&1"
-
-rule FCC:
-    priority: 12
-    input: ancient("{WD}" + f"/{prep_subdir}/{frags_subdir}" + "/06_fs/data/{prefix}_{cid}_fs.csv.gz")
-    output: "{WD}" + f"/{prep_subdir}/{frags_subdir}" + "/07_fcc/data/{prefix}_{cid}_fcc.csv.gz"
-    log: "{WD}" + f"/{prep_subdir}/{frags_subdir}" + "/07_fcc/log/{prefix}_{cid}_fcc.log"
-    shell: "fc_classify {input} {output} -c 3 >{log} 2>&1"
-
-rule FS:
-    priority: 13
-    input:
-        mols = ancient("{WD}/{prep_subdir}/05_depict/data/{prefix}_{cid}_depict.csv.gz"),
-        frags = ancient(frags_file)
-    output: "{WD}/{prep_subdir}" + f"/{frags_subdir}" + "/06_fs/data/{prefix}_{cid}_fs.csv.gz"
-    log: "{WD}/{prep_subdir}" + f"/{frags_subdir}" + "/06_fs/log/{prefix}_{cid}_fs.log"
-    shell: "frags_search {input.mols} {input.frags} {output} >{log} 2>&1"
+    input: expand(f"{WD}/{prep_subdir}/05_depict/data/{prefix}" + '_{cid}_depict.csv.gz', cid=chunk_ids)
 
 rule DEPICT:
     priority: 14

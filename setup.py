@@ -35,6 +35,7 @@ setuptools.setup(
              # chunks
              'bin/chunk_check',
              'bin/chunk_sdf',
+             'bin/concat_sdf',
              # fct nodes
              'bin/fct/fct_assay',
              'bin/fct/fct_dataset',

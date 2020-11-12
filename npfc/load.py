@@ -230,6 +230,8 @@ def count_mols(input_file: str, keep_uncompressed: bool = False):
     """Count the number of molecules found in a text file.
     In case the file is compressed (gzip), it is uncompressed first. The resulting
     uncompressed file can be kept for further use.
+    
+    #### this function failed to the ZINC (9,902,598)
 
     :param input_file: the input file
     :param keep_uncompressed: if the input file is compressed (gzip), do not remove the uncompressed file when finished

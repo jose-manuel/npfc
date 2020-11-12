@@ -51,7 +51,7 @@ num_chunks = config['num_chunks']
 # protocol for standardizing molecules
 fallback_default_std_mols = False
 try:
-    config_std_mols = config['std_protocol']
+    config_std_mols = config['protocol_std']
     if config_std_mols == '' or config_std_mols == 'DEFAULT':
         fallback_default_std_mols = True
 except KeyError:

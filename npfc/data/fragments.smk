@@ -28,8 +28,8 @@ except KeyError:
 # protocol for standardizing fragments
 fallback_default_std_frags = False
 try:
-    config_std_frags = config['std_protocol']
-    if config_std_frags == '':
+    config_std_frags = config['protocol_std']
+    if config_std_frags == '' or config_std_frags == 'DEFAULT':
         fallback_default_std_frags = True
 except KeyError:
     fallback_default_std_frags = True

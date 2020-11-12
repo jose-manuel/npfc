@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """
-Script run_npfc
+Script run_protocol
 ==========================
 This script is used for running the NPFC protocols.
 """
@@ -42,9 +42,12 @@ def count_required_chunks(input_file, chunksize):
     # uncompressed input file works not in smk file (makes the whole pipeline to overwrite any output) so just discard it. The archive will be unziped again.
     Path(input_file_uncompressed).unlink()
     # determine the number of chunks to generate
-    num_chunks = ceil(num_mols / chunksize)
+    num_chunks = estimate_num_chunks(num_mols, chunksize)
     return {'num_mols': num_mols, 'num_chunks': num_chunks, 'chunksize': chunksize}
 
+
+def estimate_num_chunks(num_mols, chunksize):
+    return ceil(num_mols / chunksize)
 
 
 def main():
@@ -93,7 +96,7 @@ def main():
     # parse arguments
     errors = []
     # protocol
-    if args.protocol not in ('fragments', 'natural', 'synthetic') and not Path(args.protocol).exists():
+    if args.protocol not in ('fragments', 'natural', 'synthetic', 'commercial') and not Path(args.protocol).exists():
         errors.append(f"ERROR! UNKNOWN PROTOCOL ({args.protocol})!")  # error if file does not exist or if protocol is not recorded as package data
 
     # config
@@ -193,7 +196,7 @@ def main():
     logger.info(f"PROTOCOL - {args.protocol}".center(pad))
     # automatically retrieve all variables and append them to command string using key=value
     if Path(args.protocol).is_file():
-        smk_file = args.protocolarg
+        smk_file = args.protocol
     else:
         try:
             smk_file = pkg_resources.resource_filename('npfc', f"data/{args.protocol}.smk")
@@ -220,22 +223,29 @@ def main():
         protocol = 'natural'
     elif 'synthetic' in args.protocol:
         protocol = 'synthetic'
+    elif 'commercial' in args.protocol:
+        protocol = 'commercial'
     elif 'other' in args.protocol:
         protocol = 'other'
     else:
         raise ValueError(f"UNKNOWN PROTOCOL! ('{args.protocol}')")
 
     # add specific arguments when chunks are needed
-    if protocol in ['natural', 'synthetic', 'other']:
+    if protocol in ['natural', 'synthetic', 'commercial', 'other']:
         # estimate the number of chunks required based on the number of molecules in the input file
         num_mols_file = f"{config['WD']}/data/00_raw/data/{config['prefix']}_num_mols.json"
         if Path(num_mols_file).exists():
+            logger.info(f"FOUND NUM_MOLS FILE AT '{num_mols_file}'")
             with open(num_mols_file, 'r') as FILE:
                 d = json.load(FILE)
+                [logger.info(f'OPT {k}: {v}' for k, v in d.items())]
                 if config['chunksize'] != d['chunksize']:
-                    Path(num_mols_file).unlink()
-        if not Path(num_mols_file).exists():
+                    logger.warning("THE OPTION CHUNKSIZE IS DIFFERENT IN NUM_MOLS AND JSON CONFIGURATION! USING THE OPTION IN JSON CONFIGURATION INSTEAD.")
+                    num_chunks = estimate_num_chunks(d['num_mols'], d['chunksize'])
+                    d['num_chunks'] = num_chunks
+        else:
             # count mols for natural and synthetic
+            logger.info(f"DID NOT FOUND ANY NUM_MOLS FILE AT '{num_mols_file}', COMPUTING IT...")
             d = count_required_chunks(config['input_file'], config['chunksize'])
             with open(num_mols_file, 'w+') as FILE:
                 json.dump(d, FILE)
@@ -246,7 +256,14 @@ def main():
     smk_command += "--config "
     for k, v in config.items():
         if v is not None:
-            logger.info(f"OPT {k}".ljust(pad) + f"{v}")
+            if k == 'protocol_std' and v == 'DEFAULT':
+                if protocol == 'fragments':
+                    default_protocol_std_file = pkg_resources.resource_filename('npfc', "data/std_fragments.json")
+                else:
+                    default_protocol_std_file = pkg_resources.resource_filename('npfc', "data/std_mols.json")
+                logger.info(f"OPT {k}".ljust(pad) + f"{v} ('{default_protocol_std_file}')")
+            else:
+                logger.info(f"OPT {k}".ljust(pad) + f"{v}")
             smk_command += f"{k}='{v}' "
     smk_command = smk_command[:-1]
 
@@ -259,10 +276,12 @@ def main():
     svg = WD + f"/{protocol}_{config['prefix']}_tasktree.svg"
     smk_command_svg = smk_command + f" --rulegraph | dot -Tsvg > {svg}"
     logger.info(f"DRAWING TASK TREE AT '{svg}'")
+    logger.info(f"COMMAND IS:\n{smk_command_svg}\n")
     subprocess.run(smk_command_svg, shell=True, check=True)
 
     # run protocol
     logger.info("BEGIN OF SNAKEMAKE PROTOCOL")
+    logger.info(f"COMMAND IS:\n{smk_command}\n")
     subprocess.run(smk_command, shell=True, check=True)
     ds.append((f"PROTOCOL '{args.protocol}'", datetime.now()))
     logger.info(f"END OF SNAKEMAKE PROTOCOL '{args.protocol}'")

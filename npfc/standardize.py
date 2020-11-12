@@ -8,6 +8,7 @@ This modules is used to standardize molecules and molecular DataFrames.
 import logging
 from collections import Counter
 from copy import deepcopy
+import pkg_resources
 # data handling
 import json
 from pandas import DataFrame
@@ -36,25 +37,25 @@ from npfc.filter import Filter
 
 DEFAULT_ELEMENTS = {'H', 'B', 'C', 'N', 'O', 'F', 'P', 'S', 'Cl', 'Br', 'I'}
 
-DEFAULT_PROTOCOL = {'tasks': ['filter_empty',
-                              'disconnect_metal',
-                              'keep_best',
-                              'deglycosylate',
-                              'filter_num_heavy_atom',
-                              'filter_molecular_weight',
-                              'filter_num_ring',
-                              'filter_elements',
-                              'clear_isotopes',
-                              'normalize',
-                              'uncharge',
-                              'canonicalize',
-                              'clear_stereo',
-                              ],
-                    'filter_num_heavy_atom': 'num_heavy_atom > 3',
-                    'filter_molecular_weight': 'molecular_weight <= 1000.0',
-                    'filter_num_ring': 'num_ring > 0',
-                    'filter_elements': f'elements in {", ".join(str(x) for x in DEFAULT_ELEMENTS)}',
-                    }
+# DEFAULT_PROTOCOL = {'tasks': ['filter_empty',
+#                               'disconnect_metal',
+#                               'keep_best',
+#                               'deglycosylate',
+#                               'filter_num_heavy_atom',
+#                               'filter_molecular_weight',
+#                               'filter_num_ring',
+#                               'filter_elements',
+#                               'clear_isotopes',
+#                               'normalize',
+#                               'uncharge',
+#                               'canonicalize',
+#                               'clear_stereo',
+#                               ],
+#                     'filter_num_heavy_atom': 'num_heavy_atom > 3',
+#                     'filter_molecular_weight': 'molecular_weight <= 1000.0',
+#                     'filter_num_ring': 'num_ring > 0',
+#                     'filter_elements': f'elements in {", ".join(str(x) for x in DEFAULT_ELEMENTS)}',
+#                     }
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ CLASSES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
@@ -187,7 +188,7 @@ class Standardizer(Filter):
         self._col_mol = col_mol
 
         if protocol is None:
-            self._protocol = DEFAULT_PROTOCOL
+            self._protocol = pkg_resources.resource_filename('npfc', 'data/std_mols.json')
         else:
             if isinstance(protocol, str):
                 self._protocol = json.load(open(protocol, 'r'))
@@ -651,6 +652,8 @@ class Standardizer(Filter):
 
             # filters
             elif task == 'filter_elements' or task == 'filter_num_heavy_atom' or task == 'filter_molecular_weight' or task == 'filter_num_ring':
+                # print("\n\nPROTOCOL\n\n")
+                # print(self._protocol)
                 try:
                     if not self.filter_mol(mol, self._protocol[task]):
                         return (mol, 'filtered', task)

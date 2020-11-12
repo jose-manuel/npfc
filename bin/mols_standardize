@@ -13,6 +13,7 @@ from pathlib import Path
 from datetime import datetime
 import logging
 import argparse
+import pkg_resources
 # data
 import pandas as pd
 # chemoinformatics
@@ -109,6 +110,7 @@ def main():
         args.protocol = None
     if args.protocol is None:
         logger.warning("USING DEFAULT STANDARDIZATION PROTOCOL")
+        args.protocol = pkg_resources.resource_filename('npfc', 'data/std_mols.json')
     utils.check_arg_config_file(args.protocol)
 
     # in infos
