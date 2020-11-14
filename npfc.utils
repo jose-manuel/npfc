@@ -1,1 +1,20 @@
-2020-11-12 21:40:11,936 -- INFO -- RUNNING MOLS_STANDARDIZE
+2020-11-14 08:05:43,100 -- INFO -- main:61 -- RUNNING FRAGMENT COMBINATION CLASSIFICATION
+2020-11-14 08:05:43,100 -- INFO -- main:76 -- CURRENT ENV                             npfc3
+2020-11-14 08:05:43,101 -- INFO -- main:79 -- LIBRARY VERSIONS:
+2020-11-14 08:05:43,101 -- INFO -- main:80 -- rdkit                                   2020.03.1
+2020-11-14 08:05:43,101 -- INFO -- main:81 -- pandas                                  1.0.3
+2020-11-14 08:05:43,101 -- INFO -- main:82 -- npfc                                    0.7.4
+2020-11-14 08:05:43,101 -- INFO -- main:83 -- ARGUMENTS:
+2020-11-14 08:05:43,101 -- INFO -- main:84 -- INPUT_SUB                               tests/tmp/natural/dnp/data/prep/frags_crms/06_fs/data/dnp_002_fs.csv.gz
+2020-11-14 08:05:43,101 -- INFO -- main:85 -- SUB_FORMAT                              CSV
+2020-11-14 08:05:43,101 -- INFO -- main:86 -- SUB_COMPRESSION                         gzip
+2020-11-14 08:05:43,101 -- INFO -- main:87 -- OUTPUT_FCC                              tests/tmp/natural/dnp/data/prep/frags_crms/07_fcc/data/dnp_002_fcc.csv.gz
+2020-11-14 08:05:43,101 -- INFO -- main:90 -- OUTPUT_FCC                              tests/tmp/natural/dnp/data/prep/frags_crms/07_fcc/data/dnp_002_fcc.csv.gz
+2020-11-14 08:05:43,101 -- INFO -- main:91 -- OUT_FORMAT                              CSV
+2020-11-14 08:05:43,101 -- INFO -- main:92 -- OUT_COMPRESSION                         gzip
+2020-11-14 08:05:43,101 -- INFO -- main:93 -- CUTOFF                                  3
+2020-11-14 08:05:43,101 -- INFO -- main:94 -- LOG                                     DEBUG
+2020-11-14 08:05:43,102 -- INFO -- main:97 -- BEGIN
+2020-11-14 08:05:43,102 -- INFO -- main:100 -- LOADING SUBSTRUCTURE MATCHES
+2020-11-14 08:05:43,109 -- INFO -- main:105 -- FOUND 12 SUBSTRUCTURE MATCHES
+2020-11-14 08:05:43,109 -- INFO -- main:108 -- CLASSIFYING FRAGMENT COMBINATIONS

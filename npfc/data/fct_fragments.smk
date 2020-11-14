@@ -32,7 +32,7 @@ root_dir = config['root_dir']
 prep_subdir = config['prep_subdir']
 prefix = config['prefix']
 config_file = config['config_file']
-
+commercial_ref = config['commercial_ref']
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ INITIALIZATION ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
@@ -86,7 +86,8 @@ rule MOL_MOL:
 rule MOL:
     input:
         load_step = root_dir + "/data/" + prep_subdir + "/01_load/data/" + prefix + ".csv.gz",
-        latest_step = root_dir + "/data/" + prep_subdir + "/05_depict/data/" + prefix + "_depict.csv.gz"
+        latest_step = root_dir + "/data/" + prep_subdir + "/05_depict/data/" + prefix + "_depict.csv.gz",
+        commercial_ref = commercial_ref
     output: WD + "/molecule/data/molecule.csv.gz"
     log: WD + "/molecule/log/molecule.log"
-    shell: "fct_molecule {input.load_step} {input.latest_step} {output}  >{log} 2>&1"
+    shell: "fct_molecule {input.load_step} {input.latest_step} {input.commercial_ref} {output}  >{log} 2>&1"

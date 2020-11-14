@@ -59,7 +59,7 @@ rule DEPICT:
     input: "{WD}/{prep_subdir}/04_fcp/data/{prefix}_fcp.csv.gz"
     output: "{WD}/{prep_subdir}/05_depict/data/{prefix}_depict.csv.gz"
     log: "{WD}/{prep_subdir}/05_depict/log/{prefix}_depict.log"
-    shell: "mols_depict {input} {output} 2>{log}"
+    shell: "mols_depict {input} {output} -m rdDepictor 2>{log}"
 
 rule FCP:
     priority: 101

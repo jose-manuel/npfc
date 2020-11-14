@@ -14,7 +14,7 @@ from contextlib import contextmanager
 import pickle
 import base64
 # typing
-from rdkit.Chem import AllChem
+from rdkit.Chem import AllChem as Chem
 from rdkit.Chem import Mol
 # chemoinformatics
 from typing import Union
@@ -306,6 +306,32 @@ def decode_mol(string: str) -> Mol:
         return None
 
 
+def encode_mol_smiles(mol: Mol) -> str:
+    """Convert a mol to a Smiles.
+
+    :param string: a string with a Mol object in bytes with a base64 string representation
+    :return: a str object upon success, None otherwise
+
+    """
+    try:
+        return Chem.MolToSmiles(mol)
+    except TypeError:
+        return None
+
+
+def decode_mol_smiles(string: str) -> Mol:
+    """Convert a Smiles to a Mol.
+
+    :param string: a string with a Mol object in bytes with a base64 string representation
+    :return: a Mol object upon success, None otherwise
+
+    """
+    try:
+        return Chem.MolFromSmiles(string)
+    except TypeError:
+        return None
+
+
 def get_shortest_path_between_frags(mol: Mol, aidxf1: set, aidxf2: set) -> tuple:
     """Return the shortest path within a molecule between two fragments defined by atom indices.
     First and last atom indices are part of respectively fragment 1 and fragment 2, so they should not
@@ -322,7 +348,7 @@ def get_shortest_path_between_frags(mol: Mol, aidxf1: set, aidxf2: set) -> tuple
     pairwise_combinations = itertools.product(tuple(aidxf1), tuple(aidxf2))
     # 2/ for each of those, compute the shortest path possible
     pairwise_combinations = list(pairwise_combinations)
-    all_paths = [AllChem.GetShortestPath(mol, pc[0], pc[1]) for pc in pairwise_combinations]
+    all_paths = [Chem.GetShortestPath(mol, pc[0], pc[1]) for pc in pairwise_combinations]
     logging.debug("Looking for the shortest path shortest path among these:")
     [logging.debug("Path (%s): %s", str(i).zfill(3), p) for i, p in enumerate(all_paths)]
     # 3/ return one of the shortest pathes

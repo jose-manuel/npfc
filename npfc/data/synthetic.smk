@@ -130,7 +130,7 @@ rule DEPICT:
     input: ancient("{WD}/{prep_subdir}/04_dedupl/data/{prefix}_{cid}_dedupl.csv.gz")
     output: "{WD}/{prep_subdir}/05_depict/data/{prefix}_{cid}_depict.csv.gz"
     log: "{WD}/{prep_subdir}/05_depict/log/{prefix}_{cid}_depict.log"
-    shell: "mols_depict {input} {output} 2>{log}"
+    shell: "mols_depict {input} {output} -m rdDepictor 2>{log}"
 
 rule DEDUPL:
     priority: 6

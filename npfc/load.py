@@ -160,7 +160,8 @@ def file(input_file: str,
         for col in ('mol', 'mol_frag', 'mol_frag_1', 'mol_frag_2', 'mol_rdkit'):
             if col in df.columns:
                 logging.debug("Decoding column='%s'", col)
-                df[col] = df[col].map(utils.decode_mol)
+                df[col] = df[col].map(utils.decode_mol_smiles)
+
         # other objects are labelled with leading '_'
         for col in df.columns:
             if col.startswith('_') and col != '_Name':
@@ -230,7 +231,7 @@ def count_mols(input_file: str, keep_uncompressed: bool = False):
     """Count the number of molecules found in a text file.
     In case the file is compressed (gzip), it is uncompressed first. The resulting
     uncompressed file can be kept for further use.
-    
+
     #### this function failed to the ZINC (9,902,598)
 
     :param input_file: the input file

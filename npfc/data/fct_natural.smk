@@ -34,7 +34,7 @@ prefix = config['prefix']
 config_file = config['config_file']
 # fragments
 frags_subdir = config['frags_subdir']
-
+commercial_ref = config['commercial_ref']
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ INITIALIZATION ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
@@ -100,7 +100,8 @@ rule MOL_MOL:
 rule MOL:
     input:
         load_step = root_dir + "/data/" + prep_subdir + "/02_load/data/" + prefix + "_{cid}.csv.gz",
-        latest_step = root_dir + "/data/" + prep_subdir + "/" + frags_subdir + "/08_fcg/data/" + prefix + "_{cid}_fcg.csv.gz"
+        latest_step = root_dir + "/data/" + prep_subdir + "/" + frags_subdir + "/08_fcg/data/" + prefix + "_{cid}_fcg.csv.gz",
+        commercial_ref = commercial_ref
     output: WD + "/molecule/data/molecule_{cid}.csv.gz"
     log: WD + "/molecule/log/molecule_{cid}.log"
-    shell: "fct_molecule {input.load_step} {input.latest_step} {output}  >{log} 2>&1"
+    shell: "fct_molecule {input.load_step} {input.latest_step} {input.commercial_ref} {output}  >{log} 2>&1"

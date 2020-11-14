@@ -59,7 +59,22 @@ if fallback_default_std_mols:
 
 
 rule all:
-    input: expand(f"{WD}/{prep_subdir}/05_depict/data/{prefix}" + '_{cid}_depict.csv.gz', cid=chunk_ids)
+    input:
+        depict = expand(f"{WD}/{prep_subdir}/05_depict/data/{prefix}" + '_{cid}_depict.csv.gz', cid=chunk_ids),
+        refs = f"{WD}/{prep_subdir}/04_dedupl/{prefix}_refs.hdf"
+
+
+rule REF_2:
+    input: f"{WD}/{prep_subdir}/04_dedupl/{prefix}_refs.csv.gz"
+    output: f"{WD}/{prep_subdir}/04_dedupl/{prefix}_refs.hdf"
+    log: f"{WD}/{prep_subdir}/04_dedupl/{prefix}_refs_2.log"
+    shell: "refs_group {input} {output} 2>{log}"
+
+rule REF_1:
+    input: expand(f"{WD}/{prep_subdir}/04_dedupl/data/{prefix}" + '_{cid}_dedupl.csv.gz', cid=chunk_ids)
+    output: f"{WD}/{prep_subdir}/04_dedupl/{prefix}_refs.csv.gz"
+    log: f"{WD}/{prep_subdir}/04_dedupl/{prefix}_refs_1.log"
+    shell: f"concat_synonyms -i {WD}/{prep_subdir}/04_dedupl/log " + "-o {output} >{log} 2>&1"
 
 rule DEPICT:
     priority: 14
