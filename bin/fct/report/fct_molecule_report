@@ -1,0 +1,185 @@
+#!/usr/bin/env python
+
+"""
+Script report_molecule
+==========================
+This script generates csv and svg files based on molecular descriptor values.
+"""
+import warnings
+import logging
+import argparse
+import sys
+from shutil import rmtree
+from datetime import datetime
+import re
+from pathlib import Path
+from collections import OrderedDict
+# data handling
+import numpy as np
+import json
+import pandas as pd
+from pandas import DataFrame
+import networkx as nx
+# data visualization
+from matplotlib import pyplot as plt
+import seaborn as sns
+# from pylab import savefig
+from adjustText import adjust_text
+# chemoinformatics
+import rdkit
+from rdkit import Chem
+from rdkit.Chem import Mol
+# docs
+from typing import List
+from typing import Tuple
+from rdkit import RDLogger
+# custom libraries
+import npfc
+from npfc import utils
+from npfc import load
+from npfc import save
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
+def plot_molecular_descriptors(df, output_plot, color):
+    # general style for plotting
+    color = 'green'
+    fig_size = (24, 12)
+    sns.set(rc={'figure.figsize': fig_size})
+    sns.set_style('whitegrid', {'axes.edgecolor': '0.2'})
+    sns.set_context("paper", font_scale=2)
+    x_label = ''
+    y_label = 'Count'
+    title = ""
+    columns = list(df.columns)
+
+    fig = plt.figure()
+    fig.subplots_adjust(hspace=0.4, wspace=0.5)
+
+    for i in range(1, 9):
+        plt.subplot(2, 4, i)
+        col = columns[i-1]
+        x_label = col
+        ax = sns.distplot(df[col], kde=False, label='', color=color, hist_kws=dict(alpha=1))
+        ax.set_title(title, fontsize=24, y=1.02)
+        ax.tick_params(labelsize=15)
+        ax.tick_params(axis='x', rotation=0)
+        ax.set_yticklabels(['{:,}'.format(int(x)) for x in ax.get_yticks()])
+        ax.set_xlabel(x_label, fontsize=20, labelpad=18)
+        ax.set_ylabel(y_label, fontsize=20, labelpad=18)
+
+    figure = ax.get_figure()
+    figure.savefig(output_plot, dpi=600)
+    plt.clf()
+    plt.close()
+
+
+def main():
+
+    # init
+    d0 = datetime.now()
+    description = """Script for generating the molecular descriptors plots.
+    It uses the installed npfc libary in your favorite env manager.
+
+    Example:
+
+        >>> fct_report_molecule fct/molecule molecule_descr.svg green
+
+    """
+
+    # parameters CLI
+    parser = argparse.ArgumentParser(description=description, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument('input_molecule_dir', type=str, default=None, help="Input moelcule table directory.")
+    parser.add_argument('output_plot', type=str, default=None, help="Output file (svg). A csv.gz file with the same basename is generated as well")
+    parser.add_argument('color', type=str, default=None, help="Color of the bars.")
+    parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
+    args = parser.parse_args()
+
+    # logging
+    logger = utils._configure_logger(args.log)
+    logger.info("RUNNING FCT_REPORT_MOLECULE")
+    pad = 40
+
+    # parse arguments
+    utils.check_arg_input_dir(args.input_molecule_dir)
+    utils.check_arg_output_plot(args.output_plot)
+    output_csv = args.output_plot.replace('.svg', '.csv.gz')
+
+    d_colors = {'gray': '#808080',
+                'green': '#2CA02C',
+                'blue': '#378EBF',
+                'red': '#EB5763',
+                'orange': '#EBC81A',
+                }
+    try:
+        color = d_colors[args.color]
+    except KeyError:
+        color = args.color
+
+    # display infos
+
+    # versions
+    logger.info("LIBRARY VERSIONS:")
+    logger.info("pandas".ljust(pad) + f"{pd.__version__}")
+    logger.info("npfc".ljust(pad) + f"{npfc.__version__}")
+    # arguments
+    logger.info("ARGUMENTS:")
+    logger.info("INPUT_MOECULEL_DIR".ljust(pad) + f"{args.input_molecule_dir}")
+    logger.info("OUTPUT_PLOT".ljust(pad) + f"{args.output_plot}")
+    logger.info("OUTPUT_CSV".ljust(pad) + f"{output_csv}")
+    logger.info("COLOR".ljust(pad) + f"{color}")
+    # log
+    logger.info("LOG".ljust(pad) + f"{args.log}")
+
+    # begin
+
+    logger.info("BEGIN")
+    d1 = datetime.now()
+
+    # load inputs
+    chunks = sorted([str(x) for x in Path(args.input_molecule_dir).glob('*')])
+    logger.info(f"LOADING {len(chunks):,} INPUT MOLECULE TABLES")
+    d = {'molecular_weight': 'Molecular Weight',
+         'num_atom_oxygen': 'Number of Oxygen Atoms',
+         'num_atom_nitrogen': 'Number of Nitrogen Atoms',
+         'num_ring': 'Number of Rings',
+         'num_drug_like_violations': 'Number of Drug-like Violations',
+         'np_score': 'NP-Likeness Score',
+         'sa_score': 'Synthetical Accessibility Score',
+         'commercial_num_refs': 'Number of Commercial Ref.',
+         }
+    columns = list(d.keys())
+
+    df = pd.concat([load.file(x, decode=False) for x in chunks])[columns].rename(d, axis=1)
+    d2 = datetime.now()
+
+    # run plotting
+    logger.info("PLOTTING DATA")
+    # If the input df is empty, then the apply command below fails dramatically
+    plot_molecular_descriptors(df, args.output_plot, color)
+    d3 = datetime.now()
+
+    # save file
+    logger.info("SAVING OUTPUT")
+    save.file(df, output_csv)
+    d4 = datetime.now()
+
+    # end
+
+    logger.info("SUMMARY")
+    logger.info("COMPUTATIONAL TIME: CONFIGURING JOB".ljust(pad * 2) + f"{d1-d0}")
+    logger.info("COMPUTATIONAL TIME: LOADING INPUTS".ljust(pad * 2) + f"{d2-d1}")
+    logger.info("COMPUTATIONAL TIME: COMPUTING PLOTS".ljust(pad * 2) + f"{d3-d2}")
+    logger.info("COMPUTATIONAL TIME: SAVING OUTPUT".ljust(pad * 2) + f"{d4-d3}")
+    logger.info("COMPUTATIONAL TIME: TOTAL".ljust(pad * 2) + f"{d4-d0}")
+    logger.info("END")
+    sys.exit(0)
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ MAIN ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
+if __name__ == '__main__':
+    main()
+    sys.exit(0)

@@ -1618,7 +1618,7 @@ if __name__ == '__main__':
                 'green': '#2CA02C',
                 'blue': '#378EBF',
                 'red': '#EB5763',
-                'orange': '#Ebc81A',
+                'orange': '#EBC81A',
                 }
     try:
         color = d_colors[args.color]

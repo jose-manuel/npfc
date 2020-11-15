@@ -82,12 +82,13 @@ def file(df: pd.DataFrame,
     elif encode:
         # for SDF files, RDKit Mol objects to use for MolBlocks should not be encoded
         if ext_output_file[0] != '.sdf' and col_mol in df.columns:
-            df[col_mol] = df[col_mol].map(utils.encode_mol_smiles)
+            # df[col_mol] = df[col_mol].map(utils.encode_mol_smiles)
+            df[col_mol] = df[col_mol].map(utils.encode_mol)
         # other RDKit Mol objects can be encoded though
         for col in ("mol", "mol_frag", "mol_frag_1", "mol_frag_2", "mol_rdkit"):
             if col in df.columns and col != col_mol:
-                df[col] = df[col].map(utils.encode_mol_smiles)
-                # df[col] = df[col].map(utils.encode_mol)
+                # df[col] = df[col].map(utils.encode_mol_smiles)
+                df[col] = df[col].map(utils.encode_mol)
         # other objects are labelled with leading '_'
         for col in df.columns:
             if col.startswith('_') and col != '_Name':

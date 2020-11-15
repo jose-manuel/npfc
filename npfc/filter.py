@@ -146,6 +146,8 @@ class Filter:
                             'slogp': lambda x: round(Crippen.MolLogP(x), 4),
                             'tpsa': lambda x: round(rdMolDescriptors.CalcTPSA(x), 4),
                             'num_rotatable_bond': lambda x: rdMolDescriptors.CalcNumRotatableBonds(x),
+                            'num_atom_oxygen': lambda x: len([a for a in x.GetAtoms() if a.GetAtomicNum() == 8]),
+                            'num_atom_nitrogen': lambda x: len([a for a in x.GetAtoms() if a.GetAtomicNum() == 7]),
                             # custom molecular descriptors
                             'ring_size_min': lambda x: min([len(y) for y in x.GetRingInfo().AtomRings()]),
                             'ring_size_max': lambda x: max([len(y) for y in x.GetRingInfo().AtomRings()]),

@@ -160,8 +160,8 @@ def file(input_file: str,
         for col in ('mol', 'mol_frag', 'mol_frag_1', 'mol_frag_2', 'mol_rdkit'):
             if col in df.columns:
                 logging.debug("Decoding column='%s'", col)
-                df[col] = df[col].map(utils.decode_mol_smiles)
-
+                # df[col] = df[col].map(utils.decode_mol_smiles)
+                df[col] = df[col].map(utils.decode_mol)
         # other objects are labelled with leading '_'
         for col in df.columns:
             if col.startswith('_') and col != '_Name':

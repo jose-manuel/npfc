@@ -56,6 +56,8 @@ setuptools.setup(
              'bin/fct/fct_molecule_molecule',
              'bin/fct/fct_target_assay',
              'bin/fct/fct_target_species',
+             # fct_reports
+             'bin/fct/report/fct_molecule_report',
              # fct commands
              'bin/fct/fct_run_protocol',
              # fragments

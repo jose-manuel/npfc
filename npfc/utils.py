@@ -180,6 +180,33 @@ def check_arg_output_file(output_file: str, create_parent_dir: bool = True) -> b
     return True
 
 
+def check_arg_output_plot(output_file: str, create_parent_dir: bool = True) -> bool:
+    """Return True of the output_plot has the expected format (deduced from the file extension).
+
+    Accepted extensions are: svg and png.
+
+    If the parent directory of the output file does not exist, it has to either be created or fail the check.
+
+    :param output_file: the output file
+    :param create_parent_dir: create the output file's parent folder in case it does not exist
+    """
+    # output_format
+    path_output_file = Path(output_file)
+    if path_output_file.suffixes not in [['.svg'], ['.png']]:
+        raise ValueError(f"Error! Unexpected value '{path_output_file.suffixes}' for output plot.")
+
+    # create_parent_dir
+    output_dir = path_output_file.resolve().parent
+    if not output_dir.is_dir():
+        if create_parent_dir:
+            logging.warning(f"Output_dir could not be found at '{output_dir}', attempting to create it.")
+            output_dir.mkdir(parents=True, exist_ok=True)
+        else:
+            raise ValueError(f"Error! Output_dir could not be found at '{output_dir}'.")
+
+    return True
+
+
 def check_arg_output_dir(output_dir: str) -> bool:
     """Return True of the output_dir can exist.
 
@@ -326,6 +353,8 @@ def decode_mol_smiles(string: str) -> Mol:
     :return: a Mol object upon success, None otherwise
 
     """
+    if string is None:
+        string = ''
     try:
         return Chem.MolFromSmiles(string)
     except TypeError:

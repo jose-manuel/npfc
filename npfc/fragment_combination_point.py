@@ -147,7 +147,6 @@ def clear_fcp_suffixes_in_edges(edges: list) -> list:
     return edges
 
 
-
 def count_symmetry_groups(val: Union[Mol, List[str]]) -> int:
     """Return the number of symmetry groups found in a fragment.
 
