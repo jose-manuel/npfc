@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
 """
-Script purchasable.smk
+Script commercial.smk
 ===========================
-The pipeline to apply for purchasable scenario.
+The pipeline to apply for commercial scenario.
 """
 
 from pathlib import Path

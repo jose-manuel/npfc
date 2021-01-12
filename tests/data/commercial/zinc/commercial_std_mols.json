@@ -1,0 +1,16 @@
+{
+                    "tasks": ["filter_empty",
+                              "disconnect_metal",
+                              "keep_best",
+                              "deglycosylate",
+                              "filter_hac",
+                              "filter_molweight",
+                              "filter_nrings",
+                              "filter_medchem",
+                              "sanitize"],
+                    "filter_hac": "hac > 3",
+                    "filter_molweight": "molweight <= 1000.0",
+                    "filter_nrings": "nrings > 0",
+                    "filter_medchem": "elements in {H, B, C, N, O, F, P, S, Cl, Br, I}"
+
+}

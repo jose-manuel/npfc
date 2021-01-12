@@ -1,0 +1,12 @@
+2021-01-12 11:10:52,546 -- INFO -- RUNNING NPFC FCT PROTOCOL
+2021-01-12 11:10:52,546 -- INFO --             LIBRARY VERSIONS            
+2021-01-12 11:10:52,546 -- INFO -- rdkit                                   2020.03.1
+2021-01-12 11:10:52,546 -- INFO -- pandas                                  1.0.3
+2021-01-12 11:10:52,546 -- INFO -- npfc                                    0.7.6
+2021-01-12 11:10:52,546 -- INFO --                ARGUMENTS                
+2021-01-12 11:10:52,546 -- INFO -- PROTOCOL                                fragments
+2021-01-12 11:10:52,547 -- INFO -- CONFIG                                  fct/crms_dnp_chembl/data/01_fragments/fragments_crms_dnp_chembl.json
+2021-01-12 11:10:52,547 -- INFO -- ENV                                     local
+2021-01-12 11:10:52,547 -- INFO -- JOBS                                    6
+2021-01-12 11:10:52,547 -- INFO -- BEGIN
+2021-01-12 11:10:52,547 -- INFO -- PARSING SPECIFIED CONFIG FILE
