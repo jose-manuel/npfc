@@ -1,0 +1,7 @@
+{
+    "root_dir": "commercial/zinc",
+    "prep_subdir" : "prep",
+    "prefix": "zinc",
+    "config_file": "commercial/zinc/test_commerical_zinc.json",
+    "commercial_ref" : "commercial/zinc/data/prep/04_dedupl/zinc_refs.hdf"
+}

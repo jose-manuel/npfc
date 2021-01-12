@@ -20,7 +20,7 @@ from typing import List
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 
-def count_drug_like_violations(molecular_weight, slogp, num_hbd, num_hba):
+def count_violations_lipinski(molecular_weight, slogp, num_hbd, num_hba):
     """Lipinski, J Pharmacol Toxicol Methods. 2000 Jul-Aug;44(1):235-49.
     """
     n = 0
@@ -35,20 +35,20 @@ def count_drug_like_violations(molecular_weight, slogp, num_hbd, num_hba):
     return n
 
 
-def count_drug_like_ext_violations(num_drug_like_violations, num_rotatable_bondss, tpsa):
+def count_violations_veber(num_rotatable_bonds, tpsa):
     """Veber DF, Johnson SR, Cheng HY, Smith BR, Ward KW, Kopple KD (June 2002).
     "Molecular properties that influence the oral bioavailability of drug candidates".
     J. Med. Chem. 45 (12): 2615–23.
     """
-    n = num_drug_like_violations
-    if num_rotatable_bondss > 10:
+    n = 0
+    if num_rotatable_bonds > 10:
         n += 1
     if tpsa > 140:
         n += 1
     return n
 
 
-def count_lead_like_violations(molecular_weight, slogp, num_rotatable_bonds):
+def count_violations_lead_like(molecular_weight, slogp, num_rotatable_bonds):
     """http://zinc.docking.org/browse/subsets/
     Teague, Davis, Leeson, Oprea, Angew Chem Int Ed Engl. 1999 Dec 16;38(24):3743-3748.
 
@@ -63,7 +63,7 @@ def count_lead_like_violations(molecular_weight, slogp, num_rotatable_bonds):
     return n
 
 
-def count_ppi_like_violations(molecular_weight, slogp, num_hba, num_rings):
+def count_violations_ppi_like(molecular_weight, slogp, num_hba, num_rings):
     """Hamon, V., Bourgeas, R., Ducrot, P., Theret, I., Xuereb, L., Basse, M.J., Brunel, J.M., Combes, S., Morelli, X., Roche, P., 2013.
     2P2IHUNTER: a tool for filtering orthosteric protein–protein interaction modulators via a dedicated support vector machine.
     Journal of The Royal Society Interface 11. doi:10.1098/rsif.2013.0860
@@ -80,7 +80,7 @@ def count_ppi_like_violations(molecular_weight, slogp, num_hba, num_rings):
     return n
 
 
-def count_fragment_like_violations(molecular_weight, slogp, num_hba, num_hbd):
+def count_violations_fragment_like(molecular_weight, slogp, num_hba, num_hbd):
     """Congreve, M., Carr, R., Murray, C., Jhoti, H., 2003. A “Rule of Three” for fragment-based lead discovery?
     Drug Discovery Today 8, 876–877. doi:10.1016/S1359-6446(03)02831-9
     """
@@ -96,7 +96,7 @@ def count_fragment_like_violations(molecular_weight, slogp, num_hba, num_hbd):
     return n
 
 
-def count_fragment_like_ext_violations(num_fragment_like_violations, tpsa, num_rotatable_bonds):
+def count_violations_fragment_like_ext(num_fragment_like_violations, tpsa, num_rotatable_bonds):
     """Congreve, M., Carr, R., Murray, C., Jhoti, H., 2003.
     A “Rule of Three” for fragment-based lead discovery? Drug Discovery Today 8, 876–877.
     doi:10.1016/S1359-6446(03)02831-9

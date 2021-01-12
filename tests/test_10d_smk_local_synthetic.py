@@ -22,8 +22,8 @@ logging.basicConfig(level=logging.WARNING)
 def test_init():
     """Reset the folder where outputs are computed to its initial state."""
 
-    data_ori = "tests/data/synthetic"
-    data_tgt = "tests/tmp/synthetic"
+    data_ori = "tests/data/fc/04_synthetic"
+    data_tgt = "tests/tmp/fc/04_synthetic"
     # delete any previous jobs from workflows
     for subdir in Path(data_tgt).glob("*"):
         if subdir.is_dir():
@@ -37,10 +37,10 @@ def test_init():
 def test_run():
     """Run the 'synthetic' protocol applied to a subset of the ChEMBL."""
 
-    output_files = [f"tests/tmp/synthetic/chembl/data/prep/natref_dnp/frags_crms/10_pnp/data/chembl_{str(cid+1).zfill(3)}_pnp.csv.gz" for cid in range(2)]
-    output_svg = 'tests/tmp/synthetic/chembl/synthetic_chembl_tasktree.svg'
+    output_files = [f"tests/tmp/fc/04_synthetic/chembl/data/prep/natref_dnp/frags_crms/10_pnp/data/chembl_{str(cid+1).zfill(3)}_pnp.csv.gz" for cid in range(2)]
+    output_svg = 'tests/tmp/fc/04_synthetic/chembl/synthetic_chembl_tasktree.svg'
     # run protocol
-    command_smk = 'run_protocol synthetic -c synthetic/chembl/test_synthetic_chembl_natrefdnp_fragscrms.json'
+    command_smk = 'run_protocol_fc synthetic -c fc/04_synthetic/chembl/test_synthetic_chembl_natrefdnp_fragscrms.json'
     subprocess.run(command_smk, shell=True, check=True, cwd='tests/tmp')
     assert Path(output_svg).exists()
     assert all([Path(f).exists() for f in output_files])

@@ -1,4 +1,0 @@
-{
-                    "tasks": ["sanitize", "filter_molecular_weight"],
-                    "filter_molecular_weight": "100.0 <= molecular_weight <= 1000.0"
-}

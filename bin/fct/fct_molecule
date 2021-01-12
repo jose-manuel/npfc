@@ -42,11 +42,11 @@ def compute_annotations(mol, filterer, np_scorer, sa_scorer):
     d = filterer.compute_descriptors(mol, descriptors)
 
     # subsets
-    d['num_drug_like_violations'] = filter.count_drug_like_violations(d['molecular_weight'], d['slogp'], d['num_hbd'], d['num_hba'])
-    d['num_drug_like_ext_violations'] = filter.count_drug_like_ext_violations(d['num_drug_like_violations'], d['num_rotatable_bond'], d['tpsa'])
-    d['num_ppi_like_violations'] = filter.count_ppi_like_violations(d['molecular_weight'], d['slogp'], d['num_hba'], d['num_ring'])
-    d['num_fragment_like_violations'] = filter.count_fragment_like_violations(d['molecular_weight'], d['slogp'], d['num_hba'], d['num_hbd'])
-    d['num_fragment_like_ext_violations'] = filter.count_fragment_like_ext_violations(d['num_fragment_like_violations'], d['tpsa'], d['num_rotatable_bond'])
+    d['num_violations_lipinski'] = filter.count_violations_lipinski(d['molecular_weight'], d['slogp'], d['num_hbd'], d['num_hba'])
+    d['num_violations_veber'] = filter.count_violations_veber(d['num_rotatable_bonds'], d['tpsa'])
+    d['num_violations_ppi_like'] = filter.count_violations_ppi_like(d['molecular_weight'], d['slogp'], d['num_hba'], d['num_rings'])
+    d['num_violations_fragment_like'] = filter.count_violations_fragment_like(d['molecular_weight'], d['slogp'], d['num_hba'], d['num_hbd'])
+    d['num_violations_fragment_like_ext'] = filter.count_violations_fragment_like_ext(d['num_violations_fragment_like'], d['tpsa'], d['num_rotatable_bonds'])
 
     # scores
     d['np_score'] = np_scorer.score(mol)

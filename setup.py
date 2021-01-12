@@ -8,7 +8,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="npfc",
-    version='0.7.6-3-gd5ed094',
+    version='0.7.6-4-g08f2db9',
     author="Jose-Manuel Gally",
     author_email="josemanuel.gally@mpi-dortmund.mpg.de",
     description="A package for analyzing fragment combinations in natural and synthetic molecules",
@@ -37,6 +37,25 @@ setuptools.setup(
              'bin/chunk_sdf',
              'bin/concat_sdf',
              'bin/concat_synonyms',
+             # fc fragments
+             'bin/fc/frags_annotate_fcp',
+             'bin/fc/frags_search',
+              # fc fragment hits
+             'bin/fc/fs_filter_fhits',  # rename into fhits_filter
+             # fc fragment combinations
+             'bin/fc/fc_classify',
+             # fc fragment combination graphs
+             'bin/fc/fcg_generate',
+             'bin/fc/fcg_annotate_pnp',
+             # fc molecules
+             'bin/fc/mols_concat',
+             'bin/fc/mols_dedupl',
+             'bin/fc/mols_draw',
+             'bin/fc/mols_depict',
+             'bin/fc/mols_extract_murcko',
+             'bin/fc/mols_load',
+             'bin/fc/mols_standardize',
+             'bin/fc/mols_subset',
              # fct nodes
              'bin/fct/fct_assay',
              'bin/fct/fct_dataset',
@@ -56,32 +75,12 @@ setuptools.setup(
              'bin/fct/fct_molecule_molecule',
              'bin/fct/fct_target_assay',
              'bin/fct/fct_target_species',
-             # fct_reports
-             'bin/fct/report/fct_molecule_report',
              # fct commands
-             'bin/fct/fct_run_protocol',
-             # fragments
-             'bin/frags_annotate_fcp',
-             'bin/frags_search',
-             # fragment hits
-             'bin/fs_filter_fhits',  # rename into fhits_filter
-             # fragment combinations
-             'bin/fc_classify',
-             # fragment combination graphs
-             'bin/fcg_generate',
-             'bin/fcg_annotate_pnp',
-             # molecules
-             'bin/mols_concat',
-             'bin/mols_dedupl',
-             'bin/mols_draw',
-             'bin/mols_depict',
-             'bin/mols_extract_murcko',
-             'bin/mols_load',
-             'bin/mols_standardize',
-             'bin/mols_subset',
-             # protocols
+             'bin/fct/report/fct_molecule_report',
+             'bin/fct/run_protocol_fct',
+             # fc commands
              'bin/report_protocol',
-             'bin/run_protocol',
+             'bin/fc/run_protocol_fc',
              # refs
              'bin/refs_group',
              # helpers
