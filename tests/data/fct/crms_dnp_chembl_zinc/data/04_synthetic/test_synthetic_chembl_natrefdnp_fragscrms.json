@@ -1,4 +1,5 @@
 {
+    "WD": "fct/crms_dnp_chembl_zinc/data/04_synthetic",
     "root_dir": "fc/04_synthetic/chembl",
     "prep_subdir" : "prep",
     "prefix": "chembl",

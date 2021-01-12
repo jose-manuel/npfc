@@ -1,4 +1,5 @@
 {
+    "WD": "fct/crms_dnp_chembl_zinc/data/01_fragments",
     "root_dir": "fc/01_fragments/crms",
     "prep_subdir" : "prep",
     "prefix": "crms",

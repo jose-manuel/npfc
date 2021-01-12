@@ -1,4 +1,5 @@
 {
+    "WD": "fct/crms_dnp_chembl_zinc/data/03_natural",
     "root_dir": "fc/03_natural/dnp",
     "prep_subdir" : "prep",
     "prefix": "dnp",

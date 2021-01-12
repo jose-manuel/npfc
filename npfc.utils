@@ -1,12 +1,12 @@
-2021-01-12 11:10:52,546 -- INFO -- RUNNING NPFC FCT PROTOCOL
-2021-01-12 11:10:52,546 -- INFO --             LIBRARY VERSIONS            
-2021-01-12 11:10:52,546 -- INFO -- rdkit                                   2020.03.1
-2021-01-12 11:10:52,546 -- INFO -- pandas                                  1.0.3
-2021-01-12 11:10:52,546 -- INFO -- npfc                                    0.7.6
-2021-01-12 11:10:52,546 -- INFO --                ARGUMENTS                
-2021-01-12 11:10:52,546 -- INFO -- PROTOCOL                                fragments
-2021-01-12 11:10:52,547 -- INFO -- CONFIG                                  fct/crms_dnp_chembl/data/01_fragments/fragments_crms_dnp_chembl.json
-2021-01-12 11:10:52,547 -- INFO -- ENV                                     local
-2021-01-12 11:10:52,547 -- INFO -- JOBS                                    6
-2021-01-12 11:10:52,547 -- INFO -- BEGIN
-2021-01-12 11:10:52,547 -- INFO -- PARSING SPECIFIED CONFIG FILE
+2021-01-12 21:34:00,541 -- INFO -- RUNNING NPFC FCT PROTOCOL
+2021-01-12 21:34:00,541 -- INFO --             LIBRARY VERSIONS            
+2021-01-12 21:34:00,541 -- INFO -- rdkit                                   2020.09.1
+2021-01-12 21:34:00,541 -- INFO -- pandas                                  1.1.4
+2021-01-12 21:34:00,541 -- INFO -- npfc                                    0.7.6-6-g287939b
+2021-01-12 21:34:00,542 -- INFO --                ARGUMENTS                
+2021-01-12 21:34:00,542 -- INFO -- PROTOCOL                                fragments
+2021-01-12 21:34:00,542 -- INFO -- CONFIG                                  fct/01_fragments/crms/test_fragments_crms.json
+2021-01-12 21:34:00,542 -- INFO -- ENV                                     local
+2021-01-12 21:34:00,542 -- INFO -- JOBS                                    6
+2021-01-12 21:34:00,542 -- INFO -- BEGIN
+2021-01-12 21:34:00,542 -- INFO -- PARSING SPECIFIED CONFIG FILE
