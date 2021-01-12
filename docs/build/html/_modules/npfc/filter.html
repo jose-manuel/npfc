@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.filter &mdash; npfc 0.7.6-5-gb578eb5 documentation</title>
+  <title>npfc.filter &mdash; npfc 0.7.6-6-g287939b documentation</title>
   
 
   
@@ -58,7 +58,7 @@
             
             
               <div class="version">
-                0.7.6-5-gb578eb5
+                0.7.6-6-g287939b
               </div>
             
           
@@ -181,7 +181,7 @@
 <span class="c1"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #</span>
 
 
-<div class="viewcode-block" id="count_drug_like_violations"><a class="viewcode-back" href="../../filter.html#npfc.filter.count_drug_like_violations">[docs]</a><span class="k">def</span> <span class="nf">count_drug_like_violations</span><span class="p">(</span><span class="n">molecular_weight</span><span class="p">,</span> <span class="n">slogp</span><span class="p">,</span> <span class="n">num_hbd</span><span class="p">,</span> <span class="n">num_hba</span><span class="p">):</span>
+<div class="viewcode-block" id="count_violations_lipinski"><a class="viewcode-back" href="../../filter.html#npfc.filter.count_violations_lipinski">[docs]</a><span class="k">def</span> <span class="nf">count_violations_lipinski</span><span class="p">(</span><span class="n">molecular_weight</span><span class="p">,</span> <span class="n">slogp</span><span class="p">,</span> <span class="n">num_hbd</span><span class="p">,</span> <span class="n">num_hba</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Lipinski, J Pharmacol Toxicol Methods. 2000 Jul-Aug;44(1):235-49.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">n</span> <span class="o">=</span> <span class="mi">0</span>
@@ -196,20 +196,20 @@
     <span class="k">return</span> <span class="n">n</span></div>
 
 
-<div class="viewcode-block" id="count_drug_like_ext_violations"><a class="viewcode-back" href="../../filter.html#npfc.filter.count_drug_like_ext_violations">[docs]</a><span class="k">def</span> <span class="nf">count_drug_like_ext_violations</span><span class="p">(</span><span class="n">num_drug_like_violations</span><span class="p">,</span> <span class="n">num_rotatable_bondss</span><span class="p">,</span> <span class="n">tpsa</span><span class="p">):</span>
+<div class="viewcode-block" id="count_violations_veber"><a class="viewcode-back" href="../../filter.html#npfc.filter.count_violations_veber">[docs]</a><span class="k">def</span> <span class="nf">count_violations_veber</span><span class="p">(</span><span class="n">num_rotatable_bonds</span><span class="p">,</span> <span class="n">tpsa</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Veber DF, Johnson SR, Cheng HY, Smith BR, Ward KW, Kopple KD (June 2002).</span>
 <span class="sd">    &quot;Molecular properties that influence the oral bioavailability of drug candidates&quot;.</span>
 <span class="sd">    J. Med. Chem. 45 (12): 2615–23.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">n</span> <span class="o">=</span> <span class="n">num_drug_like_violations</span>
-    <span class="k">if</span> <span class="n">num_rotatable_bondss</span> <span class="o">&gt;</span> <span class="mi">10</span><span class="p">:</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">if</span> <span class="n">num_rotatable_bonds</span> <span class="o">&gt;</span> <span class="mi">10</span><span class="p">:</span>
         <span class="n">n</span> <span class="o">+=</span> <span class="mi">1</span>
     <span class="k">if</span> <span class="n">tpsa</span> <span class="o">&gt;</span> <span class="mi">140</span><span class="p">:</span>
         <span class="n">n</span> <span class="o">+=</span> <span class="mi">1</span>
     <span class="k">return</span> <span class="n">n</span></div>
 
 
-<div class="viewcode-block" id="count_lead_like_violations"><a class="viewcode-back" href="../../filter.html#npfc.filter.count_lead_like_violations">[docs]</a><span class="k">def</span> <span class="nf">count_lead_like_violations</span><span class="p">(</span><span class="n">molecular_weight</span><span class="p">,</span> <span class="n">slogp</span><span class="p">,</span> <span class="n">num_rotatable_bonds</span><span class="p">):</span>
+<div class="viewcode-block" id="count_violations_lead_like"><a class="viewcode-back" href="../../filter.html#npfc.filter.count_violations_lead_like">[docs]</a><span class="k">def</span> <span class="nf">count_violations_lead_like</span><span class="p">(</span><span class="n">molecular_weight</span><span class="p">,</span> <span class="n">slogp</span><span class="p">,</span> <span class="n">num_rotatable_bonds</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;http://zinc.docking.org/browse/subsets/</span>
 <span class="sd">    Teague, Davis, Leeson, Oprea, Angew Chem Int Ed Engl. 1999 Dec 16;38(24):3743-3748.</span>
 
@@ -224,7 +224,7 @@
     <span class="k">return</span> <span class="n">n</span></div>
 
 
-<div class="viewcode-block" id="count_ppi_like_violations"><a class="viewcode-back" href="../../filter.html#npfc.filter.count_ppi_like_violations">[docs]</a><span class="k">def</span> <span class="nf">count_ppi_like_violations</span><span class="p">(</span><span class="n">molecular_weight</span><span class="p">,</span> <span class="n">slogp</span><span class="p">,</span> <span class="n">num_hba</span><span class="p">,</span> <span class="n">num_rings</span><span class="p">):</span>
+<div class="viewcode-block" id="count_violations_ppi_like"><a class="viewcode-back" href="../../filter.html#npfc.filter.count_violations_ppi_like">[docs]</a><span class="k">def</span> <span class="nf">count_violations_ppi_like</span><span class="p">(</span><span class="n">molecular_weight</span><span class="p">,</span> <span class="n">slogp</span><span class="p">,</span> <span class="n">num_hba</span><span class="p">,</span> <span class="n">num_rings</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Hamon, V., Bourgeas, R., Ducrot, P., Theret, I., Xuereb, L., Basse, M.J., Brunel, J.M., Combes, S., Morelli, X., Roche, P., 2013.</span>
 <span class="sd">    2P2IHUNTER: a tool for filtering orthosteric protein–protein interaction modulators via a dedicated support vector machine.</span>
 <span class="sd">    Journal of The Royal Society Interface 11. doi:10.1098/rsif.2013.0860</span>
@@ -241,7 +241,7 @@
     <span class="k">return</span> <span class="n">n</span></div>
 
 
-<div class="viewcode-block" id="count_fragment_like_violations"><a class="viewcode-back" href="../../filter.html#npfc.filter.count_fragment_like_violations">[docs]</a><span class="k">def</span> <span class="nf">count_fragment_like_violations</span><span class="p">(</span><span class="n">molecular_weight</span><span class="p">,</span> <span class="n">slogp</span><span class="p">,</span> <span class="n">num_hba</span><span class="p">,</span> <span class="n">num_hbd</span><span class="p">):</span>
+<div class="viewcode-block" id="count_violations_fragment_like"><a class="viewcode-back" href="../../filter.html#npfc.filter.count_violations_fragment_like">[docs]</a><span class="k">def</span> <span class="nf">count_violations_fragment_like</span><span class="p">(</span><span class="n">molecular_weight</span><span class="p">,</span> <span class="n">slogp</span><span class="p">,</span> <span class="n">num_hba</span><span class="p">,</span> <span class="n">num_hbd</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Congreve, M., Carr, R., Murray, C., Jhoti, H., 2003. A “Rule of Three” for fragment-based lead discovery?</span>
 <span class="sd">    Drug Discovery Today 8, 876–877. doi:10.1016/S1359-6446(03)02831-9</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -257,7 +257,7 @@
     <span class="k">return</span> <span class="n">n</span></div>
 
 
-<div class="viewcode-block" id="count_fragment_like_ext_violations"><a class="viewcode-back" href="../../filter.html#npfc.filter.count_fragment_like_ext_violations">[docs]</a><span class="k">def</span> <span class="nf">count_fragment_like_ext_violations</span><span class="p">(</span><span class="n">num_fragment_like_violations</span><span class="p">,</span> <span class="n">tpsa</span><span class="p">,</span> <span class="n">num_rotatable_bonds</span><span class="p">):</span>
+<div class="viewcode-block" id="count_violations_fragment_like_ext"><a class="viewcode-back" href="../../filter.html#npfc.filter.count_violations_fragment_like_ext">[docs]</a><span class="k">def</span> <span class="nf">count_violations_fragment_like_ext</span><span class="p">(</span><span class="n">num_fragment_like_violations</span><span class="p">,</span> <span class="n">tpsa</span><span class="p">,</span> <span class="n">num_rotatable_bonds</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Congreve, M., Carr, R., Murray, C., Jhoti, H., 2003.</span>
 <span class="sd">    A “Rule of Three” for fragment-based lead discovery? Drug Discovery Today 8, 876–877.</span>
 <span class="sd">    doi:10.1016/S1359-6446(03)02831-9</span>

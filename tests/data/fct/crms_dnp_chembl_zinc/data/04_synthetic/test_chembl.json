@@ -1,0 +1,9 @@
+{
+    "root_dir": "fc/04_synthetic/chembl",
+    "prep_subdir" : "prep",
+    "prefix": "chembl",
+    "config_file": "fc/04_synthetic/chembl/test_synthetic_chembl_natrefdnp_fragscrms.json",
+    "natref_subdir": "natref_dnp",
+    "frags_subdir": "frags_crms",
+    "commercial_ref" : "fc/02_commercial/zinc/data/prep/04_dedupl/zinc_refs.hdf"
+}
