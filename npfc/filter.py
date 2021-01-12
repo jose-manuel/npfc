@@ -124,34 +124,44 @@ def get_min_max_ring_sizes(mol):
     return (min_ring_size, max_ring_size)
 
 
+DESCRIPTORS = {
+              # classical molecular descriptors
+              'num_heavy_atom': lambda x: x.GetNumAtoms(),
+              'molecular_weight': lambda x: round(Descriptors.ExactMolWt(x), 4),
+              'num_ring': lambda x: rdMolDescriptors.CalcNumRings(x),
+              'num_ring_arom': lambda x: rdMolDescriptors.CalcNumAromaticRings(x),
+              'elements': lambda x: set([a.GetSymbol() for a in x.GetAtoms()]),
+              'molecular_formula': lambda x: rdMolDescriptors.CalcMolFormula(x),
+              'num_hbd': lambda x: rdMolDescriptors.CalcNumLipinskiHBD(x),
+              'num_hba': lambda x: rdMolDescriptors.CalcNumLipinskiHBA(x),
+              'slogp': lambda x: round(Crippen.MolLogP(x), 4),
+              'tpsa': lambda x: round(rdMolDescriptors.CalcTPSA(x), 4),
+              'num_rotatable_bond': lambda x: rdMolDescriptors.CalcNumRotatableBonds(x),
+              'num_atom_oxygen': lambda x: len([a for a in x.GetAtoms() if a.GetAtomicNum() == 8]),
+              'num_atom_nitrogen': lambda x: len([a for a in x.GetAtoms() if a.GetAtomicNum() == 7]),
+              # custom molecular descriptors
+              # ring_sizes:
+              # it would have been faster to access only once RingInfo for both min and max,
+              # but this is tricky because I would have to start making exceptions in the way
+              # the functions are accessed or more complicated downstream process.
+              # Indeed, I do not think it is possible to set two dict keys at once
+              # within a dict comprehension and it is not that bad for
+              # performance to call it twice anyway.
+              'ring_size_min': lambda x: min([len(y) for y in x.GetRingInfo().AtomRings()]),
+              'ring_size_max': lambda x: max([len(y) for y in x.GetRingInfo().AtomRings()]),
+              }
+
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ CLASSES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 
 class Filter:
     """A class for filtering molecules based on molecular descriptors."""
 
-    def __init__(self):
+    def __init__(self, descriptors: list = DESCRIPTORS):
         """Create a Filter object."""
 
-        self.descriptors = {
-                            # classical molecular descriptors
-                            'num_heavy_atom': lambda x: x.GetNumAtoms(),
-                            'molecular_weight': lambda x: round(Descriptors.ExactMolWt(x), 4),
-                            'num_ring': lambda x: rdMolDescriptors.CalcNumRings(x),
-                            'num_ring_arom': lambda x: rdMolDescriptors.CalcNumAromaticRings(x),
-                            'elements': lambda x: set([a.GetSymbol() for a in x.GetAtoms()]),
-                            'molecular_formula': lambda x: rdMolDescriptors.CalcMolFormula(x),
-                            'num_hbd': lambda x: rdMolDescriptors.CalcNumLipinskiHBD(x),
-                            'num_hba': lambda x: rdMolDescriptors.CalcNumLipinskiHBA(x),
-                            'slogp': lambda x: round(Crippen.MolLogP(x), 4),
-                            'tpsa': lambda x: round(rdMolDescriptors.CalcTPSA(x), 4),
-                            'num_rotatable_bond': lambda x: rdMolDescriptors.CalcNumRotatableBonds(x),
-                            'num_atom_oxygen': lambda x: len([a for a in x.GetAtoms() if a.GetAtomicNum() == 8]),
-                            'num_atom_nitrogen': lambda x: len([a for a in x.GetAtoms() if a.GetAtomicNum() == 7]),
-                            # custom molecular descriptors
-                            'ring_size_min': lambda x: min([len(y) for y in x.GetRingInfo().AtomRings()]),
-                            'ring_size_max': lambda x: max([len(y) for y in x.GetRingInfo().AtomRings()]),
-                            }
+        self.descriptors = descriptors
 
     def compute_descriptors(self, mol: Mol, descriptors: List = None) -> dict:
         """Compute descriptors. A subset of descriptors can be computed if a list

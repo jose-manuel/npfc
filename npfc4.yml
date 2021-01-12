@@ -1,4 +1,4 @@
-name: npfc4
+name: npfc3
 channels:
   - conda-forge
   - defaults
@@ -453,8 +453,7 @@ dependencies:
   - zope.interface=5.1.2=py38h1e0a361_1
   - zstd=1.4.5=h6597ccf_2
   - pip:
-    - npfc==0.6.15
     - pyqt5-sip==4.19.18
     - pyqtchart==5.12
     - pyqtwebengine==5.12.1
-prefix: /home/gally/Software/anaconda3/envs/npfc4
+prefix: /home/gally/Software/anaconda3/envs/npf3

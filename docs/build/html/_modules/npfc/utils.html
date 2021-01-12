@@ -8,11 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-<<<<<<< HEAD
-  <title>npfc.utils &mdash; npfc 0.7.4 documentation</title>
-=======
-  <title>npfc.utils &mdash; npfc 0.7.3 documentation</title>
->>>>>>> parent of fcf4110... fix: 🐛 smk: typo for fcp log dir for fragments
+  <title>npfc.utils &mdash; npfc 0.7.6 documentation</title>
   
 
   
@@ -62,11 +58,7 @@
             
             
               <div class="version">
-<<<<<<< HEAD
-                0.7.4
-=======
-                0.7.3
->>>>>>> parent of fcf4110... fix: 🐛 smk: typo for fcp log dir for fragments
+                0.7.6
               </div>
             
           
@@ -183,7 +175,7 @@
 <span class="kn">import</span> <span class="nn">pickle</span>
 <span class="kn">import</span> <span class="nn">base64</span>
 <span class="c1"># typing</span>
-<span class="kn">from</span> <span class="nn">rdkit.Chem</span> <span class="kn">import</span> <span class="n">AllChem</span>
+<span class="kn">from</span> <span class="nn">rdkit.Chem</span> <span class="kn">import</span> <span class="n">AllChem</span> <span class="k">as</span> <span class="n">Chem</span>
 <span class="kn">from</span> <span class="nn">rdkit.Chem</span> <span class="kn">import</span> <span class="n">Mol</span>
 <span class="c1"># chemoinformatics</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span>
@@ -349,6 +341,33 @@
     <span class="k">return</span> <span class="kc">True</span></div>
 
 
+<div class="viewcode-block" id="check_arg_output_plot"><a class="viewcode-back" href="../../utils.html#npfc.utils.check_arg_output_plot">[docs]</a><span class="k">def</span> <span class="nf">check_arg_output_plot</span><span class="p">(</span><span class="n">output_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">create_parent_dir</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Return True of the output_plot has the expected format (deduced from the file extension).</span>
+
+<span class="sd">    Accepted extensions are: svg and png.</span>
+
+<span class="sd">    If the parent directory of the output file does not exist, it has to either be created or fail the check.</span>
+
+<span class="sd">    :param output_file: the output file</span>
+<span class="sd">    :param create_parent_dir: create the output file&#39;s parent folder in case it does not exist</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># output_format</span>
+    <span class="n">path_output_file</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">output_file</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">path_output_file</span><span class="o">.</span><span class="n">suffixes</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[[</span><span class="s1">&#39;.svg&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;.png&#39;</span><span class="p">]]:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error! Unexpected value &#39;</span><span class="si">{</span><span class="n">path_output_file</span><span class="o">.</span><span class="n">suffixes</span><span class="si">}</span><span class="s2">&#39; for output plot.&quot;</span><span class="p">)</span>
+
+    <span class="c1"># create_parent_dir</span>
+    <span class="n">output_dir</span> <span class="o">=</span> <span class="n">path_output_file</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="o">.</span><span class="n">parent</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">output_dir</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">create_parent_dir</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Output_dir could not be found at &#39;</span><span class="si">{</span><span class="n">output_dir</span><span class="si">}</span><span class="s2">&#39;, attempting to create it.&quot;</span><span class="p">)</span>
+            <span class="n">output_dir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error! Output_dir could not be found at &#39;</span><span class="si">{</span><span class="n">output_dir</span><span class="si">}</span><span class="s2">&#39;.&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="kc">True</span></div>
+
+
 <div class="viewcode-block" id="check_arg_output_dir"><a class="viewcode-back" href="../../utils.html#npfc.utils.check_arg_output_dir">[docs]</a><span class="k">def</span> <span class="nf">check_arg_output_dir</span><span class="p">(</span><span class="n">output_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Return True of the output_dir can exist.</span>
 
@@ -475,6 +494,34 @@
         <span class="k">return</span> <span class="kc">None</span></div>
 
 
+<div class="viewcode-block" id="encode_mol_smiles"><a class="viewcode-back" href="../../utils.html#npfc.utils.encode_mol_smiles">[docs]</a><span class="k">def</span> <span class="nf">encode_mol_smiles</span><span class="p">(</span><span class="n">mol</span><span class="p">:</span> <span class="n">Mol</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Convert a mol to a Smiles.</span>
+
+<span class="sd">    :param string: a string with a Mol object in bytes with a base64 string representation</span>
+<span class="sd">    :return: a str object upon success, None otherwise</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">Chem</span><span class="o">.</span><span class="n">MolToSmiles</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="decode_mol_smiles"><a class="viewcode-back" href="../../utils.html#npfc.utils.decode_mol_smiles">[docs]</a><span class="k">def</span> <span class="nf">decode_mol_smiles</span><span class="p">(</span><span class="n">string</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Mol</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Convert a Smiles to a Mol.</span>
+
+<span class="sd">    :param string: a string with a Mol object in bytes with a base64 string representation</span>
+<span class="sd">    :return: a Mol object upon success, None otherwise</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">string</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">string</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">Chem</span><span class="o">.</span><span class="n">MolFromSmiles</span><span class="p">(</span><span class="n">string</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+
 <div class="viewcode-block" id="get_shortest_path_between_frags"><a class="viewcode-back" href="../../utils.html#npfc.utils.get_shortest_path_between_frags">[docs]</a><span class="k">def</span> <span class="nf">get_shortest_path_between_frags</span><span class="p">(</span><span class="n">mol</span><span class="p">:</span> <span class="n">Mol</span><span class="p">,</span> <span class="n">aidxf1</span><span class="p">:</span> <span class="nb">set</span><span class="p">,</span> <span class="n">aidxf2</span><span class="p">:</span> <span class="nb">set</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Return the shortest path within a molecule between two fragments defined by atom indices.</span>
 <span class="sd">    First and last atom indices are part of respectively fragment 1 and fragment 2, so they should not</span>
@@ -491,7 +538,7 @@
     <span class="n">pairwise_combinations</span> <span class="o">=</span> <span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">aidxf1</span><span class="p">),</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">aidxf2</span><span class="p">))</span>
     <span class="c1"># 2/ for each of those, compute the shortest path possible</span>
     <span class="n">pairwise_combinations</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">pairwise_combinations</span><span class="p">)</span>
-    <span class="n">all_paths</span> <span class="o">=</span> <span class="p">[</span><span class="n">AllChem</span><span class="o">.</span><span class="n">GetShortestPath</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">pc</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">pc</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="k">for</span> <span class="n">pc</span> <span class="ow">in</span> <span class="n">pairwise_combinations</span><span class="p">]</span>
+    <span class="n">all_paths</span> <span class="o">=</span> <span class="p">[</span><span class="n">Chem</span><span class="o">.</span><span class="n">GetShortestPath</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">pc</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">pc</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="k">for</span> <span class="n">pc</span> <span class="ow">in</span> <span class="n">pairwise_combinations</span><span class="p">]</span>
     <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Looking for the shortest path shortest path among these:&quot;</span><span class="p">)</span>
     <span class="p">[</span><span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Path (</span><span class="si">%s</span><span class="s2">): </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">.</span><span class="n">zfill</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span> <span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">all_paths</span><span class="p">)]</span>
     <span class="c1"># 3/ return one of the shortest pathes</span>

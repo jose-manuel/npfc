@@ -1,8 +1,4 @@
 # Sphinx build info version 1
 # This file hashes the configuration used when building these files. When it is not found, a full rebuild will be done.
-<<<<<<< HEAD
-config: cb94f6ed3b469b823ac31278b6c84a2a
-=======
-config: 960b1aaaa3498cf7528c9be181fc41c2
->>>>>>> parent of fcf4110... fix: 🐛 smk: typo for fcp log dir for fragments
+config: d469cc52ed9002405b3d2d605b6b1bd1
 tags: 645f666f9bcd5a90fca523b33c5a78b7

@@ -47,6 +47,8 @@ def test_filter_compute_descriptors(filter, mol):
     assert sorted(list(result.keys())) == ['elements',
                                            'molecular_formula',
                                            'molecular_weight',
+                                           'num_atom_nitrogen',
+                                           'num_atom_oxygen',
                                            'num_hba',
                                            'num_hbd',
                                            'num_heavy_atom',

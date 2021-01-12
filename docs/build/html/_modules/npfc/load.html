@@ -8,11 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-<<<<<<< HEAD
-  <title>npfc.load &mdash; npfc 0.7.4 documentation</title>
-=======
-  <title>npfc.load &mdash; npfc 0.7.3 documentation</title>
->>>>>>> parent of fcf4110... fix: 🐛 smk: typo for fcp log dir for fragments
+  <title>npfc.load &mdash; npfc 0.7.6 documentation</title>
   
 
   
@@ -62,11 +58,7 @@
             
             
               <div class="version">
-<<<<<<< HEAD
-                0.7.4
-=======
-                0.7.3
->>>>>>> parent of fcf4110... fix: 🐛 smk: typo for fcp log dir for fragments
+                0.7.6
               </div>
             
           
@@ -329,6 +321,7 @@
         <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;mol&#39;</span><span class="p">,</span> <span class="s1">&#39;mol_frag&#39;</span><span class="p">,</span> <span class="s1">&#39;mol_frag_1&#39;</span><span class="p">,</span> <span class="s1">&#39;mol_frag_2&#39;</span><span class="p">,</span> <span class="s1">&#39;mol_rdkit&#39;</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
                 <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Decoding column=&#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span><span class="p">,</span> <span class="n">col</span><span class="p">)</span>
+                <span class="c1"># df[col] = df[col].map(utils.decode_mol_smiles)</span>
                 <span class="n">df</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">utils</span><span class="o">.</span><span class="n">decode_mol</span><span class="p">)</span>
         <span class="c1"># other objects are labelled with leading &#39;_&#39;</span>
         <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
@@ -399,7 +392,7 @@
     <span class="sd">&quot;&quot;&quot;Count the number of molecules found in a text file.</span>
 <span class="sd">    In case the file is compressed (gzip), it is uncompressed first. The resulting</span>
 <span class="sd">    uncompressed file can be kept for further use.</span>
-<span class="sd">    </span>
+
 <span class="sd">    #### this function failed to the ZINC (9,902,598)</span>
 
 <span class="sd">    :param input_file: the input file</span>

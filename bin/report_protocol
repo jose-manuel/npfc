@@ -266,6 +266,7 @@ def save_lineplot(df: DataFrame,
         ax.set_yticks((0, 1, 2, 3, 4, 5))
         ax.set_ylim((0, 5))
 
+
     # format y labels
     ylabels = ['{:,.0f}'.format(x) for x in ax.get_yticks()]
     ax.set_yticklabels(ylabels)
@@ -807,7 +808,7 @@ def get_dfs_prep(WD: str) -> Tuple[DataFrame]:
     num_dedupl_dupl = df_dedupl_dupl['Count'].sum()
     df_std_filtered = pd.concat([df_std_filtered, df_dedupl_dupl], sort=True)
     # count even unoccurred cases in df_std_filtered
-    filters = ['empty', 'hac', 'molweight', 'nrings', 'medchem', 'timeout', 'duplicate']
+    filters = ['empty', 'num_heavy_atom', 'molecular_weight', 'num_ring', 'elements', 'timeout', 'duplicate']
     df_std_filtered.set_index('Category', inplace=True)
     df_std_filtered = df_std_filtered.reindex(filters)
     df_std_filtered.reset_index(inplace=True)
@@ -819,7 +820,7 @@ def get_dfs_prep(WD: str) -> Tuple[DataFrame]:
     # gather all molecules that raised an error
     df_std_error = pd.concat([df_std_error, df_load[df_load['Category'] == 'cannot_load']], sort=True)
     # count even unoccurred cases in df_std_error
-    errors = ['cannot_load', 'initiate_mol', 'disconnect_metal', 'sanitize', 'remove_isotopes', 'normalize', 'uncharge', 'canonicalize', 'remove_stereo']
+    errors = ['cannot_load', 'initiate_mol', 'disconnect_metal', 'sanitize', 'clear_isotopes', 'normalize', 'uncharge', 'canonicalize', 'clear_stereo']
     df_std_error.set_index('Category', inplace=True)
     df_std_error = df_std_error.reindex(errors)
     df_std_error.reset_index(inplace=True)
@@ -1738,7 +1739,7 @@ if __name__ == '__main__':
                                      output_plot_prep_overview,
                                      'Category',
                                      'Count',
-                                     f"Preprocesssing of Molecules in {dataset} - Overview",
+                                     f"Preparation of Molecules in {dataset} - Overview",
                                      x_label='Category',
                                      y_label='Count',
                                      color=color,
@@ -1754,7 +1755,7 @@ if __name__ == '__main__':
                                      output_plot_prep_filtered,
                                      'Category',
                                      'Count',
-                                     f"Preprocesssing of Molecules in {dataset} - Filtered",
+                                     f"Preparation of Molecules in {dataset} - Filtered",
                                      x_label='Category',
                                      y_label='Count',
                                      color=color,
@@ -1769,7 +1770,7 @@ if __name__ == '__main__':
                                      output_plot_prep_error,
                                      'Category',
                                      'Count',
-                                     f"Preprocesssing of Molecules in {dataset} - Error",
+                                     f"Preparation of Molecules in {dataset} - Error",
                                      x_label='Category',
                                      y_label='Count',
                                      color=color,

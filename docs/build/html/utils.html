@@ -8,11 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-<<<<<<< HEAD
-  <title>Module utils &mdash; npfc 0.7.4 documentation</title>
-=======
-  <title>Module utils &mdash; npfc 0.7.3 documentation</title>
->>>>>>> parent of fcf4110... fix: 🐛 smk: typo for fcp log dir for fragments
+  <title>Module utils &mdash; npfc 0.7.6 documentation</title>
   
 
   
@@ -64,11 +60,7 @@
             
             
               <div class="version">
-<<<<<<< HEAD
-                0.7.4
-=======
-                0.7.3
->>>>>>> parent of fcf4110... fix: 🐛 smk: typo for fcp log dir for fragments
+                0.7.6
               </div>
             
           
@@ -271,6 +263,25 @@
 </dd></dl>
 
 <dl class="py function">
+<dt id="npfc.utils.check_arg_output_plot">
+<code class="sig-prename descclassname">npfc.utils.</code><code class="sig-name descname">check_arg_output_plot</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">output_file</span></em>, <em class="sig-param"><span class="n">create_parent_dir</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/utils.html#check_arg_output_plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.utils.check_arg_output_plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return True of the output_plot has the expected format (deduced from the file extension).</p>
+<p>Accepted extensions are: svg and png.</p>
+<p>If the parent directory of the output file does not exist, it has to either be created or fail the check.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>output_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the output file</p></li>
+<li><p><strong>create_parent_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>) – create the output file’s parent folder in case it does not exist</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt id="npfc.utils.check_arg_positive_number">
 <code class="sig-prename descclassname">npfc.utils.</code><code class="sig-name descname">check_arg_positive_number</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/utils.html#check_arg_positive_number"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.utils.check_arg_positive_number" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return True of the value is indeed a positive number (&gt;0), raise a TypeError otherwise.</p>
@@ -288,6 +299,23 @@
 <dt id="npfc.utils.decode_mol">
 <code class="sig-prename descclassname">npfc.utils.</code><code class="sig-name descname">decode_mol</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">string</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/utils.html#decode_mol"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.utils.decode_mol" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convert a string to a RDKit Mol object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>string</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – a string with a Mol object in bytes with a base64 string representation</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Mol</span></code></p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>a Mol object upon success, None otherwise</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="npfc.utils.decode_mol_smiles">
+<code class="sig-prename descclassname">npfc.utils.</code><code class="sig-name descname">decode_mol_smiles</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">string</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/utils.html#decode_mol_smiles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.utils.decode_mol_smiles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a Smiles to a Mol.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>string</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – a string with a Mol object in bytes with a base64 string representation</p>
@@ -331,6 +359,23 @@
 </dd>
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p>the molecule in base64</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="npfc.utils.encode_mol_smiles">
+<code class="sig-prename descclassname">npfc.utils.</code><code class="sig-name descname">encode_mol_smiles</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mol</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/utils.html#encode_mol_smiles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.utils.encode_mol_smiles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a mol to a Smiles.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>string</strong> – a string with a Mol object in bytes with a base64 string representation</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>a str object upon success, None otherwise</p>
 </dd>
 </dl>
 </dd></dl>

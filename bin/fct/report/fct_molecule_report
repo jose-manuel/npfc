@@ -45,7 +45,6 @@ from npfc import save
 
 def plot_molecular_descriptors(df, output_plot, color):
     # general style for plotting
-    color = 'green'
     fig_size = (24, 12)
     sns.set(rc={'figure.figsize': fig_size})
     sns.set_style('whitegrid', {'axes.edgecolor': '0.2'})
