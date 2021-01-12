@@ -324,7 +324,7 @@ class Standardizer(Filter):
         for i, submol in enumerate(submols):
             # is_medchem
             is_medchem = self.filter_mol(submol, f'elements in {", ".join(str(x) for x in self.elements_medchem)}')
-            is_non_linear = self.filter_mol(submol, "num_ring > 0")
+            is_non_linear = self.filter_mol(submol, "num_rings > 0")
             # molecular_weight
             molecular_weight = Descriptors.ExactMolWt(submol)
             logging.debug("submol #%s: IM=%s, INL=%s, MW=%s", i, is_medchem, is_non_linear, molecular_weight)
@@ -651,7 +651,7 @@ class Standardizer(Filter):
                     return (mol, 'error', task)
 
             # filters
-            elif task == 'filter_elements' or task == 'filter_num_heavy_atom' or task == 'filter_molecular_weight' or task == 'filter_num_ring':
+            elif task == 'filter_elements' or task == 'filter_num_heavy_atoms' or task == 'filter_molecular_weight' or task == 'filter_num_rings':
                 # print("\n\nPROTOCOL\n\n")
                 # print(self._protocol)
                 try:

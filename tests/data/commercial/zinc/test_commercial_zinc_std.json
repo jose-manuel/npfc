@@ -7,13 +7,10 @@
                               "filter_molecular_weight",
                               "filter_num_rings",
                               "filter_elements",
-                              "sanitize",
-                              "clear_isotopes",
-                              "normalize",
-                              "uncharge",
-                              "canonicalize"],
+                              "sanitize"],
                     "filter_num_heavy_atoms": "num_heavy_atoms > 3",
                     "filter_molecular_weight": "molecular_weight <= 1000.0",
                     "filter_num_rings": "num_rings > 0",
                     "filter_elements": "elements in {H, B, C, N, O, F, P, S, Cl, Br, I}"
+
 }

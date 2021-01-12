@@ -185,14 +185,14 @@ def test_std_init(standardizer):
 
     # default parameters
     standardizer = deepcopy(standardizer)  # if the standardizer is modified in place, then other tests will fail
-    assert set(standardizer.protocol.keys()) == set(['tasks', 'filter_num_heavy_atom', 'filter_molecular_weight', 'filter_num_ring', 'filter_elements'])
+    assert set(standardizer.protocol.keys()) == set(['tasks', 'filter_num_heavy_atoms', 'filter_molecular_weight', 'filter_num_rings', 'filter_elements'])
     assert standardizer.protocol['tasks'] == ['filter_empty',
                                               'disconnect_metal',
                                               'keep_best',
                                               'deglycosylate',
-                                              'filter_num_heavy_atom',
+                                              'filter_num_heavy_atoms',
                                               'filter_molecular_weight',
-                                              'filter_num_ring',
+                                              'filter_num_rings',
                                               'filter_elements',
                                               'sanitize',
                                               'clear_isotopes',

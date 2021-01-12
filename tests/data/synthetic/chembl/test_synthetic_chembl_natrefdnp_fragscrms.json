@@ -10,7 +10,7 @@
                     "natref_dedupl_reffile": "natural/dnp/data/prep/04_dedupl/dnp_ref.hdf",
                     "natref_fcg_dir": "natural/dnp/data/prep/frags_crms/08_fcg/data",
                     "pnp_attributes": "fcc",
-                    "chunksize": 20,
-                    "protocol_std" : "DEFAULT"
+                    "chunksize": 100,
+                    "protocol_std" : "synthetic/chembl/test_synthetic_chembl_std.json"
 }
 

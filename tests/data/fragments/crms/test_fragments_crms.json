@@ -4,7 +4,7 @@
                     "WD": "fragments/crms/",
                     "input_file": "fragments/crms/data/00_raw/data/cr_test.sdf.gz",
                     "prep_subdir": "prep",
-                    "protocol_std": "DEFAULT"
+                    "protocol_std" : "fragments/crms/test_fragments_crms_std.json"
 
 }
  

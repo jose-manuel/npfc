@@ -1,0 +1,10 @@
+{
+    "tasks": ["filter_empty",
+              "keep_best",
+              "sanitize",
+              "clear_isotopes",
+              "clear_stereo",
+              "extract_murcko",
+              "reset_mol",
+              "uncharge"]
+}

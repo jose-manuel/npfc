@@ -35,20 +35,20 @@ def count_drug_like_violations(molecular_weight, slogp, num_hbd, num_hba):
     return n
 
 
-def count_drug_like_ext_violations(num_drug_like_violations, num_rotatable_bonds, tpsa):
+def count_drug_like_ext_violations(num_drug_like_violations, num_rotatable_bondss, tpsa):
     """Veber DF, Johnson SR, Cheng HY, Smith BR, Ward KW, Kopple KD (June 2002).
     "Molecular properties that influence the oral bioavailability of drug candidates".
     J. Med. Chem. 45 (12): 2615–23.
     """
     n = num_drug_like_violations
-    if num_rotatable_bonds > 10:
+    if num_rotatable_bondss > 10:
         n += 1
     if tpsa > 140:
         n += 1
     return n
 
 
-def count_lead_like_violations(molecular_weight, slogp, num_rotatable_bond):
+def count_lead_like_violations(molecular_weight, slogp, num_rotatable_bonds):
     """http://zinc.docking.org/browse/subsets/
     Teague, Davis, Leeson, Oprea, Angew Chem Int Ed Engl. 1999 Dec 16;38(24):3743-3748.
 
@@ -58,12 +58,12 @@ def count_lead_like_violations(molecular_weight, slogp, num_rotatable_bond):
         n += 1
     if slogp > 3.5:
         n += 1
-    if num_rotatable_bond > 7:
+    if num_rotatable_bonds > 7:
         n += 1
     return n
 
 
-def count_ppi_like_violations(molecular_weight, slogp, num_hba, num_ring):
+def count_ppi_like_violations(molecular_weight, slogp, num_hba, num_rings):
     """Hamon, V., Bourgeas, R., Ducrot, P., Theret, I., Xuereb, L., Basse, M.J., Brunel, J.M., Combes, S., Morelli, X., Roche, P., 2013.
     2P2IHUNTER: a tool for filtering orthosteric protein–protein interaction modulators via a dedicated support vector machine.
     Journal of The Royal Society Interface 11. doi:10.1098/rsif.2013.0860
@@ -75,7 +75,7 @@ def count_ppi_like_violations(molecular_weight, slogp, num_hba, num_ring):
         n += 1
     if num_hba < 4:
         n += 1
-    if num_ring < 4:
+    if num_rings < 4:
         n += 1
     return n
 
@@ -96,7 +96,7 @@ def count_fragment_like_violations(molecular_weight, slogp, num_hba, num_hbd):
     return n
 
 
-def count_fragment_like_ext_violations(num_fragment_like_violations, tpsa, num_rotatable_bond):
+def count_fragment_like_ext_violations(num_fragment_like_violations, tpsa, num_rotatable_bonds):
     """Congreve, M., Carr, R., Murray, C., Jhoti, H., 2003.
     A “Rule of Three” for fragment-based lead discovery? Drug Discovery Today 8, 876–877.
     doi:10.1016/S1359-6446(03)02831-9
@@ -104,7 +104,7 @@ def count_fragment_like_ext_violations(num_fragment_like_violations, tpsa, num_r
     n = num_fragment_like_violations
     if tpsa > 60:
         n += 1
-    if num_rotatable_bond:
+    if num_rotatable_bonds:
         n += 1
     return n
 
@@ -126,19 +126,19 @@ def get_min_max_ring_sizes(mol):
 
 DESCRIPTORS = {
               # classical molecular descriptors
-              'num_heavy_atom': lambda x: x.GetNumAtoms(),
+              'num_heavy_atoms': lambda x: x.GetNumAtoms(),
               'molecular_weight': lambda x: round(Descriptors.ExactMolWt(x), 4),
-              'num_ring': lambda x: rdMolDescriptors.CalcNumRings(x),
-              'num_ring_arom': lambda x: rdMolDescriptors.CalcNumAromaticRings(x),
+              'num_rings': lambda x: rdMolDescriptors.CalcNumRings(x),
+              'num_rings_arom': lambda x: rdMolDescriptors.CalcNumAromaticRings(x),
               'elements': lambda x: set([a.GetSymbol() for a in x.GetAtoms()]),
               'molecular_formula': lambda x: rdMolDescriptors.CalcMolFormula(x),
               'num_hbd': lambda x: rdMolDescriptors.CalcNumLipinskiHBD(x),
               'num_hba': lambda x: rdMolDescriptors.CalcNumLipinskiHBA(x),
               'slogp': lambda x: round(Crippen.MolLogP(x), 4),
               'tpsa': lambda x: round(rdMolDescriptors.CalcTPSA(x), 4),
-              'num_rotatable_bond': lambda x: rdMolDescriptors.CalcNumRotatableBonds(x),
-              'num_atom_oxygen': lambda x: len([a for a in x.GetAtoms() if a.GetAtomicNum() == 8]),
-              'num_atom_nitrogen': lambda x: len([a for a in x.GetAtoms() if a.GetAtomicNum() == 7]),
+              'num_rotatable_bonds': lambda x: rdMolDescriptors.CalcNumRotatableBonds(x),
+              'num_atoms_oxygen': lambda x: len([a for a in x.GetAtoms() if a.GetAtomicNum() == 8]),
+              'num_atoms_nitrogen': lambda x: len([a for a in x.GetAtoms() if a.GetAtomicNum() == 7]),
               # custom molecular descriptors
               # ring_sizes:
               # it would have been faster to access only once RingInfo for both min and max,
@@ -197,10 +197,10 @@ class Filter:
                 - 'elements in C, N, O'
 
             - numeric
-                - 'num_heavy_atom > 3'
+                - 'num_heavy_atoms > 3'
                 - '100.0 < molecular_weight <= 1000.0'
-                - 'num_ring' != 0'
-                - 'num_ring == 0'
+                - 'num_rings' != 0'
+                - 'num_rings == 0'
 
         :param mol: the input molecule
         :param expr: the filter to apply
@@ -211,7 +211,7 @@ class Filter:
         # filters of type: 'elements in C, N, O'
         if 'in' in split_expr:  # 'in' or 'not in'
             return self._eval_set_expr(mol, expr)
-        # filters of type: 'num_heavy_atom > 3'
+        # filters of type: 'num_heavy_atoms > 3'
         return self._eval_numeric_expr(mol, expr.lower())
 
     def _eval_numeric_expr(self, mol, expr):

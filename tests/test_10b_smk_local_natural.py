@@ -37,7 +37,7 @@ def test_init():
 def test_run():
     """Run the 'natural' protocol applied to a subset of the DNP."""
 
-    output_files = [f"tests/tmp/natural/dnp/data/prep/frags_crms/08_fcg/data/dnp_{str(cid+1).zfill(3)}_fcg.csv.gz" for cid in range(3)]
+    output_files = [f"tests/tmp/natural/dnp/data/prep/frags_crms/08_fcg/data/dnp_{str(cid+1).zfill(3)}_fcg.csv.gz" for cid in range(2)]
     output_svg = 'tests/tmp/natural/dnp/natural_dnp_tasktree.svg'
     # run protocol
     command_smk = 'run_protocol natural -c natural/dnp/test_natural_dnp_fragscrms.json'

@@ -37,7 +37,7 @@ def test_run():
     output_files = [f"tests/tmp/commercial/zinc/data/prep/05_depict/data/zinc_{str(cid+1).zfill(3)}_depict.csv.gz" for cid in range(2)]
     output_svg = 'tests/tmp/commercial/zinc/commercial_zinc_tasktree.svg'
     # run protocol
-    command_smk = 'run_protocol commercial -c commercial/zinc/test_zinc.json'
+    command_smk = 'run_protocol commercial -c commercial/zinc/test_commercial_zinc.json'
     subprocess.run(command_smk, shell=True, check=True, cwd='tests/tmp')
     assert Path(output_svg).exists()
     assert all([Path(f).exists() for f in output_files])

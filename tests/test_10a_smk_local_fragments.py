@@ -40,7 +40,7 @@ def test_run():
     output_files = ["tests/tmp/fragments/crms/data/prep/05_depict/data/crms_depict.csv.gz"]
     output_svg = 'tests/tmp/fragments/crms/fragments_crms_tasktree.svg'
     # run protocol
-    command_smk = 'run_protocol fragments -c fragments/crms/fragments_crms.json'
+    command_smk = 'run_protocol fragments -c fragments/crms/test_fragments_crms.json'
     subprocess.run(command_smk, shell=True, check=True, cwd='tests/tmp')
     assert Path(output_svg).exists()
     assert all([Path(f).exists() for f in output_files])

@@ -31,13 +31,13 @@ def mol():
 
 def test_filter_parse_expression(filter, mol):
     """Test the parsing of the expression used to define the filter"""
-    assert filter.filter_mol(mol, 'num_heavy_atom > 10') is False
-    assert filter.filter_mol(mol, 'num_heavy_atom >= 10') is False
-    assert filter.filter_mol(mol, 'num_heavy_atom == 6') is True
+    assert filter.filter_mol(mol, 'num_heavy_atoms > 10') is False
+    assert filter.filter_mol(mol, 'num_heavy_atoms >= 10') is False
+    assert filter.filter_mol(mol, 'num_heavy_atoms == 6') is True
     assert filter.filter_mol(mol, '100 <= molecular_weight <= 1000') is False
     assert filter.filter_mol(mol, 'elements in C') is True
     assert filter.filter_mol(mol, 'elements not in O') is True
-    assert filter.filter_mol(mol, 'num_ring != 0') is True
+    assert filter.filter_mol(mol, 'num_rings != 0') is True
 
 
 def test_filter_compute_descriptors(filter, mol):
@@ -47,22 +47,22 @@ def test_filter_compute_descriptors(filter, mol):
     assert sorted(list(result.keys())) == ['elements',
                                            'molecular_formula',
                                            'molecular_weight',
-                                           'num_atom_nitrogen',
-                                           'num_atom_oxygen',
+                                           'num_atoms_nitrogen',
+                                           'num_atoms_oxygen',
                                            'num_hba',
                                            'num_hbd',
-                                           'num_heavy_atom',
-                                           'num_ring',
-                                           'num_ring_arom',
-                                           'num_rotatable_bond',
+                                           'num_heavy_atoms',
+                                           'num_rings',
+                                           'num_rings_arom',
+                                           'num_rotatable_bonds',
                                            'ring_size_max',
                                            'ring_size_min',
                                            'slogp',
                                            'tpsa',
                                            ]
     # only subset of descriptors
-    result = filter.compute_descriptors(mol, descriptors=['num_heavy_atom', 'molecular_weight'])
-    assert sorted(list(result.keys())) == ['molecular_weight', 'num_heavy_atom']
+    result = filter.compute_descriptors(mol, descriptors=['num_heavy_atoms', 'molecular_weight'])
+    assert sorted(list(result.keys())) == ['molecular_weight', 'num_heavy_atoms']
 
     # no descriptor
     try:

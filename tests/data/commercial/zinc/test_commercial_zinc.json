@@ -4,5 +4,5 @@
                     "WD": "commercial/zinc/",
                     "input_file": "commercial/zinc/data/00_raw/data/zinc.sdf.gz",
                     "chunksize": 10,
-                    "protocol_std" : "commercial/zinc/commercial_std_mols.json"
+                    "protocol_std" : "commercial/zinc/test_commercial_zinc_std.json"
 }
