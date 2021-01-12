@@ -169,8 +169,7 @@ class Filter:
         the method get_possible_descriptors can be used.
 
         :param mol: the input molecule
-        :param descriptors: the list of descriptors to compute. If none is provided, all possible
-        descriptors are computed.
+        :param descriptors: the list of descriptors to compute. If none is provided, all possible descriptors are computed.
         :return: a dictionary with all descriptors
         """
         # if no descriptor is specified, compute them all
