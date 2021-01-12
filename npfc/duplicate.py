@@ -24,7 +24,7 @@ from npfc import save
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ CLASSES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 
-def init_ref_file(ref_file, group_on, col_id) -> bool:
+def init_ref_file(ref_file: str, group_on: str, col_id: str) -> bool:
     """Initiate an empty reference hdf for identifying duplicates.
 
     :return: True if the reference file could be initialized, False otherwise.

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Module filter &mdash; npfc 0.7.6-3-gd5ed094 documentation</title>
+  <title>Module filter &mdash; npfc 0.7.6-4-g08f2db9 documentation</title>
   
 
   
@@ -60,7 +60,7 @@
             
             
               <div class="version">
-                0.7.6-3-gd5ed094
+                0.7.6-4-g08f2db9
               </div>
             
           
@@ -168,7 +168,7 @@
 molecular descriptors.</p>
 <dl class="py class">
 <dt id="npfc.filter.Filter">
-<em class="property">class </em><code class="sig-prename descclassname">npfc.filter.</code><code class="sig-name descname">Filter</code><span class="sig-paren">(</span><em class="sig-param">descriptors={'elements': &lt;function &lt;lambda&gt;&gt;</em>, <em class="sig-param">'molecular_formula': &lt;function &lt;lambda&gt;&gt;</em>, <em class="sig-param">'molecular_weight': &lt;function &lt;lambda&gt;&gt;</em>, <em class="sig-param">'num_atom_nitrogen': &lt;function &lt;lambda&gt;&gt;</em>, <em class="sig-param">'num_atom_oxygen': &lt;function &lt;lambda&gt;&gt;</em>, <em class="sig-param">'num_hba': &lt;function &lt;lambda&gt;&gt;</em>, <em class="sig-param">'num_hbd': &lt;function &lt;lambda&gt;&gt;</em>, <em class="sig-param">'num_heavy_atom': &lt;function &lt;lambda&gt;&gt;</em>, <em class="sig-param">'num_ring': &lt;function &lt;lambda&gt;&gt;</em>, <em class="sig-param">'num_ring_arom': &lt;function &lt;lambda&gt;&gt;</em>, <em class="sig-param">'num_rotatable_bond': &lt;function &lt;lambda&gt;&gt;</em>, <em class="sig-param">'ring_size_max': &lt;function &lt;lambda&gt;&gt;</em>, <em class="sig-param">'ring_size_min': &lt;function &lt;lambda&gt;&gt;</em>, <em class="sig-param">'slogp': &lt;function &lt;lambda&gt;&gt;</em>, <em class="sig-param">'tpsa': &lt;function &lt;lambda&gt;&gt;}</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/filter.html#Filter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.filter.Filter" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">npfc.filter.</code><code class="sig-name descname">Filter</code><span class="sig-paren">(</span><em class="sig-param">descriptors={'elements': &lt;function &lt;lambda&gt;&gt;</em>, <em class="sig-param">'molecular_formula': &lt;function &lt;lambda&gt;&gt;</em>, <em class="sig-param">'molecular_weight': &lt;function &lt;lambda&gt;&gt;</em>, <em class="sig-param">'num_atoms_nitrogen': &lt;function &lt;lambda&gt;&gt;</em>, <em class="sig-param">'num_atoms_oxygen': &lt;function &lt;lambda&gt;&gt;</em>, <em class="sig-param">'num_hba': &lt;function &lt;lambda&gt;&gt;</em>, <em class="sig-param">'num_hbd': &lt;function &lt;lambda&gt;&gt;</em>, <em class="sig-param">'num_heavy_atoms': &lt;function &lt;lambda&gt;&gt;</em>, <em class="sig-param">'num_rings': &lt;function &lt;lambda&gt;&gt;</em>, <em class="sig-param">'num_rings_arom': &lt;function &lt;lambda&gt;&gt;</em>, <em class="sig-param">'num_rotatable_bonds': &lt;function &lt;lambda&gt;&gt;</em>, <em class="sig-param">'ring_size_max': &lt;function &lt;lambda&gt;&gt;</em>, <em class="sig-param">'ring_size_min': &lt;function &lt;lambda&gt;&gt;</em>, <em class="sig-param">'slogp': &lt;function &lt;lambda&gt;&gt;</em>, <em class="sig-param">'tpsa': &lt;function &lt;lambda&gt;&gt;}</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/filter.html#Filter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.filter.Filter" title="Permalink to this definition">¶</a></dt>
 <dd><p>A class for filtering molecules based on molecular descriptors.</p>
 <p>Create a Filter object.</p>
 <dl class="py method">
@@ -210,10 +210,10 @@ Two types of expressions are currently supported:</p>
 </li>
 <li><dl class="simple">
 <dt>numeric</dt><dd><ul>
-<li><p>‘num_heavy_atom &gt; 3’</p></li>
+<li><p>‘num_heavy_atoms &gt; 3’</p></li>
 <li><p>‘100.0 &lt; molecular_weight &lt;= 1000.0’</p></li>
-<li><p>‘num_ring’ != 0’</p></li>
-<li><p>‘num_ring == 0’</p></li>
+<li><p>‘num_rings’ != 0’</p></li>
+<li><p>‘num_rings == 0’</p></li>
 </ul>
 </dd>
 </dl>
@@ -254,7 +254,7 @@ Two types of expressions are currently supported:</p>
 
 <dl class="py function">
 <dt id="npfc.filter.count_drug_like_ext_violations">
-<code class="sig-prename descclassname">npfc.filter.</code><code class="sig-name descname">count_drug_like_ext_violations</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">num_drug_like_violations</span></em>, <em class="sig-param"><span class="n">num_rotatable_bonds</span></em>, <em class="sig-param"><span class="n">tpsa</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/filter.html#count_drug_like_ext_violations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.filter.count_drug_like_ext_violations" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">npfc.filter.</code><code class="sig-name descname">count_drug_like_ext_violations</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">num_drug_like_violations</span></em>, <em class="sig-param"><span class="n">num_rotatable_bondss</span></em>, <em class="sig-param"><span class="n">tpsa</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/filter.html#count_drug_like_ext_violations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.filter.count_drug_like_ext_violations" title="Permalink to this definition">¶</a></dt>
 <dd><p>Veber DF, Johnson SR, Cheng HY, Smith BR, Ward KW, Kopple KD (June 2002).
 “Molecular properties that influence the oral bioavailability of drug candidates”.
 J. Med. Chem. 45 (12): 2615–23.</p>
@@ -268,7 +268,7 @@ J. Med. Chem. 45 (12): 2615–23.</p>
 
 <dl class="py function">
 <dt id="npfc.filter.count_fragment_like_ext_violations">
-<code class="sig-prename descclassname">npfc.filter.</code><code class="sig-name descname">count_fragment_like_ext_violations</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">num_fragment_like_violations</span></em>, <em class="sig-param"><span class="n">tpsa</span></em>, <em class="sig-param"><span class="n">num_rotatable_bond</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/filter.html#count_fragment_like_ext_violations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.filter.count_fragment_like_ext_violations" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">npfc.filter.</code><code class="sig-name descname">count_fragment_like_ext_violations</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">num_fragment_like_violations</span></em>, <em class="sig-param"><span class="n">tpsa</span></em>, <em class="sig-param"><span class="n">num_rotatable_bonds</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/filter.html#count_fragment_like_ext_violations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.filter.count_fragment_like_ext_violations" title="Permalink to this definition">¶</a></dt>
 <dd><p>Congreve, M., Carr, R., Murray, C., Jhoti, H., 2003.
 A “Rule of Three” for fragment-based lead discovery? Drug Discovery Today 8, 876–877.
 doi:10.1016/S1359-6446(03)02831-9</p>
@@ -283,14 +283,14 @@ Drug Discovery Today 8, 876–877. doi:10.1016/S1359-6446(03)02831-9</p>
 
 <dl class="py function">
 <dt id="npfc.filter.count_lead_like_violations">
-<code class="sig-prename descclassname">npfc.filter.</code><code class="sig-name descname">count_lead_like_violations</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">molecular_weight</span></em>, <em class="sig-param"><span class="n">slogp</span></em>, <em class="sig-param"><span class="n">num_rotatable_bond</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/filter.html#count_lead_like_violations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.filter.count_lead_like_violations" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">npfc.filter.</code><code class="sig-name descname">count_lead_like_violations</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">molecular_weight</span></em>, <em class="sig-param"><span class="n">slogp</span></em>, <em class="sig-param"><span class="n">num_rotatable_bonds</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/filter.html#count_lead_like_violations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.filter.count_lead_like_violations" title="Permalink to this definition">¶</a></dt>
 <dd><p><a class="reference external" href="http://zinc.docking.org/browse/subsets/">http://zinc.docking.org/browse/subsets/</a>
 Teague, Davis, Leeson, Oprea, Angew Chem Int Ed Engl. 1999 Dec 16;38(24):3743-3748.</p>
 </dd></dl>
 
 <dl class="py function">
 <dt id="npfc.filter.count_ppi_like_violations">
-<code class="sig-prename descclassname">npfc.filter.</code><code class="sig-name descname">count_ppi_like_violations</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">molecular_weight</span></em>, <em class="sig-param"><span class="n">slogp</span></em>, <em class="sig-param"><span class="n">num_hba</span></em>, <em class="sig-param"><span class="n">num_ring</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/filter.html#count_ppi_like_violations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.filter.count_ppi_like_violations" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">npfc.filter.</code><code class="sig-name descname">count_ppi_like_violations</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">molecular_weight</span></em>, <em class="sig-param"><span class="n">slogp</span></em>, <em class="sig-param"><span class="n">num_hba</span></em>, <em class="sig-param"><span class="n">num_rings</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/filter.html#count_ppi_like_violations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.filter.count_ppi_like_violations" title="Permalink to this definition">¶</a></dt>
 <dd><p>Hamon, V., Bourgeas, R., Ducrot, P., Theret, I., Xuereb, L., Basse, M.J., Brunel, J.M., Combes, S., Morelli, X., Roche, P., 2013.
 2P2IHUNTER: a tool for filtering orthosteric protein–protein interaction modulators via a dedicated support vector machine.
 Journal of The Royal Society Interface 11. doi:10.1098/rsif.2013.0860</p>
