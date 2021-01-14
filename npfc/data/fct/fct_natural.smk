@@ -35,6 +35,8 @@ config_file = config['config_file']
 # fragments
 frags_subdir = config['frags_subdir']
 commercial_ref = config['commercial_ref']
+color = config['color']
+
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ INITIALIZATION ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
@@ -58,50 +60,66 @@ chunk_ids = [str(i+1).zfill(3) for i in range(config['num_chunks'])]
 # natural_chunk_ids = [str(i+1).zfill(3) for i in range(natural_num_chunks)]
 # synthetic_chunk_ids = [str(i+1).zfill(3) for i in range(synthetic_num_chunks)]
 
+DATA = f"{WD}/data"
+REPORT = f"{WD}/report"
+
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ PIPELINE ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 rule END:
     input:
-        dataset = WD + "/dataset/data/dataset.csv.gz",
-        fragment_fragment = expand("{WD}/fragment_fragment/data/fragment_fragment_{cid}.csv.gz", WD=WD, cid=chunk_ids),
-        molecule = expand("{WD}/molecule/data/molecule_{cid}.csv.gz", WD=WD, cid=chunk_ids),
-        molecule_dataset = expand("{WD}/molecule_dataset/data/molecule_dataset_{cid}.csv.gz", WD=WD, cid=chunk_ids),
-        molecule_molecule = expand("{WD}/molecule_molecule/data/molecule_molecule_{cid}.csv.gz", WD=WD, cid=chunk_ids)
+        dataset = DATA + "/dataset/data/dataset.csv.gz",
+        fragment_fragment = expand("{DATA}/fragment_fragment/data/fragment_fragment_{cid}.csv.gz", DATA=DATA, cid=chunk_ids),
+        molecule = expand("{DATA}/molecule/data/molecule_{cid}.csv.gz", DATA=DATA, cid=chunk_ids),
+        molecule_dataset = expand("{DATA}/molecule_dataset/data/molecule_dataset_{cid}.csv.gz", DATA=DATA, cid=chunk_ids),
+        molecule_molecule = expand("{DATA}/molecule_molecule/data/molecule_molecule_{cid}.csv.gz", DATA=DATA, cid=chunk_ids),
+        report_molecule = REPORT + "/molecule/molecular_features.svg"
+
+
+rule REPORT_MOL:
+    input: expand("{DATA}/molecule/data/molecule_{cid}.csv.gz", DATA=DATA, cid=chunk_ids)
+    output: REPORT + "/molecule/molecular_features.svg"
+    log: REPORT + "/molecule/molecular_features.log"
+    shell: "fct_molecule_report " + DATA + "/molecule/data" + " {output} " + color + " " + prefix + " >{log} 2>&1"
+
 
 rule FRAG_FRAG:
     input: root_dir + "/data/" + prep_subdir + "/" + frags_subdir + "/08_fcg/data/" + prefix + "_{cid}_fcg.csv.gz"
-    output: WD + "/fragment_fragment/data/fragment_fragment_{cid}.csv.gz"
-    log: WD + "/fragment_fragment/log/fragment_fragment_{cid}.log"
+    output: DATA + "/fragment_fragment/data/fragment_fragment_{cid}.csv.gz"
+    log: DATA + "/fragment_fragment/log/fragment_fragment_{cid}.log"
     shell: "fct_fragment_fragment {input} {output}  >{log} 2>&1"
+
 
 rule MOL_DATASET:
     input:
-        molecule = "{WD}/molecule/data/molecule_{cid}.csv.gz",
-        dataset = "{WD}/dataset/data/dataset.csv.gz"
-    output: "{WD}/molecule_dataset/data/molecule_dataset_{cid}.csv.gz"
-    log: "{WD}/molecule_dataset/log/molecule_dataset_{cid}.log"
+        molecule = "{DATA}/molecule/data/molecule_{cid}.csv.gz",
+        dataset = "{DATA}/dataset/data/dataset.csv.gz"
+    output: "{DATA}/molecule_dataset/data/molecule_dataset_{cid}.csv.gz"
+    log: "{DATA}/molecule_dataset/log/molecule_dataset_{cid}.log"
     shell: "fct_molecule_dataset natural {input.molecule} {input.dataset} {output}  >{log} 2>&1"
+
 
 rule DATASET:
     input: config_file
-    output: WD + "/dataset/data/dataset.csv.gz"
-    log: WD + "/dataset/log/dataset.log"
+    output: DATA + "/dataset/data/dataset.csv.gz"
+    log: DATA + "/dataset/log/dataset.log"
     shell: "fct_dataset natural {input} {output}  >{log} 2>&1"
+
 
 rule MOL_MOL:
     input:
         synonyms = root_dir + "/data/" + prep_subdir + "/04_dedupl/log/" + prefix + "_{cid}_synonyms.csv.gz",
-        molecule = WD + "/molecule/data/molecule_{cid}.csv.gz"
-    output: WD + "/molecule_molecule/data/molecule_molecule_{cid}.csv.gz"
-    log: WD + "/molecule_molecule/log/molecule_molecule_{cid}.csv.gz"
+        molecule = DATA + "/molecule/data/molecule_{cid}.csv.gz"
+    output: DATA + "/molecule_molecule/data/molecule_molecule_{cid}.csv.gz"
+    log: DATA + "/molecule_molecule/log/molecule_molecule_{cid}.csv.gz"
     shell: "fct_molecule_molecule {input.synonyms} {input.molecule} {output}  >{log} 2>&1"
+
 
 rule MOL:
     input:
         load_step = root_dir + "/data/" + prep_subdir + "/02_load/data/" + prefix + "_{cid}.csv.gz",
         latest_step = root_dir + "/data/" + prep_subdir + "/" + frags_subdir + "/08_fcg/data/" + prefix + "_{cid}_fcg.csv.gz",
         commercial_ref = commercial_ref
-    output: WD + "/molecule/data/molecule_{cid}.csv.gz"
-    log: WD + "/molecule/log/molecule_{cid}.log"
+    output: DATA + "/molecule/data/molecule_{cid}.csv.gz"
+    log: DATA + "/molecule/log/molecule_{cid}.log"
     shell: "fct_molecule {input.load_step} {input.latest_step} {input.commercial_ref} {output}  >{log} 2>&1"

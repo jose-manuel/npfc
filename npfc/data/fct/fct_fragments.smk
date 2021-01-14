@@ -67,7 +67,7 @@ rule REPORT_MOL:
     input: DATA + "/molecule/data/molecule.csv.gz"
     output: REPORT + "/molecule/molecular_features.svg"
     log: REPORT + "/molecule/molecular_features.log"
-    shell: "fct_molecule_report {input} {output} gray " + prefix + " >{log} 2>&1"
+    shell: "fct_molecule_report {input} {output} " + color + " " + prefix + " >{log} 2>&1"
 
 
 rule FRAG:

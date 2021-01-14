@@ -33,6 +33,8 @@ prep_subdir = config['prep_subdir']
 prefix = config['prefix']
 config_file = config['config_file']
 commercial_ref = config['commercial_ref']
+color = config['color']
+
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ INITIALIZATION ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
@@ -47,19 +49,31 @@ for wd in [WD,
         wd = wd[:-1]
 
 chunk_ids = [str(i+1).zfill(3) for i in range(config['num_chunks'])]
+DATA = f"{WD}/data"
+REPORT = f"{WD}/report"
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ PIPELINE ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 
 rule END:
-    input: molecule = expand("{WD}/molecule/data/molecule_{cid}.csv.gz", WD=WD, cid=chunk_ids)
+    input:
+        molecule = expand("{DATA}/molecule/data/molecule_{cid}.csv.gz", DATA=DATA, cid=chunk_ids),
+        report_molecule = REPORT + "/molecule/molecular_features.svg"
+
+
+rule REPORT_MOL:
+    input: expand("{DATA}/molecule/data/molecule_{cid}.csv.gz", DATA=DATA, cid=chunk_ids)
+    output: REPORT + "/molecule/molecular_features.svg"
+    log: REPORT + "/molecule/molecular_features.log"
+    shell: "fct_molecule_report " + DATA + "/molecule/data" + " {output} " + color + " " + prefix + " >{log} 2>&1"
+
 
 rule MOL:
     input:
         load_step = root_dir + "/data/" + prep_subdir + "/02_load/data/" + prefix + "_{cid}.csv.gz",
         latest_step = root_dir + "/data/" + prep_subdir + "/04_dedupl/data/" + prefix + "_{cid}_dedupl.csv.gz",
         commercial_ref = commercial_ref
-    output: WD + "/molecule/data/molecule_{cid}.csv.gz"
-    log: WD + "/molecule/log/molecule_{cid}.log"
+    output: DATA + "/molecule/data/molecule_{cid}.csv.gz"
+    log: DATA + "/molecule/log/molecule_{cid}.log"
     shell: "fct_molecule {input.load_step} {input.latest_step} {input.commercial_ref} {output}  >{log} 2>&1"

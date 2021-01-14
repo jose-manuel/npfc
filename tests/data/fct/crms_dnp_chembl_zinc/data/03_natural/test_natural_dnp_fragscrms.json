@@ -5,5 +5,6 @@
     "prefix": "dnp",
     "config_file": "fc/03_natural/dnp/test_natural_dnp_fragscrms.json",
     "frags_subdir": "frags_crms",
-    "commercial_ref" : "fc/02_commercial/zinc/data/prep/04_dedupl/zinc_refs.hdf"
+    "commercial_ref" : "fc/02_commercial/zinc/data/prep/04_dedupl/zinc_refs.hdf",
+    "color": "green"
 }

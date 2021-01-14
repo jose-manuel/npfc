@@ -38,7 +38,7 @@ def test_run():
     # define outputs
     WD = 'tests/tmp/fct/crms_dnp_chembl_zinc/data/02_commercial'
     cids = [f"{str(cid+1).zfill(3)}" for cid in range(2)]
-    output_files = [f"{WD}/molecule/data/molecule_{cid}.csv.gz" for cid in cids]
+    output_files = [f"{WD}/data/molecule/data/molecule_{cid}.csv.gz" for cid in cids]
     output_svg = f"{WD}/test_commercial_zinc_tasktree.svg"
     # run protocol
     command_smk = 'run_protocol_fct commercial -c fct/crms_dnp_chembl_zinc/data/02_commercial/test_commercial_zinc.json'

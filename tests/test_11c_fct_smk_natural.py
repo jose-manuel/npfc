@@ -38,11 +38,11 @@ def test_run():
     # define outputs
     WD = 'tests/tmp/fct/crms_dnp_chembl_zinc/data/03_natural'
     cids = [f"{str(cid+1).zfill(3)}" for cid in range(2)]
-    output_files = [f"{WD}/dataset/data/dataset.csv.gz"] + \
-                   [f"{WD}/fragment_fragment/data/fragment_fragment_{cid}.csv.gz" for cid in cids] + \
-                   [f"{WD}/molecule/data/molecule_{cid}.csv.gz" for cid in cids] + \
-                   [f"{WD}/molecule_dataset/data/molecule_dataset_{cid}.csv.gz" for cid in cids] + \
-                   [f"{WD}/molecule_molecule/data/molecule_molecule_{cid}.csv.gz" for cid in cids]
+    output_files = [f"{WD}/data/dataset/data/dataset.csv.gz"] + \
+                   [f"{WD}/data/fragment_fragment/data/fragment_fragment_{cid}.csv.gz" for cid in cids] + \
+                   [f"{WD}/data/molecule/data/molecule_{cid}.csv.gz" for cid in cids] + \
+                   [f"{WD}/data/molecule_dataset/data/molecule_dataset_{cid}.csv.gz" for cid in cids] + \
+                   [f"{WD}/data/molecule_molecule/data/molecule_molecule_{cid}.csv.gz" for cid in cids]
 
     output_svg = f"{WD}/test_natural_dnp_fragscrms_tasktree.svg"
     # run protocol

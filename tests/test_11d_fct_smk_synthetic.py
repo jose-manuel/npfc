@@ -38,21 +38,21 @@ def test_run():
 
     WD = 'tests/tmp/fct/crms_dnp_chembl_zinc/data/04_synthetic'
     cids = [f"{str(cid+1).zfill(3)}" for cid in range(2)]
-    output_files = [f"{WD}/assay/data/assay_{cid}.csv.gz" for cid in cids] + \
-                   [f"{WD}/assay_document/data/assay_document_{cid}.csv.gz" for cid in cids] + \
-                   [f"{WD}/assay_species/data/assay_species_{cid}.csv.gz" for cid in cids] + \
-                   [f"{WD}/dataset/data/dataset.csv.gz"] + \
-                   [f"{WD}/document/data/document_{cid}.csv.gz" for cid in cids] + \
-                   [f"{WD}/fragment_fragment/data/fragment_fragment_{cid}.csv.gz" for cid in cids] + \
-                   [f"{WD}/molecule/data/molecule_{cid}.csv.gz" for cid in cids] + \
-                   [f"{WD}/molecule_assay/data/molecule_assay_{cid}.csv.gz" for cid in cids] + \
-                   [f"{WD}/molecule_dataset/data/molecule_dataset_{cid}.csv.gz" for cid in cids] + \
-                   [f"{WD}/molecule_document/data/molecule_document_{cid}.csv.gz" for cid in cids] + \
-                   [f"{WD}/molecule_molecule/data/molecule_molecule_{cid}.csv.gz" for cid in cids] + \
-                   [f"{WD}/species/data/species_{cid}.csv.gz" for cid in cids] + \
-                   [f"{WD}/target/data/target_{cid}.csv.gz" for cid in cids] + \
-                   [f"{WD}/target_assay/data/target_assay_{cid}.csv.gz" for cid in cids] + \
-                   [f"{WD}/target_species/data/target_species_{cid}.csv.gz" for cid in cids]
+    output_files = [f"{WD}/data/assay/data/assay_{cid}.csv.gz" for cid in cids] + \
+                   [f"{WD}/data/assay_document/data/assay_document_{cid}.csv.gz" for cid in cids] + \
+                   [f"{WD}/data/assay_species/data/assay_species_{cid}.csv.gz" for cid in cids] + \
+                   [f"{WD}/data/dataset/data/dataset.csv.gz"] + \
+                   [f"{WD}/data/document/data/document_{cid}.csv.gz" for cid in cids] + \
+                   [f"{WD}/data/fragment_fragment/data/fragment_fragment_{cid}.csv.gz" for cid in cids] + \
+                   [f"{WD}/data/molecule/data/molecule_{cid}.csv.gz" for cid in cids] + \
+                   [f"{WD}/data/molecule_assay/data/molecule_assay_{cid}.csv.gz" for cid in cids] + \
+                   [f"{WD}/data/molecule_dataset/data/molecule_dataset_{cid}.csv.gz" for cid in cids] + \
+                   [f"{WD}/data/molecule_document/data/molecule_document_{cid}.csv.gz" for cid in cids] + \
+                   [f"{WD}/data/molecule_molecule/data/molecule_molecule_{cid}.csv.gz" for cid in cids] + \
+                   [f"{WD}/data/species/data/species_{cid}.csv.gz" for cid in cids] + \
+                   [f"{WD}/data/target/data/target_{cid}.csv.gz" for cid in cids] + \
+                   [f"{WD}/data/target_assay/data/target_assay_{cid}.csv.gz" for cid in cids] + \
+                   [f"{WD}/data/target_species/data/target_species_{cid}.csv.gz" for cid in cids]
 
     output_svg = f"{WD}/test_synthetic_chembl_natrefdnp_fragscrms_tasktree.svg"
     # run protocol
