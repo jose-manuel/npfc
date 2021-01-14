@@ -1,23 +1,24 @@
-2021-01-14 16:56:24,399 -- INFO -- RUNNING FCT_REPORT_MOLECULE
-2021-01-14 16:56:24,399 -- INFO -- LIBRARY VERSIONS:
-2021-01-14 16:56:24,399 -- INFO -- pandas                                  1.1.4
-2021-01-14 16:56:24,399 -- INFO -- npfc                                    0.7.6-9-g66ad263
-2021-01-14 16:56:24,400 -- INFO -- ARGUMENTS:
-2021-01-14 16:56:24,400 -- INFO -- INPUT_MOLECULE_DIR                      tests/tmp/fct/crms_dnp_chembl_zinc/data/01_fragments/molecule/data/
-2021-01-14 16:56:24,400 -- INFO -- OUTPUT_PLOT                             tests/tmp/fct/crms_dnp_chembl_zinc/data/01_fragments/test.svg
-2021-01-14 16:56:24,400 -- INFO -- DATASET                                 test
-2021-01-14 16:56:24,400 -- INFO -- OUTPUT_CSV                              tests/tmp/fct/crms_dnp_chembl_zinc/data/01_fragments/test.csv.gz
-2021-01-14 16:56:24,400 -- INFO -- COLOR                                   gray (#808080)
-2021-01-14 16:56:24,400 -- INFO -- MPLSTYLE                                REPORT (DEFAULT)
-2021-01-14 16:56:24,400 -- INFO -- LOG                                     INFO
-2021-01-14 16:56:24,400 -- INFO -- BEGIN
-2021-01-14 16:56:24,400 -- INFO -- LOADING 1 INPUT MOLECULE TABLES
-2021-01-14 16:56:24,408 -- INFO -- PLOTTING DATA
-2021-01-14 16:56:25,805 -- INFO -- SAVING OUTPUT
-2021-01-14 16:56:25,808 -- INFO -- SUMMARY
-2021-01-14 16:56:25,808 -- INFO -- COMPUTATIONAL TIME: CONFIGURING JOB                                             0:00:00.001657
-2021-01-14 16:56:25,808 -- INFO -- COMPUTATIONAL TIME: LOADING INPUTS                                              0:00:00.007941
-2021-01-14 16:56:25,808 -- INFO -- COMPUTATIONAL TIME: COMPUTING PLOTS                                             0:00:01.396700
-2021-01-14 16:56:25,808 -- INFO -- COMPUTATIONAL TIME: SAVING OUTPUT                                               0:00:00.002976
-2021-01-14 16:56:25,808 -- INFO -- COMPUTATIONAL TIME: TOTAL                                                       0:00:01.409274
-2021-01-14 16:56:25,808 -- INFO -- END
+2021-01-14 17:34:31,732 -- INFO -- RUNNING FCT_REPORT_MOLECULE
+2021-01-14 17:34:31,733 -- INFO -- LIBRARY VERSIONS:
+2021-01-14 17:34:31,733 -- INFO -- pandas                                  1.1.4
+2021-01-14 17:34:31,733 -- INFO -- npfc                                    0.7.6-10-gc8d6e2e
+2021-01-14 17:34:31,733 -- INFO -- ARGUMENTS:
+2021-01-14 17:34:31,733 -- INFO -- INPUT_MOLECULE_DIR                      tests/tmp/fct/crms_dnp_chembl_zinc/data/01_fragments/data/molecule/data/molecule.csv.gz
+2021-01-14 17:34:31,733 -- INFO -- NUMBER OF INPUT FILES                   1
+2021-01-14 17:34:31,733 -- INFO -- OUTPUT_PLOT                             tests/tmp/fct/crms_dnp_chembl_zinc/data/01_fragments/test.svg
+2021-01-14 17:34:31,733 -- INFO -- DATASET                                 test
+2021-01-14 17:34:31,733 -- INFO -- OUTPUT_CSV                              tests/tmp/fct/crms_dnp_chembl_zinc/data/01_fragments/test.csv.gz
+2021-01-14 17:34:31,733 -- INFO -- COLOR                                   gray (#808080)
+2021-01-14 17:34:31,733 -- INFO -- MPLSTYLE                                REPORT (DEFAULT)
+2021-01-14 17:34:31,733 -- INFO -- LOG                                     INFO
+2021-01-14 17:34:31,733 -- INFO -- BEGIN
+2021-01-14 17:34:31,733 -- INFO -- LOADING 1 INPUT MOLECULE TABLES
+2021-01-14 17:34:31,740 -- INFO -- PLOTTING DATA
+2021-01-14 17:34:33,059 -- INFO -- SAVING OUTPUT
+2021-01-14 17:34:33,061 -- INFO -- SUMMARY
+2021-01-14 17:34:33,061 -- INFO -- COMPUTATIONAL TIME: CONFIGURING JOB                                             0:00:00.001692
+2021-01-14 17:34:33,061 -- INFO -- COMPUTATIONAL TIME: LOADING INPUTS                                              0:00:00.007254
+2021-01-14 17:34:33,061 -- INFO -- COMPUTATIONAL TIME: COMPUTING PLOTS                                             0:00:01.318384
+2021-01-14 17:34:33,061 -- INFO -- COMPUTATIONAL TIME: SAVING OUTPUT                                               0:00:00.002357
+2021-01-14 17:34:33,061 -- INFO -- COMPUTATIONAL TIME: TOTAL                                                       0:00:01.329687
+2021-01-14 17:34:33,061 -- INFO -- END

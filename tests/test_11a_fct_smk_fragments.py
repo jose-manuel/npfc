@@ -36,11 +36,11 @@ def test_run():
     """Run the 'fragments' protocol applied to the cr dataset."""
 
     WD = 'tests/tmp/fct/crms_dnp_chembl_zinc/data/01_fragments'
-    output_files = [f"{WD}/dataset/data/dataset.csv.gz",
-                    f"{WD}/fragment/data/fragment.csv.gz",
-                    f"{WD}/molecule/data/molecule.csv.gz",
-                    f"{WD}/molecule_dataset/data/molecule_dataset.csv.gz",
-                    f"{WD}/molecule_molecule/data/molecule_molecule.csv.gz",
+    output_files = [f"{WD}/data/dataset/data/dataset.csv.gz",
+                    f"{WD}/data/fragment/data/fragment.csv.gz",
+                    f"{WD}/data/molecule/data/molecule.csv.gz",
+                    f"{WD}/data/molecule_dataset/data/molecule_dataset.csv.gz",
+                    f"{WD}/data/molecule_molecule/data/molecule_molecule.csv.gz",
                     ]
     output_svg = f"{WD}/test_fragments_crms_tasktree.svg"
     # run protocol

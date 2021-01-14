@@ -86,14 +86,16 @@ def main():
     It uses the installed npfc libary in your favorite env manager.
 
     Example:
-
+        >>> # with a single input file
+        >>> fct_report_molecule fct/molecule/molecule.csv.gz molecule_descr.svg green dnp
+        >>> # with a folder containing multiple files
         >>> fct_report_molecule fct/molecule molecule_descr.svg green dnp
 
     """
 
     # parameters CLI
     parser = argparse.ArgumentParser(description=description, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('input_molecule_dir', type=str, default=None, help="Input moelcule table directory.")
+    parser.add_argument('input_molecule_dir', type=str, default=None, help="Input molecule table directory.")
     parser.add_argument('output_plot', type=str, default=None, help="Output file (svg). A csv.gz file with the same basename is generated as well")
     parser.add_argument('color', type=str, default=None, help="Color of the bars. Predefined shades are available for gray, green, blue, red and orange.")
     parser.add_argument('dataset', type=str, default=None, help="Name of the dataset to write on the output plot.")
@@ -107,9 +109,19 @@ def main():
     pad = 40
 
     # parse arguments
-    utils.check_arg_input_dir(args.input_molecule_dir)
+
+    # input_files
+    path_input = Path(args.input_molecule_dir)
+    if path_input.is_dir():
+        input_files = sorted([str(x) for x in path_input.glob('molecule*.csv.gz')])
+    else:  # it is a single file
+        input_files = [args.input_molecule_dir]
+    for f in input_files:
+        utils.check_arg_input_file(f)
+    # output_plot
     utils.check_arg_output_plot(args.output_plot)
     output_csv = args.output_plot.replace('.svg', '.csv.gz')
+    # matplotlib style
     if args.mplstyle is None:
         file_mplstyle = resource_filename('npfc', 'data/report.mplstyle')
     else:
@@ -137,6 +149,7 @@ def main():
     # arguments
     logger.info("ARGUMENTS:")
     logger.info("INPUT_MOLECULE_DIR".ljust(pad) + f"{args.input_molecule_dir}")
+    logger.info("NUMBER OF INPUT FILES".ljust(pad) + f"{len(input_files)}")
     logger.info("OUTPUT_PLOT".ljust(pad) + f"{args.output_plot}")
     logger.info("DATASET".ljust(pad) + f"{args.dataset}")
     logger.info("OUTPUT_CSV".ljust(pad) + f"{output_csv}")
@@ -157,8 +170,7 @@ def main():
     d1 = datetime.now()
 
     # load inputs
-    chunks = sorted([str(x) for x in Path(args.input_molecule_dir).glob('*')])
-    logger.info(f"LOADING {len(chunks):,} INPUT MOLECULE TABLES")
+    logger.info(f"LOADING {len(input_files):,} INPUT MOLECULE TABLES")
     d = {'molecular_weight': 'Molecular Weight',
          'num_atoms_oxygen': 'Number of Oxygen Atoms',
          'num_atoms_nitrogen': 'Number of Nitrogen Atoms',
@@ -170,7 +182,7 @@ def main():
          }
     columns = list(d.keys())
 
-    df = pd.concat([load.file(x, decode=False) for x in chunks])[columns].rename(d, axis=1)
+    df = pd.concat([load.file(x, decode=False) for x in input_files])[columns].rename(d, axis=1)
     d2 = datetime.now()
 
     # run plotting
