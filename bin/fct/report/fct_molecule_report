@@ -5,34 +5,17 @@ Script report_molecule
 ==========================
 This script generates csv and svg files based on molecular descriptor values.
 """
-import warnings
-import logging
 import argparse
 import sys
-from shutil import rmtree
 from datetime import datetime
-import re
 from pathlib import Path
-from collections import OrderedDict
+from pkg_resources import resource_filename
 # data handling
-import numpy as np
-import json
 import pandas as pd
 from pandas import DataFrame
-import networkx as nx
 # data visualization
 from matplotlib import pyplot as plt
 import seaborn as sns
-# from pylab import savefig
-from adjustText import adjust_text
-# chemoinformatics
-import rdkit
-from rdkit import Chem
-from rdkit.Chem import Mol
-# docs
-from typing import List
-from typing import Tuple
-from rdkit import RDLogger
 # custom libraries
 import npfc
 from npfc import utils
@@ -43,36 +26,56 @@ from npfc import save
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 
-def plot_molecular_descriptors(df, output_plot, color):
-    # general style for plotting
-    fig_size = (24, 12)
-    sns.set(rc={'figure.figsize': fig_size})
-    sns.set_style('whitegrid', {'axes.edgecolor': '0.2'})
-    sns.set_context("paper", font_scale=2)
-    x_label = ''
-    y_label = 'Count'
-    title = ""
-    columns = list(df.columns)
+def plot_molecular_features(df, features, dataset_name, output_plot: str = None, color: str = 'gray', draw_mean_line: bool = True, file_mplstyle: str = None):
+    """Generate a multi-histogram plot describing the distribution of molecular features.
 
-    fig = plt.figure()
-    fig.subplots_adjust(hspace=0.4, wspace=0.5)
+    :param df: a DataFrame with features
+    :param features: a list of features to plot.
+    :dataset_name: a name to describe the dataset to plot (appears in the main title)
+    :output_plot: a SVG or PNG file where to store the plot
+    :color: the color to use for bars
+    :draw_mean_line: draw vertical dotted lines to indicate mean values of each feature
+    :return: a multi-histogram plot
+    """
+    # initialization
+    if file_mplstyle is None:
+        file_mplstyle = resource_filename('npfc', 'data/report.mplstyle')
+    plt.style.use(file_mplstyle)
+    num_features = len(features)
 
-    for i in range(1, 9):
-        plt.subplot(2, 4, i)
-        col = columns[i-1]
-        x_label = col
-        ax = sns.distplot(df[col], kde=False, label='', color=color, hist_kws=dict(alpha=1))
-        ax.set_title(title, fontsize=24, y=1.02)
-        ax.tick_params(labelsize=15)
-        ax.tick_params(axis='x', rotation=0)
-        ax.set_yticklabels(['{:,}'.format(int(x)) for x in ax.get_yticks()])
-        ax.set_xlabel(x_label, fontsize=20, labelpad=18)
-        ax.set_ylabel(y_label, fontsize=20, labelpad=18)
+    # determine how many rows the plot needs based on the number of features to plot:
+    # TODO
 
-    figure = ax.get_figure()
-    figure.savefig(output_plot, dpi=600)
-    plt.clf()
-    plt.close()
+    num_cols = 4
+    fig, axes = plt.subplots(nrows=2, ncols=num_cols, figsize=(24, 12))
+    axes = axes.ravel()
+
+    # add main title for figure
+    fig.suptitle(f"Molecular Feature Distribution in {dataset_name}")
+
+    # subplots
+    for i, ax in enumerate(axes):
+
+        if i < num_features:
+            sns.histplot(df[features[i]], kde=False, label='', color=color, ax=ax)
+            if draw_mean_line:
+                feature_mean = df[features[i]].mean()
+                ax.axvline(feature_mean, color='black', ls='--', zorder=2)  # dotted line for median
+
+            if not i % num_cols:
+                ax.set_ylabel('Count')
+            else:
+                ax.set_ylabel('')
+        else:
+            fig.delaxes(ax)  # remove empty plots from grid
+
+    # clean-up
+    fig.tight_layout(pad=4)
+
+    # export plot
+    fig.savefig(output_plot)
+
+    return fig
 
 
 def main():
@@ -84,7 +87,7 @@ def main():
 
     Example:
 
-        >>> fct_report_molecule fct/molecule molecule_descr.svg green
+        >>> fct_report_molecule fct/molecule molecule_descr.svg green dnp
 
     """
 
@@ -92,7 +95,9 @@ def main():
     parser = argparse.ArgumentParser(description=description, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('input_molecule_dir', type=str, default=None, help="Input moelcule table directory.")
     parser.add_argument('output_plot', type=str, default=None, help="Output file (svg). A csv.gz file with the same basename is generated as well")
-    parser.add_argument('color', type=str, default=None, help="Color of the bars.")
+    parser.add_argument('color', type=str, default=None, help="Color of the bars. Predefined shades are available for gray, green, blue, red and orange.")
+    parser.add_argument('dataset', type=str, default=None, help="Name of the dataset to write on the output plot.")
+    parser.add_argument('--mplstyle', type=str, default=None, help="Specify a matplotlib style file. By default the 'report' style from the npc/data subfolder is used.")
     parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
     args = parser.parse_args()
 
@@ -105,7 +110,13 @@ def main():
     utils.check_arg_input_dir(args.input_molecule_dir)
     utils.check_arg_output_plot(args.output_plot)
     output_csv = args.output_plot.replace('.svg', '.csv.gz')
+    if args.mplstyle is None:
+        file_mplstyle = resource_filename('npfc', 'data/report.mplstyle')
+    else:
+        file_mplstyle = args.mplstyle
+    utils.check_arg_config_file(file_mplstyle)
 
+    # palette
     d_colors = {'gray': '#808080',
                 'green': '#2CA02C',
                 'blue': '#378EBF',
@@ -125,10 +136,18 @@ def main():
     logger.info("npfc".ljust(pad) + f"{npfc.__version__}")
     # arguments
     logger.info("ARGUMENTS:")
-    logger.info("INPUT_MOECULEL_DIR".ljust(pad) + f"{args.input_molecule_dir}")
+    logger.info("INPUT_MOLECULE_DIR".ljust(pad) + f"{args.input_molecule_dir}")
     logger.info("OUTPUT_PLOT".ljust(pad) + f"{args.output_plot}")
+    logger.info("DATASET".ljust(pad) + f"{args.dataset}")
     logger.info("OUTPUT_CSV".ljust(pad) + f"{output_csv}")
-    logger.info("COLOR".ljust(pad) + f"{color}")
+    if args.color in d_colors.keys():
+        logger.info("COLOR".ljust(pad) + f"{args.color} ({color})")
+    else:
+        logger.info("COLOR".ljust(pad) + f"{color}")
+    if args.mplstyle is None:
+        logger.info("MPLSTYLE".ljust(pad) + 'REPORT (DEFAULT)')
+    else:
+        logger.info("MPLSTYLE".ljust(pad) + f"{args.mplstyle}")
     # log
     logger.info("LOG".ljust(pad) + f"{args.log}")
 
@@ -157,7 +176,8 @@ def main():
     # run plotting
     logger.info("PLOTTING DATA")
     # If the input df is empty, then the apply command below fails dramatically
-    plot_molecular_descriptors(df, args.output_plot, color)
+    features = list(d.values())
+    plot_molecular_features(df, features, args.dataset, args.output_plot, color, file_mplstyle)
     d3 = datetime.now()
 
     # save file

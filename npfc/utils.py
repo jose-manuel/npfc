@@ -32,7 +32,7 @@ EXTS_INPUT = [['.sdf'], ['.sdf', '.gz'],
               ['.pkl', '.gz'], ['.model', '.gz']  # model files for computing sa and np scores
               ]  # , ['.feather']]  # tests with feather work but not in production, dig into that later
 
-EXTS_CONFIG = [['.json']]
+EXTS_CONFIG = [['.json'], ['.mplstyle']]
 
 # types
 Number = Union[int, float]
