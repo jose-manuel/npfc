@@ -59,21 +59,22 @@ rule END:
         fragment = DATA + "/fragment/data/fragment.csv.gz",
         molecule = DATA + "/molecule/data/molecule.csv.gz",
         molecule_dataset = DATA + "/molecule_dataset/data/molecule_dataset.csv.gz",
-        molecule_molecule = DATA + "/molecule_molecule/data/molecule_molecule.csv.gz"
+        molecule_molecule = DATA + "/molecule_molecule/data/molecule_molecule.csv.gz",
+        report_molecule = REPORT + "/molecule/molecular_features.svg"
 
-# 
-# rule REPORT_MOL:
-#     input: DATA + "/molecule/data/molecule.csv.gz"
-#     output: REPORT + "/molecule/report/molecular_features.svg"
-#     log: REPORT + "/molecule/report/molecular_features.log"
-#     shell: "fct_molecule_report " + str(Path(WD).parent()) + ""
+
+rule REPORT_MOL:
+    input: DATA + "/molecule/data/molecule.csv.gz"
+    output: REPORT + "/molecule/molecular_features.svg"
+    log: REPORT + "/molecule/molecular_features.log"
+    shell: "fct_molecule_report {input} {output} gray " + prefix + " >{log} 2>&1"
 
 
 rule FRAG:
     input: root_dir + "/data/" + prep_subdir + "/05_depict/data/" + prefix + "_depict.csv.gz"
     output: DATA + "/fragment/data/fragment.csv.gz"
     log: DATA + "/fragment/log/fragment.log"
-    shell: "fct_fragment {input} {output}  >{log} 2>&1"
+    shell: "fct_fragment {input} {output} >{log} 2>&1"
 
 
 rule MOL_DATASET:
@@ -82,14 +83,14 @@ rule MOL_DATASET:
         dataset = DATA + "/dataset/data/dataset.csv.gz"
     output: DATA + "/molecule_dataset/data/molecule_dataset.csv.gz"
     log: DATA + "/molecule_dataset/log/molecule_dataset.log"
-    shell: "fct_molecule_dataset fragments {input.molecule} {input.dataset} {output}  >{log} 2>&1"
+    shell: "fct_molecule_dataset fragments {input.molecule} {input.dataset} {output} >{log} 2>&1"
 
 
 rule DATASET:
     input: config_file
     output: DATA + "/dataset/data/dataset.csv.gz"
     log: DATA + "/dataset/log/dataset.log"
-    shell: "fct_dataset fragments {input} {output}  >{log} 2>&1"
+    shell: "fct_dataset fragments {input} {output} >{log} 2>&1"
 
 
 rule MOL_MOL:
@@ -98,7 +99,7 @@ rule MOL_MOL:
         molecule = DATA + "/molecule/data/molecule.csv.gz"
     output: DATA + "/molecule_molecule/data/molecule_molecule.csv.gz"
     log: DATA + "/molecule_molecule/log/molecule_molecule.log"
-    shell: "fct_molecule_molecule {input.synonyms} {input.molecule} {output}  >{log} 2>&1"
+    shell: "fct_molecule_molecule {input.synonyms} {input.molecule} {output} >{log} 2>&1"
 
 
 rule MOL:
@@ -108,4 +109,4 @@ rule MOL:
         commercial_ref = commercial_ref
     output: DATA + "/molecule/data/molecule.csv.gz"
     log: DATA + "/molecule/log/molecule.log"
-    shell: "fct_molecule {input.load_step} {input.latest_step} {input.commercial_ref} {output}  >{log} 2>&1"
+    shell: "fct_molecule {input.load_step} {input.latest_step} {input.commercial_ref} {output} >{log} 2>&1"
