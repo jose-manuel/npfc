@@ -1,12 +1,21 @@
-2021-01-12 21:34:00,541 -- INFO -- RUNNING NPFC FCT PROTOCOL
-2021-01-12 21:34:00,541 -- INFO --             LIBRARY VERSIONS            
-2021-01-12 21:34:00,541 -- INFO -- rdkit                                   2020.09.1
-2021-01-12 21:34:00,541 -- INFO -- pandas                                  1.1.4
-2021-01-12 21:34:00,541 -- INFO -- npfc                                    0.7.6-6-g287939b
-2021-01-12 21:34:00,542 -- INFO --                ARGUMENTS                
-2021-01-12 21:34:00,542 -- INFO -- PROTOCOL                                fragments
-2021-01-12 21:34:00,542 -- INFO -- CONFIG                                  fct/01_fragments/crms/test_fragments_crms.json
-2021-01-12 21:34:00,542 -- INFO -- ENV                                     local
-2021-01-12 21:34:00,542 -- INFO -- JOBS                                    6
-2021-01-12 21:34:00,542 -- INFO -- BEGIN
-2021-01-12 21:34:00,542 -- INFO -- PARSING SPECIFIED CONFIG FILE
+2021-01-14 09:49:47,316 -- INFO -- RUNNING FCT_REPORT_MOLECULE
+2021-01-14 09:49:47,317 -- INFO -- LIBRARY VERSIONS:
+2021-01-14 09:49:47,317 -- INFO -- pandas                                  1.1.4
+2021-01-14 09:49:47,317 -- INFO -- npfc                                    0.7.6-7-gbf6e832
+2021-01-14 09:49:47,317 -- INFO -- ARGUMENTS:
+2021-01-14 09:49:47,317 -- INFO -- INPUT_MOECULEL_DIR                      tests/tmp/fct/crms_dnp_chembl_zinc/data/01_fragments/molecule/data/
+2021-01-14 09:49:47,317 -- INFO -- OUTPUT_PLOT                             tests/tmp/test.svg
+2021-01-14 09:49:47,317 -- INFO -- OUTPUT_CSV                              tests/tmp/test.csv.gz
+2021-01-14 09:49:47,317 -- INFO -- COLOR                                   #808080
+2021-01-14 09:49:47,317 -- INFO -- LOG                                     INFO
+2021-01-14 09:49:47,317 -- INFO -- BEGIN
+2021-01-14 09:49:47,317 -- INFO -- LOADING 1 INPUT MOLECULE TABLES
+2021-01-14 09:49:47,325 -- INFO -- PLOTTING DATA
+2021-01-14 09:49:48,080 -- INFO -- SAVING OUTPUT
+2021-01-14 09:49:48,082 -- INFO -- SUMMARY
+2021-01-14 09:49:48,082 -- INFO -- COMPUTATIONAL TIME: CONFIGURING JOB                                             0:00:00.001495
+2021-01-14 09:49:48,082 -- INFO -- COMPUTATIONAL TIME: LOADING INPUTS                                              0:00:00.007733
+2021-01-14 09:49:48,082 -- INFO -- COMPUTATIONAL TIME: COMPUTING PLOTS                                             0:00:00.754784
+2021-01-14 09:49:48,082 -- INFO -- COMPUTATIONAL TIME: SAVING OUTPUT                                               0:00:00.002410
+2021-01-14 09:49:48,082 -- INFO -- COMPUTATIONAL TIME: TOTAL                                                       0:00:00.766422
+2021-01-14 09:49:48,082 -- INFO -- END

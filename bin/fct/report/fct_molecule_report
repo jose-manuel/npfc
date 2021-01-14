@@ -141,10 +141,10 @@ def main():
     chunks = sorted([str(x) for x in Path(args.input_molecule_dir).glob('*')])
     logger.info(f"LOADING {len(chunks):,} INPUT MOLECULE TABLES")
     d = {'molecular_weight': 'Molecular Weight',
-         'num_atom_oxygen': 'Number of Oxygen Atoms',
-         'num_atom_nitrogen': 'Number of Nitrogen Atoms',
-         'num_ring': 'Number of Rings',
-         'num_drug_like_violations': 'Number of Drug-like Violations',
+         'num_atoms_oxygen': 'Number of Oxygen Atoms',
+         'num_atoms_nitrogen': 'Number of Nitrogen Atoms',
+         'num_rings': 'Number of Rings',
+         'num_violations_lipinski': "Number of Violations of Lipinski's rule",
          'np_score': 'NP-Likeness Score',
          'sa_score': 'Synthetical Accessibility Score',
          'commercial_num_refs': 'Number of Commercial Ref.',

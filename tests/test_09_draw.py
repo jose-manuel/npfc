@@ -35,7 +35,7 @@ warnings.simplefilter(action='ignore', category=pd.errors.PerformanceWarning)
 
 @pytest.fixture
 def ref_file_mol():
-    return "npfc/data/test_06_draw_highlight_mol.svg"
+    return "tests/data/test_06_draw_highlight_mol.svg"
 
 
 @pytest.fixture
