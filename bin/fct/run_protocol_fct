@@ -181,7 +181,7 @@ def main():
             smk_command += f"{k}='{v}' "
     smk_command = smk_command[:-1]
 
-    logging.debug(f"SMK COMMAND:\n{smk_command}\n")
+    logger.debug(f"SMK COMMAND:\n{smk_command}\n")
 
     # draw the protocol task tree
     WD = config['WD']
