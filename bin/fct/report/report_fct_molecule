@@ -14,6 +14,7 @@ from pkg_resources import resource_filename
 import pandas as pd
 from pandas import DataFrame
 # data visualization
+import matplotlib
 from matplotlib import pyplot as plt
 import seaborn as sns
 # custom libraries
@@ -21,12 +22,13 @@ import npfc
 from npfc import utils
 from npfc import load
 from npfc import save
+from npfc.draw import DEFAULT_PALETTE
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 
-def plot_molecular_features(df, features, dataset_name, output_plot: str = None, color: str = 'gray', draw_mean_line: bool = True, file_mplstyle: str = None):
+def plot_molecular_features(df: DataFrame, features: list, dataset_name: str, output_plot: str = None, color: str = 'gray', draw_mean_line: bool = True, file_mplstyle: str = None):
     """Generate a multi-histogram plot describing the distribution of molecular features.
 
     :param df: a DataFrame with features
@@ -128,15 +130,11 @@ def main():
         file_mplstyle = args.mplstyle
     utils.check_arg_config_file(file_mplstyle)
 
-    # palette
-    d_colors = {'gray': '#808080',
-                'green': '#2CA02C',
-                'blue': '#378EBF',
-                'red': '#EB5763',
-                'orange': '#EBC81A',
-                }
+    # determine color
+    color_identified = False
     try:
-        color = d_colors[args.color]
+        color = matplotlib.colors.to_hex(DEFAULT_PALETTE[args.color])
+        color_identified = True
     except KeyError:
         color = args.color
 
@@ -153,7 +151,7 @@ def main():
     logger.info("OUTPUT_PLOT".ljust(pad) + f"{args.output_plot}")
     logger.info("DATASET".ljust(pad) + f"{args.dataset}")
     logger.info("OUTPUT_CSV".ljust(pad) + f"{output_csv}")
-    if args.color in d_colors.keys():
+    if color_identified:
         logger.info("COLOR".ljust(pad) + f"{args.color} ({color})")
     else:
         logger.info("COLOR".ljust(pad) + f"{color}")
