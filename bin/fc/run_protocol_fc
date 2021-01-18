@@ -267,7 +267,7 @@ def main():
             smk_command += f"{k}='{v}' "
     smk_command = smk_command[:-1]
 
-    logging.debug(f"SMK COMMAND:\n{smk_command}\n")
+    logger.info(f"SMK COMMAND:\n{smk_command}\n")
 
     # draw the protocol task tree
     WD = config['WD']
@@ -302,3 +302,21 @@ def main():
 if __name__ == '__main__':
     main()
     sys.exit(0)
+
+
+    # wildcards in jobnames
+    # snakemake -k -s /home/gally/Software/anaconda3/envs/npfc3/lib/python3.8/site-packages/npfc/data/fct/fct_commercial.smk
+    # -j 100 --cluster-config /home/gally/Software/anaconda3/envs/npfc3/lib/python3.8/site-packages/npfc/data/cluster_clem.json
+    # --cluster "sbatch -A {cluster.account} -p {cluster.partition} -n {cluster.n}  -t {cluster.time} --oversubscribe"
+    # --config root_dir='fc/02_commercial/zinc'
+    # prep_subdir='prep' prefix='zinc'
+    # WD='fct/crms_dnp_chembl_zinc/data/02_commercial'
+    # config_file='fc/02_commercial/zinc/test_commerical_zinc.json'
+    # commercial_ref='fc/02_commercial/zinc/data/prep/04_dedupl/zinc_refs.hdf'
+    # color='orange'
+    # num_chunks='2'
+    # --forceall
+    # --jobname "c_{rulename}_{wildcards.cid}.{jobid}"
+
+    # mail
+    # echo "test" | mail -s "awesome subject" josemanuel.gally@mpi-dortmund.mpg.de

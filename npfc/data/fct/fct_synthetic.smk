@@ -82,7 +82,7 @@ rule REPORT_MOL:
     input: expand("{DATA}/molecule/data/molecule_{cid}.csv.gz", DATA=DATA, cid=chunk_ids)
     output: REPORT + "/molecule/molecular_features.svg"
     log: REPORT + "/molecule/molecular_features.log"
-    shell: "fct_molecule_report " + DATA + "/molecule/data" + " {output} " + color + " " + prefix + " >{log} 2>&1"
+    shell: "report_fct_molecule " + DATA + "/molecule/data" + " {output} " + color + " " + prefix + " >{log} 2>&1"
 
 
 rule SPECIES:
