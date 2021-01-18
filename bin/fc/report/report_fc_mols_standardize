@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 
 """
-Script report_molecule
-==========================
-This script generates csv and svg files based on molecular descriptor values.
+Script report_fc_mols_standardize
+==================================
+This script generates a plot and its corresponding data as csv to describe the
+step of standardizating molecules.
 """
 import argparse
 import sys
@@ -14,6 +15,7 @@ from pkg_resources import resource_filename
 import pandas as pd
 from pandas import DataFrame
 # data visualization
+import matplotlib
 from matplotlib import pyplot as plt
 import seaborn as sns
 # custom libraries
@@ -21,6 +23,7 @@ import npfc
 from npfc import utils
 from npfc import load
 from npfc import save
+from npfc.draw import DEFAULT_PALETTE
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
@@ -82,14 +85,14 @@ def main():
 
     # init
     d0 = datetime.now()
-    description = """Script for generating the molecular descriptors plots.
+    description = """Script for generating the plots describing the molecule standardization.
     It uses the installed npfc libary in your favorite env manager.
 
     Example:
         >>> # with a single input file
-        >>> fct_report_molecule fct/molecule/molecule.csv.gz molecule_descr.svg green dnp
+        >>> report_fc_mols_standardize fct/molecule/molecule.csv.gz molecule_descr.svg green dnp
         >>> # with a folder containing multiple files
-        >>> fct_report_molecule fct/molecule molecule_descr.svg green dnp
+        >>> report_fc_mols_standardize fct/molecule molecule_descr.svg green dnp
 
     """
 
@@ -128,15 +131,11 @@ def main():
         file_mplstyle = args.mplstyle
     utils.check_arg_config_file(file_mplstyle)
 
-    # palette
-    d_colors = {'gray': '#808080',
-                'green': '#2CA02C',
-                'blue': '#378EBF',
-                'red': '#EB5763',
-                'orange': '#EBC81A',
-                }
+    # determine color
+    color_identified = False
     try:
-        color = d_colors[args.color]
+        color = matplotlib.colors.to_hex(DEFAULT_PALETTE[args.color])
+        color_identified = True
     except KeyError:
         color = args.color
 
@@ -153,7 +152,7 @@ def main():
     logger.info("OUTPUT_PLOT".ljust(pad) + f"{args.output_plot}")
     logger.info("DATASET".ljust(pad) + f"{args.dataset}")
     logger.info("OUTPUT_CSV".ljust(pad) + f"{output_csv}")
-    if args.color in d_colors.keys():
+    if color_identified:
         logger.info("COLOR".ljust(pad) + f"{args.color} ({color})")
     else:
         logger.info("COLOR".ljust(pad) + f"{color}")
