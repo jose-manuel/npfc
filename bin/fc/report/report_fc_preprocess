@@ -1,0 +1,192 @@
+#!/usr/bin/env python
+
+"""
+Script report_fc_preprocess
+==================================
+This script generates a plot and its corresponding data as csv to describe the
+step of preprocessing molecules:
+load, standardize, deduplicate, depict
+"""
+import argparse
+import re
+import sys
+from datetime import datetime
+from pathlib import Path
+from pkg_resources import resource_filename
+# data handling
+import pandas as pd
+from pandas import DataFrame
+# data visualization
+import matplotlib
+from matplotlib import pyplot as plt
+import seaborn as sns
+# docs
+from typing import List
+# custom libraries
+import npfc
+from npfc import utils
+from npfc import load
+from npfc import save
+from npfc.draw import DEFAULT_PALETTE
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
+# parse load
+# parse std
+# parse filtered
+# parse error
+# parse dedupl
+
+
+def _get_chunk(path_wd, pattern):
+    """Get the wanted chunk from the given Path object using a pattern.
+    """
+    files = [str(x) for x in path_wd.glob(pattern)]
+    if len(files) != 1:
+        raise ValueError("ERROR! AMBIGUOUS INPUT FILE LOAD: %s", input_file_load)
+    return files[0]
+
+
+def parse_load_log(input_file: str) -> DataFrame:
+    """Parse a log file from the load step into a DataFrame.
+
+    :param input_file: the input file parse
+    :return: a DataFrame summarizing the success of the step
+    """
+    df = pd.read_csv(input_file, sep="@", header=None)
+    records = df[df[0].str.contains("FAILURE")].iloc[0][0].split()
+    num_errors = int(records[9])
+    num_passed = int(df[df[0].str.contains("SAVED")].iloc[0][0].split()[6])
+
+    return DataFrame({'Step': 'load', 'Category': ['loaded', 'cannot_load'], 'Count': [num_passed, num_errors]})
+
+
+def parse_std_data(input_file: str) -> DataFrame:
+    """Parse a data file from the standardize step into a DataFrame.
+
+    :param input_file: the input file parse
+    :return: a DataFrame summarizing the success of the step
+    """
+    # iterate over the log files to count status
+    df = load.file(input_file, decode=True).groupby("task").count()[['status']].rename({'status': 'Count'}, axis=1)
+
+    # gather data
+    num_passed = sum(df)
+    return pd.DataFrame({'Step': 'std', "Category": ['passed'], 'Count': [num_passed]})
+
+
+
+def main():
+
+    # init
+    d0 = datetime.now()
+    description = """Script for generating the plots describing the molecule standardization.
+    It uses the installed npfc libary in your favorite env manager.
+
+    Example:
+        >>> # with a single input file
+        >>> report_fc_mols_standardize fct/molecule/molecule.csv.gz molecule_descr.svg green dnp
+        >>> # with a folder containing multiple files
+        >>> report_fc_mols_standardize fct/molecule molecule_descr.svg green dnp
+
+    """
+
+    # parameters CLI
+    parser = argparse.ArgumentParser(description=description, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument('input_preprocess_dir', type=str, default=None, help="Input directory where preprocess output subdirs are stored.")
+    parser.add_argument('prefix', type=str, default=None, help="The id of the chunk to investigate (i.e. dnp_001, crms, etc.)")
+    parser.add_argument('output_plot_dir', type=str, default=None, help="Output dir where to store output plot files (svg). For each plot, a csv.gz file with the same basename is generated as well")
+    parser.add_argument('color', type=str, default=None, help="Color of the bars. Predefined shades are available for gray, green, blue, red and orange.")
+    parser.add_argument('dataset', type=str, default=None, help="Name of the dataset to write on the output plot.")
+    parser.add_argument('--mplstyle', type=str, default=None, help="Specify a matplotlib style file. By default the 'report' style from the npc/data subfolder is used.")
+    parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
+    args = parser.parse_args()
+
+    # logging
+    logger = utils._configure_logger(args.log)
+    logger.info("RUNNING FCT_REPORT_MOLECULE")
+    pad = 40
+
+    # parse arguments
+
+    # input_files
+    utils.check_arg_input_dir(args.input_preprocess_dir)
+    path_wd = Path(args.input_preprocess_dir)
+
+    pattern_load = f"*load/log/{args.prefix}*"
+    pattern_std = f"*std/data/{args.prefix}_std*"
+    pattern_filtered = f"*std/log/{args.prefix}_filtered*"
+    pattern_error = f"*std/log/{args.prefix}_error*"
+    # pattern_dedupl = f"*dedupl/log/{args.prefix}_dedupl*"
+
+    input_load = _get_chunk(path_wd, pattern_load)
+    df_load = parse_load_log(input_load)
+
+    print(df_load)
+
+    sys.exit(0)
+
+    # output_plot
+    utils.check_arg_output_plot(args.output_plot)
+    output_csv = args.output_plot.replace('.svg', '.csv.gz')
+    # matplotlib style
+    if args.mplstyle is None:
+        file_mplstyle = resource_filename('npfc', 'data/report.mplstyle')
+    else:
+        file_mplstyle = args.mplstyle
+    utils.check_arg_config_file(file_mplstyle)
+
+    # determine color
+    color_identified = False
+    try:
+        color = matplotlib.colors.to_hex(DEFAULT_PALETTE[args.color])
+        color_identified = True
+    except KeyError:
+        color = args.color
+
+    # display infos
+
+    # versions
+    logger.info("LIBRARY VERSIONS:")
+    logger.info("pandas".ljust(pad) + f"{pd.__version__}")
+    logger.info("npfc".ljust(pad) + f"{npfc.__version__}")
+    # arguments
+    logger.info("ARGUMENTS:")
+    logger.info("INPUT_MOLECULE_DIR".ljust(pad) + f"{args.input_preprocess_dir}")
+    logger.info("NUMBER OF INPUT FILES".ljust(pad) + f"{len(input_files)}")
+    logger.info("OUTPUT_PLOT".ljust(pad) + f"{args.output_plot}")
+    logger.info("DATASET".ljust(pad) + f"{args.dataset}")
+    logger.info("OUTPUT_CSV".ljust(pad) + f"{output_csv}")
+    if color_identified:
+        logger.info("COLOR".ljust(pad) + f"{args.color} ({color})")
+    else:
+        logger.info("COLOR".ljust(pad) + f"{color}")
+    if args.mplstyle is None:
+        logger.info("MPLSTYLE".ljust(pad) + 'REPORT (DEFAULT)')
+    else:
+        logger.info("MPLSTYLE".ljust(pad) + f"{args.mplstyle}")
+    # log
+    logger.info("LOG".ljust(pad) + f"{args.log}")
+
+    # begin
+
+    logger.info("BEGIN")
+    d1 = datetime.now()
+
+
+
+    # end
+
+    logger.info("SUMMARY")
+    logger.info("COMPUTATIONAL TIME: CONFIGURING JOB".ljust(pad * 2) + f"{d1-d0}")
+
+    sys.exit(0)
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ MAIN ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
+if __name__ == '__main__':
+    main()
+    sys.exit(0)

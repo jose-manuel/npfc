@@ -70,6 +70,9 @@ DEFAULT_PALETTE['purple'] = (0.8392, 0.6275, 0.7686)
 DEFAULT_PALETTE['yellow'] = (1.0, 0.9294, 0.0)
 DEFAULT_PALETTE['teal'] = (0.5725, 0.9608, 0.9882)
 DEFAULT_PALETTE['gray'] = (0.7294, 0.7294, 0.7294)
+
+
+
 #
 #
 #
