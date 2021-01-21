@@ -1,1 +1,21 @@
-2021-01-19 13:54:52,608 -- INFO -- RUNNING FCT_REPORT_MOLECULE
+2021-01-19 17:28:58,905 -- INFO -- RUNNING MERGE_PREPROCESS
+2021-01-19 17:28:58,906 -- INFO -- LIBRARY VERSIONS:
+2021-01-19 17:28:58,906 -- INFO -- pandas                                  1.1.4
+2021-01-19 17:28:58,906 -- INFO -- npfc                                    0.7.6-18-g46574e4
+2021-01-19 17:28:58,906 -- INFO -- ARGUMENTS:
+2021-01-19 17:28:58,906 -- INFO -- INPUT_PROCESS_DIR                       tests/tmp/fc/04_synthetic/chembl/data/prep/
+2021-01-19 17:28:58,906 -- INFO -- PREFIX                                  chembl_001
+2021-01-19 17:28:58,906 -- INFO -- OUTPUT_CSV                              tests/tmp/test.csv
+2021-01-19 17:28:58,906 -- INFO -- LOG                                     INFO
+2021-01-19 17:28:58,906 -- INFO -- BEGIN
+2021-01-19 17:28:58,933 -- INFO -- SUMMARY
+2021-01-19 17:28:58,933 -- INFO -- COMPUTATIONAL TIME: CONFIGURING JOB                                             0:00:00.002828
+2021-01-19 17:28:58,933 -- INFO -- COMPUTATIONAL TIME: PARSING LOAD                                                0:00:00.003795
+2021-01-19 17:28:58,933 -- INFO -- COMPUTATIONAL TIME: PARSING STD                                                 0:00:00.003890
+2021-01-19 17:28:58,933 -- INFO -- COMPUTATIONAL TIME: PARSING FILTERED                                            0:00:00.007658
+2021-01-19 17:28:58,934 -- INFO -- COMPUTATIONAL TIME: PARSING ERROR                                               0:00:00.005646
+2021-01-19 17:28:58,934 -- INFO -- COMPUTATIONAL TIME: MERGE DATA                                                  0:00:00.002230
+2021-01-19 17:28:58,934 -- INFO -- COMPUTATIONAL TIME: PARSING DEDUPL                                              0:00:00.000979
+2021-01-19 17:28:58,934 -- INFO -- COMPUTATIONAL TIME: SAVING RESULTS                                              0:00:00.001721
+2021-01-19 17:28:58,934 -- INFO -- COMPUTATIONAL TIME: TOTAL                                                       0:00:00.028747
+2021-01-19 17:28:58,934 -- INFO -- END

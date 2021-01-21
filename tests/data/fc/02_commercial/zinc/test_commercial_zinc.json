@@ -2,7 +2,7 @@
                     "prefix": "zinc",
                     "molid": "_Name",
                     "WD": "fc/02_commercial/zinc/",
-                    "input_file": "fc/02_commercial/zinc/data/00_raw/data/zinc.sdf.gz",
+                    "input_file": "fc/02_commercial/zinc/data/00_raw/data/zinc_test.sdf.gz",
                     "chunksize": 10,
                     "protocol_std" : "fc/02_commercial/zinc/test_commercial_zinc_std.json"
 }

@@ -27,17 +27,9 @@ import npfc
 from npfc import utils
 from npfc import load
 from npfc import save
-from npfc.draw import DEFAULT_PALETTE
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
-
-
-# parse load
-# parse std
-# parse filtered
-# parse error
-# parse dedupl
 
 
 def _get_chunk(path_wd, pattern):
@@ -59,7 +51,6 @@ def parse_load_log(input_file: str) -> DataFrame:
     records = df[df[0].str.contains("FAILURE")].iloc[0][0].split()
     num_errors = int(records[9])
     num_passed = int(df[df[0].str.contains("SAVED")].iloc[0][0].split()[6])
-
     return DataFrame({'Step': 'load', 'Category': ['loaded', 'cannot_load'], 'Count': [num_passed, num_errors]})
 
 
@@ -78,10 +69,6 @@ def _parse_std_filtered_error(input_file: str):
     df = load.file(input_file, decode=False).groupby("task").count()[['status']].reset_index().rename({'status': 'Count', 'task': 'Category'}, axis=1)
     df['Step'] = 'std'
     df = df[['Step', 'Category', 'Count']]
-
-    #if len(df) == 0:
-    #    df = pd.DataFrame([], columns=["Step", "Count", "Category"])
-
     return df
 
 def parse_std_filtered(input_file: str) -> DataFrame:
@@ -93,16 +80,13 @@ def parse_std_filtered(input_file: str) -> DataFrame:
     return _parse_std_filtered_error(input_file)
 
 
-
 def parse_std_error(input_file: str) -> DataFrame:
     """Parse a error data file from the standardize step into a DataFrame.
 
     :param input_file: the input file parse
     :return: a DataFrame summarizing the success of the step
     """
-
     return _parse_std_filtered_error(input_file)
-
 
 
 def parse_dedupl_log(input_file: str):
@@ -114,7 +98,6 @@ def parse_dedupl_log(input_file: str):
     df = pd.read_csv(input_file, sep="@", header=None)  # char not found in the log file so we can extract all lines as one column
     num_passed, num_total = [int(x) for x in df[df[0].str.contains("REMAINING MOLECULES")].iloc[0][0].split("MOLECULES:")[1].split("/")]
     num_filtered = num_total - num_passed
-
     return DataFrame({'Step': 'dedupl', 'Category': ['filtered', 'kept'], 'Count': [num_filtered, num_passed]})
 
 
@@ -137,16 +120,13 @@ def main():
     parser = argparse.ArgumentParser(description=description, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('input_preprocess_dir', type=str, default=None, help="Input directory where preprocess output subdirs are stored.")
     parser.add_argument('prefix', type=str, default=None, help="The id of the chunk to investigate (i.e. dnp_001, crms, etc.)")
-    parser.add_argument('output_plot_dir', type=str, default=None, help="Output dir where to store output plot files (svg). For each plot, a csv.gz file with the same basename is generated as well")
-    parser.add_argument('color', type=str, default=None, help="Color of the bars. Predefined shades are available for gray, green, blue, red and orange.")
-    parser.add_argument('dataset', type=str, default=None, help="Name of the dataset to write on the output plot.")
-    parser.add_argument('--mplstyle', type=str, default=None, help="Specify a matplotlib style file. By default the 'report' style from the npc/data subfolder is used.")
+    parser.add_argument('output_csv', type=str, default=None, help="Output file with all results from preprocess step.")
     parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
     args = parser.parse_args()
 
     # logging
     logger = utils._configure_logger(args.log)
-    logger.info("RUNNING FCT_REPORT_MOLECULE")
+    logger.info("RUNNING MERGE_PREPROCESS")
     pad = 40
 
     # parse arguments
@@ -161,42 +141,8 @@ def main():
     pattern_error = f"*std/log/{args.prefix}_error*"
     pattern_dedupl = f"*dedupl/log/{args.prefix}_dedupl*"
 
-    input_load = _get_chunk(path_wd, pattern_load)
-    input_std = _get_chunk(path_wd, pattern_std)
-    input_filtered = _get_chunk(path_wd, pattern_filtered)
-    input_error = _get_chunk(path_wd, pattern_error)
-    input_dedupl = _get_chunk(path_wd, pattern_dedupl)
-
-    df_load = parse_load_log(input_load)
-    df_std = parse_std_data(input_std)
-    df_filtered = parse_std_filtered(input_filtered)
-    df_error = parse_std_filtered(input_error)
-    df_dedupl = parse_dedupl_log(input_dedupl)
-
-
-    df_preprocess = pd.concat([df_load, df_std, df_filtered, df_error, df_dedupl])
-
-
-
-    sys.exit(0)
-
-    # output_plot
-    utils.check_arg_output_plot(args.output_plot)
-    output_csv = args.output_plot.replace('.svg', '.csv.gz')
-    # matplotlib style
-    if args.mplstyle is None:
-        file_mplstyle = resource_filename('npfc', 'data/report.mplstyle')
-    else:
-        file_mplstyle = args.mplstyle
-    utils.check_arg_config_file(file_mplstyle)
-
-    # determine color
-    color_identified = False
-    try:
-        color = matplotlib.colors.to_hex(DEFAULT_PALETTE[args.color])
-        color_identified = True
-    except KeyError:
-        color = args.color
+    # output_csv
+    utils.check_arg_output_file(args.output_csv)
 
     # display infos
 
@@ -206,34 +152,59 @@ def main():
     logger.info("npfc".ljust(pad) + f"{npfc.__version__}")
     # arguments
     logger.info("ARGUMENTS:")
-    logger.info("INPUT_MOLECULE_DIR".ljust(pad) + f"{args.input_preprocess_dir}")
-    logger.info("NUMBER OF INPUT FILES".ljust(pad) + f"{len(input_files)}")
-    logger.info("OUTPUT_PLOT".ljust(pad) + f"{args.output_plot}")
-    logger.info("DATASET".ljust(pad) + f"{args.dataset}")
-    logger.info("OUTPUT_CSV".ljust(pad) + f"{output_csv}")
-    if color_identified:
-        logger.info("COLOR".ljust(pad) + f"{args.color} ({color})")
-    else:
-        logger.info("COLOR".ljust(pad) + f"{color}")
-    if args.mplstyle is None:
-        logger.info("MPLSTYLE".ljust(pad) + 'REPORT (DEFAULT)')
-    else:
-        logger.info("MPLSTYLE".ljust(pad) + f"{args.mplstyle}")
+    logger.info("INPUT_PROCESS_DIR".ljust(pad) + f"{args.input_preprocess_dir}")
+    logger.info("PREFIX".ljust(pad) + f"{args.prefix}")
+    logger.info("OUTPUT_CSV".ljust(pad) + f"{args.output_csv}")
     # log
     logger.info("LOG".ljust(pad) + f"{args.log}")
 
     # begin
 
     logger.info("BEGIN")
+
+    # define inputs
+    input_load = _get_chunk(path_wd, pattern_load)
+    input_std = _get_chunk(path_wd, pattern_std)
+    input_filtered = _get_chunk(path_wd, pattern_filtered)
+    input_error = _get_chunk(path_wd, pattern_error)
+    input_dedupl = _get_chunk(path_wd, pattern_dedupl)
     d1 = datetime.now()
 
+    # load
+    df_load = parse_load_log(input_load)
+    d2 = datetime.now()
+    # std
+    df_std = parse_std_data(input_std)
+    d3 = datetime.now()
+    # filtered
+    df_filtered = parse_std_filtered(input_filtered)
+    d4 = datetime.now()
+    # error
+    df_error = parse_std_filtered(input_error)
+    d5 = datetime.now()
+    # dedupl
+    df_dedupl = parse_dedupl_log(input_dedupl)
+    d6 = datetime.now()
+    # merge data
+    df_preprocess = pd.concat([df_load, df_std, df_filtered, df_error, df_dedupl])
+    d7 = datetime.now()
 
+    # export data
+    save.file(df_preprocess, args.output_csv)
+    d8 = datetime.now()
 
     # end
-
     logger.info("SUMMARY")
     logger.info("COMPUTATIONAL TIME: CONFIGURING JOB".ljust(pad * 2) + f"{d1-d0}")
-
+    logger.info("COMPUTATIONAL TIME: PARSING LOAD".ljust(pad * 2) + f"{d2-d1}")
+    logger.info("COMPUTATIONAL TIME: PARSING STD".ljust(pad * 2) + f"{d3-d2}")
+    logger.info("COMPUTATIONAL TIME: PARSING FILTERED".ljust(pad * 2) + f"{d4-d3}")
+    logger.info("COMPUTATIONAL TIME: PARSING ERROR".ljust(pad * 2) + f"{d5-d4}")
+    logger.info("COMPUTATIONAL TIME: MERGE DATA".ljust(pad * 2) + f"{d6-d5}")
+    logger.info("COMPUTATIONAL TIME: PARSING DEDUPL".ljust(pad * 2) + f"{d7-d6}")
+    logger.info("COMPUTATIONAL TIME: SAVING RESULTS".ljust(pad * 2) + f"{d8-d7}")
+    logger.info("COMPUTATIONAL TIME: TOTAL".ljust(pad * 2) + f"{d8-d0}")
+    logger.info("END")
     sys.exit(0)
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ MAIN ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
