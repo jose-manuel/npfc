@@ -80,9 +80,9 @@ def main():
 
     # load inputs
     logger.info("LOADING INPUT FILES")
-    df_target_raw = load.file(args.input_target_assay_table)[['target_id']]
+    df_target_raw = load.file(args.input_target_table)
     logger.info(f"LOADED {len(df_target_raw)} TARGET NODES")
-    df_target_assay = load.file(args.input_target_table)
+    df_target_assay = load.file(args.input_target_assay_table)[['target_id']]
     logger.info(f"LOADED {len(df_target_assay):,} TARGET-ASSAY RELATIONSHIPS")
     d2 = datetime.now()
 

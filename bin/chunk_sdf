@@ -75,7 +75,7 @@ function chunk_sdf {
     # 2/ split the sdf file
     nb_records=$(grep -c '$$$$' $input_sdf)
     echo -e "Number of records in input_sdf: $nb_records"
-    if [$prefix = '']
+    if [ $prefix = '' ]
         then
             input_base=$(basename $input_sdf .sdf)
         else
