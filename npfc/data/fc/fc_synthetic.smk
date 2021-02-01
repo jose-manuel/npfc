@@ -14,6 +14,8 @@ import pkg_resources
 from math import ceil
 from npfc import load
 from npfc import utils
+import pandas as pd
+import time
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ARGUMENTS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
@@ -82,8 +84,45 @@ if fallback_default_std_mols:
 
 
 rule all:
-    input: expand(f"{WD}/{prep_subdir}/{natref_subdir}/{frags_subdir}/10_pnp/data/{prefix}" + '_{cid}_pnp.csv.gz', cid=chunk_ids)
+    input: expand(f"{WD}/{prep_subdir}/{natref_subdir}/{frags_subdir}/10_pnp/data/{prefix}" + '_{cid}_pnp.csv.gz', cid=chunk_ids),
 
+
+rule COUNT_MOLS_SUM:
+    priority: 100
+    input: expand(f"{WD}/{prep_subdir}/report/data/{prefix}" + '_{cid}_count_mols.csv', cid=chunk_ids)
+    output: WD + '/' + prep_subdir + '/report/data/' + prefix + '_count_mols.csv'
+    run:
+        # refined input/output files so that are just plain strings and not hidden smk magic
+        input_files = [f"{WD}/{prep_subdir}/report/data/{prefix}_{x}_count_mols.csv" for x in chunk_ids]
+        output_file = WD + '/' + prep_subdir + '/report/data/' + prefix + '_count_mols.csv'
+        # gather result
+        df = pd.concat([pd.read_csv(x, sep='|') for x in input_files]).rename({'pattern': 'subset'}, axis=1)
+        df['subset'] = df['subset'].map(lambda x: x.replace('*', ''))
+        # total
+        df_tot = pd.DataFrame(df.sum()).T
+        df_tot['subset'] = 'total'
+        # merge data
+        df = pd.concat([df, df_tot])
+        time.sleep(1)
+        print(df)
+        # save data
+        df.to_csv(output_file, sep='|', index=False)
+        # in case the operation above succeeded, delere temporary files
+        if Path(output_file).exists():
+            [Path(f).unlink() for f in input_files]
+
+
+rule COUNT_MOLS:
+    priority: 100
+    input:
+        chunk = "{WD}/{prep_subdir}/01_chunk/data/{prefix}_{cid}.sdf.gz",
+        load = "{WD}/{prep_subdir}/02_load/data/{prefix}_{cid}.csv.gz",
+        std_passed = "{WD}/{prep_subdir}/03_std/data/{prefix}_{cid}_std.csv.gz",
+        dedupl = "{WD}/{prep_subdir}/04_dedupl/data/{prefix}_{cid}_dedupl.csv.gz",
+        depict = "{WD}/{prep_subdir}/05_depict/data/{prefix}_{cid}_depict.csv.gz"
+    output: "{WD}/{prep_subdir}/report/data/{prefix}_{cid}_count_mols.csv"
+    log: "{WD}/{prep_subdir}/report/log/{prefix}_{cid}_count_mols.log"
+    shell: "mols_count {WD}/{prep_subdir} {prefix}_{wildcards.cid}* {output} 2>{log}"
 rule PNP:
     priority: 0
     input: ancient("{WD}" + f"/{prep_subdir}/{natref_subdir}/{frags_subdir}" + "/09_fcg/data/{prefix}_{cid}_fcg.csv.gz")

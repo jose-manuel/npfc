@@ -1,21 +1,31 @@
-2021-01-19 17:28:58,905 -- INFO -- RUNNING MERGE_PREPROCESS
-2021-01-19 17:28:58,906 -- INFO -- LIBRARY VERSIONS:
-2021-01-19 17:28:58,906 -- INFO -- pandas                                  1.1.4
-2021-01-19 17:28:58,906 -- INFO -- npfc                                    0.7.6-18-g46574e4
-2021-01-19 17:28:58,906 -- INFO -- ARGUMENTS:
-2021-01-19 17:28:58,906 -- INFO -- INPUT_PROCESS_DIR                       tests/tmp/fc/04_synthetic/chembl/data/prep/
-2021-01-19 17:28:58,906 -- INFO -- PREFIX                                  chembl_001
-2021-01-19 17:28:58,906 -- INFO -- OUTPUT_CSV                              tests/tmp/test.csv
-2021-01-19 17:28:58,906 -- INFO -- LOG                                     INFO
-2021-01-19 17:28:58,906 -- INFO -- BEGIN
-2021-01-19 17:28:58,933 -- INFO -- SUMMARY
-2021-01-19 17:28:58,933 -- INFO -- COMPUTATIONAL TIME: CONFIGURING JOB                                             0:00:00.002828
-2021-01-19 17:28:58,933 -- INFO -- COMPUTATIONAL TIME: PARSING LOAD                                                0:00:00.003795
-2021-01-19 17:28:58,933 -- INFO -- COMPUTATIONAL TIME: PARSING STD                                                 0:00:00.003890
-2021-01-19 17:28:58,933 -- INFO -- COMPUTATIONAL TIME: PARSING FILTERED                                            0:00:00.007658
-2021-01-19 17:28:58,934 -- INFO -- COMPUTATIONAL TIME: PARSING ERROR                                               0:00:00.005646
-2021-01-19 17:28:58,934 -- INFO -- COMPUTATIONAL TIME: MERGE DATA                                                  0:00:00.002230
-2021-01-19 17:28:58,934 -- INFO -- COMPUTATIONAL TIME: PARSING DEDUPL                                              0:00:00.000979
-2021-01-19 17:28:58,934 -- INFO -- COMPUTATIONAL TIME: SAVING RESULTS                                              0:00:00.001721
-2021-01-19 17:28:58,934 -- INFO -- COMPUTATIONAL TIME: TOTAL                                                       0:00:00.028747
-2021-01-19 17:28:58,934 -- INFO -- END
+2021-02-01 11:39:31,454 -- INFO -- RUNNING MOLECULE COUNTING
+2021-02-01 11:39:31,454 -- INFO -- LIBRARY VERSIONS:
+2021-02-01 11:39:31,454 -- INFO -- rdkit                                   2020.09.1
+2021-02-01 11:39:31,454 -- INFO -- pandas                                  1.1.4
+2021-02-01 11:39:31,454 -- INFO -- npfc                                    0.7.7-2-gabcb0f2
+2021-02-01 11:39:31,454 -- INFO -- ARGUMENTS:
+2021-02-01 11:39:31,454 -- INFO -- INPUT_DIR                               tests/tmp/fc/01_fragments/crms/data/prep/
+2021-02-01 11:39:31,454 -- INFO -- PATTERN                                 crms*
+2021-02-01 11:39:31,454 -- INFO -- OUTPUT_FILE                             /tmp/test.csv
+2021-02-01 11:39:31,454 -- INFO -- OUT_FORMAT                              CSV
+2021-02-01 11:39:31,454 -- INFO -- OUT_COMPRESSION                         None
+2021-02-01 11:39:31,454 -- INFO -- LOG                                     INFO
+2021-02-01 11:39:31,455 -- INFO -- BEGIN
+2021-02-01 11:39:31,455 -- INFO -- FILES TO PARSE:
+tests/tmp/fc/01_fragments/crms/data/prep/01_load/data/crms.csv.gz
+tests/tmp/fc/01_fragments/crms/data/prep/02_std/data/crms_std.csv.gz
+tests/tmp/fc/01_fragments/crms/data/prep/03_dedupl/data/crms_dedupl.csv.gz
+tests/tmp/fc/01_fragments/crms/data/prep/04_fcp/data/crms_fcp.csv.gz
+tests/tmp/fc/01_fragments/crms/data/prep/05_depict/data/crms_depict.csv.gz
+2021-02-01 11:39:31,455 -- INFO -- STEP           NUM_MOLS       NUM_ENTRIES    INPUT_FILE     
+2021-02-01 11:39:31,462 -- INFO -- 01_load        99             99             tests/tmp/fc/01_fragments/crms/data/prep/01_load/data/crms.csv.gz
+2021-02-01 11:39:31,466 -- INFO -- 02_std         99             99             tests/tmp/fc/01_fragments/crms/data/prep/02_std/data/crms_std.csv.gz
+2021-02-01 11:39:31,471 -- INFO -- 03_dedupl      93             93             tests/tmp/fc/01_fragments/crms/data/prep/03_dedupl/data/crms_dedupl.csv.gz
+2021-02-01 11:39:31,477 -- INFO -- 04_fcp         93             93             tests/tmp/fc/01_fragments/crms/data/prep/04_fcp/data/crms_fcp.csv.gz
+2021-02-01 11:39:31,483 -- INFO -- 05_depict      93             93             tests/tmp/fc/01_fragments/crms/data/prep/05_depict/data/crms_depict.csv.gz
+2021-02-01 11:39:31,485 -- INFO -- SUMMARY
+2021-02-01 11:39:31,485 -- INFO -- COMPUTATIONAL TIME: CONFIGURING JOB                                             0:00:00.001546
+2021-02-01 11:39:31,485 -- INFO -- COMPUTATIONAL TIME: PARSING INPUT FILES                                         0:00:00.029497
+2021-02-01 11:39:31,485 -- INFO -- COMPUTATIONAL TIME: EXPORTING RESULTS                                           0:00:00.000970
+2021-02-01 11:39:31,485 -- INFO -- COMPUTATIONAL TIME: TOTAL                                                       0:00:00.032013
+2021-02-01 11:39:31,485 -- INFO -- END

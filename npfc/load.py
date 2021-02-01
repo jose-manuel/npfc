@@ -145,9 +145,9 @@ def file(input_file: str,
 
     # keep_props
     if not keep_props:
-        logging.debug("Found properties: %s", [c for c in df.columns])
-        logging.debug("Keeping properties: %s", [out_id, out_mol])
-        logging.debug("Dropping properties: %s", [c for c in df.columns if c not in (out_id, out_mol)])
+        logging.debug("Found properties: %s", ', '.join([c for c in df.columns]))
+        logging.debug("Keeping properties: %s", ', '.join([out_id, out_mol]))
+        logging.debug("Dropping properties: %s", ', '.join([c for c in df.columns if c not in (out_id, out_mol)]))
         df.drop([c for c in df.columns if c not in (out_id, out_mol)], axis=1, inplace=True)
 
     # mol_format

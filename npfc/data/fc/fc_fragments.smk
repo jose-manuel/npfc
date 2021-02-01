@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """
-Script prep_crms.smk
+Script fc_fragments.smk
 ===========================
 This script is used preparing the cluster representative fragments for the FCC
 of the DNP and ChEMBL datasets.
@@ -52,17 +52,31 @@ if fallback_default_std_frags:
 
 
 rule all:
-    input: WD + '/' + prep_subdir + "/05_depict/data/" + prefix + "_depict.csv.gz"  # rule all does not accept wildcards
+    input:
+        mols = WD + '/' + prep_subdir + "/05_depict/data/" + prefix + "_depict.csv.gz",  # rule all does not accept wildcards
+        count_mols = WD + '/' + prep_subdir + '/report/data/' + prefix + '_count_mols.csv'
+
+rule COUNT_MOLS:
+    priority: 100
+    input:
+        load = "{WD}/{prep_subdir}/01_load/data/{prefix}.csv.gz",
+        std_passed = "{WD}/{prep_subdir}/02_std/data/{prefix}_std.csv.gz",
+        dedupl = "{WD}/{prep_subdir}/03_dedupl/data/{prefix}_dedupl.csv.gz",
+        fcp = "{WD}/{prep_subdir}/04_fcp/data/{prefix}_fcp.csv.gz",
+        depict = "{WD}/{prep_subdir}/05_depict/data/{prefix}_depict.csv.gz"
+    output: "{WD}/{prep_subdir}/report/data/{prefix}_count_mols.csv"
+    log: "{WD}/{prep_subdir}/report/log/{prefix}_count_mols.log"
+    shell: "mols_count {WD}/{prep_subdir} {prefix} {output} 2>{log}"
 
 rule DEPICT:
-    priority: 100
+    priority: 101
     input: "{WD}/{prep_subdir}/04_fcp/data/{prefix}_fcp.csv.gz"
     output: "{WD}/{prep_subdir}/05_depict/data/{prefix}_depict.csv.gz"
     log: "{WD}/{prep_subdir}/05_depict/log/{prefix}_depict.log"
     shell: "mols_depict {input} {output} -m rdDepictor 2>{log}"
 
 rule FCP:
-    priority: 101
+    priority: 102
     input: frags = "{WD}/{prep_subdir}/03_dedupl/data/{prefix}_dedupl.csv.gz"
     output:
         frags = "{WD}/{prep_subdir}/04_fcp/data/{prefix}_fcp.csv.gz",
@@ -71,7 +85,7 @@ rule FCP:
     shell: "frags_annotate_fcp {input} {output.frags} -c {output.counts} 2>{log}"
 
 rule DEDUPL:
-    priority: 102
+    priority: 103
     input: "{WD}/{prep_subdir}/02_std/data/{prefix}_std.csv.gz"
     output:
         passed = "{WD}/{prep_subdir}/03_dedupl/data/{prefix}_dedupl.csv.gz",
@@ -81,7 +95,7 @@ rule DEDUPL:
     shell: "mols_dedupl {input} {output.passed} -d {output.filtered} -s {output.synonyms} -r {WD}/{prep_subdir}/03_dedupl/{prefix}_ref.hdf 2>{log}"
 
 rule STD_MURCKO:
-    priority: 103
+    priority: 104
     input: "{WD}/{prep_subdir}/01_load/data/{prefix}.csv.gz"
     output:
         std = "{WD}/{prep_subdir}/02_std/data/{prefix}_std.csv.gz",
@@ -91,7 +105,7 @@ rule STD_MURCKO:
     shell: "mols_standardize {input} {output.std} -f {output.filtered} -e {output.error} -p " + config_std_frags + " 2>{log}"
 
 rule LOAD:
-    priority: 104
+    priority: 105
     input: input_file
     output: "{WD}/{prep_subdir}/01_load/data/{prefix}.csv.gz"
     log: "{WD}/{prep_subdir}/01_load/log/{prefix}.log"

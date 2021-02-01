@@ -210,11 +210,11 @@ def main():
         smk_command += f"-j {args.jobs} "
     elif args.env == 'clem':
         config_cluster = pkg_resources.resource_filename('npfc', "data/cluster_clem.json")
-        smk_command += '-j 100 --cluster-config ' + config_cluster + ' --cluster "sbatch -A {cluster.account} -p {cluster.partition} -n {cluster.n}  -t {cluster.time} --oversubscribe" '
+        smk_command += '-j 100 --cluster-config ' + config_cluster + ' --cluster "sbatch -A {cluster.account} -p {cluster.partition} -n {cluster.n}  -t {cluster.time} --jobname "fc_' + args.protocol + '_{rulename}_{wildcards.cid}.{jobid}" --oversubscribe" '
     elif args.env == 'gwdg1':
         smk_command = "sbatch -p medium -t '12:00:00'" + smk_command
         config_cluster = pkg_resources.resource_filename('npfc', "data/cluster_gwdg1.json")
-        smk_command += '-j 400 --cluster-config ' + config_cluster + ' --cluster "sbatch -p medium -n {cluster.n}  -t {cluster.time} --oversubscribe" '
+        smk_command += '-j 400 --cluster-config ' + config_cluster + ' --cluster "sbatch -p medium -n {cluster.n}  -t {cluster.time} --oversubscribe"'
 
     # arguments
     if 'fragments' in args.protocol:
@@ -252,6 +252,8 @@ def main():
         # add the counts of mols/chunks to the configuration
         config.update(d)
         logger.info("NUMBER OF CHUNKS:".ljust(pad) + f"{config['num_mols']:,d} / {config['chunksize']:,d} = {config['num_chunks']:,d}")
+    # add default cid value
+    config['cid'] = ''
     # add arguments to the smk command
     smk_command += "--config "
     for k, v in config.items():

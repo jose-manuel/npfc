@@ -486,7 +486,7 @@ def find_wd_levels(WD: str, prep: str = None, natref: str = None, frags: str = N
     """
     # find prep dirs
     if prep is None:
-        wd_prep = [str(p) for p in list(Path(WD).glob('**')) if p.name[0:5] == 'prep']
+        wd_prep = []
     else:
         wd_prep = [str(p) for p in list(Path(WD).glob('**')) if p.name == prep]
 
@@ -498,18 +498,10 @@ def find_wd_levels(WD: str, prep: str = None, natref: str = None, frags: str = N
 
     # find natref dirs
     if natref is None:
-        wd_natref = [str(p) for p in list(Path(WD).glob('**')) if p.name[0:7] == 'natref_']
+        wd_natref = []
     else:
         wd_natref = [str(p) for p in list(Path(WD).glob('**')) if p.name == natref]
-    # find frags dirs
-    if frags is None:
-        wd_frags = []
-    else:
-        wd_frags = [str(p) for p in list(Path(WD).glob('**')) if p.name == frags]
-
-    # consider only wanted natref subdirs
-    if natref is not None:
-        wd_frags = [wd for wd in wd_frags if Path(wd).parent.name == natref]
+        # wd_natref = [wd for wd in wd_natref if Path(wd).parent.name == natref]
 
     return {'prep': wd_prep, 'natref': wd_natref, 'frags': wd_frags}
 
@@ -523,7 +515,7 @@ def find_wd_level_steps(wd_level: str, pattern: str = '[0-9][0-9]_.*') -> list:
     :return: the list of step folders found in the specified level dataset.
     """
     # find all steps following synthax pattern
-    return [str(p) for p in list(Path(wd_level).glob('*')) if re.match(pattern, Path(p).name)]
+    return sorted([str(p) for p in list(Path(wd_level).glob('*')) if re.match(pattern, Path(p).name)])
 
 
 def filter_wd_levels_with_missing_chunks(wd_levels: OrderedDict) -> OrderedDict:
@@ -535,12 +527,14 @@ def filter_wd_levels_with_missing_chunks(wd_levels: OrderedDict) -> OrderedDict:
     :param wd_levels: an ordered dictionary with levels as keys and lists of subdir wds as values
     :return: the updated wd_levels
     """
+    print(wd_levels)
     for wd_level in wd_levels:  # preprocess, natref, frags
         errors = []
         for wd_subdir in wd_levels[wd_level]:  # 'frags': [frags1, frags2, ...]
             error = False
             wd_steps = find_wd_level_steps(wd_subdir)
             for wd_step in wd_steps:  # 00_raw, 01_load, 02_load, etc.
+                print(wd_step)
                 if wd_step[0:5].split('/')[-1] == 'frags_':
                     continue
                 # count chunks
@@ -551,6 +545,7 @@ def filter_wd_levels_with_missing_chunks(wd_levels: OrderedDict) -> OrderedDict:
                 if p_subdir.name == '00_raw':
                     continue
                 count = len(list(p_subdir.glob('data/prep*/*')))
+                print(f"\n{p_subdir.name}\n")
                 if p_subdir.name.split('_')[0] == '01':  # 01_load for fragments, 01_chunk for natural and synthetic
                     count_ref = count
                     logging.debug(f"CHUNKS -- NUMBER OF REFERENCE CHUNKS: {count_ref}")
@@ -561,7 +556,7 @@ def filter_wd_levels_with_missing_chunks(wd_levels: OrderedDict) -> OrderedDict:
                     error = True
                 else:
                     logging.debug(f"CHUNKS -- CHUNKS: '{wd_step}' ({count}/{count_ref})")
-                # print(f"count for {wd_step}: {count}/{count_ref}")
+
 
             errors.append(error)
         # filter subdirs that raised an error based on index in list
@@ -801,7 +796,7 @@ def get_dfs_prep(WD: str) -> Tuple[DataFrame]:
 
     # get total of molecules in input
     num_mols_tot = df_load['Count'].sum()
-    logger.info(f"PREP -- TOTAL NUMBER OF MOLECULES={num_mols_tot:,}")
+    logger.info(f"PREP -- TOTAL NUMBER OF MOLECULES: {num_mols_tot:,}")
 
     # gather all filtered molecules
     df_dedupl_dupl = df_dedupl[df_dedupl['Category'] == 'duplicate']
@@ -1031,9 +1026,9 @@ def get_dfs_fs(WD: Path) -> Tuple[DataFrame]:
     df_top_frags_u = pd.concat([x['df_top_frags_u'] for x in results if x is not None])
 
     logger.info("FS -- COMPLETED CHUNK ITERATION")
-    logger.info(f"FS -- TOTAL NUMBER OF FRAGMENTS HITS={n_fs_nhits_tot:,}")
-    logger.info(f"FS -- TOTAL NUMBER OF MOLECULES={n_fs_mols_tot:,}")
-    logger.info(f"FS -- AVERAGE NUMBER OF FRAGMENTS PER MOL={n_fs_nhits_tot/n_fs_mols_tot:,.2f}")
+    logger.info(f"FS -- TOTAL NUMBER OF FRAGMENTS HITS: {n_fs_nhits_tot:,}")
+    logger.info(f"FS -- TOTAL NUMBER OF MOLECULES: {n_fs_mols_tot:,}")
+    logger.info(f"FS -- AVERAGE NUMBER OF FRAGMENTS PER MOL: {n_fs_nhits_tot/n_fs_mols_tot:,.2f}")
 
     # count used later for fragment hit counts
     n_fs_nhits_0 = n_tot - n_fs_mols_tot  # this counts nhits = 0
@@ -1717,31 +1712,31 @@ if __name__ == '__main__':
                         output_csv_files.append(output_csv_prep_nsymgroups)
                         output_plot_files.append(output_plot_prep_nsymgroups)
 
-                    # if all([Path(x).exists() for x in output_plot_files]):
-                    #     logger.info("PREP -- ALL OUTPUT PLOT FILES ARE ALREADY AVAILABLE, NOTHING TO DO!")
-                    #     continue
-                    # elif all([Path(x).exists() for x in output_csv_files]):
-                    #     logger.info("PREP -- PARSING OUTPUT CSV FILES INSTEAD OF COMPUTING THEM")
-                    #     df_prep_overview = load.file(output_csv_prep_overview)
-                    #     df_prep_filtered = load.file(output_csv_prep_filtered)
-                    #     df_prep_error = load.file(output_csv_prep_error)
-                    #     if compute_nsymgroups:
-                    #         df_prep_nsymgroups = load.file(output_csv_prep_nsymgroups)
-                    # else:
-                    #     logger.info("PREP -- COMPUTING OUTPUT CSV FILES")
-                    #     # first examples, then df so we spare a bit of memory
-                    #     dfs_prep = get_dfs_prep(wd_subdir)
-                    #     df_prep_overview = dfs_prep['df_prep_overview']
-                    #     df_prep_filtered = dfs_prep['df_prep_filtered']
-                    #     df_prep_error = dfs_prep['df_prep_error']
-                    #     if compute_nsymgroups:
-                    #         df_prep_nsymgroups = get_df_fcp(wd_subdir)
-                    #
-                    #     save.file(df_prep_overview, output_csv_prep_overview)
-                    #     save.file(df_prep_filtered, output_csv_prep_filtered)
-                    #     save.file(df_prep_error, output_csv_prep_error)
-                    #     if compute_nsymgroups:
-                    #         save.file(df_prep_nsymgroups, output_csv_prep_nsymgroups)
+                    if all([Path(x).exists() for x in output_plot_files]):
+                        logger.info("PREP -- ALL OUTPUT PLOT FILES ARE ALREADY AVAILABLE, NOTHING TO DO!")
+                        continue
+                    elif all([Path(x).exists() for x in output_csv_files]):
+                        logger.info("PREP -- PARSING OUTPUT CSV FILES INSTEAD OF COMPUTING THEM")
+                        df_prep_overview = load.file(output_csv_prep_overview)
+                        df_prep_filtered = load.file(output_csv_prep_filtered)
+                        df_prep_error = load.file(output_csv_prep_error)
+                        if compute_nsymgroups:
+                            df_prep_nsymgroups = load.file(output_csv_prep_nsymgroups)
+                    else:
+                        logger.info("PREP -- COMPUTING OUTPUT CSV FILES")
+                        # first examples, then df so we spare a bit of memory
+                        dfs_prep = get_dfs_prep(wd_subdir)
+                        df_prep_overview = dfs_prep['df_prep_overview']
+                        df_prep_filtered = dfs_prep['df_prep_filtered']
+                        df_prep_error = dfs_prep['df_prep_error']
+                        if compute_nsymgroups:
+                            df_prep_nsymgroups = get_df_fcp(wd_subdir)
+
+                        save.file(df_prep_overview, output_csv_prep_overview)
+                        save.file(df_prep_filtered, output_csv_prep_filtered)
+                        save.file(df_prep_error, output_csv_prep_error)
+                        if compute_nsymgroups:
+                            save.file(df_prep_nsymgroups, output_csv_prep_nsymgroups)
 
                     d1 = datetime.now()
 
@@ -1845,15 +1840,15 @@ if __name__ == '__main__':
                     # retrieve data
                     output_csv_files = [output_csv_sub_subset]
                     output_plot_files = [output_plot_sub_subset]
-                    # if all([Path(x).exists() for x in output_plot_files]):
-                    #     logger.info("SUB -- ALL OUTPUT PLOT FILES ARE ALREADY AVAILABLE, NOTHING TO DO!")
-                    # elif all([Path(x).exists() for x in output_csv_files]):
-                    #     logger.info("SUB -- PARSING OUTPUT CSV FILES INSTEAD OF COMPUTING THEM")
-                    #     df_sub_subset = load.file(output_csv_sub_subset)
-                    # else:
-                    #     logger.info("SUB -- COMPUTING OUTPUT CSV FILES")
-                    #     df_sub_subset = get_df_subset(dir)
-                    #     save.file(df_sub_subset, output_csv_sub_subset)
+                    if all([Path(x).exists() for x in output_plot_files]):
+                        logger.info("SUB -- ALL OUTPUT PLOT FILES ARE ALREADY AVAILABLE, NOTHING TO DO!")
+                    elif all([Path(x).exists() for x in output_csv_files]):
+                        logger.info("SUB -- PARSING OUTPUT CSV FILES INSTEAD OF COMPUTING THEM")
+                        df_sub_subset = load.file(output_csv_sub_subset)
+                    else:
+                        logger.info("SUB -- COMPUTING OUTPUT CSV FILES")
+                        df_sub_subset = get_df_subset(dir)
+                        save.file(df_sub_subset, output_csv_sub_subset)
                     d1 = datetime.now()
 
                     # skip plots if computing only CSV output files
@@ -1947,14 +1942,14 @@ if __name__ == '__main__':
                         df_fs_top10frags_u = load.file(output_csv_fs_top10frags_u).head(10)
                     else:
                         logger.info("FS -- COMPUTING OUTPUT CSV FILES")
-                        # dfs_fs = get_dfs_fs(dir)
-                        # for df_fs, output_csv_fs in zip(dfs_fs, output_csv_files):
-                        #     save.file(df_fs, output_csv_fs, encode=False)
-                        # df_fs_nfragpermol = dfs_fs[0]
-                        # df_fs_nfragpermol_u = dfs_fs[1]
-                        # df_fs_fragmolcov = dfs_fs[2]
-                        # df_fs_top10frags = dfs_fs[3].head(10)
-                        # df_fs_top10frags_u = dfs_fs[4].head(10)
+                        dfs_fs = get_dfs_fs(dir)
+                        for df_fs, output_csv_fs in zip(dfs_fs, output_csv_files):
+                            save.file(df_fs, output_csv_fs, encode=False)
+                        df_fs_nfragpermol = dfs_fs[0]
+                        df_fs_nfragpermol_u = dfs_fs[1]
+                        df_fs_fragmolcov = dfs_fs[2]
+                        df_fs_top10frags = dfs_fs[3].head(10)
+                        df_fs_top10frags_u = dfs_fs[4].head(10)
                     d1 = datetime.now()
 
                     # skip plots if computing only CSV output files
@@ -2099,26 +2094,26 @@ if __name__ == '__main__':
                     # retrieve data
                     output_csv_files = [output_csv_fcc_fcc, output_csv_fcc_fc, output_csv_fcc_ffs, output_csv_fcc_ffo]
                     output_plot_files = [output_plot_fcc_fcc, output_plot_fcc_fc, output_plot_fcc_ffs, output_plot_fcc_ffo]
-                    # if all([Path(x).exists() for x in output_plot_files]):
-                    #     logger.info("FCC -- ALL OUTPUT PLOT FILES ARE ALREADY AVAILABLE, NOTHING TO DO!")
-                    # elif all([Path(x).exists() for x in output_csv_files]):
-                    #     logger.info("FCC -- PARSING OUTPUT CSV FILES INSTEAD OF COMPUTING THEM")
-                    #     df_fcc_fcc = load.file(output_csv_fcc_fcc)
-                    #     df_fcc_fc = load.file(output_csv_fcc_fc, decode=False).head(10)  # plot top 10 and no need for mol objects at the moment
-                    #     df_fcc_ffs = load.file(output_csv_fcc_ffs)
-                    #     df_fcc_ffo = load.file(output_csv_fcc_ffo)
-                    # else:
-                    #     logger.info("FCC -- COMPUTING OUTPUT CSV FILES")
-                    #     d_fcc = get_dfs_fcc(dir)
-                    #     df_fcc_fcc = d_fcc['df_fcc']
-                    #     df_fcc_fc = d_fcc['df_fc']
-                    #     df_fcc_ffs = d_fcc['df_ffs']
-                    #     df_fcc_ffo = d_fcc['df_ffo']
-                    #     save.file(df_fcc_fcc, output_csv_fcc_fcc)
-                    #     save.file(df_fcc_fc, output_csv_fcc_fc, encode=False)
-                    #     save.file(df_fcc_ffs, output_csv_fcc_ffs)
-                    #     save.file(df_fcc_ffo, output_csv_fcc_ffo)
-                    #     df_fcc_fc = df_fcc_fc.head(10)  # use only top 10 for plotting
+                    if all([Path(x).exists() for x in output_plot_files]):
+                        logger.info("FCC -- ALL OUTPUT PLOT FILES ARE ALREADY AVAILABLE, NOTHING TO DO!")
+                    elif all([Path(x).exists() for x in output_csv_files]):
+                        logger.info("FCC -- PARSING OUTPUT CSV FILES INSTEAD OF COMPUTING THEM")
+                        df_fcc_fcc = load.file(output_csv_fcc_fcc)
+                        df_fcc_fc = load.file(output_csv_fcc_fc, decode=False).head(10)  # plot top 10 and no need for mol objects at the moment
+                        df_fcc_ffs = load.file(output_csv_fcc_ffs)
+                        df_fcc_ffo = load.file(output_csv_fcc_ffo)
+                    else:
+                        logger.info("FCC -- COMPUTING OUTPUT CSV FILES")
+                        d_fcc = get_dfs_fcc(dir)
+                        df_fcc_fcc = d_fcc['df_fcc']
+                        df_fcc_fc = d_fcc['df_fc']
+                        df_fcc_ffs = d_fcc['df_ffs']
+                        df_fcc_ffo = d_fcc['df_ffo']
+                        save.file(df_fcc_fcc, output_csv_fcc_fcc)
+                        save.file(df_fcc_fc, output_csv_fcc_fc, encode=False)
+                        save.file(df_fcc_ffs, output_csv_fcc_ffs)
+                        save.file(df_fcc_ffo, output_csv_fcc_ffo)
+                        df_fcc_fc = df_fcc_fc.head(10)  # use only top 10 for plotting
                     d3 = datetime.now()
 
                     # skip plots if computing only CSV output files
@@ -2238,31 +2233,31 @@ if __name__ == '__main__':
                                          output_plot_fcg_fcc, output_plot_fcg_top10fc,
                                          output_plot_fcg_nfcgpermol, output_plot_fcg_nfcgpermol_zoom,
                                          ]
-                    # if all([Path(x).exists() for x in output_plot_files]):
-                    #     logger.info("FCG -- ALL OUTPUT PLOT FILES ARE ALREADY AVAILABLE, NOTHING TO DO!")
-                    # elif all([Path(x).exists() for x in output_csv_files]):
-                    #     logger.info("FCG -- PARSING OUTPUT CSV FILES INSTEAD OF COMPUTING THEM")
-                    #     df_fcg_nfragpermol = load.file(output_csv_fcg_nfragpermol)
-                    #     df_fcg_nfragpermol_u = load.file(output_csv_fcg_nfragpermol_u)
-                    #     df_fcg_fragmolcov = load.file(output_csv_fcg_fragmolcov)
-                    #     df_fcg_top10frags = load.file(output_csv_fcg_top10frags).head(10)
-                    #     df_fcg_top10frags_u = load.file(output_csv_fcg_top10frags_u).head(10)
-                    #     df_fcg_fcc = load.file(output_csv_fcg_fcc)
-                    #     df_fcg_top10fc = load.file(output_csv_fcg_top10fc, decode=False).head(10)  # mol_frag_1/2 but actually smiles
-                    #     df_fcg_nfcgpermol = load.file(output_csv_fcg_nfcgpermol)
-                    # else:
-                    #     logger.info("FCG -- COMPUTING OUTPUT CSV FILES")
-                    #     dfs_fcg = get_df_fcg(dir)
-                    #     for df_fcg, output_csv_fm in zip(dfs_fcg, output_csv_files):
-                    #         save.file(df_fcg, output_csv_fm, encode=False)
-                    #     df_fcg_nfragpermol = dfs_fcg[0]
-                    #     df_fcg_nfragpermol_u = dfs_fcg[1]
-                    #     df_fcg_fragmolcov = dfs_fcg[2]
-                    #     df_fcg_top10frags = dfs_fcg[3].head(10)
-                    #     df_fcg_top10frags_u = dfs_fcg[4].head(10)
-                    #     df_fcg_fcc = dfs_fcg[5]
-                    #     df_fcg_top10fc = dfs_fcg[6].head(10)
-                    #     df_fcg_nfcgpermol = dfs_fcg[7]
+                    if all([Path(x).exists() for x in output_plot_files]):
+                        logger.info("FCG -- ALL OUTPUT PLOT FILES ARE ALREADY AVAILABLE, NOTHING TO DO!")
+                    elif all([Path(x).exists() for x in output_csv_files]):
+                        logger.info("FCG -- PARSING OUTPUT CSV FILES INSTEAD OF COMPUTING THEM")
+                        df_fcg_nfragpermol = load.file(output_csv_fcg_nfragpermol)
+                        df_fcg_nfragpermol_u = load.file(output_csv_fcg_nfragpermol_u)
+                        df_fcg_fragmolcov = load.file(output_csv_fcg_fragmolcov)
+                        df_fcg_top10frags = load.file(output_csv_fcg_top10frags).head(10)
+                        df_fcg_top10frags_u = load.file(output_csv_fcg_top10frags_u).head(10)
+                        df_fcg_fcc = load.file(output_csv_fcg_fcc)
+                        df_fcg_top10fc = load.file(output_csv_fcg_top10fc, decode=False).head(10)  # mol_frag_1/2 but actually smiles
+                        df_fcg_nfcgpermol = load.file(output_csv_fcg_nfcgpermol)
+                    else:
+                        logger.info("FCG -- COMPUTING OUTPUT CSV FILES")
+                        dfs_fcg = get_df_fcg(dir)
+                        for df_fcg, output_csv_fm in zip(dfs_fcg, output_csv_files):
+                            save.file(df_fcg, output_csv_fm, encode=False)
+                        df_fcg_nfragpermol = dfs_fcg[0]
+                        df_fcg_nfragpermol_u = dfs_fcg[1]
+                        df_fcg_fragmolcov = dfs_fcg[2]
+                        df_fcg_top10frags = dfs_fcg[3].head(10)
+                        df_fcg_top10frags_u = dfs_fcg[4].head(10)
+                        df_fcg_fcc = dfs_fcg[5]
+                        df_fcg_top10fc = dfs_fcg[6].head(10)
+                        df_fcg_nfcgpermol = dfs_fcg[7]
                     d5 = datetime.now()
 
                     # skip plots if computing only CSV output files
