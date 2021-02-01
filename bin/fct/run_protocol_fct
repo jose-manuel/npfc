@@ -141,7 +141,7 @@ def main():
         except ValueError:   # ### no tested
             logger.error(f"ERROR! PROTOCOL '{args.protocol}' COULD NOT BE FOUND EITHER IN STORED PROTOCOLS OR AT LOCATED FILE!")
     # configure current smk command
-    smk_command = f"snakemake -k -s {smk_file} "
+    smk_command = f"snakemake -k -s {smk_file} --jobname fct_{args.protocol}" + "_{rulename}.{jobid} "
 
     # determine environment
     if args.env == 'local':
