@@ -29,13 +29,26 @@ pd.options.mode.chained_assignment = None  # default='warn'
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 
-def find_input_files(input_dir, pattern):
+def find_input_files(input_dir: str, pattern: str, exclude: list = ['/report/', '_ref.hdf', '/log/']) -> list:
+    """Find input files corresponding to the pattern.
+
+    :param input_dir: input directory where input files and subdirectories are stored.
+    :param pattern: pattern to use for globbing input files. (i.e. 'chembl_001*')
+    :param exclude: a list of substrings that can be found in the input file paths to exclude some of those. (i.e. files without the groupby column, etc)
+    :return: a sorted list of input files
+    """
     p = Path(input_dir).rglob(pattern)
-    return [str(x) for x in p]
+    input_files = [str(x) for x in p]
+    for e in exclude:
+        input_files = [x for x in input_files if e not in x]
+    return sorted(input_files)
 
 
-def count_mols_sdf(input_sdf: str):
-    """Count the number of molecules for a given SD File.
+def count_mols_sdf(input_sdf: str) -> int:
+    """Count the number of molecules for a given SD File by counting the '$$$$'' delimiter.
+
+    :param input_sdf: an input SD File.
+    :return: the number of molecules in the input SDF
     """
     pattern = '$$$$'
     p = Path(input_sdf)
@@ -81,7 +94,7 @@ def main():
 
     Example:
 
-        >>> annotate_pnp file_fcg.csv.gz file_fcg.csv.gz
+        >>> mols_count fc/04_synthetic/chembl/data/prep 'chembl_001*' fc/04_synthetic/chembl/data/prep/report/chembl_001_mols_count.csv
 
     """
 
@@ -124,10 +137,6 @@ def main():
 
     # finding the input files
     input_files = find_input_files(args.input_dir, args.pattern)
-
-    EXCLUDE = ['/report/', '_ref.hdf', '/log/']
-    for e in EXCLUDE:
-        input_files = [x for x in input_files if e not in x]
     logger.info('FILES TO PARSE:\n' + '\n'.join(input_files))
     d = {}
     logger.info("STEP".ljust(15) + "NUM_MOLS".ljust(15) + "NUM_ENTRIES".ljust(15) + "INPUT_FILE".ljust(15))
