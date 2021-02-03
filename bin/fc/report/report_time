@@ -1,16 +1,17 @@
 #!/usr/bin/env python
 
 """
-Script mols_count
+Script report_time
 ==========================
-This script is used for counting how many molecules are still present at the end
-of a step. It is designed to append a row per chunk to a common output file.
+This script is used for counting the computational time of each step for a given
+chunk.
 """
 
 # standard
 import warnings
 from pathlib import Path
 import sys
+from datetime import timedelta
 from datetime import datetime
 import pandas as pd
 import argparse
@@ -29,61 +30,77 @@ pd.options.mode.chained_assignment = None  # default='warn'
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 
-def find_input_files(input_dir: str, pattern: str, exclude: list = ['/report/', '_ref.hdf', '/log/']) -> list:
+def find_input_files(input_dir: str, pattern: str, exclude: list = ['/report/', '/01_chunk/', '.gz', '.hdf'], prep: str = None, frags: str = None, natref: str = None) -> list:
     """Find input files corresponding to the pattern.
 
     :param input_dir: input directory where input files and subdirectories are stored.
-    :param pattern: pattern to use for globbing input files. (i.e. 'chembl_001*')
+    :param pattern: pattern to use for globbing input files. (i.e. 'chembl_001*log')
     :param exclude: a list of substrings that can be found in the input file paths to exclude some of those. (i.e. files without the groupby column, etc)
     :return: a sorted list of input files
     """
-    p = Path(input_dir).rglob(pattern)
+    idx_prep = 6
+    idx_natref = 7
+    idx_frags = 8
+    p = Path(input_dir).rglob('*')
     input_files = [str(x) for x in p]
     for e in exclude:
         input_files = [x for x in input_files if e not in x]
+    input_files = [x for x in input_files if Path(x).is_file()]
+
+    for f in input_files:
+        print(f)
+        f = f.split('/')
+        num_levels = len(f)
+        prep = f[idx_prep]
+        natref = None
+        frags = None
+        if num_levels > 8:
+            natref = f[idx_natref]
+        if num_levels > 9:
+            frags = f[idx_frags]
+
+        if input_dir.endswith('/'):
+            input_dir = input_dir[:-1]
+
+        path_pattern = input_dir
+        if prep is None:
+            raise ValueError('ERROR! NEED AT LEAST A PREP SUBFOLDER!')
+        path_pattern = f"{path_pattern}/{prep}"
+        if natref is not None:
+            path_pattern = f"{path_pattern}/{natref}"
+        if frags is not None:
+            path_pattern = f"{path_pattern}/{frags}"
+        path_pattern = f"{path_pattern}/*{pattern}"
+        print(path_pattern)
+        print("")
+
+        # fc/04_synthetic/chembl/data/prep/02_load/log/chembl_001_load.log
     return sorted(input_files)
 
 
-def count_mols_sdf(input_sdf: str) -> int:
-    """Count the number of molecules for a given SD File by counting the '$$$$'' delimiter.
-
-    :param input_sdf: an input SD File.
-    :return: the number of molecules in the input SDF
+def get_time(input_log: str) -> float:
+    """Parse an input log file and retrieve the computational time.
     """
-    pattern = '$$$$'
-    p = Path(input_sdf)
-    if '.gz' in p.suffixes:
-        cmd = f"zgrep -c '{pattern}' {input_sdf}"
-    else:
-        cmd = f"grep -c '{pattern}' {input_sdf}"
-    # count molecules in sdf using a faster bash command
-    p = subprocess.Popen(['-c', cmd], shell=True, stdout=subprocess.PIPE)
-    out, err = p.communicate()
-    # decode bit string and remove trailing \n
-    out = int(out.decode('UTF-8').split()[0])
-    return out
+    df = pd.read_csv(input_log, sep="@", header=None)
+    try:
+        records = df[df[0].str.contains("COMPUTATIONAL TIME: TOTAL")].iloc[0][0].split()
+        record = records[8]
+    except ValueError:
+        print("oooo")
 
+    microseconds = float(f"0.{record.split('.')[1]}")
+    t = datetime.strptime(record, "%H:%M:%S.%f")
+    delta = timedelta(hours=t.hour, minutes=t.minute, seconds=t.second)
+    return delta.total_seconds() + microseconds
 
-def count_mols(input_file: str, groupby: str) -> tuple:
-    """Count the number of molecules for a given input file.
-
-    :param input_dir: the input file
-    :param groupby: the column name to group the input file by.
-    :return: a tuple with synthax: (number of rows, number of molecules).
-    """
-    df = load.file(input_file)
-    if len(df) > 0:
-        return (len(df), len(df.groupby(groupby)))
-    else:
-        return (0, 0)
 
 
 def main():
 
     # init
     d0 = datetime.now()
-    description = """Script is used for counting molecules in each step of the pipeline
-    for a given chunk.
+    description = """Script is used for gathering computational time in each step of the pipeline
+    for a given chunk using all corresponding log files.
 
     I takes two inputs:
 
@@ -91,30 +108,32 @@ def main():
         - pattern for matching the corresponding chunk
 
     It creates one output:
-        - a csv file with all molecule counts for each step as a single row.
+        - a csv file with all computational times for each step as a single row.
 
-    All chunk molecule counts can then easilsy gathered manually using pandas.
+    All chunk computational times can then easilsy gathered manually using pandas.
 
     It uses the installed npfc libary in your favorite env manager.
 
     Example:
 
-        >>> mols_count fc/04_synthetic/chembl/data/prep 'chembl_001*' fc/04_synthetic/chembl/data/prep/report/chembl_001_mols_count.csv
+        >>> report_time fc/04_synthetic/chembl/data/prep 'chembl_001*' fc/04_synthetic/chembl/data/prep/report/chembl_001_time.csv
 
     """
 
     # parameters CLI
     parser = argparse.ArgumentParser(description=description, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('input_dir', type=str, default=None, help="Input directory (i.e. fc/04_synthetic/chembl/data/prep/03_std/data)")
+    parser.add_argument('input_dir', type=str, default=None, help="Input directory (i.e. fc/04_synthetic/chembl/data/prep)")
     parser.add_argument('pattern', type=str, default=None, help="Pattern of the file (i.e. prefix of a chunk) to investigate. All matching files in subdirectories will be processed.")
-    parser.add_argument('output_csv', type=str, default=None, help="Output file for recording the molecule count.")
-    parser.add_argument('-g', '--groupby', type=str, default='idm', help="Column name to use for grouping molecules.")
+    parser.add_argument('output_csv', type=str, default=None, help="Output file for recording the computational times.")
+    parser.add_argument('-p', '--prep', type=str, default=None, help="Subfolder name for prep step.")
+    parser.add_argument('-n', '--natref', type=str, default=None, help="Subfolder name for natref step.")
+    parser.add_argument('-f', '--frags', type=str, default=None, help="Subfolder name for frags step.")
     parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
     args = parser.parse_args()
 
     # logging
     logger = utils._configure_logger(args.log)
-    logger.info("RUNNING MOLECULE COUNTING")
+    logger.info("RUNNING REPORT TIME")
     warnings.filterwarnings('ignore', category=pd.io.pytables.PerformanceWarning)  # if None is returned instead of a molecule, do not complain about mixed types
     pad = 40
 
@@ -134,7 +153,6 @@ def main():
     logger.info("OUTPUT_FILE".ljust(pad) + f"{args.output_csv}")
     logger.info("OUT_FORMAT".ljust(pad) + f"{out_format}")
     logger.info("OUT_COMPRESSION".ljust(pad) + f"{out_compression}")
-    logger.info("GROUBPY".ljust(pad) + f"{args.groupby}")
     logger.info("LOG".ljust(pad) + f"{args.log}")
     d1 = datetime.now()
 
@@ -143,20 +161,14 @@ def main():
 
     # finding the input files
     input_files = find_input_files(args.input_dir, args.pattern)
-    logger.info('FILES TO PARSE:\n' + '\n'.join(input_files))
     d = {}
-    logger.info("STEP".ljust(15) + "NUM_MOLS".ljust(15) + "NUM_ENTRIES".ljust(15) + "INPUT_FILE".ljust(15))
+    logger.info("STEP".ljust(15) + "TIME".ljust(15) + "INPUT_FILE".ljust(15))
     for input_file in input_files:
         step = Path(input_file).parent.parent.name
-        if '.sdf' in Path(input_file).suffixes:
-            num_mols = count_mols_sdf(input_file)
-            num_rows = num_mols
-        else:
-            num_rows, num_mols = count_mols(input_file, args.groupby)
+        comput_time = get_time(input_file)
         d["pattern"] = [args.pattern]
-        d[f"{step}_num_mols"] = [num_mols]
-        d[f"{step}_num_entries"] = [num_rows]
-        logger.info(f"{step}".ljust(15) + f"{num_mols}".ljust(15) + f"{num_rows}".ljust(15) + f"{input_file}".ljust(15))
+        d[f"{step}_time"] = [comput_time]
+        logger.info(f"{step}".ljust(15) + f"{comput_time}".ljust(15) + f"{input_file}".ljust(15))
 
     # assemble data into a DF of one single row
     df = DataFrame(d)

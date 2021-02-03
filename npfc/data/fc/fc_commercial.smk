@@ -84,7 +84,7 @@ rule COUNT_MOLS_SUM:
         df_tot['subset'] = 'total'
         # merge data
         df = pd.concat([df, df_tot])
-        time.sleep(1)
+        # time.sleep(1)
         print(df)
         # save data
         df.to_csv(output_file, sep='|', index=False)
