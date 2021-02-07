@@ -39,7 +39,7 @@ from matplotlib.figure import Figure
 from networkx.classes.graph import Graph
 from networkx.drawing.nx_agraph import to_agraph
 import seaborn as sns
-from PIL.Image import Image
+from PIL import Image
 from typing import Union
 from typing import Set
 from typing import List
@@ -367,6 +367,12 @@ def fcg(G, colormap, WD_img='/home/gally/Projects/NPFC/data/fragments/crms/data/
     """A very Q&D function to draw FCGs.
     It loads a PNG image (with transparent background) for each fragment from within the specified folder.
 
+    Caution!!! If the images are not transparent, the node color will NOT be displayed!!!
+
+    To convert PNG images to transparent:
+
+    >>> for f in *png; do echo $f; convert $f -transparent white $f; done
+
     """
     # preprocess nx G
     G = compress_parallel_edges(G)
@@ -417,6 +423,67 @@ def fcg(G, colormap, WD_img='/home/gally/Projects/NPFC/data/fragments/crms/data/
 
     # export the graph as SVG
     A.draw(output_file, format='png', prog='dot')
+
+    # read back the export
+    return Image(output_file, width=size[0], height=size[1])
+
+
+def fcg_no_img(G, colormap, output_file=None, size=(400, 400)):
+    """A very Q&D function to draw FCGs.
+    It loads a PNG image (with transparent background) for each fragment from within the specified folder.
+
+    """
+    # preprocess nx G
+    G = compress_parallel_edges(G)
+    # export from nx to Graphviz
+    A = to_agraph(G)
+
+    # configure graph attributes
+    # A.graph_attr.update(ratio="fill")
+    A.graph_attr.update(size="6, 12")
+    A.graph_attr['outputorder'] = 'edgesfirst'
+    A.graph_attr['forcelabels'] = 'true'
+    A.graph_attr['nodesep'] = '2'
+    A.graph_attr['dpi'] = '1200'
+    A.graph_attr['label'] = "\n\n" + list(G.edges(data=True))[0][2]['title']
+    A.graph_attr['fontsize'] = 25
+
+    # init node/attribute mapping
+    node_labels = G.nodes()
+    d_colors = colormap.fragments
+
+    # configure node attributes
+    for nl in node_labels:
+        n = A.get_node(nl)
+        # image = f"{WD_img}/{nl}.png"
+        # n.attr['image'] = image
+        n.attr['fillcolor'] = matplotlib.colors.to_hex(d_colors[nl][0])
+        n.attr['color'] = 'black'
+        n.attr['style'] = 'filled'
+        n.attr['imagescale'] = True
+        n.attr['fixedsize'] = True
+        n.attr['shape'] = 'circle'
+        n.attr['labeldistance'] = 1
+        n.attr['penwidth'] = 1
+        n.attr['label'] = "\n\n\n\n\n" + nl
+        n.attr['height'] = 2
+        n.attr['width'] = 2
+        n.attr['fontsize'] = 20
+
+    # configure edge attributes
+    for nxe, e in zip(sorted(G.edges(data=True), key=lambda x: (x[0], x[1])), A.edges()):
+        e = A.get_edge(nxe[0], nxe[1])
+        e.attr['label'] = " " + nxe[2]['label']
+        e.attr['labelfontcolor'] = 'red'
+
+    # setup export
+    if output_file is None:
+        output_file = '/tmp/_tmp_fcg.img'
+
+    # export the graph as SVG
+    A.draw(output_file, format='png', prog='dot')
+
+    print(A)
 
     # read back the export
     return Image(output_file, width=size[0], height=size[1])

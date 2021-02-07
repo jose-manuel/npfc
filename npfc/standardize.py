@@ -752,6 +752,7 @@ class Standardizer(Filter):
         # in case of timeout
         return (mol, 'filtered', 'timeout')
 
+
     def run_df(self, df: DataFrame) -> tuple:
         """Apply the standardization protocol on a DataFrame, with the possibility of directly filtering duplicate entries as well.
         This can be very useful as the standardization process can expose duplicate entries due to salts removal, neutralization,
@@ -776,6 +777,9 @@ class Standardizer(Filter):
         # run standardization protocol
         df.index = df[self.col_id]
         df.loc[:, self.col_mol], df.loc[:, 'status'], df.loc[:, 'task'] = zip(*df[self.col_mol].map(self.run))
+        # flag eventual None molecules at the end of the pipeline for filtering out
+        df['status'] = df['mol'].map(lambda x: x if x is not None else 'error')
+        df['task'] = df['mol'].map(lambda x: x if x is not None else 'empty_at_end')
         # do not apply filter duplicates on molecules with errors or that were already filtered for x reasons
         df_error = df[df['status'] == 'error']
         df_filtered = df[df['status'] == 'filtered']
