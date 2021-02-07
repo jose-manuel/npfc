@@ -38,7 +38,7 @@
 <text text-anchor="start" x="424.5" y="-106.3" font-family="Times,serif" font-size="14.00">atoms : dict</text>
 <text text-anchor="start" x="424.5" y="-91.3" font-family="Times,serif" font-size="14.00">bonds : dict</text>
 <text text-anchor="start" x="424.5" y="-76.3" font-family="Times,serif" font-size="14.00">fragments : dict</text>
-<text text-anchor="start" x="424.5" y="-61.3" font-family="Times,serif" font-size="14.00">palette : OrderedDict, _ColorPalette, NoneType</text>
+<text text-anchor="start" x="424.5" y="-61.3" font-family="Times,serif" font-size="14.00">palette : NoneType, _ColorPalette, OrderedDict</text>
 <polyline fill="none" stroke="black" points="416.5,-53.5 694.5,-53.5 "/>
 <text text-anchor="start" x="424.5" y="-38.3" font-family="Times,serif" font-size="14.00">blend()</text>
 </g>

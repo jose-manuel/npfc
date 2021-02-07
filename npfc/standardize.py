@@ -778,8 +778,9 @@ class Standardizer(Filter):
         df.index = df[self.col_id]
         df.loc[:, self.col_mol], df.loc[:, 'status'], df.loc[:, 'task'] = zip(*df[self.col_mol].map(self.run))
         # flag eventual None molecules at the end of the pipeline for filtering out
-        df['status'] = df['mol'].map(lambda x: x if x is not None else 'error')
-        df['task'] = df['mol'].map(lambda x: x if x is not None else 'empty_at_end')
+        df['status'] = df.apply(lambda x: x['status'] if x['mol'] is not None else 'error', axis=1)
+        df['task'] = df.apply(lambda x: x['task'] if x['mol'] is not None else 'filter_empty_final', axis=1)
+        df['mol'] = df['mol'].map(lambda x: x if x is not None else '')
         # do not apply filter duplicates on molecules with errors or that were already filtered for x reasons
         df_error = df[df['status'] == 'error']
         df_filtered = df[df['status'] == 'filtered']
