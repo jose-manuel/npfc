@@ -527,14 +527,12 @@ def filter_wd_levels_with_missing_chunks(wd_levels: OrderedDict) -> OrderedDict:
     :param wd_levels: an ordered dictionary with levels as keys and lists of subdir wds as values
     :return: the updated wd_levels
     """
-    print(wd_levels)
     for wd_level in wd_levels:  # preprocess, natref, frags
         errors = []
         for wd_subdir in wd_levels[wd_level]:  # 'frags': [frags1, frags2, ...]
             error = False
             wd_steps = find_wd_level_steps(wd_subdir)
             for wd_step in wd_steps:  # 00_raw, 01_load, 02_load, etc.
-                print(wd_step)
                 if wd_step[0:5].split('/')[-1] == 'frags_':
                     continue
                 # count chunks
@@ -545,7 +543,6 @@ def filter_wd_levels_with_missing_chunks(wd_levels: OrderedDict) -> OrderedDict:
                 if p_subdir.name == '00_raw':
                     continue
                 count = len(list(p_subdir.glob('data/prep*/*')))
-                print(f"\n{p_subdir.name}\n")
                 if p_subdir.name.split('_')[0] == '01':  # 01_load for fragments, 01_chunk for natural and synthetic
                     count_ref = count
                     logging.debug(f"CHUNKS -- NUMBER OF REFERENCE CHUNKS: {count_ref}")
@@ -815,7 +812,7 @@ def get_dfs_prep(WD: str) -> Tuple[DataFrame]:
     # gather all molecules that raised an error
     df_std_error = pd.concat([df_std_error, df_load[df_load['Category'] == 'cannot_load']], sort=True)
     # count even unoccurred cases in df_std_error
-    errors = ['cannot_load', 'initiate_mol', 'disconnect_metal', 'sanitize', 'clear_isotopes', 'normalize', 'uncharge', 'canonicalize', 'clear_stereo']
+    errors = ['cannot_load', 'initiate_mol', 'disconnect_metal', 'sanitize', 'clear_isotopes', 'normalize', 'uncharge', 'canonicalize', 'clear_stereo', 'empty_final']
     df_std_error.set_index('Category', inplace=True)
     df_std_error = df_std_error.reindex(errors)
     df_std_error.reset_index(inplace=True)
@@ -1774,6 +1771,7 @@ if __name__ == '__main__':
                                          y_label='Count',
                                          color=color,
                                          perc_labels='Perc_Status',
+                                         # rotate_x=90,
                                          )
                         # plot output_plot_prep_error
                         if Path(output_plot_prep_error).exists():
@@ -1789,6 +1787,7 @@ if __name__ == '__main__':
                                          y_label='Count',
                                          color=color,
                                          perc_labels='Perc_Status',
+                                         # rotate_x=90,
                                          )
 
                         if compute_nsymgroups:

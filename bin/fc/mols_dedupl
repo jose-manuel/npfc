@@ -13,6 +13,8 @@ from pathlib import Path
 from datetime import datetime
 import logging
 import argparse
+import random
+import time
 # data
 import pandas as pd
 # chemoinformatics
@@ -66,6 +68,12 @@ def main():
     lg = RDLogger.logger()
     lg.setLevel(RDLogger.CRITICAL)
 
+    waiting_time = random.randint(1, 500)
+    waiting_time = waiting_time / 1000  # time in ms
+    logger.info("WAITING FOR %s MS BEFORE STARTING..." % waiting_time)
+    time.sleep(waiting_time / 1000)
+    logger.info("RUNNING FILTER_DUPL_MOLS")
+
     # parse arguments
 
     # check on args values not already checked by argparse
@@ -91,8 +99,8 @@ def main():
     in_format, in_compression = utils.get_file_format(args.input_mols)
     out_format, out_compression = utils.get_file_format(args.output_mols)
     out_format, out_compression = utils.get_file_format(args.ref_file)
-    if out_format != "HDF":
-        raise ValueError("ERROR! output_mols file needs to be a HDF file (.hdf).")
+    # if out_format != "HDF":
+    #     raise ValueError("ERROR! output_mols file needs to be a HDF file (.hdf).")
 
     # hard-coded variables
     csv_sep = "|"
