@@ -375,7 +375,7 @@ def test_classify_cbb(df_aidxf_cbb):
 
 
 
-def test_classify_cbl(df_aidxf_cbl):  # this test is labeled as ctl instead of cbl and I do not know why -> TOCHECK
+def test_classify_cbl(df_aidxf_cbl):
     """Check if fragment combinations of type connection bipodal linker are identified."""
     df_fcc = fragment_combination.classify_df(df_aidxf_cbl)
     assert df_fcc.iloc[0]['fc'] == 'QA:0@0,1,4,5[cbl]QI:0@1,2,3,5,8,9'
@@ -404,6 +404,7 @@ def test_classify_ctl(df_aidxf_ctl):
     df_fcc = fragment_combination.classify_df(df_aidxf_ctl)
     assert df_fcc.iloc[0]['fc'] == 'QA:0@0,4,5[ctl]QI:0@1,2,3,5,7,8,9'
 
+
 def test_classify_cos(df_aidxf_cos):
     """Check if fragment combinations of type connection other spiro are identified."""
     df_fcc = fragment_combination.classify_df(df_aidxf_cos)
@@ -420,7 +421,6 @@ def test_classify_cob(df_aidxf_cob):
     """Check if fragment combinations of type connection other bridged are identified."""
     df_fcc = fragment_combination.classify_df(df_aidxf_cob)
     assert df_fcc.iloc[0]['fc'] == 'QA:0@0,1,2,3[cob]QB:0@0,1,2,4,5'
-
 
 
 def test_classify_col(df_aidxf_col):  # identified as cob instead of col
