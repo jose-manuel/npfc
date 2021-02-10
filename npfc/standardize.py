@@ -128,7 +128,7 @@ class Standardizer(Filter):
     """A class for standardizing molecular structures. The standardization itself is based
     on a protocol that the user can modify.
 
-    By default this protocol consists in 14 tasks applied to each molecule invidually:
+    By default this protocol consists in 15 tasks applied to each molecule invidually:
 
         1) **initiate_mol**: check if the molecule passed the RDKit conversion
         2) **filter_empty**: filter molecules with empty structures
@@ -144,6 +144,7 @@ class Standardizer(Filter):
         12) **uncharge**: remove all charges on a molecule when it is possible. This is different from rdkit.Chem.MolStandardize.charge module as there is no attempt for reaching the zwitterion.
         13) **canonicalize**: enumerate the canonical tautomer.
         14) **clear_stereo**: remove all remaining stereochemistry flags on the molecule.
+        15) **reset_mol**: convert forth and back to SMILES format to discard potential residual outdated flags on atoms and bonds.
 
     Other steps are not part of this protocol but can be executed as well for convenience:
 

@@ -68,7 +68,7 @@ def main():
     lg = RDLogger.logger()
     lg.setLevel(RDLogger.CRITICAL)
 
-    waiting_time = random.randint(1, 500)
+    waiting_time = random.randint(1, 1000)
     waiting_time = waiting_time / 1000  # time in ms
     logger.info("WAITING FOR %s MS BEFORE STARTING..." % waiting_time)
     time.sleep(waiting_time / 1000)

@@ -81,7 +81,7 @@ rule COUNT_MOLS:
         depict = "{WD}/{prep_subdir}/05_depict/data/{prefix}_depict.csv.gz"
     output: "{WD}/{prep_subdir}/report/data/{prefix}_count_mols.csv"
     log: "{WD}/{prep_subdir}/report/log/{prefix}_count_mols.log"
-    shell: "mols_count {WD}/{prep_subdir} {prefix} {output} 2>{log}"
+    shell: "mols_count {WD}/{prep_subdir} {prefix}* {output} 2>{log}"
 
 
 rule DEPICT:

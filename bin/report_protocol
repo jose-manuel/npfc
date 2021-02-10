@@ -794,13 +794,13 @@ def get_dfs_prep(WD: str) -> Tuple[DataFrame]:
     # get total of molecules in input
     num_mols_tot = df_load['Count'].sum()
     logger.info(f"PREP -- TOTAL NUMBER OF MOLECULES: {num_mols_tot:,}")
-
+    # num_tot_passed = df_dedupl[df_dedupl['Category'] == 'unique']['Count'].sum()
     # gather all filtered molecules
     df_dedupl_dupl = df_dedupl[df_dedupl['Category'] == 'duplicate']
     num_dedupl_dupl = df_dedupl_dupl['Count'].sum()
     df_std_filtered = pd.concat([df_std_filtered, df_dedupl_dupl], sort=True)
     # count even unoccurred cases in df_std_filtered
-    filters = ['empty', 'num_heavy_atom', 'molecular_weight', 'num_ring', 'elements', 'timeout', 'duplicate']
+    filters = ['empty', 'num_heavy_atoms', 'molecular_weight', 'num_rings', 'elements', 'timeout', 'duplicate']
     df_std_filtered.set_index('Category', inplace=True)
     df_std_filtered = df_std_filtered.reindex(filters)
     df_std_filtered.reset_index(inplace=True)
@@ -825,6 +825,8 @@ def get_dfs_prep(WD: str) -> Tuple[DataFrame]:
     num_tot_filtered = df_std_filtered['Count'].sum()
     num_tot_passed = df_std_passed['Count'].sum() - num_dedupl_dupl  # dedupl happens after std, so std contains passsed mols that get filtered
     num_tot_errors = df_std_error['Count'].sum()
+
+
     df_prep_overview = pd.DataFrame({'Category': ['passed', 'filtered', 'errors'], 'Count': [num_tot_passed, num_tot_filtered, num_tot_errors]})
     df_prep_overview['Perc_Status'] = df_prep_overview['Count'].map(lambda x: f"{x/num_mols_tot:.2%}")
     logger.info(f"PREP -- RESULTS FOR STD_ALL:\n\n{df_prep_overview}\n")
