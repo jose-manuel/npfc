@@ -26,6 +26,7 @@ import networkx as nx
 # data visualization
 from matplotlib import pyplot as plt
 import seaborn as sns
+import matplotlib.ticker as mticker
 # from pylab import savefig
 from adjustText import adjust_text
 # chemoinformatics
@@ -115,8 +116,10 @@ def save_barplot(df: DataFrame,
         ax.set_ylim((0, 5))
 
     # format y labels
-    ylabels = ['{:,.0f}'.format(x) for x in ax.get_yticks()]
-    ax.set_yticklabels(ylabels)
+    label_format = '{:,.0f}'
+    ticks_loc = ax.get_yticks().tolist()
+    ax.yaxis.set_major_locator(mticker.FixedLocator(ticks_loc))
+    ax.set_yticklabels([label_format.format(x) for x in ticks_loc])
 
     # add percentage annotations
     if perc_labels is not None:
@@ -266,10 +269,12 @@ def save_lineplot(df: DataFrame,
         ax.set_yticks((0, 1, 2, 3, 4, 5))
         ax.set_ylim((0, 5))
 
-
     # format y labels
-    ylabels = ['{:,.0f}'.format(x) for x in ax.get_yticks()]
-    ax.set_yticklabels(ylabels)
+    label_format = '{:,.0f}'
+    ticks_loc = ax.get_yticks().tolist()
+    ax.yaxis.set_major_locator(mticker.FixedLocator(ticks_loc))
+    ax.set_yticklabels([label_format.format(x) for x in ticks_loc])
+
     # add percentage annotations
     if perc_labels is not None:
         for i in range(len(df.index)):
@@ -337,7 +342,12 @@ def save_kdeplot(df: DataFrame,
     ax.tick_params(axis='x', rotation=0)
     ax.set_xlim(0, 1)
     # ax.set_xticklabels(df[x_name])
-    ax.set_xticklabels(['{:,.0%}'.format(x) for x in ax.get_xticks()])
+    label_format = '{:,.0%}'
+    ticks_loc = ax.get_xticks().tolist()
+    ax.xaxis.set_major_locator(mticker.FixedLocator(ticks_loc))
+    ax.set_xticklabels([label_format.format(x) for x in ticks_loc])
+
+    #ax.set_xticklabels(['{:,.0%}'.format(x) for x in ax.get_xticks()])
     ax.set_xlabel(x_label, fontsize=25, labelpad=20)
     ax.set_ylabel(y_label, fontsize=25, labelpad=20)
 
@@ -398,7 +408,13 @@ def save_distplot(df: DataFrame,
     ax.set_title(title, fontsize=24, y=1.02)
     ax.tick_params(labelsize=20)
     ax.tick_params(axis='x', rotation=0)
-    ax.set_yticklabels(['{:,}'.format(int(x)) for x in ax.get_yticks()])
+
+    label_format = '{:,}'
+    ticks_loc = ax.get_yticks().tolist()
+    ax.yaxis.set_major_locator(mticker.FixedLocator(ticks_loc))
+    ax.set_yticklabels([label_format.format(x) for x in ticks_loc])
+
+    # ax.set_yticklabels(['{:,}'.format(int(x)) for x in ax.get_yticks()])
     ax.set_xlabel(x_label, fontsize=25, labelpad=20)
     ax.set_ylabel(y_label, fontsize=25, labelpad=20)
 
@@ -1480,8 +1496,13 @@ def parse_chunk_pnp(c):
     df = load.file(c, decode=False)
 
     # ratio PNP mols
-    pnp = len(df[df['pnp_mol']].groupby('idm'))
-    non_pnp = len(df[~df['pnp_mol']].groupby('idm'))
+    try:
+        pnp = len(df[df['pnp_mol']].groupby('idm'))
+        non_pnp = len(df[~df['pnp_mol']].groupby('idm'))
+    except KeyError:
+        logger.error("PNP -- ERROR WITH CHUNK='%s'" % c)
+        if len(df) < 1:
+            return {'pnp': 0, 'non_pnp': 0, 'df_pnp_nnprefperfcg': pd.DataFrame([], columns=["NumNPRef", "Count"])}
 
     # number of PNP references per FCG
     df = df[['idm', '_pnp_ref']]
@@ -1699,7 +1720,7 @@ if __name__ == '__main__':
                                          ]
 
                     # #### I do not have any idea anymore how this script works, sp super Q&D here
-                    if dir.split('/')[0] == 'fragments':
+                    if '01_fragments' in dir:
                         compute_nsymgroups = True
                     else:
                         compute_nsymgroups = False

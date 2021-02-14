@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.standardize &mdash; npfc 0.7.9-1-g1417a58 documentation</title>
+  <title>npfc.standardize &mdash; npfc 0.7.9-2-gbe3c739 documentation</title>
   
 
   
@@ -58,7 +58,7 @@
             
             
               <div class="version">
-                0.7.9-1-g1417a58
+                0.7.9-2-gbe3c739
               </div>
             
           
@@ -289,7 +289,7 @@
     <span class="sd">&quot;&quot;&quot;A class for standardizing molecular structures. The standardization itself is based</span>
 <span class="sd">    on a protocol that the user can modify.</span>
 
-<span class="sd">    By default this protocol consists in 14 tasks applied to each molecule invidually:</span>
+<span class="sd">    By default this protocol consists in 15 tasks applied to each molecule invidually:</span>
 
 <span class="sd">        1) **initiate_mol**: check if the molecule passed the RDKit conversion</span>
 <span class="sd">        2) **filter_empty**: filter molecules with empty structures</span>
@@ -305,6 +305,7 @@
 <span class="sd">        12) **uncharge**: remove all charges on a molecule when it is possible. This is different from rdkit.Chem.MolStandardize.charge module as there is no attempt for reaching the zwitterion.</span>
 <span class="sd">        13) **canonicalize**: enumerate the canonical tautomer.</span>
 <span class="sd">        14) **clear_stereo**: remove all remaining stereochemistry flags on the molecule.</span>
+<span class="sd">        15) **reset_mol**: convert forth and back to SMILES format to discard potential residual outdated flags on atoms and bonds.</span>
 
 <span class="sd">    Other steps are not part of this protocol but can be executed as well for convenience:</span>
 

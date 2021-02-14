@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Module standardize &mdash; npfc 0.7.9-1-g1417a58 documentation</title>
+  <title>Module standardize &mdash; npfc 0.7.9-2-gbe3c739 documentation</title>
   
 
   
@@ -60,7 +60,7 @@
             
             
               <div class="version">
-                0.7.9-1-g1417a58
+                0.7.9-2-gbe3c739
               </div>
             
           
@@ -211,7 +211,7 @@ For now takes into account only charges of -2 and +2.</p>
 <em class="property">class </em><code class="sig-prename descclassname">npfc.standardize.</code><code class="sig-name descname">Standardizer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">protocol</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">col_mol</span><span class="o">=</span><span class="default_value">'mol'</span></em>, <em class="sig-param"><span class="n">col_id</span><span class="o">=</span><span class="default_value">'idm'</span></em>, <em class="sig-param"><span class="n">elements_medchem</span><span class="o">=</span><span class="default_value">{'B', 'Br', 'C', 'Cl', 'F', 'H', 'I', 'N', 'O', 'P', 'S'}</span></em>, <em class="sig-param"><span class="n">timeout</span><span class="o">=</span><span class="default_value">10</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#Standardizer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.Standardizer" title="Permalink to this definition">¶</a></dt>
 <dd><p>A class for standardizing molecular structures. The standardization itself is based
 on a protocol that the user can modify.</p>
-<p>By default this protocol consists in 14 tasks applied to each molecule invidually:</p>
+<p>By default this protocol consists in 15 tasks applied to each molecule invidually:</p>
 <blockquote>
 <div><ol class="arabic simple">
 <li><p><strong>initiate_mol</strong>: check if the molecule passed the RDKit conversion</p></li>
@@ -228,6 +228,7 @@ on a protocol that the user can modify.</p>
 <li><p><strong>uncharge</strong>: remove all charges on a molecule when it is possible. This is different from rdkit.Chem.MolStandardize.charge module as there is no attempt for reaching the zwitterion.</p></li>
 <li><p><strong>canonicalize</strong>: enumerate the canonical tautomer.</p></li>
 <li><p><strong>clear_stereo</strong>: remove all remaining stereochemistry flags on the molecule.</p></li>
+<li><p><strong>reset_mol</strong>: convert forth and back to SMILES format to discard potential residual outdated flags on atoms and bonds.</p></li>
 </ol>
 </div></blockquote>
 <p>Other steps are not part of this protocol but can be executed as well for convenience:</p>

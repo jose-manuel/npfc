@@ -98,7 +98,7 @@ rule FCP:
     output:
         frags = "{WD}/{prep_subdir}/04_fcp/data/{prefix}_fcp.csv.gz",
         counts = "{WD}/{prep_subdir}/03_dedupl/log/{prefix}_fcp_symcounts.csv"
-    log: "{WD}/{prep_subdir}/04_depict/log/{prefix}_fcp.log"
+    log: "{WD}/{prep_subdir}/04_fcp/log/{prefix}_fcp.log"
     shell: "frags_annotate_fcp {input} {output.frags} -c {output.counts} 2>{log}"
 
 
