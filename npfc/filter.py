@@ -225,6 +225,7 @@ class Filter:
 
         Possible values for how: numeric, set or literal.
         """
+        mol = Mol(mol)
         expr = expr.replace(" ", "")
         split_expr = self._split_expr(expr)  # something like 'molecular_weight', '<=', '1000'
         # replace descriptor names by their values

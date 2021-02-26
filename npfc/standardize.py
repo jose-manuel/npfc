@@ -8,6 +8,7 @@ This modules is used to standardize molecules and molecular DataFrames.
 import logging
 from collections import Counter
 from copy import deepcopy
+from more_itertools import intersperse
 import pkg_resources
 # data handling
 import json
@@ -208,9 +209,18 @@ class Standardizer(Filter):
             [logging.debug("Option %s %s", opt, value) for opt, value in self._protocol.items() if opt != 'tasks']
 
     def __repr__(self):
-        tasks = ' -> '.join([f"{task}" for task in self._protocol['tasks']])
-        opts = [f"{opt}: {value}" for opt, value in self._protocol.items() if opt != 'tasks']
-        return "STANDARDIZER{" + f"prot={tasks}" + f", opts={opts}" + "}"
+        # init
+        pad = max(len(x) for x in self._protocol['tasks'])
+        head = 'STANDARIDZER={\n'
+        tail = '\n}'
+        # define a list of tasks with options in parenthesis
+        tasks = list(self._protocol['tasks'])
+        for i, task in enumerate(tasks):
+            if task in self._protocol.keys():
+                opt = self._protocol[task].replace(task.replace('filter_', ''), 'x')
+                tasks[i] = f"{task} ({opt})"
+        # concatenate all parts and intersperse the tasks with bottow arrows, with step index on the left
+        return head + '\n'.join(intersperse('↓'.center(pad+10), [str(i+1).zfill(2).ljust(5) + x.center(pad) for i, x in enumerate(tasks)])) + tail
 
     @property
     def protocol(self):
@@ -652,9 +662,7 @@ class Standardizer(Filter):
                     return (mol, 'error', task)
 
             # filters
-            elif task == 'filter_elements' or task == 'filter_num_heavy_atoms' or task == 'filter_molecular_weight' or task == 'filter_num_rings':
-                # print("\n\nPROTOCOL\n\n")
-                # print(self._protocol)
+            elif task.startswith('filter_'):  # filter empty is tried before
                 try:
                     if not self.filter_mol(mol, self._protocol[task]):
                         return (mol, 'filtered', task)
