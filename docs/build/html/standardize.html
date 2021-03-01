@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Module standardize &mdash; npfc 0.7.9-4-g3bd591f documentation</title>
+  <title>Module standardize &mdash; npfc 0.7.9-5-ged666c8 documentation</title>
   
 
   
@@ -60,7 +60,7 @@
             
             
               <div class="version">
-                0.7.9-4-g3bd591f
+                0.7.9-5-ged666c8
               </div>
             
           
@@ -217,7 +217,7 @@ on a protocol that the user can modify.</p>
 <li><p><strong>initiate_mol</strong>: check if the molecule passed the RDKit conversion</p></li>
 <li><p><strong>filter_empty</strong>: filter molecules with empty structures</p></li>
 <li><p><strong>disconnect_metal</strong>: break bonds involving metallic atoms, resulting in potentially several molecules per structure.</p></li>
-<li><p><strong>keep_best</strong>: retrieve only the “best” molecule from a mixture, which might not always be the largest one.</p></li>
+<li><p><strong>clear_mixtures</strong>: retrieve only the “best” molecule from a mixture, which might not always be the largest one.</p></li>
 <li><p><strong>deglycosylate</strong>: remove all external sugars-like rings from the molecule and return the remaining non-linear entity.</p></li>
 <li><p><strong>filter_num_heavy_atom</strong>: filter molecules with a heavy atom count not in the accepted range. By default: num_heavy_atom &gt; 3.</p></li>
 <li><p><strong>filter_molecular_weight</strong>: filter molecules with a molecular weight not in the accepted range. By default: molecular_weight &lt;= 1000.0.</p></li>
@@ -281,6 +281,38 @@ This value can be set either during the Standardizer object initialization or by
 </dd></dl>
 
 <dl class="py method">
+<dt id="npfc.standardize.Standardizer.clear_mixtures">
+<code class="sig-name descname">clear_mixtures</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mol</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#Standardizer.clear_mixtures"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.Standardizer.clear_mixtures" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the “best” molecule found in a molecular structure.</p>
+<p>The “best” molecule is determined by the following criteria, sorted by priority:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p>contains only medchem elements</p></li>
+<li><p>contains at least one ring</p></li>
+<li><p>has the largest molecular weight of the mixture</p></li>
+</ol>
+</div></blockquote>
+<p>To summarize:</p>
+<div class="math">
+<p><img src="_images/math/9d38d8a859040db59e88fdcf7b67665576b35bac.png" alt="medchem &gt; non linear &gt; molecular weight"/></p>
+</div><p>So the largest molecule of a mixture might not always be selected, for instance
+a very long aliphatic chain would be dismissed to keep a benzene molecule instead.</p>
+<p>This is implemented in such a way because our fragments used for substructure search contain at least one ring.
+On the contrary, this long aliphatic chain would be kept in a mixture with a non-medchem molecule.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>mol</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Mol</span></code>) – the input molecule(s)</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Mol</span></code></p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>the best molecule</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt id="npfc.standardize.Standardizer.clear_side_chains">
 <code class="sig-name descname">clear_side_chains</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mol</span></em>, <em class="sig-param"><span class="n">debug</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#Standardizer.clear_side_chains"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.Standardizer.clear_side_chains" title="Permalink to this definition">¶</a></dt>
 <dd><p>Clear the side chains of a molecule.</p>
@@ -335,38 +367,6 @@ This value can be set either during the Standardizer object initialization or by
 </dd>
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p>the deglycosylated molecule or a graph of rings</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="npfc.standardize.Standardizer.keep_best">
-<code class="sig-name descname">keep_best</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mol</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#Standardizer.keep_best"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.standardize.Standardizer.keep_best" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the “best” molecule found in a molecular structure.</p>
-<p>The “best” molecule is determined by the following criteria, sorted by priority:</p>
-<blockquote>
-<div><ol class="arabic simple">
-<li><p>contains only medchem elements</p></li>
-<li><p>contains at least one ring</p></li>
-<li><p>has the largest molecular weight of the mixture</p></li>
-</ol>
-</div></blockquote>
-<p>To summarize:</p>
-<div class="math">
-<p><img src="_images/math/9d38d8a859040db59e88fdcf7b67665576b35bac.png" alt="medchem &gt; non linear &gt; molecular weight"/></p>
-</div><p>So the largest molecule of a mixture might not always be selected, for instance
-a very long aliphatic chain would be dismissed to keep a benzene molecule instead.</p>
-<p>This is implemented in such a way because our fragments used for substructure search contain at least one ring.
-On the contrary, this long aliphatic chain would be kept in a mixture with a non-medchem molecule.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>mol</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Mol</span></code>) – the input molecule(s)</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Mol</span></code></p>
-</dd>
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>the best molecule</p>
 </dd>
 </dl>
 </dd></dl>

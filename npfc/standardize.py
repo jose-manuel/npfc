@@ -209,6 +209,9 @@ class Standardizer(Filter):
             [logging.debug("Option %s %s", opt, value) for opt, value in self._protocol.items() if opt != 'tasks']
 
     def __repr__(self):
+        return f"Standardizer ({len(self._protocol['tasks'])} tasks)"
+
+    def describe(self):
         # init
         pad = max(len(x) for x in self._protocol['tasks'])
         head = 'STANDARIDZER={\n'

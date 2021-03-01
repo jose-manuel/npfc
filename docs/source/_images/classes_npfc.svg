@@ -182,9 +182,9 @@
 <text text-anchor="start" x="886" y="-407.3" font-family="Times,serif" font-size="14.00">timeout</text>
 <polyline fill="none" stroke="black" points="878,-399.5 1117,-399.5 "/>
 <text text-anchor="start" x="886" y="-384.3" font-family="Times,serif" font-size="14.00">clear_isotopes(mol)</text>
-<text text-anchor="start" x="886" y="-369.3" font-family="Times,serif" font-size="14.00">clear_side_chains(mol, debug)</text>
-<text text-anchor="start" x="886" y="-354.3" font-family="Times,serif" font-size="14.00">deglycosylate(mol, mode)</text>
-<text text-anchor="start" x="886" y="-339.3" font-family="Times,serif" font-size="14.00">keep_best(mol)</text>
+<text text-anchor="start" x="886" y="-369.3" font-family="Times,serif" font-size="14.00">clear_mixtures(mol)</text>
+<text text-anchor="start" x="886" y="-354.3" font-family="Times,serif" font-size="14.00">clear_side_chains(mol, debug)</text>
+<text text-anchor="start" x="886" y="-339.3" font-family="Times,serif" font-size="14.00">deglycosylate(mol, mode)</text>
 <text text-anchor="start" x="886" y="-324.3" font-family="Times,serif" font-size="14.00">run(mol, timeout)</text>
 <text text-anchor="start" x="886" y="-309.3" font-family="Times,serif" font-size="14.00">run_df(df)</text>
 </g>

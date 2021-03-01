@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.standardize &mdash; npfc 0.7.9-4-g3bd591f documentation</title>
+  <title>npfc.standardize &mdash; npfc 0.7.9-5-ged666c8 documentation</title>
   
 
   
@@ -58,7 +58,7 @@
             
             
               <div class="version">
-                0.7.9-4-g3bd591f
+                0.7.9-5-ged666c8
               </div>
             
           
@@ -201,7 +201,7 @@
 
 <span class="c1"># DEFAULT_PROTOCOL = {&#39;tasks&#39;: [&#39;filter_empty&#39;,</span>
 <span class="c1">#                               &#39;disconnect_metal&#39;,</span>
-<span class="c1">#                               &#39;keep_best&#39;,</span>
+<span class="c1">#                               &#39;clear_mixtures&#39;,</span>
 <span class="c1">#                               &#39;deglycosylate&#39;,</span>
 <span class="c1">#                               &#39;filter_num_heavy_atom&#39;,</span>
 <span class="c1">#                               &#39;filter_molecular_weight&#39;,</span>
@@ -295,7 +295,7 @@
 <span class="sd">        1) **initiate_mol**: check if the molecule passed the RDKit conversion</span>
 <span class="sd">        2) **filter_empty**: filter molecules with empty structures</span>
 <span class="sd">        3) **disconnect_metal**: break bonds involving metallic atoms, resulting in potentially several molecules per structure.</span>
-<span class="sd">        4) **keep_best**: retrieve only the &quot;best&quot; molecule from a mixture, which might not always be the largest one.</span>
+<span class="sd">        4) **clear_mixtures**: retrieve only the &quot;best&quot; molecule from a mixture, which might not always be the largest one.</span>
 <span class="sd">        5) **deglycosylate**: remove all external sugars-like rings from the molecule and return the remaining non-linear entity.</span>
 <span class="sd">        6) **filter_num_heavy_atom**: filter molecules with a heavy atom count not in the accepted range. By default: num_heavy_atom &gt; 3.</span>
 <span class="sd">        7) **filter_molecular_weight**: filter molecules with a molecular weight not in the accepted range. By default: molecular_weight &lt;= 1000.0.</span>
@@ -458,7 +458,7 @@
             <span class="n">a</span><span class="o">.</span><span class="n">SetIsotope</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">mol</span></div>
 
-<div class="viewcode-block" id="Standardizer.keep_best"><a class="viewcode-back" href="../../standardize.html#npfc.standardize.Standardizer.keep_best">[docs]</a>    <span class="k">def</span> <span class="nf">keep_best</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mol</span><span class="p">:</span> <span class="n">Mol</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Mol</span><span class="p">:</span>
+<div class="viewcode-block" id="Standardizer.clear_mixtures"><a class="viewcode-back" href="../../standardize.html#npfc.standardize.Standardizer.clear_mixtures">[docs]</a>    <span class="k">def</span> <span class="nf">clear_mixtures</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mol</span><span class="p">:</span> <span class="n">Mol</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Mol</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Return the &quot;best&quot; molecule found in a molecular structure.</span>
 
 <span class="sd">        The &quot;best&quot; molecule is determined by the following criteria, sorted by priority:</span>
@@ -808,10 +808,10 @@
                 <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
                     <span class="k">return</span> <span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="s1">&#39;error&#39;</span><span class="p">,</span> <span class="s1">&#39;disconnect_metal&#39;</span><span class="p">)</span>
 
-            <span class="c1"># keep_best</span>
-            <span class="k">elif</span> <span class="n">task</span> <span class="o">==</span> <span class="s1">&#39;keep_best&#39;</span><span class="p">:</span>
+            <span class="c1"># clear_mixtures</span>
+            <span class="k">elif</span> <span class="n">task</span> <span class="o">==</span> <span class="s1">&#39;clear_mixtures&#39;</span><span class="p">:</span>
                 <span class="k">try</span><span class="p">:</span>
-                    <span class="n">mol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">keep_best</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
+                    <span class="n">mol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">clear_mixtures</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
                 <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
                     <span class="k">return</span> <span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="s1">&#39;error&#39;</span><span class="p">,</span> <span class="n">task</span><span class="p">)</span>
 
