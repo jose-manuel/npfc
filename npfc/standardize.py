@@ -40,7 +40,7 @@ DEFAULT_ELEMENTS = {'H', 'B', 'C', 'N', 'O', 'F', 'P', 'S', 'Cl', 'Br', 'I'}
 
 # DEFAULT_PROTOCOL = {'tasks': ['filter_empty',
 #                               'disconnect_metal',
-#                               'keep_best',
+#                               'clear_mixtures',
 #                               'deglycosylate',
 #                               'filter_num_heavy_atom',
 #                               'filter_molecular_weight',
@@ -134,7 +134,7 @@ class Standardizer(Filter):
         1) **initiate_mol**: check if the molecule passed the RDKit conversion
         2) **filter_empty**: filter molecules with empty structures
         3) **disconnect_metal**: break bonds involving metallic atoms, resulting in potentially several molecules per structure.
-        4) **keep_best**: retrieve only the "best" molecule from a mixture, which might not always be the largest one.
+        4) **clear_mixtures**: retrieve only the "best" molecule from a mixture, which might not always be the largest one.
         5) **deglycosylate**: remove all external sugars-like rings from the molecule and return the remaining non-linear entity.
         6) **filter_num_heavy_atom**: filter molecules with a heavy atom count not in the accepted range. By default: num_heavy_atom > 3.
         7) **filter_molecular_weight**: filter molecules with a molecular weight not in the accepted range. By default: molecular_weight <= 1000.0.
@@ -297,7 +297,7 @@ class Standardizer(Filter):
             a.SetIsotope(0)
         return mol
 
-    def keep_best(self, mol: Mol) -> Mol:
+    def clear_mixtures(self, mol: Mol) -> Mol:
         """Return the "best" molecule found in a molecular structure.
 
         The "best" molecule is determined by the following criteria, sorted by priority:
@@ -647,10 +647,10 @@ class Standardizer(Filter):
                 except ValueError:
                     return (mol, 'error', 'disconnect_metal')
 
-            # keep_best
-            elif task == 'keep_best':
+            # clear_mixtures
+            elif task == 'clear_mixtures':
                 try:
-                    mol = self.keep_best(mol)
+                    mol = self.clear_mixtures(mol)
                 except ValueError:
                     return (mol, 'error', task)
 

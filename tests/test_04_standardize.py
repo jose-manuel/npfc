@@ -188,7 +188,7 @@ def test_std_init(standardizer):
     assert set(standardizer.protocol.keys()) == set(['tasks', 'filter_num_heavy_atoms', 'filter_molecular_weight', 'filter_num_rings', 'filter_elements'])
     assert standardizer.protocol['tasks'] == ['filter_empty',
                                               'disconnect_metal',
-                                              'keep_best',
+                                              'clear_mixtures',
                                               'deglycosylate',
                                               'filter_num_heavy_atoms',
                                               'filter_molecular_weight',
@@ -212,19 +212,19 @@ def test_std_init(standardizer):
     assert standardizer.protocol['filter_molecular_weight'] == "100.0 <= molecular_weight <= 1000.0"
 
 
-def test_std_keep_best(standardizer, mols):
+def test_std_clear_mixtures(standardizer, mols):
     """Test if best fragments are extracted from mixtures."""
     # mol with smaller submols
-    mol_clean = standardizer.keep_best(mols['mixture_1'])
+    mol_clean = standardizer.clear_mixtures(mols['mixture_1'])
     assert Chem.MolToSmiles(mol_clean) == "NCCCCN(CCCN)Cc1ccc(B(O)O)cc1"
     # mol with a larger non-medchem submol
-    mol_clean = standardizer.keep_best(mols['mixture_2'])
+    mol_clean = standardizer.clear_mixtures(mols['mixture_2'])
     assert Chem.MolToSmiles(mol_clean) == "C1CCCCC1"
     # mol with a larger linear submol
-    mol_clean = standardizer.keep_best(mols['mixture_3'])
+    mol_clean = standardizer.clear_mixtures(mols['mixture_3'])
     assert Chem.MolToSmiles(mol_clean) == "C1CCCC1"
     # mol with only one submol
-    mol_clean = standardizer.keep_best(mols['tautomer_1'])
+    mol_clean = standardizer.clear_mixtures(mols['tautomer_1'])
     assert Chem.MolToSmiles(mol_clean) == "O=C1C=CC=CC1"
 
 
@@ -293,7 +293,7 @@ def test_standardizer_timeout(mols_timeout, standardizer):
 
 def test_standardizer_murcko_scaffolds(df_fragments, standardizer):
     """Run Murcko Scaffold Extraction on fragment dataset. Protocols A and B are performed within the same function."""
-    standardizer.protocol = {"tasks": ['keep_best', 'extract_murcko']}
+    standardizer.protocol = {"tasks": ['clear_mixtures', 'extract_murcko']}
     df_passed, df_filtered, df_error = standardizer.run_df(df_fragments)
     assert len(df_filtered) == 0
     assert len(df_error) == 0

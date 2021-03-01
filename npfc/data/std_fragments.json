@@ -1,6 +1,6 @@
 {
     "tasks": ["filter_empty",
-              "keep_best",
+              "clear_mixtures",
               "sanitize",
               "clear_isotopes",
               "normalize",

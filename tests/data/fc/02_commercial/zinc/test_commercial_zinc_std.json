@@ -1,7 +1,7 @@
 {
                     "tasks": ["filter_empty",
                               "disconnect_metal",
-                              "keep_best",
+                              "clear_mixtures",
                               "deglycosylate",
                               "filter_num_heavy_atoms",
                               "filter_molecular_weight",
