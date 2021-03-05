@@ -8,7 +8,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="npfc",
-    version='0.7.9-4-g3bd591f',
+    version='0.7.9-5-ged666c8',
     author="Jose-Manuel Gally",
     author_email="josemanuel.gally@mpi-dortmund.mpg.de",
     description="A package for analyzing fragment combinations in natural and synthetic molecules",
@@ -18,6 +18,11 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     install_requires=[
           'pip',
+        #  'rdkit',
+        #  'networkx',
+        #  'pandas',
+        #  'seaborn',
+        #  'toolz',
       ],
     setup_requires=["pytest-runner"],
     tests_require=["pytest"],

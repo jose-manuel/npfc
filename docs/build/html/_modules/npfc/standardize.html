@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>npfc.standardize &mdash; npfc 0.7.9-5-ged666c8 documentation</title>
+  <title>npfc.standardize &mdash; npfc 0.7.9-6-gdda5223 documentation</title>
   
 
   
@@ -58,7 +58,7 @@
             
             
               <div class="version">
-                0.7.9-5-ged666c8
+                0.7.9-6-gdda5223
               </div>
             
           
@@ -370,6 +370,9 @@
             <span class="p">[</span><span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Option </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">opt</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="k">for</span> <span class="n">opt</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_protocol</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">opt</span> <span class="o">!=</span> <span class="s1">&#39;tasks&#39;</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;Standardizer (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_protocol</span><span class="p">[</span><span class="s1">&#39;tasks&#39;</span><span class="p">])</span><span class="si">}</span><span class="s2"> tasks)&quot;</span>
+
+    <span class="k">def</span> <span class="nf">describe</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># init</span>
         <span class="n">pad</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_protocol</span><span class="p">[</span><span class="s1">&#39;tasks&#39;</span><span class="p">])</span>
         <span class="n">head</span> <span class="o">=</span> <span class="s1">&#39;STANDARIDZER={</span><span class="se">\n</span><span class="s1">&#39;</span>

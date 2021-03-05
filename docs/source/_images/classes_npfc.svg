@@ -38,7 +38,7 @@
 <text text-anchor="start" x="424.5" y="-106.3" font-family="Times,serif" font-size="14.00">atoms : dict</text>
 <text text-anchor="start" x="424.5" y="-91.3" font-family="Times,serif" font-size="14.00">bonds : dict</text>
 <text text-anchor="start" x="424.5" y="-76.3" font-family="Times,serif" font-size="14.00">fragments : dict</text>
-<text text-anchor="start" x="424.5" y="-61.3" font-family="Times,serif" font-size="14.00">palette : _ColorPalette, OrderedDict, NoneType</text>
+<text text-anchor="start" x="424.5" y="-61.3" font-family="Times,serif" font-size="14.00">palette : _ColorPalette, NoneType, OrderedDict</text>
 <polyline fill="none" stroke="black" points="416.5,-53.5 694.5,-53.5 "/>
 <text text-anchor="start" x="424.5" y="-38.3" font-family="Times,serif" font-size="14.00">blend()</text>
 </g>
@@ -168,30 +168,31 @@
 </g>
 <!-- 12 -->
 <g id="node13" class="node"><title>12</title>
-<polygon fill="none" stroke="black" points="878,-301.5 878,-565.5 1117,-565.5 1117,-301.5 878,-301.5"/>
-<text text-anchor="middle" x="997.5" y="-550.3" font-family="Times,serif" font-size="14.00">npfc.standardize.Standardizer</text>
-<polyline fill="none" stroke="black" points="878,-542.5 1117,-542.5 "/>
-<text text-anchor="start" x="886" y="-527.3" font-family="Times,serif" font-size="14.00">canonicalizer : TautomerCanonicalizer</text>
-<text text-anchor="start" x="886" y="-512.3" font-family="Times,serif" font-size="14.00">col_id</text>
-<text text-anchor="start" x="886" y="-497.3" font-family="Times,serif" font-size="14.00">col_mol</text>
-<text text-anchor="start" x="886" y="-482.3" font-family="Times,serif" font-size="14.00">elements_medchem</text>
-<text text-anchor="start" x="886" y="-467.3" font-family="Times,serif" font-size="14.00">full_uncharger</text>
-<text text-anchor="start" x="886" y="-452.3" font-family="Times,serif" font-size="14.00">metal_disconnector : MetalDisconnector</text>
-<text text-anchor="start" x="886" y="-437.3" font-family="Times,serif" font-size="14.00">normalizer : Normalizer</text>
-<text text-anchor="start" x="886" y="-422.3" font-family="Times,serif" font-size="14.00">protocol</text>
-<text text-anchor="start" x="886" y="-407.3" font-family="Times,serif" font-size="14.00">timeout</text>
-<polyline fill="none" stroke="black" points="878,-399.5 1117,-399.5 "/>
-<text text-anchor="start" x="886" y="-384.3" font-family="Times,serif" font-size="14.00">clear_isotopes(mol)</text>
-<text text-anchor="start" x="886" y="-369.3" font-family="Times,serif" font-size="14.00">clear_mixtures(mol)</text>
-<text text-anchor="start" x="886" y="-354.3" font-family="Times,serif" font-size="14.00">clear_side_chains(mol, debug)</text>
-<text text-anchor="start" x="886" y="-339.3" font-family="Times,serif" font-size="14.00">deglycosylate(mol, mode)</text>
-<text text-anchor="start" x="886" y="-324.3" font-family="Times,serif" font-size="14.00">run(mol, timeout)</text>
-<text text-anchor="start" x="886" y="-309.3" font-family="Times,serif" font-size="14.00">run_df(df)</text>
+<polygon fill="none" stroke="black" points="878,-294 878,-573 1117,-573 1117,-294 878,-294"/>
+<text text-anchor="middle" x="997.5" y="-557.8" font-family="Times,serif" font-size="14.00">npfc.standardize.Standardizer</text>
+<polyline fill="none" stroke="black" points="878,-550 1117,-550 "/>
+<text text-anchor="start" x="886" y="-534.8" font-family="Times,serif" font-size="14.00">canonicalizer : TautomerCanonicalizer</text>
+<text text-anchor="start" x="886" y="-519.8" font-family="Times,serif" font-size="14.00">col_id</text>
+<text text-anchor="start" x="886" y="-504.8" font-family="Times,serif" font-size="14.00">col_mol</text>
+<text text-anchor="start" x="886" y="-489.8" font-family="Times,serif" font-size="14.00">elements_medchem</text>
+<text text-anchor="start" x="886" y="-474.8" font-family="Times,serif" font-size="14.00">full_uncharger</text>
+<text text-anchor="start" x="886" y="-459.8" font-family="Times,serif" font-size="14.00">metal_disconnector : MetalDisconnector</text>
+<text text-anchor="start" x="886" y="-444.8" font-family="Times,serif" font-size="14.00">normalizer : Normalizer</text>
+<text text-anchor="start" x="886" y="-429.8" font-family="Times,serif" font-size="14.00">protocol</text>
+<text text-anchor="start" x="886" y="-414.8" font-family="Times,serif" font-size="14.00">timeout</text>
+<polyline fill="none" stroke="black" points="878,-407 1117,-407 "/>
+<text text-anchor="start" x="886" y="-391.8" font-family="Times,serif" font-size="14.00">clear_isotopes(mol)</text>
+<text text-anchor="start" x="886" y="-376.8" font-family="Times,serif" font-size="14.00">clear_mixtures(mol)</text>
+<text text-anchor="start" x="886" y="-361.8" font-family="Times,serif" font-size="14.00">clear_side_chains(mol, debug)</text>
+<text text-anchor="start" x="886" y="-346.8" font-family="Times,serif" font-size="14.00">deglycosylate(mol, mode)</text>
+<text text-anchor="start" x="886" y="-331.8" font-family="Times,serif" font-size="14.00">describe()</text>
+<text text-anchor="start" x="886" y="-316.8" font-family="Times,serif" font-size="14.00">run(mol, timeout)</text>
+<text text-anchor="start" x="886" y="-301.8" font-family="Times,serif" font-size="14.00">run_df(df)</text>
 </g>
 <!-- 11&#45;&gt;12 -->
 <g id="edge4" class="edge"><title>11&#45;&gt;12</title>
-<path fill="none" stroke="black" d="M1149.02,-144.535C1128.16,-184.171 1099.21,-239.187 1072.2,-290.52"/>
-<polygon fill="black" stroke="black" points="1072.06,-290.792 1072.81,-297.964 1066.47,-301.411 1065.73,-294.239 1072.06,-290.792"/>
+<path fill="none" stroke="black" d="M1149.02,-144.535C1129.18,-182.226 1102.04,-233.823 1076.19,-282.938"/>
+<polygon fill="black" stroke="black" points="1076.12,-283.083 1076.86,-290.255 1070.53,-293.702 1069.78,-286.53 1076.12,-283.083"/>
 <text text-anchor="middle" x="1160.5" y="-196.8" font-family="Times,serif" font-size="14.00" fill="green">full_uncharger</text>
 </g>
 <!-- 14 -->
@@ -209,8 +210,8 @@
 </g>
 <!-- 12&#45;&gt;4 -->
 <g id="edge3" class="edge"><title>12&#45;&gt;4</title>
-<path fill="none" stroke="black" d="M997.5,-565.777C997.5,-601.643 997.5,-638.722 997.5,-668.265"/>
-<polygon fill="none" stroke="black" points="994,-668.387 997.5,-678.387 1001,-668.387 994,-668.387"/>
+<path fill="none" stroke="black" d="M997.5,-573.041C997.5,-606.56 997.5,-640.62 997.5,-668.153"/>
+<polygon fill="none" stroke="black" points="994,-668.371 997.5,-678.371 1001,-668.371 994,-668.371"/>
 </g>
 </g>
 </svg>

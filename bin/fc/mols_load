@@ -8,6 +8,7 @@ export them to CSV or HDF files with RDKit Mol objects.
 """
 
 # standard
+from pathlib import Path
 import sys
 import warnings
 from datetime import datetime
@@ -77,11 +78,26 @@ def main():
     # parse arguments
 
     # check on args values not already checked by argparse
-    utils.check_arg_input_file(args.input_mols)
+    if ',' in args.input_mols:
+        input_files = [x.strip() for x in args.input_mols.split(',')]
+    elif Path(args.input_mols).is_file():
+        input_files = [args.input_mols]
+    elif Path(args.input_mols).is_dir():
+        input_files = sorted([str(x) for x in Path(args.input_mols).glob('*')])
+    else:
+        raise ValueError('ERROR! DOES NOT KNOW WHAT TO DO WITH INPUT MOLS (%s)' % args.input_mols)
+
+    if len(input_files) < 1:
+        raise ValueError('ERROR! COULD NOT FIND ANY INPUT MOLS AT "%s"' % args.input_mols)
+
+    for input_file in input_files:
+        print(f"input_file: {input_file}")
+        utils.check_arg_input_file(input_file)
+
     utils.check_arg_output_file(args.output_mols)
     utils.check_arg_positive_number(args.nrecords)
     # src infos
-    in_format, in_compression = utils.get_file_format(args.input_mols)
+    in_format, in_compression = utils.get_file_format(input_files[0])  # input files are supposed to be homogeneous
     # out infos
     out_format, out_compression = utils.get_file_format(args.output_mols)
 
@@ -94,7 +110,11 @@ def main():
     logger.info("npfc".ljust(pad) + f"{npfc.__version__}")
     # arguments
     logger.info("ARGUMENTS")
-    logger.info("INPUT_MOLS".ljust(pad) + f"{args.input_mols}")
+    if len(input_files) > 1:
+        for i, input_file in enumerate(input_files):
+            logger.info(f"INPUT_FILE {str(i+1).zfill(2)}".ljust(pad) + f"{input_file}")
+    else:
+        logger.info("INPUT_FILE".ljust(pad) + f"{input_files[0]}")
     logger.info("OUTPUT_MOLS".ljust(pad) + f"{args.output_mols}")
     logger.info("NRECORDS".ljust(pad) + f"{args.nrecords}")
     logger.info("SHUFFLE".ljust(pad) + f"{args.shuffle}")
@@ -117,15 +137,16 @@ def main():
     # load mols
     logger.info("LOADING MOLECULES")
     d1 = datetime.now()
-    df_mols = load.file(args.input_mols,
-                        in_id=args.in_id,
-                        out_id=args.out_id,
-                        in_mol=args.in_mol,
-                        out_mol=args.out_mol,
-                        keep_props=args.keep_props,
-                        decode=args.decode,
-                        csv_sep=args.in_sep
-                        )
+    df_mols = pd.concat([load.file(x,
+                                   in_id=args.in_id,
+                                   out_id=args.out_id,
+                                   in_mol=args.in_mol,
+                                   out_mol=args.out_mol,
+                                   keep_props=args.keep_props,
+                                   decode=args.decode,
+                                   csv_sep=args.in_sep
+                                   ) for x in input_files])
+
     # filter out failed molecules
     d2 = datetime.now()
     df_failed = df_mols[df_mols['mol'].isna()]
