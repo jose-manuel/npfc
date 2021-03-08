@@ -71,7 +71,7 @@ rule REPORT_MOL:
 
 
 rule FRAG:
-    input: root_dir + "/data/" + prep_subdir + "/05_depict/data/" + prefix + "_depict.csv.gz"
+    input: root_dir + "/data/" + prep_subdir + "/05_fcp/data/" + prefix + "_fcp.csv.gz"
     output: DATA + "/fragment/data/fragment.csv.gz"
     log: DATA + "/fragment/log/fragment.log"
     shell: "fct_fragment {input} {output} >{log} 2>&1"

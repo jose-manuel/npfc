@@ -1,45 +1,33 @@
-2021-03-08 15:27:51,452 -- INFO -- RUNNING STANDARDIZE_MOLS
-2021-03-08 15:27:51,452 -- INFO -- LIBRARY VERSIONS:
-2021-03-08 15:27:51,452 -- INFO -- rdkit                                   2020.09.1
-2021-03-08 15:27:51,452 -- INFO -- pandas                                  1.1.4
-2021-03-08 15:27:51,452 -- INFO -- npfc                                    0.7.10
-2021-03-08 15:27:51,452 -- INFO -- ARGUMENTS:
-2021-03-08 15:27:51,452 -- INFO -- MINPUT                                  tests/tmp/fc/03_natural/dnp/data/prep/05_depict/data/dnp_001_depict.csv.gz
-2021-03-08 15:27:51,452 -- INFO -- MFORMAT                                 CSV
-2021-03-08 15:27:51,452 -- INFO -- MCOMPRESSION                            gzip
-2021-03-08 15:27:51,453 -- INFO -- MID                                     idm
-2021-03-08 15:27:51,453 -- INFO -- MMOL                                    mol
-2021-03-08 15:27:51,453 -- INFO -- MDECODE                                 |
-2021-03-08 15:27:51,453 -- INFO -- FINPUT                                  tests/tmp/fc/01_fragments/crms/data/prep/05_depict/data/crms_depict.csv.gz
-2021-03-08 15:27:51,453 -- INFO -- FFORMAT                                 CSV
-2021-03-08 15:27:51,453 -- INFO -- FCOMPRESSION                            gzip
-2021-03-08 15:27:51,453 -- INFO -- FID                                     idm
-2021-03-08 15:27:51,453 -- INFO -- FMOL                                    mol
-2021-03-08 15:27:51,453 -- INFO -- FDECODE                                 True
-2021-03-08 15:27:51,453 -- INFO -- OUTPUT                                  tests/tmp/test.csv
-2021-03-08 15:27:51,453 -- INFO -- OFORMAT                                 CSV
-2021-03-08 15:27:51,453 -- INFO -- OCOMPRESSION                            None
-2021-03-08 15:27:51,453 -- INFO -- OENCODE                                 True
-2021-03-08 15:27:51,453 -- INFO -- OMOL                                    mol
-2021-03-08 15:27:51,453 -- INFO -- OFRAG                                   mol_frag
-2021-03-08 15:27:51,453 -- INFO -- OSEP                                    |
-2021-03-08 15:27:51,453 -- INFO -- FILTER_FRAGS                            
-2021-03-08 15:27:51,453 -- INFO -- TAUTOMER                                0
-2021-03-08 15:27:51,453 -- INFO -- LOG                                     INFO
-2021-03-08 15:27:51,453 -- INFO -- BEGIN
-2021-03-08 15:27:51,454 -- INFO -- LOADING MOLECULES
-2021-03-08 15:27:51,457 -- INFO -- LOADED 6 RECORDS WITH 0 FAILURE(S)
-2021-03-08 15:27:51,457 -- INFO -- LOADING FRAGMENTS
-2021-03-08 15:27:51,463 -- INFO -- LOADED 93 RECORDS WITH 0 FAILURE(S)
-2021-03-08 15:27:51,463 -- INFO -- FRAGMENT SEARCH
-2021-03-08 15:27:51,847 -- INFO -- FOUND 14 FRAGMENT HITS
-2021-03-08 15:27:51,847 -- INFO -- SAVING RESULTS
-2021-03-08 15:27:51,851 -- INFO -- SAVED 14 RECORDS AT tests/tmp/test.csv
-2021-03-08 15:27:51,851 -- INFO -- SUMMARY
-2021-03-08 15:27:51,851 -- INFO -- COMPUTATIONAL TIME: CONFIGURING JOB                                             0:00:00.003099
-2021-03-08 15:27:51,851 -- INFO -- COMPUTATIONAL TIME: LOADING MOLECULES                                           0:00:00.003637
-2021-03-08 15:27:51,851 -- INFO -- COMPUTATIONAL TIME: LOADING FRAGMNENTS                                          0:00:00.006131
-2021-03-08 15:27:51,851 -- INFO -- COMPUTATIONAL TIME: FRAGMENT SEARCH                                             0:00:00.383845
-2021-03-08 15:27:51,851 -- INFO -- COMPUTATIONAL TIME: SAVING OUTPUT                                               0:00:00.003671
-2021-03-08 15:27:51,851 -- INFO -- COMPUTATIONAL TIME: TOTAL                                                       0:00:00.400383
-2021-03-08 15:27:51,851 -- INFO -- END
+2021-03-08 17:35:07,859 -- INFO -- RUNNING FCT_MOLECULE
+2021-03-08 17:35:07,859 -- INFO -- LIBRARY VERSIONS:
+2021-03-08 17:35:07,859 -- INFO -- rdkit                                   2020.09.1
+2021-03-08 17:35:07,859 -- INFO -- pandas                                  1.1.4
+2021-03-08 17:35:07,859 -- INFO -- npfc                                    0.7.10-1-g60d4c8a
+2021-03-08 17:35:07,859 -- INFO -- ARGUMENTS:
+2021-03-08 17:35:07,859 -- INFO -- INPUT_LOAD_STEP                         ../data/fc/03_natural/dnp/data/prep/02_load/data/dnp_001.csv.gz
+2021-03-08 17:35:07,859 -- INFO -- INPUT_LATEST_STEP                       ../data/fc/03_natural/dnp/data/prep/frags_crms/08_fcg/data/dnp_001_fcg.csv.gz
+2021-03-08 17:35:07,859 -- INFO -- INPUT_COMMERCIAL_REF                    tests/tmp/fc/02_commercial/zinc/data/prep/04_dedupl/zinc_refs.hdf
+2021-03-08 17:35:07,859 -- INFO -- REF_CHUNKSIZE                           100000
+2021-03-08 17:35:07,860 -- INFO -- OUTPUT_MOLECULE_TABLE                   tests/tmp/test.csv
+2021-03-08 17:35:07,860 -- INFO -- MODEL_NP                                /home/gally/Software/anaconda3/envs/npfc4/lib/python3.8/site-packages/npfc/data/model_np_score.model.gz
+2021-03-08 17:35:07,860 -- INFO -- MODEL_SA                                /home/gally/Software/anaconda3/envs/npfc4/lib/python3.8/site-packages/npfc/data/model_sa_score.pkl.gz
+2021-03-08 17:35:07,860 -- INFO -- LOG                                     INFO
+2021-03-08 17:35:07,860 -- INFO -- BEGIN
+2021-03-08 17:35:07,860 -- INFO -- INITIALIAZING OBJECTS
+2021-03-08 17:35:08,310 -- INFO -- LOADING INPUT FILES
+2021-03-08 17:35:08,517 -- INFO -- LOADED MOLECULES FROM LOAD STEP: 4,998
+2021-03-08 17:35:09,543 -- INFO -- LOADED MOLECULES FROM LATEST STEP: 1,060
+2021-03-08 17:35:09,543 -- INFO -- PREPARING DATA FOR PNP ANNOTATION
+2021-03-08 17:35:09,557 -- INFO -- RUNNING PNP ANNOTATION
+2021-03-08 17:35:09,568 -- INFO -- RUNNING COMMERCIAL REFS ANNOTATION
+2021-03-08 17:35:09,661 -- INFO -- PREPARING DATA
+2021-03-08 17:35:09,860 -- INFO -- RUNNING MOLECULAR DESCRIPTORS ANNOTATION
+2021-03-08 17:35:13,338 -- INFO -- SAVING OUTPUT
+2021-03-08 17:35:13,422 -- INFO -- SUMMARY
+2021-03-08 17:35:13,422 -- INFO -- COMPUTATIONAL TIME: CONFIGURING JOB                                             0:00:00.002293
+2021-03-08 17:35:13,422 -- INFO -- COMPUTATIONAL TIME: LOADING INPUTS                                              0:00:01.682878
+2021-03-08 17:35:13,422 -- INFO -- COMPUTATIONAL TIME: PREPARING INPUTS                                            0:00:00.317362
+2021-03-08 17:35:13,422 -- INFO -- COMPUTATIONAL TIME: COMPUTING ANNOTATIONS                                       0:00:03.477482
+2021-03-08 17:35:13,422 -- INFO -- COMPUTATIONAL TIME: SAVING OUTPUT                                               0:00:00.082243
+2021-03-08 17:35:13,422 -- INFO -- COMPUTATIONAL TIME: TOTAL                                                       0:00:05.562258
+2021-03-08 17:35:13,422 -- INFO -- END
