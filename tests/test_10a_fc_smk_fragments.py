@@ -37,7 +37,7 @@ def test_init():
 def test_run():
     """Run the 'fragments' protocol applied to the cr dataset."""
 
-    output_files = ["tests/tmp/fc/01_fragments/crms/data/prep/05_depict/data/crms_depict.csv.gz"]
+    output_files = ["tests/tmp/fc/01_fragments/crms/data/prep/05_fcp/data/crms_fcp.csv.gz"]
     output_svg = 'tests/tmp/fc/01_fragments/crms/fragments_crms_tasktree.svg'
     # run protocol
     command_smk = 'run_protocol_fc fragments -c fc/01_fragments/crms/test_fragments_crms.json'

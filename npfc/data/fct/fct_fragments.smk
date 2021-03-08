@@ -105,7 +105,7 @@ rule MOL_MOL:
 rule MOL:
     input:
         load_step = root_dir + "/data/" + prep_subdir + "/01_load/data/" + prefix + ".csv.gz",
-        latest_step = root_dir + "/data/" + prep_subdir + "/05_depict/data/" + prefix + "_depict.csv.gz",
+        latest_step = root_dir + "/data/" + prep_subdir + "/05_fcp/data/" + prefix + "_fcp.csv.gz",
         commercial_ref = commercial_ref
     output: DATA + "/molecule/data/molecule.csv.gz"
     log: DATA + "/molecule/log/molecule.log"
