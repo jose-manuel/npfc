@@ -30,6 +30,7 @@ input_file = config['input_file']
 frags_file = config['frags_file']
 frags_subdir = config['frags_subdir']
 chunksize = config['chunksize']
+tautomer = config['tautomer']
 # preprocess subdir
 try:
     prep_subdir = config['prep_subdir']
@@ -158,12 +159,14 @@ rule FCG:
     log: "{WD}" + f"/{prep_subdir}/{frags_subdir}" + "/08_fcg/log/{prefix}_{cid}_fcg.log"
     shell: "fcg_generate {input} {output} --min-frags 2 --max-frags 9999 --max-overlaps 5 >{log} 2>&1"
 
+
 rule FCC:
     priority: 12
     input: ancient("{WD}" + f"/{prep_subdir}/{frags_subdir}" + "/06_fs/data/{prefix}_{cid}_fs.csv.gz")
     output: "{WD}" + f"/{prep_subdir}/{frags_subdir}" + "/07_fcc/data/{prefix}_{cid}_fcc.csv.gz"
     log: "{WD}" + f"/{prep_subdir}/{frags_subdir}" + "/07_fcc/log/{prefix}_{cid}_fcc.log"
     shell: "fc_classify {input} {output} -c 3 >{log} 2>&1"
+
 
 rule FS:
     priority: 13
@@ -172,7 +175,8 @@ rule FS:
         frags = ancient(frags_file)
     output: "{WD}/{prep_subdir}" + f"/{frags_subdir}" + "/06_fs/data/{prefix}_{cid}_fs.csv.gz"
     log: "{WD}/{prep_subdir}" + f"/{frags_subdir}" + "/06_fs/log/{prefix}_{cid}_fs.log"
-    shell: "frags_search {input.mols} {input.frags} {output} >{log} 2>&1"
+    shell: "frags_search {input.mols} {input.frags} {output} -t " + f"{tautomer}" + " >{log} 2>&1"
+
 
 rule DEPICT:
     priority: 14
@@ -180,6 +184,7 @@ rule DEPICT:
     output: "{WD}/{prep_subdir}/05_depict/data/{prefix}_{cid}_depict.csv.gz"
     log: "{WD}/{prep_subdir}/05_depict/log/{prefix}_{cid}_depict.log"
     shell: "mols_depict {input} {output} -m rdDepictor 2>{log}"
+
 
 rule DEDUPL:
     priority: 15
@@ -191,6 +196,7 @@ rule DEDUPL:
     log: "{WD}/{prep_subdir}/04_dedupl/log/{prefix}_{cid}_dedupl.log"
     shell: "mols_dedupl {input} {output.passed} -d {output.filtered} -s {output.synonyms} -r {WD}/{prep_subdir}/04_dedupl/{prefix}_ref.hdf 2>{log}"
 
+
 rule STD:
     priority: 16
     input: ancient(WD + "/{prep_subdir}/02_load/data/{prefix}_{cid}.csv.gz")
@@ -201,12 +207,14 @@ rule STD:
     log: "{WD}/{prep_subdir}/03_std/log/{prefix}_{cid}_std.log"
     shell: "mols_standardize {input} {output.std} -f {output.filtered} -e {output.error} -p " + config_std_mols + " 2>{log}"  # mols_standardize takes a dir as output
 
+
 rule LOAD:
     priority: 18
     input: ancient("{WD}/{prep_subdir}/01_chunk/data/{prefix}_{cid}.sdf.gz")
     output: "{WD}/{prep_subdir}/02_load/data/{prefix}_{cid}.csv.gz"
     log: "{WD}/{prep_subdir}/02_load/log/{prefix}_{cid}_load.log"
     shell: "mols_load {input} {output} --in_id {molid} >{log} 2>&1"
+
 
 rule CHUNK:
     priority: 19

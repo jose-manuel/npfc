@@ -1,1 +1,45 @@
-2021-03-05 14:58:39,242 -- INFO -- RUNNING LOAD_MOLS
+2021-03-08 15:27:51,452 -- INFO -- RUNNING STANDARDIZE_MOLS
+2021-03-08 15:27:51,452 -- INFO -- LIBRARY VERSIONS:
+2021-03-08 15:27:51,452 -- INFO -- rdkit                                   2020.09.1
+2021-03-08 15:27:51,452 -- INFO -- pandas                                  1.1.4
+2021-03-08 15:27:51,452 -- INFO -- npfc                                    0.7.10
+2021-03-08 15:27:51,452 -- INFO -- ARGUMENTS:
+2021-03-08 15:27:51,452 -- INFO -- MINPUT                                  tests/tmp/fc/03_natural/dnp/data/prep/05_depict/data/dnp_001_depict.csv.gz
+2021-03-08 15:27:51,452 -- INFO -- MFORMAT                                 CSV
+2021-03-08 15:27:51,452 -- INFO -- MCOMPRESSION                            gzip
+2021-03-08 15:27:51,453 -- INFO -- MID                                     idm
+2021-03-08 15:27:51,453 -- INFO -- MMOL                                    mol
+2021-03-08 15:27:51,453 -- INFO -- MDECODE                                 |
+2021-03-08 15:27:51,453 -- INFO -- FINPUT                                  tests/tmp/fc/01_fragments/crms/data/prep/05_depict/data/crms_depict.csv.gz
+2021-03-08 15:27:51,453 -- INFO -- FFORMAT                                 CSV
+2021-03-08 15:27:51,453 -- INFO -- FCOMPRESSION                            gzip
+2021-03-08 15:27:51,453 -- INFO -- FID                                     idm
+2021-03-08 15:27:51,453 -- INFO -- FMOL                                    mol
+2021-03-08 15:27:51,453 -- INFO -- FDECODE                                 True
+2021-03-08 15:27:51,453 -- INFO -- OUTPUT                                  tests/tmp/test.csv
+2021-03-08 15:27:51,453 -- INFO -- OFORMAT                                 CSV
+2021-03-08 15:27:51,453 -- INFO -- OCOMPRESSION                            None
+2021-03-08 15:27:51,453 -- INFO -- OENCODE                                 True
+2021-03-08 15:27:51,453 -- INFO -- OMOL                                    mol
+2021-03-08 15:27:51,453 -- INFO -- OFRAG                                   mol_frag
+2021-03-08 15:27:51,453 -- INFO -- OSEP                                    |
+2021-03-08 15:27:51,453 -- INFO -- FILTER_FRAGS                            
+2021-03-08 15:27:51,453 -- INFO -- TAUTOMER                                0
+2021-03-08 15:27:51,453 -- INFO -- LOG                                     INFO
+2021-03-08 15:27:51,453 -- INFO -- BEGIN
+2021-03-08 15:27:51,454 -- INFO -- LOADING MOLECULES
+2021-03-08 15:27:51,457 -- INFO -- LOADED 6 RECORDS WITH 0 FAILURE(S)
+2021-03-08 15:27:51,457 -- INFO -- LOADING FRAGMENTS
+2021-03-08 15:27:51,463 -- INFO -- LOADED 93 RECORDS WITH 0 FAILURE(S)
+2021-03-08 15:27:51,463 -- INFO -- FRAGMENT SEARCH
+2021-03-08 15:27:51,847 -- INFO -- FOUND 14 FRAGMENT HITS
+2021-03-08 15:27:51,847 -- INFO -- SAVING RESULTS
+2021-03-08 15:27:51,851 -- INFO -- SAVED 14 RECORDS AT tests/tmp/test.csv
+2021-03-08 15:27:51,851 -- INFO -- SUMMARY
+2021-03-08 15:27:51,851 -- INFO -- COMPUTATIONAL TIME: CONFIGURING JOB                                             0:00:00.003099
+2021-03-08 15:27:51,851 -- INFO -- COMPUTATIONAL TIME: LOADING MOLECULES                                           0:00:00.003637
+2021-03-08 15:27:51,851 -- INFO -- COMPUTATIONAL TIME: LOADING FRAGMNENTS                                          0:00:00.006131
+2021-03-08 15:27:51,851 -- INFO -- COMPUTATIONAL TIME: FRAGMENT SEARCH                                             0:00:00.383845
+2021-03-08 15:27:51,851 -- INFO -- COMPUTATIONAL TIME: SAVING OUTPUT                                               0:00:00.003671
+2021-03-08 15:27:51,851 -- INFO -- COMPUTATIONAL TIME: TOTAL                                                       0:00:00.400383
+2021-03-08 15:27:51,851 -- INFO -- END

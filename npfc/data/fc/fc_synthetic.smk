@@ -35,6 +35,7 @@ frags_subdir = config['frags_subdir']
 natref_dedupl_reffile = config['natref_dedupl_reffile']
 natref_fcg_dir = config['natref_fcg_dir']
 chunksize = config['chunksize']  # maximum number of molecules per chunk
+tautomer = config['tautomer']
 # specific to synthetic
 natref_subdir = config['natref_subdir']  # WD for defining natural compounds, subdir with same frags is also searched for pnp annotation
 # by default consider fcc for pnp attributes, if one wants to only compare pairs of fragments, provide empty string in config file instead
@@ -184,12 +185,14 @@ rule PNP:
     log: "{WD}" + f"/{prep_subdir}/{natref_subdir}/{frags_subdir}" + "/10_pnp/log/{prefix}_{cid}_pnp.log"
     shell: "fcg_annotate_pnp {input} {natref_fcg_dir} {output.fgraphs} -l {output.list_pnps} -d '" + pnp_attributes + "' >{log} 2>&1"
 
+
 rule FCG:
     priority: 5
     input: ancient("{WD}" + f"/{prep_subdir}/{natref_subdir}/{frags_subdir}" + "/08_fcc/data/{prefix}_{cid}_fcc.csv.gz")
     output: "{WD}" + f"/{prep_subdir}/{natref_subdir}/{frags_subdir}" + "/09_fcg/data/{prefix}_{cid}_fcg.csv.gz"
     log: "{WD}" + f"/{prep_subdir}/{natref_subdir}/{frags_subdir}" + "/09_fcg/log/{prefix}_{cid}_fcg.log"
     shell: "fcg_generate {input} {output} --min-frags 2 --max-frags 9999 --max-overlaps 5 >{log} 2>&1"
+
 
 rule FCC:
     priority: 6
@@ -198,6 +201,7 @@ rule FCC:
     log: "{WD}/{prep_subdir}" + f"/{natref_subdir}/{frags_subdir}" + "/08_fcc/log/{prefix}_{cid}_fcc.log"
     shell: "fc_classify {input} {output} -c 3 >{log} 2>&1"
 
+
 rule FS:
     priority: 7
     input:
@@ -205,7 +209,8 @@ rule FS:
         frags = ancient(frags_file)
     output: "{WD}/{prep_subdir}" + f"/{natref_subdir}/{frags_subdir}" + "/07_fs/data/{prefix}_{cid}_fs.csv.gz"
     log: "{WD}/{prep_subdir}" + f"/{natref_subdir}/{frags_subdir}" + "/07_fs/log/{prefix}_{cid}_fs.log"
-    shell: "frags_search {input.mols} {input.frags} {output} >{log} 2>&1"
+    shell: "frags_search {input.mols} {input.frags} {output} -t " + f"{tautomer}" + " >{log} 2>&1"
+
 
 rule SUBSET:
     priority: 8
@@ -216,12 +221,14 @@ rule SUBSET:
     log: "{WD}/{prep_subdir}" + f"/{natref_subdir}" + "/06_subset/log/{prefix}_{cid}_subset.log"
     shell: "mols_subset {input.mols} {input.ref} {output} >{log} 2>&1"
 
+
 rule DEPICT:
     priority: 9
     input: ancient("{WD}/{prep_subdir}/04_dedupl/data/{prefix}_{cid}_dedupl.csv.gz")
     output: "{WD}/{prep_subdir}/05_depict/data/{prefix}_{cid}_depict.csv.gz"
     log: "{WD}/{prep_subdir}/05_depict/log/{prefix}_{cid}_depict.log"
     shell: "mols_depict {input} {output} -m rdDepictor 2>{log}"
+
 
 rule DEDUPL:
     priority: 10
@@ -233,6 +240,7 @@ rule DEDUPL:
     log: "{WD}/{prep_subdir}/04_dedupl/log/{prefix}_{cid}_dedupl.log"
     shell: "mols_dedupl {input} {output.passed} -d {output.filtered} -s {output.synonyms} -r {WD}/{prep_subdir}/04_dedupl/{prefix}_ref.hdf 2>{log}"
 
+
 rule STD:
     priority: 11
     input: ancient(WD + "/{prep_subdir}/02_load/data/{prefix}_{cid}.csv.gz")
@@ -243,12 +251,14 @@ rule STD:
     log: "{WD}/{prep_subdir}/03_std/log/{prefix}_{cid}_std.log"
     shell: "mols_standardize {input} {output.std} -f {output.filtered} -e {output.error} -p " + config_std_mols + " 2>{log}"  # mols_standardize takes a dir as output
 
+
 rule LOAD:
     priority: 12
     input: ancient("{WD}/{prep_subdir}/01_chunk/data/{prefix}_{cid}.sdf.gz")
     output: "{WD}/{prep_subdir}/02_load/data/{prefix}_{cid}.csv.gz"
     log: "{WD}/{prep_subdir}/02_load/log/{prefix}_{cid}_load.log"
     shell: "mols_load {input} {output} --in_id {molid} >{log} 2>&1"
+
 
 rule CHUNK:
     priority: 13

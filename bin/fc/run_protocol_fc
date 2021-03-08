@@ -118,6 +118,8 @@ def main():
     # default keys set to None
     config = ['molid', 'prefix', 'WD', 'input_file', 'frags_file', 'chunksize', 'natref']
     config = {k: None for k in config}
+    # special case for tautomers
+    config['tautomer'] = False
 
     # begin
     ds.append(('CONFIGURE', datetime.now()))
@@ -252,6 +254,7 @@ def main():
         # add the counts of mols/chunks to the configuration
         config.update(d)
         logger.info("NUMBER OF CHUNKS:".ljust(pad) + f"{config['num_mols']:,d} / {config['chunksize']:,d} = {config['num_chunks']:,d}")
+
     # add arguments to the smk command
     smk_command += "--config "
     for k, v in config.items():
