@@ -10,9 +10,10 @@ import logging
 # data handling
 from pandas import DataFrame
 # chemoinformatics
-from rdkit.Chem import Mol
-# docs
-from typing import List
+from rdkit.Chem import rdTautomerQuery
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 
 def get_fragment_hits(df_mols: DataFrame,
@@ -20,6 +21,7 @@ def get_fragment_hits(df_mols: DataFrame,
                       col_mol_mols: str = 'mol',
                       col_mol_frags: str = 'mol',
                       col_mol_inchikey: str = 'inchikey',
+                      tautomer: bool = False,
                       ) -> DataFrame:
     """Create a DataFrame recording every Fragment Hit in the
     input molecule DataFrame.
@@ -38,6 +40,7 @@ def get_fragment_hits(df_mols: DataFrame,
     :param col_mol_mols: the column name in df_mols with the molecules
     :param col_mol_frags: the column name in df_frags with the fragments
     :param col_mol_inchikey: the input DataFrame column name with the inchikey of the molecule
+    :param tautomer: if set to True, tautomers will be taken into account during fragment search (warning, tautomer-independant search is much slower!)
 
     :return: the substructure matches as a DataFrame
 
@@ -52,10 +55,18 @@ def get_fragment_hits(df_mols: DataFrame,
     d['mol'] = []  # encode the molecule here so we don't have to combine multiple files when trying to have a look at the results
     d['mol_frag'] = []  # strucutre of the fragment
     d['inchikey'] = []  # inchikey of the molecule]
+
+    # tautomers
+    if tautomer:
+        df_mols[col_mol_mols + '_taut'] = df_mols[col_mol_mols].map(lambda x: rdTautomerQuery.TautomerQuery(x).GetTemplateMolecule())
+
     # begin
     for i in range(len(df_mols.index)):
         rowm = df_mols.iloc[i]
-        mol = rowm[col_mol_mols]
+        if tautomer:
+            mol = rowm[col_mol_mols + '_taut']
+        else:
+            mol = rowm[col_mol_mols]
         hac = mol.GetNumAtoms()
         for j in range(len(df_frags.index)):
             rowq = df_frags.iloc[j]
