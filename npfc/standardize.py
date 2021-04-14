@@ -407,6 +407,7 @@ class Standardizer(Filter):
         matches = sorted([item for sublist in rwmol.GetSubstructMatches(smarts) for item in sublist], reverse=True)  # reverse order so that remaining atom indices from matches are still valid after removing an atom
         for m in matches:
             try:
+                m = m[0]  # should be only single atoms
                 rwmol_tmp = deepcopy(rwmol)
                 neighbor = rwmol_tmp.GetAtomWithIdx(m).GetNeighbors()[0]  # terminal atom so only 1 neighbor
                 rwmol_tmp.RemoveAtom(m)
