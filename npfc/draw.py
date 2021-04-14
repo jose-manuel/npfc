@@ -72,7 +72,6 @@ DEFAULT_PALETTE['teal'] = (0.5725, 0.9608, 0.9882)
 DEFAULT_PALETTE['gray'] = (0.7294, 0.7294, 0.7294)
 
 
-
 #
 #
 #
@@ -88,7 +87,6 @@ DEFAULT_PALETTE['gray'] = (0.7294, 0.7294, 0.7294)
 
 # matplotlib.colors.to_rgb('#FF0000')
 # matplotlib.colors.to_hex(((1.0, 0.0, 0.0)))
-
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 

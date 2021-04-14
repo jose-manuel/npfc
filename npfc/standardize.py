@@ -389,6 +389,8 @@ class Standardizer(Filter):
 
         .. warning:: I found only nitrogen radicals in my dataset, this might be insufficient on a larger scale.
 
+        .. warning:: I found a bug for this molecule ''O=C(O)C1OC(OCC2OC(O)C(O)C(O)C2O)C(O)C(O)C1O', where a methyl remains after processing.
+
         :param mol: the molecule to simplify
         :return: a simplified copy of the molecule
         """

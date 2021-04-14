@@ -230,7 +230,7 @@ def classify(mol: Mol,
                 # 2. fuse these rings
                 # 3. overlap between the fused rings and the fragments are the CPs.
                 sssr = [set(x) for x in RI.AtomRings()]
-                sp = set(shortest_path_between_frags[1:-1])
+                sp = set(shortest_path_between_frags[1:-1])  # consider intermediary atoms only
                 sssr_annulated = [x for x in sssr if x.intersection(sp)]
                 sssr_annulated = set(utils.fuse_rings(sssr_annulated)[0])  # by definition only one big ring
                 cp1 = [aidxf1_list.index(x) for x in sssr_annulated.intersection(aidxf1)]

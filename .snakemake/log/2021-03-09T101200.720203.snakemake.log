@@ -1,0 +1,8 @@
+Building DAG of jobs...
+File path /home/gally/Projects/NPFC/src/npfc/data/fc/fc/01_fragments/crms/fc/01_fragments/crms//prep/05_fcp/data/crms_fcp.csv.gz contains double '/'. This is likely unintended. It can also lead to inconsistent results of the file-matching approach used by Snakemake.
+Executing subworkflow fragments.
+Creating specified working directory /home/gally/Projects/NPFC/src/npfc/data/fc/fc/01_fragments/crms.
+Building DAG of jobs...
+MissingInputException in line 127 of /home/gally/Software/anaconda3/envs/npfc4/lib/python3.8/site-packages/npfc/data/fc/fc_fragments.smk:
+Missing input files for rule LOAD:
+fc/01_fragments/crms/data/00_raw/data/cr_test.sdf.gz
