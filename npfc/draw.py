@@ -640,12 +640,13 @@ class ColorMap:
     It is represented by the count of fragments, atom- and bond colors.
     """
 
-    def __init__(self, mol: Mol, d_aidxs: dict, palette: str = None, color_shades: float = 0.0):
+    def __init__(self, mol: Mol, d_aidxs: dict, palette: str = None, color_shades: float = 0.0, infer_colors: bool = True):
         """
         :param mol: the molecule to highlight. Atom/Bond properties '_color' and 'num_colors' are modified in place.
         :param d_aidxs: a dictionary containing fragment ids as keys and molecule atom indices as values, i.e. {'frag1': [(0, 1, 2)]. 'frag2': [(2, 3, 4), (5, 6, 7)]}
         :param palette: a seaborn palette defined by a string. A list of possible palette names can be found at: http://www.python-simple.com/img/img45.png. If none is provided, an intern palette is used instead.
         :param color_shades: use a darker color shade each time a fragment is repeated in the molecule. By default the same color shade is applied each time. On the opposite, a value of 0.05 means 5% darker)
+        :param infer_colors: use the matplotlib/seaborn parsing to determine colors.
         """
         if color_shades < 0.0 or color_shades > 1.0:
             raise ValueError(f"Error! Argument color_shades value is expected to be found in the range [0.0, 1.0], but '{color_shades}' was found instead!")
