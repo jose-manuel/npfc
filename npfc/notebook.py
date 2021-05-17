@@ -5,7 +5,7 @@ Module notebook
 A module with helper functions for Jupyterlab notebooks.
 
 """
-import import IPython
+import IPython
 from IPython.display import HTML,
 from IPython.display import Image
 from IPython.display import SVG
