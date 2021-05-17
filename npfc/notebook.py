@@ -6,15 +6,30 @@ A module with helper functions for Jupyterlab notebooks.
 
 """
 import IPython
-from IPython.display import HTML,
+from IPython.display import HTML
 from IPython.display import Image
-from IPython.display import SVG
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 
-def gallery(images, row_height='auto'):
+def _src_from_data(data):
+    """Base64 encodes image bytes for inclusion in an HTML img element.
+
+    Very strongly inspired after:
+    https://mindtrove.info/
+
+    :param data: the image data
+    :return: the src image code to embed in the HTML
+    """
+    img_obj = Image(data=data)
+    for bundle in img_obj._repr_mimebundle_():
+        for mimetype, b64value in bundle.items():
+            if mimetype.startswith('image/'):
+                return f'data:{mimetype};base64,{b64value}'
+
+
+def gallery(images: list, row_height: str = 'auto') -> str:
     """Shows a set of images in a gallery that flexes with the width of the notebook.
 
     This works only with PNG images.
@@ -22,15 +37,9 @@ def gallery(images, row_height='auto'):
     Very strongly inspired after:
     https://mindtrove.info/
 
-    Parameters
-    ----------
-    images: list of str or bytes
-        URLs or bytes of images to display
-
-    row_height: str
-        CSS height value to assign to all images. Set to 'auto' by default to show images
-        with their native dimensions. Set to a value like '250px' to make all rows
-        in the gallery equal height.
+    :param images: list of URLs, bytes or IPython.Display.Image objects to display.
+    :param row_height: CSS height value to assign to all images. Set to 'auto' by default to show images with their native dimensions. Set to a value like '250px' to make all rows in the gallery equal height.
+    :return: the HTML code for displaying the gallery of images in Jupyterlab.
     """
     figures = []
     for image in images:
