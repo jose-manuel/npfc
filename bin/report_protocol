@@ -1318,10 +1318,22 @@ def parse_chunk_fcg(c):
     # number of fragment graphs per molecule
     df_fcg_nfcgpermol = groups.count().rename({'idfcg': 'NumFCG'}, axis=1).groupby('NumFCG').count().rename({'nfrags': 'Count'}, axis=1).reset_index()
 
-    df_edges = pd.concat([nx.convert_matrix.to_pandas_edgelist(df_fcg.iloc[i]["_fcg"]) for i in range(len(df_fcg.index))]).rename({'source': 'idf1', 'target': 'idf2'}, axis=1)
-    df_edges = df_edges.rename({'source': 'idf1', 'target': 'idf2', 'fcc': 'fcc'}, axis=1)
-    df_edges['idf1'] = df_edges['idf1'].astype(str)
-    df_edges['idf2'] = df_edges['idf2'].astype(str)
+    # df_edges is used to define df_fcg_fcc, but it was plagued with duplicate combinations (common parts in alternate fcg)
+    # this snippet regenerates df_edges, not from the graph (which does not contain the occurrence id of the fragments),
+    # but from the fcg_str, which does.
+    idm_groups = df_fcg.groupby('idm')
+    rows = []
+    cols = ['idm', 'idfcg', 'idf1', 'fcp_1', 'fcc', 'idf2', 'fcp_2']
+    for gid, g in idm_groups:
+        combinations = set('-'.join(g['fcg_str']).split('-'))
+        for c in combinations:
+            f1 = c.split(':')[0]
+            f2 = c.split(']')[1].split(':')[0]
+            fcc = c.split('[')[1].split(']')[0]
+            fcp1 = c.split('@')[1].split('[')[0]
+            fcp2 = c.split('@')[-1]
+            rows.append([gid, -1, f1, fcp1, fcc, f2, fcp2])
+    df_edges = pd.DataFrame(rows, columns=cols)
 
     # fs analysis
 
