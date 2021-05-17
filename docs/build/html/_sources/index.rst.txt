@@ -16,19 +16,19 @@ available. Please have a look and enjoy, any feedback is welcome!
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
-
-   utils
-   load
-   save
-   filter
-   standardize
    duplicate
+   draw
+   filter
    fragment_search
    fragment_combination
    fragment_combination_graph
    fragment_combination_point
-   draw
+   load
+   notebook
    np_score
+   save
+   standardize
+   utils
 
 Indices and tables
 ==================

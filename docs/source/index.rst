@@ -16,6 +16,7 @@ available. Please have a look and enjoy, any feedback is welcome!
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
+ 
    duplicate
    draw
    filter
