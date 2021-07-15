@@ -8,5 +8,5 @@ tests/tmp/*
 docs/build/*
 ./snakemake/*
 docs/build/*
-bin/nodes_modules/*
+**/nodes_modules/**
 bin/package-lock.json
