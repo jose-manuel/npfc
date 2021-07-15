@@ -8,7 +8,7 @@
 WD="/home/gally/Projects/NPFC/src"
 upgraded="false"
 install="false"
-send_to_gwdg="false"
+update_docs="false"
 remote_compil_dir="/home/users/josemanuel.gally/npfc"
 
 ################################ FUNCTIONS #####################################
@@ -52,10 +52,10 @@ upgrade_version() {
 }
 
 ############################### PARSE ARGUMENTS ################################
-while getopts ":isd" opt; do #
+while getopts ":id" opt; do #
     case $opt in
         i) install="true";;
-        s) install="true"; send_to_gwdg="true";;
+        d) update_docs="true";;
         \?) echo "Invalid option: -$OPTARG" >&2 ; exit 1;;
         :)  echo "Option -$OPTARG requires an argument." >&2 ; exit 1;;
     esac
@@ -93,37 +93,31 @@ if [[ $install = 'true' ]]; then
     # install archive
     cd dist
     pip install $package
-    # install on cluster as well
-    if [[ $send_to_gwdg = 'true' ]]; then
-        echo -e "\nInstalling package '$package' on cluster\n"
-        scp $package gwdg1:$remote_compil_dir
-        # installing directly the package on the cluster does not work. If I enter the commands directly while logged in, it works.
-        # ssh gwdg1 "cd $remote_compil_dir; module load conda; source activate npfc; pip install $package"
-        # ssh gwdg1 "bash $remote_compil_dir/install_npfc.sh $package"
-    fi
     cd ..
 fi
 
 #################################### DOCS ######################################
-echo -e "\nRegenerating the docs...\n"
+if [[ $update_docs = 'true' ]]; then
+    echo -e "\nRegenerating the docs...\n"
 
-# pyreverse
-echo -e "Computing class and import hierarchy with pyreverse..."
-# 2 dot files: packages and classes
-pyreverse -my -A -p npfc npfc/
-# packages
-grep -v '\"0\"' packages_npfc.dot > packages_npfc.dot.tmp
-dot packages_npfc.dot.tmp -Tsvg > docs/source/_images/packages_npfc.svg
-rm packages_npfc.dot packages_npfc.dot.tmp
-# classes
-dot classes_npfc.dot -Tsvg > docs/source/_images/classes_npfc.svg
-rm classes_npfc.dot
+    # pyreverse
+    echo -e "Computing class and import hierarchy with pyreverse..."
+    # 2 dot files: packages and classes
+    pyreverse -my -A -p npfc npfc/
+    # packages
+    grep -v '\"0\"' packages_npfc.dot > packages_npfc.dot.tmp
+    dot packages_npfc.dot.tmp -Tsvg > docs/source/_images/packages_npfc.svg
+    rm packages_npfc.dot packages_npfc.dot.tmp
+    # classes
+    dot classes_npfc.dot -Tsvg > docs/source/_images/classes_npfc.svg
+    rm classes_npfc.dot
 
-# sphinx
-echo -e "Creating the docs with sphinx..."
-cd docs
-make html
-cd ..
+    # sphinx
+    echo -e "Creating the docs with sphinx..."
+    cd docs
+    make html
+    cd ..
+fi
 
 ################################### END ########################################
 # exit code

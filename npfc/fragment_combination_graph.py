@@ -511,3 +511,155 @@ def annotate_pnp(df_fcg, df_fcg_ref, data=['fcc', 'fcp_1', 'fcp_2'], consider_sy
     df_fcg = df_fcg.drop('edges', axis=1)
 
     return df_fcg
+
+
+def regroup_edges_from_fcgs(df_fcg):
+    """This function regroups all edges of a molecule. It can be applied to more than only one molecule at once.
+    This will result in one single fcg per molecule, with all combinations and fragment occurrences counted only once,
+    which is useful for reporting. (I should never have split fragment graphs).
+    """
+    idm_groups = df_fcg.groupby('idm')
+    rows = []
+    cols = ['idm', 'idfcg', 'idf1', 'fcp_1', 'fcc', 'idf2', 'fcp_2']
+    for gid, g in idm_groups:
+        combinations = set('-'.join(g['fcg_str']).split('-'))
+        for c in combinations:
+            f1 = c.split(':')[0]
+            f2 = c.split(']')[1].split(':')[0]
+            fcc = c.split('[')[1].split(']')[0]
+            fcp1 = c.split('@')[1].split('[')[0]
+            fcp2 = c.split('@')[-1]
+            rows.append([gid, -1, f1, fcp1, fcc, f2, fcp2])
+    df_edges = pd.DataFrame(rows, columns=cols)
+    return df_edges
+
+
+def get_ref_aidxs(df_fs):
+    """Part of the hotfix for redundant FCGs.
+    I did not record the occurrence id in the graphs, which was stupid.
+    So now I need to use the df_fs to get the information instead.
+    Needs to be used with fid col, which is defined in filter_out_fcgs_ffs_all.
+    """
+    return {k: v for k, v in zip(df_fs['fid'], df_fs['_aidxf'])}
+
+
+def get_varying_d_aidxs(varying_fragments_occ, d):
+    """Part of the hotfix for redundant FCGs.
+    Attribute the atom indices to the fragmnet occurrences.
+    """
+    return {k: set(v) for k, v in d.items() if k in varying_fragments_occ}
+
+
+def keep_first_fcg(d1, d2):
+    """Part of the hotfix for redundant FCGs.
+    Determine if:
+        0. both FCGs should be kept
+        1. first FCG should be kept
+        2. second FCG should be kept
+
+    using atom indices only.
+    """
+    c1 = 0
+    c2 = 0
+    # print(f"{d1=}")
+    # print(f"{d2=}")
+    for f1, a1 in d1.items():
+        for f2, a2 in d2.items():
+            # print(f"investigating: {f1} ({a1}) + {f2} ({a2})")
+            if a1.issubset(a2):
+                # print(f"{f1} included in {f2}")
+                c1 += 1
+            elif a2.issubset(a1):
+                # print(f"{f2} included in {f1}")
+                c2 += 1
+
+    # print(f"{c1=}; {c2=}")
+
+    if c1 == 0 and c2 > 0:
+        return 1
+    elif c2 == 0 and c1 > 0:
+        return 2
+    else:
+        return 0
+
+
+def filter_out_fcgs_ffs(df2, d):
+    """Part of the hotfix for redundant FCGs.
+    Apply on DF with FCGs of a same molecules.
+    """
+    df2 = df2.rename({'_frags': 'frags'}, axis=1)
+
+    to_remove = []
+
+    for i, row1 in enumerate(df2.itertuples()):
+        frags1 = set(row1.frags)
+        if row1.idfcg in to_remove:
+            continue
+        for row2 in df2.iloc[i+1:].itertuples():
+            if row2.idfcg in to_remove:
+                continue
+            # print(f"comparing FCG {row1.idfcg} + FCG {row2.idfcg}")
+            # print('\n' + "=" * 60 + '\n')
+            # print(f"COMPARISON: FCG {row1.idfcg} + FCG {row2.idfcg}".center(60))
+            # print('\n' + "=" * 60 + '\n')
+            # define common / varying fragments
+            frags2 = set(row2.frags)
+            # print(f"{frags1=}")
+            # print(f"{frags2=}")
+            common_fragments_occ = frags1.intersection(frags2)
+            varying_fragments_occ1 = frags1.difference(frags2)
+            varying_fragments_occ2 = frags2.difference(frags1)
+
+            # print("\ncommon_fragments_occ")
+            # display(common_fragments_occ)
+            # print("\nvarying_fragments_occ1")
+            # display(varying_fragments_occ1)
+            # print("\nvarying_fragments_occ2")
+            # display(varying_fragments_occ2)
+
+            # display(d)
+
+            d1 = get_varying_d_aidxs(varying_fragments_occ1, d)
+            d2 = get_varying_d_aidxs(varying_fragments_occ2, d)
+
+            keep_first = keep_first_fcg(d1, d2)
+            if keep_first == 1:
+                to_remove.append(row2.idfcg)
+            elif keep_first == 2:
+                to_remove.append(row1.idfcg)
+
+            # print(f"keep_first: {keep_first}")
+            # if keep_first == 1:
+                # print(f"FCG {row2.idfcg} will be removed")
+            # elif keep_first == 2:
+                # print(f"FCG {row1.idfcg} will be removed")
+            # else:
+            #     pass
+                # print("keep both FCG")
+
+            # do not waste time on comparing other possibilities
+            # when we already know that this FCG has to go
+            if keep_first == 2:
+                break
+
+    # print('\n' + "=" * 60 + '\n')
+    # print("RESULT".center(60))
+    # print('\n' + "=" * 60 + '\n')
+
+    to_remove = set(to_remove)
+    # print("FCGs to remove:")
+    # display(to_remove)
+
+    return df2[~df2['idfcg'].isin(to_remove)]
+
+
+def filter_out_fcgs_ffs_all(df_fcg, df_fs):
+    """Part of the hotfix for redundant FCGs.
+    """
+    dfs = []
+    df_fs['fid'] = df_fs['idf'].astype(str) + ':' + df_fs['idf_idx'].astype(str)
+    for gid, g in df_fcg.groupby('idm'):
+        d_ref = get_ref_aidxs(df_fs[df_fs['idm'] == gid])
+        dfs.append(filter_out_fcgs_ffs(g, d_ref))
+
+    return pd.concat(dfs)

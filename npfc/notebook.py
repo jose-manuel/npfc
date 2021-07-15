@@ -6,6 +6,7 @@ A module with helper functions for Jupyterlab notebooks.
 
 """
 import IPython
+from IPython import display
 from IPython.display import HTML
 from IPython.display import Image
 
@@ -62,3 +63,28 @@ def gallery(images: list, row_height: str = 'auto') -> str:
         {''.join(figures)}
         </div>
     ''')
+
+
+def display_image_table(imgs, max_img_per_row=4):
+    """Display a table filled with images.
+
+    :param imgs: an iterable containing images
+    :param max_img_per_row: the maximum number of images per row
+    """
+
+    table = """
+<table>
+    <tr>
+"""
+    for i, img in enumerate(imgs):
+        if i % max_img_per_row == 0:
+            table += """
+            </tr>
+            <tr>
+            """
+        table += f"<td>{img}</td>\n"
+    table += """
+    </tr>
+</table>
+"""
+    return HTML(table)

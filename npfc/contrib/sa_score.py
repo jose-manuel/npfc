@@ -58,6 +58,7 @@ class SAScorer:
 
     def score(self, m: Mol) -> float:
         """Compute the Synthetic Accessiblity score of a molecule.
+        It ranges from 1 (very easy to make) to 10 (very hard to make).
 
         :param mol: the input molecule
         :return: the score

@@ -53,6 +53,7 @@ from rdkit import Chem, Geometry
 from rdkit.Chem import AllChem, rdCoordGen
 from scipy.spatial import KDTree
 from IPython.display import Image
+from npfc import notebook
 
 
 
@@ -632,6 +633,30 @@ def reaction(mol1: Mol, mol2: Mol, sub_img_size: tuple = (200, 200), svg: bool =
     return img
 
 
+def hilight_fragment(mol, fragment_id, palette):
+
+    d_aidxs = {fragment_id: [[k for k in list(range(mol.GetNumAtoms()))]]}
+    return FragmentHighlight(mol, d_aidxs, palette)
+
+
+def display_fragments(df_fcg, fragment_colors, sort=True):
+    d_frags = list(df_fcg['_d_mol_frags'].values)
+    d_frags = {k: v for d in d_frags for k, v in d.items()}
+    if sort:
+        try:
+            d_frags = {int(k): v for k, v in d_frags.items()}
+        except ValueError:
+            pass
+        d_frags = dict(sorted(d_frags.items()))
+        d_frags = {str(k): v for k, v in d_frags.items()}
+
+    imgs_frags = []
+    for fragment_id, fragment in d_frags.items():
+        colormap = hilight_fragment(fragment, fragment_id, fragment_colors)
+        imgs_frags.append(mol(fragment, colormap, img_size=(170, 170), legend=fragment_id))
+    return notebook.display_image_table(imgs_frags, max_img_per_row=10)
+
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ CLASSES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 
@@ -795,6 +820,159 @@ class ColorMap:
                 color_result = tuple((x * 0.90 for x in color_result))
 
         return [color_result]
+
+
+
+
+def cap_rgb_val(x):
+    if x > 1:
+        return 0.1  # not completely black
+    elif x < 0:
+        return 0.0  # not completely white
+    return x
+
+
+def attribute_colors_to_fragments(d_aidxs, palette, color_gradient=0.1):
+    # init
+    highlights = {k: [] for k in d_aidxs}
+    num_colors = palette.num_colors
+    j = 0  # current color index
+    k = 0  # gradient that gets incremented each time all colors have been used (makes colors darker)
+    darker = True
+    # begin
+    for i, fragment_id in enumerate(d_aidxs):
+        # attribute the color to the fragment, while applying the gradient
+        if darker:
+            highlights[fragment_id] = tuple((x * (1.0 + color_gradient * k) for x in palette.colors[j]))
+        else:
+            highlights[fragment_id] = tuple((x * (1.0 - color_gradient * k) for x in palette.colors[j]))
+        highlights[fragment_id] = tuple([cap_rgb_val(x) for x in highlights[fragment_id]])
+        # since there is a limited number of colors, recycle them
+        j+=1
+        if j >= num_colors:
+            j = 0
+            darker = not darker  # toggle boolean
+            # increment gradient once both lighter and darker shades have been used
+            if not darker:
+                k += 1  # increment color gradient for next iterations
+    return highlights
+
+
+class Palette:
+
+    def __init__(self, colors=None):
+
+        # if no colors, then use default values
+        if colors is None:
+            colors = list(DEFAULT_PALETTE.values())
+        else:
+            if isinstance(colors, str):
+                colors = sns.color_palette(colors)
+            if isinstance(colors, dict):
+                colors = list(colors.values())
+
+        self.colors = [matplotlib.colors.to_rgb(x) for x in colors]
+        self.colors_ini = colors
+        self.num_colors = len(colors)
+
+    def show(self):
+        return sns.palplot(sns.color_palette(self.colors), size=1)
+
+    def __repr__(self):
+        s = f"Palette ({self.num_colors} color"
+        if self.num_colors > 1:
+            return s + 's)'
+        else:
+            return s + ')'
+
+
+class FragmentHighlight:
+    """A class containing all the required information for highlighting a molecule's fragments.
+    It is represented by the count of fragments, atom- and bond colors.
+    Destined to replace the ColorMap class.
+    """
+
+    def __init__(self, mol: Mol, atoms_to_highlight: dict, fragments_colors: dict = None, palette: Palette = None, color_gradient: float = 0.2):
+        """
+        :param mol: the molecule to highlight.
+        :param atoms_to_highlight: a dictionary containing fragment ids as keys and molecule atom indices as values, i.e. {'frag1': [(0, 1, 2)]. 'frag2': [(2, 3, 4), (5, 6, 7)]}. If None and fragmens_colors are defined, then all atoms are highlighted (useful for coloring fragments).
+        :param fragments_colors: a dictionary attributing a color to each fragment id. Fragment ids have to match those defined in atoms_to_highlight. If a fragment id is not missing, then it will not be highlighted. If this argument is not set, the palette will be used to attribute colors to all fragments defined in atoms_to_highlight.
+        :param palette: a Palette object used to attribute colors to fragments, when fragments_colors are not defined. If none is defined, the default palette will be used.
+        :param color_gradient: recycle colors with a darker shade when all colors have been already used. Color gradient should vary between 0 (stays the same) and 1 (fully black).
+        """
+        # define palette only if necessary
+        if palette is None and fragments_colors is None:
+            palette = Palette(list(draw.DEFAULT_PALETTE.values()))
+        elif palette is not None and fragments_colors is not None:
+            print("Warning! Palette is used only when fragments_colors are not specified.")
+
+        # attribute colors to fragments if not already the case
+        if fragments_colors is None:
+            fragments_colors = attribute_colors_to_fragments(atoms_to_highlight, palette, color_gradient)
+
+        # color_gradient
+        if color_gradient < 0.0 or color_gradient > 1.0:
+            raise ValueError(f"Error! Argument color_gradient value is expected to be found in the range [0.0, 1.0], but '{color_gradient}' was found instead!")
+
+        # atoms
+        highlight_atoms = {k: [] for k in sorted(list(chain.from_iterable(chain.from_iterable(atoms_to_highlight.values()))))}
+        # bonds
+        highlight_bonds = {}  # bonds
+
+        # apply colors
+        for i, (fragment_id, aidxs_l) in enumerate(atoms_to_highlight.items()):
+            if fragment_id not in fragments_colors.keys():
+                continue  # skip in case someone feeds atoms_to_highlight without a fragment_id to not highlight it
+            for j, aidxs in enumerate(aidxs_l):
+                # color atoms
+                for aidx in aidxs:
+                    highlight_atoms[aidx].append(fragments_colors[fragment_id])
+
+                # color bonds
+                bidxs = self._get_bidxs(mol, aidxs)
+                for bidx in bidxs:
+                    if bidx not in highlight_bonds.keys():
+                        highlight_bonds[bidx] = [fragments_colors[fragment_id]]
+                    else:
+                        highlight_bonds[bidx].append(fragments_colors[fragment_id])
+
+        # init attributes
+        self.fragments = {k: v for k, v in fragments_colors.items() if k in atoms_to_highlight.keys()}
+        self.num_fragments = len(self.fragments.keys())
+        self.atoms = highlight_atoms
+        self.bonds = highlight_bonds
+
+
+    def __repr__(self):
+        if self.num_fragments > 1:
+            return f"FragmentHighlight (n=%d)" % self.num_fragments
+        else:
+            return f"FragmentHighlight (n=%d)" % self.num_fragments
+
+
+    def _get_bidxs(self, mol: Mol, aidxs: Set[int]) -> Set[int]:
+        """From an iterable of atom indices (aidxs), return a set of bond indices (bidxs)
+        found between atoms in aidxs.
+
+        :param mol: the molecule to highlight
+        :param aidxs: a set with the atom indices of the fragment to highlight
+        :return: a set with the corresponding bond indices
+        """
+        # get all bonds attached to atom indices (as set: {0, 1, 2, 3})
+        bidxs = []
+        for aidx in aidxs:
+            bonds = [b for b in mol.GetAtomWithIdx(aidx).GetBonds()]
+            bidx = [b.GetIdx() for b in bonds]
+            bidxs.append(bidx)
+
+        # flatten the list of bond indices (bidx)
+        bidxs_merged = list(chain.from_iterable(bidxs))  # all bonds
+
+        # count number of times each bidx is found
+        counter = Counter(bidxs_merged)
+
+        # keep only bidx that appear > 1
+        return set({x: counter[x] for x in counter if counter[x] > 1}.keys())
 
 
 class DepictionValidator:

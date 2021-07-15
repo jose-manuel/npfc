@@ -6,4 +6,7 @@ dist/
 *.egg-info/
 tests/tmp/*
 docs/build/*
-./snakemake/
+./snakemake/*
+docs/build/*
+bin/nodes_modules/*
+bin/package-lock.json
