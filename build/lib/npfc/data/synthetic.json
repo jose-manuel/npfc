@@ -1,0 +1,16 @@
+{
+                    "prefix": "chembl",
+                    "molid": "chembl_id",
+                    "WD": "synthetic/chembl/",
+                    "input_file": "synthetic/chembl/data/00_raw/data/chembl.sdf.gz",
+                    "frags_file": "fragments/crms/data/prep/05_depict/data/crms_depict.csv.gz",
+                    "prep_subdir": "prep",
+                    "protocol_std": "DEFAULT",
+                    "frags_subdir": "frags_crms",
+                    "natref_subdir": "natref_dnp",
+                    "natref_dedupl_reffile": "natural/dnp/data/prep/04_dedupl/dnp_ref.hdf",
+                    "natref_fcg_dir": "natural/dnp/data/prep/frags_crms/08_fcg/data",
+                    "pnp_attributes": "fcc",
+                    "chunksize": 5000,
+                    "act_file": "synthetic/chembl/data/00_raw/data/chembl_act.csv.gz"
+}

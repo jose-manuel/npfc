@@ -1,0 +1,66 @@
+#!python
+
+"""
+Script chunk_check
+==========================
+This script is used for checking if there are missing chunks in the output directory.
+"""
+
+import argparse
+import re
+from pathlib import Path
+import sys
+from npfc import utils
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ BEGIN ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
+if __name__ == '__main__':
+
+    parser = argparse.ArgumentParser(description="List all missing chunks in the specified working directory", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument('wd', type=str, default='./', help="Working directory")
+    parser.add_argument('-m', '--max', type=str, default=None, help="Maximum chunk id to expect. Useful if missing ids are not in the middle but at the end.")
+    parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
+    args = parser.parse_args()
+
+    # logging
+    logger = utils._configure_logger(args.log)
+    pad = 40
+
+    # arguments
+    p = Path(args.wd)
+    if not p.exists():
+        logger.error(f"ERROR! SPECIFIED WD COULD NOT BE FOUND ('{args.wd}')!")
+    elif not p.is_dir():
+        logger.error(f"ERROR! SPECIFIED WD IS NOT A DIRECTORY ('{args.wd}')!")
+
+    # begin
+    chunks = sorted([str(x) for x in list(p.glob('*')) if x.is_file()])
+    if len(chunks) < 1:
+        logger.error(f"ERROR! NO FILE COULD BE FOUND AT SPECIFIED WD ('{args.wd}')!")
+        sys.exit(1)
+
+    # [A-Za-z_]+_([0-9]{3})_[A-Za-z_.]
+    pattern = '.*_([0-9][0-9][0-9]).*'
+    # chunk_ids = [re.search(pattern, x) for x in chunks]
+    try:
+        chunk_ids_obs = [re.search(pattern, x).group(1) for x in chunks]
+    except AttributeError:
+        logger.critical(f"ERROR! NO CHUNK PATTERN COULD BE FOUND IN THESE FILES:\n" + '\n'.join(chunks))
+        sys.exit(1)
+    start = 1
+    if args.max is None:
+        end = int(chunk_ids_obs[-1])
+    else:
+        end = int(args.max)
+    chunk_ids_expected = set([str(x).zfill(3) for x in list(range(start, end + 1))])
+
+    chunk_ids_missing = sorted(list(chunk_ids_expected - set(chunk_ids_obs)))
+    num_missing = len(chunk_ids_missing)
+    if num_missing > 0:
+        logger.warning(f"FOUND {len(chunk_ids_missing):,} MISSING CHUNK IDS:\n" + '\n'.join(chunk_ids_missing))
+    else:
+        logger.info(f"NO MISSING CHUNK WAS FOUND")
+
+    sys.exit(0)

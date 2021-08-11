@@ -1,0 +1,130 @@
+#!/bin/bash
+set -eu # exit on error, unknown var or failed pipe
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ DISCLAIMER ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
+# This script is used for efficiently splitting up a SDF into SDF chunks.
+# It does not parse molecules, just split the text defining them at every '$$$$'.
+# It is also memory efficient and can thus be applied on very large files.
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
+function config {
+    echo -e "\nConfiguration"
+    echo -e "- input_dir: $input_dir"
+    echo -e "- output_sdf: $output_sdf"
+    echo -e "\nStart time: $(date)"
+    echo ""
+}
+
+function exitcodes {
+    echo -e "\nExit codes are:"
+    echo -e "0 - this script executed without any error"
+    echo -e "1 - no argument so only usage was displayed"
+    echo -e "2 - an error was found with provided arguments"
+    echo ""
+}
+
+function usage {
+    echo -e "\nUsage is:"
+    echo -e "\nconcat_sdf -i <INPUT_DIR> -o <OUTPUT_SDF>\n"
+    echo -e "with <INPUT_DIR> the SDF to split into chunks"
+    echo -e "with <OUTPUT_SDF> the output folder, by default the parent_dir from input_dir"
+    echo -e "\n"
+    exitcodes
+}
+
+function concat_sdf {
+    input_dir=$1
+    output_sdf=$2
+
+    # 0/ determine gunzip version so we know if argument k is available or not
+    gunzip_version=$(echo $(gunzip --version) | cut -d' ' -f3)
+    echo "gunzip_version is $gunzip_version"
+
+    # 1/ find all sdf files
+    input_files=$(find $input_dir -name '*.sdf*')
+
+    # 2/ concatenate all sdf files (works if either all compressed (gzip) or uncompressed)
+    cat $input_files > $output_sdf
+
+    # 3/ print output
+    echo -e "Result:"
+    ls "${output_sdf}"
+
+}
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ARGUMENTS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
+echo -e "\nCONCAT_SDF"
+d0="$(date -u +%s)"  # time in seconds
+
+# usage if not enough arguments
+if [ $# -lt 1 ]
+then
+    usage
+    exit 1
+fi
+
+# parse arguments
+echo ""
+while getopts "i:o:h" opt; do
+    case $opt in
+        i) input_dir=$(realpath $OPTARG);;
+        o) output_sdf=$(realpath $OPTARG);;
+        h) usage; exit 1;;
+        :)  echo "Option -$OPTARG requires an argument." >&2 ; exit 2;;
+        \?) echo "Invalid option: -$OPTARG" >&2 ; exit 2;;
+    esac
+done
+
+# check for errors in arguments
+errors=0
+# input_dir
+if [ -z ${input_dir+x} ]
+then
+    echo "Error! Argument input_dir is unset!"
+    errors=$[errors + 1]
+else
+    if [ ! -d $input_dir ]
+    then
+        echo "Error! input_dir could not be found! ($input_dir)"
+        errors=$[errors + 1]
+    fi
+fi
+
+# output_sdf
+if [ -z ${output_sdf+x} ]
+then
+    echo "Error! Argument output_sdf is unset."
+    errors=$[errors + 1]
+else
+    output_dir=$(dirname $output_sdf)
+    mkdir -p $output_dir
+    if [ ! -d $output_dir ]
+    then
+        echo "Error! output_dir could not be created! ($output_dir)"
+        errors=$[errors + 1]
+    fi
+fi
+
+# result of checking
+if [ $errors -gt 0 ]
+then
+    echo -e "\nOne or several errors were found with arguments. Aborting script execution."
+    exit 2
+fi
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ MAIN ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+config
+concat_sdf "$input_dir" "$output_sdf"
+d1="$(date -u +%s)"  # time in seconds
+echo -e "\nTotal elapsed time (s): $(($d1-$d0))"
+exit 0

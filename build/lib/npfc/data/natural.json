@@ -1,0 +1,11 @@
+{
+                    "prefix": "dnp",
+                    "molid": "UKEY",
+                    "WD": "natural/dnp/",
+                    "input_file": "natural/dnp/data/00_raw/data/dnp.sdf.gz",
+                    "frags_file": "fragments/crms/data/prep/05_depict/data/crms_depict.csv.gz",
+                    "prep_subdir": "prep",
+                    "protocol_std": "DEFAULT",
+                    "frags_subdir" : "frags_crms",
+                    "chunksize": 5000
+}

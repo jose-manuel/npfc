@@ -1,0 +1,28 @@
+# figure
+
+figure.titlesize: 40  # fontsize of suptitle
+figure.figsize: 12, 12  # figure size in inches
+figure.dpi: 600       # figure dots per inch
+# figure.autolayout: True  # automatically apply tight_layout()
+
+# subplot
+
+figure.subplot.wspace: 0.4  # the amount of width reserved for space between subplots, expressed as a fraction of the average axis width
+figure.subplot.hspace: 0.4  # the amount of height reserved for space between subplots, expressed as a fraction of the average axis height
+figure.subplot.top: 0.9  # # the top of the subplots of the figure
+
+# axes
+
+axes.titlesize : 24  # fontsize of the axes title
+axes.labelsize : 20  # fontsize of the x and y labels
+axes.labelpad: 10  # space between label and axis
+
+# lines
+
+lines.linewidth : 1  # line width in points
+lines.markersize : 10  # marker size, in points
+
+# ticks
+
+xtick.labelsize : 16  # fontsize of the x tick labels
+ytick.labelsize : 16  # fontsize of the y tick labels

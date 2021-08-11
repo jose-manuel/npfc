@@ -1,6 +1,6 @@
 import setuptools
 
-with open("README.md", "r") as fh:
+with open("README.rst", "r") as fh:
     long_description = fh.read()
 
 
@@ -11,22 +11,39 @@ setuptools.setup(
     version='0.7.12-5-g753a05d4',
     author="Jose-Manuel Gally",
     author_email="josemanuel.gally@mpi-dortmund.mpg.de",
-    description="A package for analyzing fragment combinations in natural and synthetic molecules",
+    description="A tool for describing Natural Product- (NP) fragments combinations and identifying pseudo-NPs.",
     long_description=long_description,
-    long_description_content_type="text/markdown",
-    # url="https://github.com/pypa/sampleproject",
+    long_description_content_type="text/x-rst",
+    url="https://github.com/jose-manuel/npfc",
     packages=setuptools.find_packages(),
     install_requires=[
-          'pip',
-        #  'rdkit',
-        #  'networkx',
-        #  'pandas',
-        #  'seaborn',
-        #  'toolz',
-      ],
+    'adjustText >= 0.7.3',
+    'networkx >= 2.6',
+    'ipython >= 7.25',
+    'more-itertools >= 8.8',
+    'pandas >= 1.1.4',
+    'pillow >= 8.3.1',
+    'psycopg2-binary >= 2.9',
+    'rdkit-pypi >= 2021.03',
+    'snakemake >= 5.0',
+    'seaborn >= 0.11',
+    'toolz >= 0.11',
+    'scipy >= 1.5',
+    ],
+    extra_requires={
+    "dev": [
+    'isort >= 4.3',
+    'pylint >= 2.4',
+    'pytest >= 6.2',
+    'sphinx >= 3.0',
+    'sphinx-autodoc-typehints >= 1.10',
+    'sphinx_rtd_theme >= 0.4',
+    'twine >= 3.4',
+    'wheel >= 0.36']
+    },
     setup_requires=["pytest-runner"],
     tests_require=["pytest"],
-    keywords=['chemical biology', 'pseudo-natura products', 'chemoinformatics', 'natural products', 'fragments'],
+    keywords=['chemical biology', 'pseudo-natural products', 'computational chemistry', 'natural products', 'fragments'],
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
@@ -64,28 +81,6 @@ setuptools.setup(
              # fc report
               'bin/fc/report/mols_count',
               'bin/fc/report/report_time',
-             # fct nodes
-             'bin/fct/fct_assay',
-             'bin/fct/fct_dataset',
-             'bin/fct/fct_document',
-             'bin/fct/fct_fragment',
-             'bin/fct/fct_molecule',
-             'bin/fct/fct_species',
-             'bin/fct/fct_target',
-             # fct relationships
-             'bin/fct/fct_assay_document',
-             'bin/fct/fct_assay_species',
-             'bin/fct/fct_fragment_fragment',
-             'bin/fct/fct_fragment_molecule',
-             'bin/fct/fct_molecule_assay',
-             'bin/fct/fct_molecule_dataset',
-             'bin/fct/fct_molecule_document',
-             'bin/fct/fct_molecule_molecule',
-             'bin/fct/fct_target_assay',
-             'bin/fct/fct_target_species',
-             # fct commands
-             'bin/fct/report/report_fct_molecule',
-             'bin/fct/run_protocol_fct',
              # fc commands
              'bin/report_protocol',
              'bin/fc/run_protocol_fc',
