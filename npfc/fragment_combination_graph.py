@@ -550,14 +550,15 @@ def get_varying_d_aidxs(varying_fragments_occ, d):
     return {k: set(v) for k, v in d.items() if k in varying_fragments_occ}
 
 
-def keep_first_fcg(d1, d2):
+def _keep_first_fcg(d1, d2):
     """Part of the hotfix for redundant FCGs.
     Determine if:
+
         0. both FCGs should be kept
         1. first FCG should be kept
         2. second FCG should be kept
 
-    using atom indices only.
+    This is based on atom indices only.
     """
     c1 = 0
     c2 = 0
@@ -622,7 +623,7 @@ def filter_out_fcgs_ffs(df2, d):
             d1 = get_varying_d_aidxs(varying_fragments_occ1, d)
             d2 = get_varying_d_aidxs(varying_fragments_occ2, d)
 
-            keep_first = keep_first_fcg(d1, d2)
+            keep_first = _keep_first_fcg(d1, d2)
             if keep_first == 1:
                 to_remove.append(row2.idfcg)
             elif keep_first == 2:
