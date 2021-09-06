@@ -8,7 +8,7 @@ with open("README.rst", "r") as fh:
 
 setuptools.setup(
     name="npfc",
-    version='0.7.12-5-g753a05d4',
+    version='0.7.13',
     author="Jose-Manuel Gally",
     author_email="josemanuel.gally@mpi-dortmund.mpg.de",
     description="A tool for describing Natural Product- (NP) fragments combinations and identifying pseudo-NPs.",
@@ -24,14 +24,13 @@ setuptools.setup(
     'pandas >= 1.1.4',
     'pillow >= 8.3.1',
     'psycopg2-binary >= 2.9',
+    #'tables >= 3.6',  # version is older than in conda, and during testing this throws: ValueError: The file 'tests/tmp/test_dupl_ref.hdf' is already opened.  Please close it before reopening.  HDF5 v.1.8.5-patch1, FILE_OPEN_POLICY = 'strict'
     'rdkit-pypi >= 2021.03',
     'snakemake >= 5.0',
     'seaborn >= 0.11',
     'toolz >= 0.11',
     'scipy >= 1.5',
-    ],
-    extra_requires={
-    "dev": [
+    # extras
     'isort >= 4.3',
     'pylint >= 2.4',
     'pytest >= 6.2',
@@ -39,8 +38,21 @@ setuptools.setup(
     'sphinx-autodoc-typehints >= 1.10',
     'sphinx_rtd_theme >= 0.4',
     'twine >= 3.4',
-    'wheel >= 0.36']
-    },
+    'pytest >= 6.2',
+    'wheel >= 0.36',
+    ],
+    ## the extra requirements below were installed when typing: pip install -e .[dev]
+    # extra_require={"dev": ['isort >= 4.3',
+    #                        'pylint >= 2.4',
+    #                        'pytest >= 6.2',
+    #                        'sphinx >= 3.0',
+    #                         'sphinx-autodoc-typehints >= 1.10',
+    #                         'sphinx_rtd_theme >= 0.4',
+    #                         'twine >= 3.4',
+    #                         'pytest >= 6.2',
+    #                         'wheel >= 0.36',
+    #                         ]
+    # },
     setup_requires=["pytest-runner"],
     tests_require=["pytest"],
     keywords=['chemical biology', 'pseudo-natural products', 'computational chemistry', 'natural products', 'fragments'],

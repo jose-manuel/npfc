@@ -1,0 +1,141 @@
+#!python
+
+"""
+Script murcko_mols
+==========================
+This script is used for extracting murcko scaffolds from molecules.
+"""
+
+# standard
+import sys
+import warnings
+from datetime import datetime
+import logging
+import argparse
+# data
+import pandas as pd
+# chemoinformatics
+import rdkit
+from rdkit import RDLogger
+from rdkit import Chem
+from rdkit.Chem.Scaffolds import MurckoScaffold
+# dev
+import npfc
+from npfc import load
+from npfc import save
+from npfc import utils
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
+def main():
+
+    # init
+    d0 = datetime.now()
+    description = """Script used for loading molecules from SDF, CSV or HDF files, convert them into RDKit objects and export them into CSV or HDF files.
+    Molecules that failed the RDKit conversion have None for structure but their properties, if any, remain.
+
+    It uses the installed npfc libary in your favorite env manager.
+
+    Examples:
+
+        >>> # Convert a SDF into a HDF using molecule titles as molecule id
+        >>> load_mols file_in.sdf file_out.hdf --src_id _Name
+        >>> # Chunk a CSV file into SDF files of 100 randomly ordered records while keeping all properties
+        >>> load_mols file_in.csv file_out.sdf -n 100 -k True -s True --src_id prop1 --src_mol mol --out_id _Name
+    """
+
+    # parameters CLI
+
+    parser = argparse.ArgumentParser(description=description, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument('input_mols', type=str, default=None, help="Input file.")
+    parser.add_argument('output_mols', type=str, default=None, help="Output file.")
+    parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
+
+    args = parser.parse_args()
+
+    # logging
+
+    logger = utils._configure_logger(args.log)
+    logger.info("RUNNING STANDARDIZE_MOLS")
+    warnings.filterwarnings('ignore', category=pd.io.pytables.PerformanceWarning)  # if None is returned instead of a molecule, do not complain about mixed types
+    pad = 40
+    lg = RDLogger.logger()
+    lg.setLevel(RDLogger.CRITICAL)
+
+    # parse arguments
+
+    # check on args values not already checked by argparse
+    utils.check_arg_input_file(args.input_mols)
+    utils.check_arg_output_file(args.output_mols)
+
+    # IO infos
+    in_format, in_compression = utils.get_file_format(args.input_mols)
+    out_format, out_compression = utils.get_file_format(args.output_mols)
+
+    # display infos
+
+    # versions
+    logger.info("LIBRARY VERSIONS:")
+    logger.info("rdkit".ljust(pad) + f"{rdkit.__version__}")
+    logger.info("pandas".ljust(pad) + f"{pd.__version__}")
+    logger.info("npfc".ljust(pad) + f"{npfc.__version__}")
+    # arguments
+    # replace many vars with defined names for simplifying the whole pipeline, these variables might be added back when the structure of npfc does not change anymore
+    logger.info("ARGUMENTS:")
+    logger.info("INPUT_MOLS".ljust(pad) + f"{args.input_mols}")
+    logger.info("IN_ID".ljust(pad) + f"idm")
+    logger.info("IN_MOL".ljust(pad) + f"mol")
+    logger.info("IN_FORMAT".ljust(pad) + f"{in_format}")
+    logger.info("IN_COMPRESSION".ljust(pad) + f"{in_compression}")
+    logger.info("DECODE".ljust(pad) + f"True")
+    logger.info("OUTPUT_MOLS".ljust(pad) + f"{args.output_mols}")
+    logger.info("OUT_ID".ljust(pad) + f"idm")
+    logger.info("OUT_MOL".ljust(pad) + f"mol")
+    logger.info("OUT_FORMAT".ljust(pad) + f"{out_format}")
+    logger.info("OUT_COMPRESSION".ljust(pad) + f"{out_compression}")
+    logger.info("ENCODE".ljust(pad) + f"True")
+    logger.info("CSV_SEP".ljust(pad) + f"|")
+    logger.info("LOG".ljust(pad) + f"{args.log}")
+
+    # begin
+    logger.info("BEGIN")
+
+    # load mols
+    d1 = datetime.now()
+    logger.info("LOADING MOLECULES")
+    df_mols = load.file(args.input_mols)
+    num_failed = df_mols['mol'].isna().sum()
+    logger.info(f"LOADED {len(df_mols)} RECORDS WITH {num_failed} FAILURE(S)")
+
+    # extract Murcko scaffolds
+    d2 = datetime.now()
+    logger.info(f"EXTRACTING MURCKO SCAFFOLDS")
+    df_mols['mol'] = df_mols['mol'].map(MurckoScaffold.GetScaffoldForMol)
+    logger.info(f"CONVERTING TO/FROM SMILES")
+    df_mols['mol'] = df_mols['mol'].map(lambda x: Chem.MolFromSmiles(Chem.MolToSmiles(x)))
+
+    # save results
+    d3 = datetime.now()
+    logger.info(f"SAVING OUTPUTS")
+    save.file(df_mols, output_file=args.output_mols)
+    d4 = datetime.now()
+
+    # end
+
+    logger.info("SUMMARY")
+    logger.info("COMPUTATIONAL TIME: CONFIGURING JOB".ljust(pad * 2) + f"{d1-d0}")
+    logger.info("COMPUTATIONAL TIME: LOADING MOLECULES".ljust(pad * 2) + f"{d2-d1}")
+    logger.info("COMPUTATIONAL TIME: EXTRACTING MS".ljust(pad * 2) + f"{d3-d2}")
+    logger.info("COMPUTATIONAL TIME: SAVING OUTPUTS".ljust(pad * 2) + f"{d4-d3}")
+    logger.info("COMPUTATIONAL TIME: TOTAL".ljust(pad * 2) + f"{d4-d0}")
+    logger.info("END")
+    sys.exit(0)
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ MAIN ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
+if __name__ == '__main__':
+    main()

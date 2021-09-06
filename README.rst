@@ -20,7 +20,8 @@ Installation
 
 The npfc tool can be installed using PyPi. In your Python environment, run:
 
->>> pip install npfc    #### currently not working because cannot deduce dependencies
+>>> pip install npfc
+>>> conda install pytables
 
 Documentation
 =============

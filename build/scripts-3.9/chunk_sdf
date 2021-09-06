@@ -1,0 +1,213 @@
+#!/bin/bash
+set -eu # exit on error, unknown var or failed pipe
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ DISCLAIMER ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
+# This script is used for efficiently splitting up a SDF into SDF chunks.
+# It does not parse molecules, just split the text defining them at every '$$$$'.
+# It is also memory efficient and can thus be applied on very large files.
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
+function config {
+    echo -e "\nConfiguration"
+    echo -e "- input_sdf: $input_sdf"
+    echo -e "- output_dir: $output_dir"
+    echo -e "- nrecords: $nrecords"
+    echo -e "- prefix: $prefix"
+    echo -e "\nStart time: $(date)"
+    echo ""
+}
+
+function exitcodes {
+    echo -e "\nExit codes are:"
+    echo -e "0 - this script executed without any error"
+    echo -e "1 - no argument so only usage was displayed"
+    echo -e "2 - an error was found with provided arguments"
+    echo ""
+}
+
+function usage {
+    echo -e "\nUsage is:"
+    echo -e "\nchunk_sdf -i <INPUT_SDF> [-o <OUTPUT_DIR> -n <NRECORDS> -p <PREFIX>]\n"
+    echo -e "with <INPUT_SDF> the SDF to split into chunks"
+    echo -e "with <OUTPUT_DIR> the output folder, by default the parent_dir from input_sdf"
+    echo -e "with <NRECORDS> the maximum number of records per chunk"
+    echo -e "with <PREFIX> the prefix to use for output chunks. If none is provided, basename is used."
+    echo -e "\n"
+    exitcodes
+}
+
+function chunk_sdf {
+    input_sdf=$1
+    output_dir=$2
+    nrecords=$3
+    prefix=$4
+
+
+    # 0/ determine gunzip version so we know if argument k is available or not
+    gunzip_version=$(echo $(gunzip --version) | cut -d' ' -f3)
+    echo "gunzip_version is $gunzip_version"
+
+    # 1/ uncompress gzip files
+    ext=$(echo $input_sdf | rev | cut -d. -f1 | rev)
+    if [ $ext = 'gz' ]
+    then
+        echo -e "Uncompressing $input_sdf"
+        # use k arg on gunzip version higher than 1.5, will fail for lower versions than 1.5
+        if [ $gunzip_version = '1.5' ]
+        then
+            echo "compres_input is true"
+            gunzip -f $input_sdf
+            compress_input="true"
+        else
+            echo "compres_input is false"
+            gunzip -fk $input_sdf  # available only with gzip 1.6, cluster version is 1.5
+            compress_input="false"
+
+        fi
+        input_sdf=$(echo $input_sdf | rev | cut -d. -f2- | rev)  # remove .gz from the file name
+    fi
+    # 2/ split the sdf file
+    nb_records=$(grep -c '$$$$' $input_sdf)
+    echo -e "Number of records in input_sdf: $nb_records"
+    if [ $prefix = '' ]
+        then
+            input_base=$(basename $input_sdf .sdf)
+        else
+            input_base=$prefix
+    fi
+
+    chunk_base="$output_dir/$input_base"
+    echo -e "Splitting $input_sdf into chunks of n=$nrecords and chunk_base=$chunk_base"
+
+    awk -v RS='\\$\\$\\$\\$\n' -v nb=$nrecords -v c=1 -v chunk_base=$chunk_base '
+    {
+       file=sprintf("%s%s%03d%s", chunk_base, "_", c, ".sdf")
+       printf "%s%s",$0,RT > file
+    }
+    NR%nb==0 {c++}
+    ' $input_sdf
+
+    # 3/ compress the chunks and delete the uncompressed input_sdf
+    if [ $ext = 'gz' ]
+    then
+         echo -e "Removing temporary files"
+         # delete the uncompressed file only if gzip was used with k argument, otherwise just compress it again
+         if [ $compress_input = "false" ]
+         then
+             rm -f $input_sdf  # original input_sdf variable has been overwritten with uncompressed file
+         else
+             gzip $input_sdf
+        fi
+    fi
+    echo -e "Compressing chunks"
+    gzip -f ${chunk_base}_[0-9][0-9][0-9].sdf
+
+    # 4/ print chunks
+    echo -e "Results:"
+    ls "${output_dir}"
+
+}
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ VARIABLES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
+NRECORDS=5000
+PREFIX=''
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ARGUMENTS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
+echo -e "\nCHUNK_SDF"
+d0="$(date -u +%s)"  # time in seconds
+
+# usage if not enough arguments
+if [ $# -lt 1 ]
+then
+    usage
+    exit 1
+fi
+
+# parse arguments
+echo ""
+while getopts "i:o:n:p:h" opt; do
+    case $opt in
+        i) input_sdf=$(realpath $OPTARG);;
+        o) output_dir=$(realpath $OPTARG);;
+        n) nrecords=$OPTARG;;
+        p) prefix=$OPTARG;;
+        h) usage; exit 1;;
+        :)  echo "Option -$OPTARG requires an argument." >&2 ; exit 2;;
+        \?) echo "Invalid option: -$OPTARG" >&2 ; exit 2;;
+    esac
+done
+
+# check for errors in arguments
+errors=0
+# input_sdf
+if [ -z ${input_sdf+x} ]
+then
+    echo "Error! Argument input_sdf is unset!"
+    errors=$[errors + 1]
+else
+    if [ ! -f $input_sdf ]
+    then
+        echo "Error! input_sdf could not be found! ($input_sdf)"
+        errors=$[errors + 1]
+    fi
+fi
+
+# output_dir
+if [ -z ${output_dir+x} ]
+then
+    echo "Warning! Argument output_dir is unset, using parent_dir of input_sdf."
+    output_dir=$(dirname $input_sdf)
+else
+    mkdir -p $output_dir
+    if [ ! -d $output_dir ]
+    then
+        echo "Error! output_dir could not be created! ($output_dir)"
+        errors=$[errors + 1]
+    fi
+fi
+
+# nrecords
+if [ -z ${nrecords+x} ]
+then
+    echo "Warning! Argument nrecords is unset, using default."
+    nrecords=$NRECORDS
+elif [ $nrecords -lt 1 ]; then
+    echo "Error! nrecords cannot be lower than 1! ($nrecords)"
+    errors=$[errors + 1]
+fi
+
+
+# nrecords
+if [ -z ${prefix+x} ]
+then
+    echo "Warning! Argument prefix is unset, using default."
+    prefix=$PREFIX
+fi
+
+
+# result of checking
+if [ $errors -gt 0 ]
+then
+    echo -e "\nOne or several errors were found with arguments. Aborting script execution."
+    exit 2
+fi
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ MAIN ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+config
+chunk_sdf "$input_sdf" "$output_dir" "$nrecords" "$prefix"
+d1="$(date -u +%s)"  # time in seconds
+echo -e "\nTotal elapsed time (s): $(($d1-$d0))"
+exit 0
