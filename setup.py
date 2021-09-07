@@ -62,10 +62,6 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     scripts=[
-             # activities
-             'bin/act_annotate_fc',
-             'bin/act_preprocess',
-             'bin/act_preprocess_cpa',
              # chunks
              'bin/chunk_check',
              'bin/chunk_sdf',
@@ -101,6 +97,5 @@ setuptools.setup(
              # helpers
              'bin/peek_hdf',
              ],
-    # package_data={'npfc': ['data/mols_deglyco.knwf']},  # key: package name, value: list of data files
     include_package_data=True,
 )

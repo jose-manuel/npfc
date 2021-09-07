@@ -10,10 +10,10 @@ fragment-based drug design.
 
 The npfc tool is written in Python and based on several key packages:
 
-- `RDKit.`_ for handling chemistry
+- `RDKit`_ for handling chemistry
 - `pandas`_ for managing data into DataFrames
 - `NetworkX`_ for modelling graphs
-- `Snakemake_` for encapsuling scripts into reproducible workflows
+- `Snakemake`_ for encapsuling scripts into reproducible workflows
 
 Installation
 ============
@@ -26,7 +26,7 @@ The npfc tool can be installed using PyPi. In your Python environment, run:
 Documentation
 =============
 
-The full documentation is available at: https://github.com/jose-manuel/npfc.  #### to replace with readthedocs?
+The full documentation is available at: https://github.com/jose-manuel/npfc.
 It describes the API, as well as the different workflows implemented.
 
 Contribution

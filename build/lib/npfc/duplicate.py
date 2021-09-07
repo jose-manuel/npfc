@@ -67,8 +67,6 @@ def filter_duplicates(df: DataFrame,
 
     .. note:: the more chunks there are, the larger the reference file grows. For ChEMBL, I got something around 16Go (1.8M molecules) and for ZINC >100Go (14M molecules). To improve IO performances, I switched to append mode and table format, so the file does not to be rewritten entirely for every chunk.
 
-    .. warning:: the feather format looks very promising for very fast IO times, but it does not allow for anything below simple variable types or customized row indices. For now I don't use it because there would be much testing to do. This could be addressed in a further release of npfc.
-
     :param df: the DataFrame with the molecules to filter for duplicates
     :param col_mol: the column name for the molecules
     :param ref_file: the reference file location

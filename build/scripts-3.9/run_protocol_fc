@@ -74,7 +74,7 @@ def main():
     # parameters CLI
     parser = argparse.ArgumentParser(description=description, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('protocol', type=str, default=None, help="Protocol to apply. If this is not a file, then a lookup for matching the string with known protocols is performed. Possible values are: fragments/natural/synthetic.")
-    parser.add_argument('-e', '--env', type=str, default='local', help="Environment for running the protocol. By default locally, but it can also be run on cluster schedulers (clem/gwdg1).")
+    parser.add_argument('--clusterconfig', type=str, default=None, help="For running on a cluster, specify the cluster configuration file for snakemake.")
     parser.add_argument('-j', '--jobs', type=int, default=6, help="Number of jobs that can be run simultaneously when workflow is run locally.")
     parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
     parser.add_argument('-c', '--config', type=str, default=None, help="JSON configuration file for setting up default variables when the running the protocol. Arguments below overwrite parameters specified in the config file.")
@@ -112,7 +112,7 @@ def main():
     logger.info("ARGUMENTS".center(pad))
     logger.info("PROTOCOL".ljust(pad) + f"{args.protocol}")
     logger.info("CONFIG".ljust(pad) + f"{args.config}")
-    logger.info("ENV".ljust(pad) + f"{args.env}")
+    logger.info("CLUSTERCONFIG".ljust(pad) + f"{args.clusterconfig}")
     logger.info("JOBS".ljust(pad) + f"{args.jobs}")
 
     # default keys set to None
@@ -182,8 +182,8 @@ def main():
             errors.append(f"ERROR! natref COULD NOT BE FOUND AT '{config['natref']}'!")
 
     # env
-    if args.env not in ('local', 'gwdg1', 'clem'):
-        errors.append(f"ERROR! UNKNOWN ENV ({args.env})!")
+    if args.clusterconfig is not None and not Path(args.clusterconfig).exists():
+        errors.append(f"ERROR! CLUSTERCONFIG WAS SPECIFIED BUT COULD NOT BE FOUND AT '{args.cluster}'!")
 
     # jobs
     if args.jobs < 1:
@@ -208,15 +208,10 @@ def main():
     smk_command = f"snakemake -k -s {smk_file} --jobname fc_{args.protocol}" + "_{rulename}.{jobid} "
 
     # determine environment
-    if args.env == 'local':
+    if args.clusterconfig is None:
         smk_command += f"-j {args.jobs} "
-    elif args.env == 'clem':
-        config_cluster = pkg_resources.resource_filename('npfc', "data/cluster_clem.json")
-        smk_command += '-j 100 --cluster-config ' + config_cluster + ' --cluster "sbatch -A {cluster.account} -p {cluster.partition} -n {cluster.n}  -t {cluster.time} --oversubscribe" '
-    elif args.env == 'gwdg1':
-        smk_command = "sbatch -p medium -t '12:00:00'" + smk_command
-        config_cluster = pkg_resources.resource_filename('npfc', "data/cluster_gwdg1.json")
-        smk_command += '-j 400 --cluster-config ' + config_cluster + ' --cluster "sbatch -p medium -n {cluster.n}  -t {cluster.time} --oversubscribe" '
+    else:
+        smk_command += '-j 100 --cluster-config ' + args.clusterconfig + ' --cluster "sbatch -A {cluster.account} -p {cluster.partition} -n {cluster.n}  -t {cluster.time} --oversubscribe" '
 
     # arguments
     if 'fragments' in args.protocol:
@@ -280,7 +275,8 @@ def main():
     smk_command_svg = smk_command + f" --rulegraph | dot -Tsvg > {svg}"
     logger.info(f"DRAWING TASK TREE AT '{svg}'")
     logger.info(f"COMMAND IS:\n{smk_command_svg}\n")
-    subprocess.run(smk_command_svg, shell=True, check=True)
+    res = subprocess.run(smk_command_svg, shell=True, check=True)
+    print(f"{res=}")
 
     # run protocol
     logger.info("BEGIN OF SNAKEMAKE PROTOCOL")

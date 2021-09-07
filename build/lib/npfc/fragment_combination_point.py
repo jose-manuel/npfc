@@ -57,7 +57,7 @@ def find_symmetry_groups(mol: Mol) -> Tuple[Tuple[int]]:
     Symmetry groups are defined as atoms that can have equivalent
     positions in substructure matches.
 
-    This function has been copied from:
+    This function has been copied from
     https://sourceforge.net/p/rdkit/mailman/message/27897393/
 
     :param mol: the input molecule

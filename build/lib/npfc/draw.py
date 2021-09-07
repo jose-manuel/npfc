@@ -111,7 +111,7 @@ def mol(mol: Mol,
         colormap: 'ColorMap' = None,
         output_file: str = None,
         img_size: Tuple[int] = (400, 400),
-        debug: bool = False,
+        atom_labels: Union[str, dict] = None,
         # force_depict: bool = False,
         svg: bool = True,
         legend: str = '') -> Image:
@@ -129,27 +129,34 @@ def mol(mol: Mol,
     :param execlude_exocyclic_from_highlight: since exocyclic atoms are not used for fc classification, this option allows the user to mask exocyclic atoms from highlights
     :param output_file: if speficied, the image is saved (format is deduced from extension)
     :param img_size: the size of the resulting Image
-    :param debug: display atom indices on the structure
+    :param atom_labels: display atom labels. Parameter can either value 'atom_indices' or a dictionary with atom_index: label (i.e. fcp).
     :param svg: use SVG format instead of PNG
     :return: an Image of the highlighted molecule
     """
     # if no colormap is provided, do not highlight any atoms
     if colormap is None:
         colormap = ColorMap(mol, {})
-
     # draw
     if svg:
         d2d = rdMolDraw2D.MolDraw2DSVG(img_size[0], img_size[1])
     else:
         d2d = rdMolDraw2D.MolDraw2DCairo(img_size[0], img_size[1])
-    d2d.drawOptions().addAtomIndices = debug
+    if atom_labels is not None:
+        if atom_labels == 'atom_indices':
+            d2d.drawOptions().addAtomIndices = True
+        else:
+            for at in mol.GetAtoms():
+                at_idx = at.GetIdx()
+                label = atom_labels[at_idx]
+                at.SetProp('atomNote', label)
+    # general settings
     d2d.drawOptions().legendFontSize = 24
     d2d.drawOptions().padding = 0.1
+    # generate image
     d2d.DrawMoleculeWithHighlights(mol, legend, colormap.atoms, colormap.bonds, {}, {})
     d2d.FinishDrawing()
     img = d2d.GetDrawingText()
-
-    # export img
+    # export image
     if output_file is not None:
         output_ext = output_file.split('.')[-1].upper()
         if output_ext == 'SVG' and not svg:
