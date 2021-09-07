@@ -1,2 +1,0 @@
-.. automodule:: npfc.fragment
-    :members:

@@ -3,15 +3,18 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
+********************************
 Welcome to npfc's documentation!
-================================
+********************************
 
-The library is used for the analysis of Natural-Product Fragment Combination (npfc).
+This Python 3 package is designed for analyzing Natural-Product Fragment
+Combination (npfc).
 
-It is based on the RDKit.
+It is mostly based on the RDKit, Pandas and NetworkX.
 
-More documentation will be produced over time, for now only module descriptions are
-available. Please have a look and enjoy, any feedback is welcome!
+On top of the existing modules, a set of scripts are included as well.
+The execution of scripts is orchestrated via Snakemake workflows.
+
 
 .. toctree::
    :maxdepth: 2
@@ -26,11 +29,11 @@ available. Please have a look and enjoy, any feedback is welcome!
    fragment_combination_point
    load
    notebook
-   np_score
    save
    standardize
    utils
 
+==================
 Indices and tables
 ==================
 
@@ -38,16 +41,21 @@ Indices and tables
 * :ref:`modindex`
 * :ref:`search`
 
+====================
 Package Architecture
 ====================
 
-Module interactions:
+Module interactions
+********************
 
 .. image:: _images/packages_npfc.svg
     :align: center
 
 
-Class hierarchy:
+Class hierarchy
+***************
+
+Right-click open in new tab to have a better view of this figure.
 
 .. image:: _images/classes_npfc.svg
     :align: center

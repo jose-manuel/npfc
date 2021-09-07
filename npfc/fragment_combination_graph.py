@@ -234,14 +234,6 @@ def generate(df_fcc: DataFrame, min_frags: int = 2, max_frags: int = 5, max_over
     """This method process a fragment combinations DataFrame
     and return a new DataFrame with a fragment combination graph for each molecule.
 
-    |pic1| |pic2|
-
-    .. |pic1| image:: _images/map_ex1_mol.svg
-       :width: 43%
-
-    .. |pic2| image:: _images/map_ex1_graph.svg
-       :width: 56%
-
     Each highlighted fragment of the molecule consists of a node of the graph.
     Fragment Combinations are used as edges for displaying fragment interactions and are annotated
     with the idm as well as the category of the combination.

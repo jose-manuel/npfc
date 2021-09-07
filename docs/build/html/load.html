@@ -1,43 +1,48 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8" />
   
-  <title>Module load &mdash; npfc 0.7.12-9-g00d740a2 documentation</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-
+  <title>load &mdash; npfc 0.7.12-11-g0395543e documentation</title>
   
-  
-  
-  
-
-  
-  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
-  
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="_static/language_data.js"></script>
-    
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-
-    
 
   
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Module notebook" href="notebook.html" />
-    <link rel="prev" title="Module fragment_combination_point" href="fragment_combination_point.html" /> 
+    <link rel="next" title="notebook" href="notebook.html" />
+    <link rel="prev" title="fragment_combination_point" href="fragment_combination_point.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -61,7 +66,7 @@
             
             
               <div class="version">
-                0.7.12-9-g00d740a2
+                0.7.12-11-g0395543e
               </div>
             
           
@@ -78,6 +83,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -85,26 +91,29 @@
               
             
             
-              <p><span class="caption-text">Contents:</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="duplicate.html">Module duplicate</a></li>
-<li class="toctree-l1"><a class="reference internal" href="draw.html">Module draw</a></li>
-<li class="toctree-l1"><a class="reference internal" href="filter.html">Module filter</a></li>
-<li class="toctree-l1"><a class="reference internal" href="fragment_search.html">Module fragment_search</a></li>
-<li class="toctree-l1"><a class="reference internal" href="fragment_combination.html">Module fragment_combination</a></li>
-<li class="toctree-l1"><a class="reference internal" href="fragment_combination_graph.html">Module fragment_combination_graph</a></li>
-<li class="toctree-l1"><a class="reference internal" href="fragment_combination_point.html">Module fragment_combination_point</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Module load</a></li>
-<li class="toctree-l1"><a class="reference internal" href="notebook.html">Module notebook</a></li>
-<li class="toctree-l1"><a class="reference internal" href="np_score.html">Module np_score</a></li>
-<li class="toctree-l1"><a class="reference internal" href="save.html">Module save</a></li>
-<li class="toctree-l1"><a class="reference internal" href="standardize.html">Module standardize</a></li>
-<li class="toctree-l1"><a class="reference internal" href="utils.html">Module utils</a></li>
+<li class="toctree-l1"><a class="reference internal" href="duplicate.html">duplicate</a></li>
+<li class="toctree-l1"><a class="reference internal" href="draw.html">draw</a></li>
+<li class="toctree-l1"><a class="reference internal" href="filter.html">filter</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fragment_search.html">fragment_search</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fragment_combination.html">fragment_combination</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fragment_combination_graph.html">fragment_combination_graph</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fragment_combination_point.html">fragment_combination_point</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">load</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#module-load">Module load</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="notebook.html">notebook</a></li>
+<li class="toctree-l1"><a class="reference internal" href="save.html">save</a></li>
+<li class="toctree-l1"><a class="reference internal" href="standardize.html">standardize</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utils.html">utils</a></li>
 </ul>
 
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -139,18 +148,20 @@
 
 
 
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="index.html">Docs</a> &raquo;</li>
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
         
-      <li>Module load</li>
+      <li>load</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
-            
+          
             <a href="_sources/load.rst.txt" rel="nofollow"> View page source</a>
           
         
@@ -164,13 +175,15 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <span class="target" id="module-npfc.load"></span><section id="module-load">
-<h1>Module load<a class="headerlink" href="#module-load" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="module-npfc.load">
+<span id="load"></span><h1>load<a class="headerlink" href="#module-npfc.load" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-load">
+<h2>Module load<a class="headerlink" href="#module-load" title="Permalink to this headline">¶</a></h2>
 <p>A module containing the Loader class, used for storing DataFrames with molecules
 on disk.</p>
 <dl class="py function">
-<dt id="npfc.load.count_mols">
-<code class="sig-prename descclassname">npfc.load.</code><code class="sig-name descname">count_mols</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_file</span></em>, <em class="sig-param"><span class="n">keep_uncompressed</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/load.html#count_mols"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.load.count_mols" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="npfc.load.count_mols">
+<span class="sig-prename descclassname"><span class="pre">npfc.load.</span></span><span class="sig-name descname"><span class="pre">count_mols</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keep_uncompressed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/load.html#count_mols"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#npfc.load.count_mols" title="Permalink to this definition">¶</a></dt>
 <dd><p>Count the number of molecules found in a text file.
 In case the file is compressed (gzip), it is uncompressed first. The resulting
 uncompressed file can be kept for further use.</p>
@@ -186,8 +199,8 @@ uncompressed file can be kept for further use.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt id="npfc.load.file">
-<code class="sig-prename descclassname">npfc.load.</code><code class="sig-name descname">file</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_file</span></em>, <em class="sig-param"><span class="n">in_id</span><span class="o">=</span><span class="default_value">'idm'</span></em>, <em class="sig-param"><span class="n">in_mol</span><span class="o">=</span><span class="default_value">'mol'</span></em>, <em class="sig-param"><span class="n">csv_sep</span><span class="o">=</span><span class="default_value">'|'</span></em>, <em class="sig-param"><span class="n">mol_format</span><span class="o">=</span><span class="default_value">'rdkit'</span></em>, <em class="sig-param"><span class="n">out_id</span><span class="o">=</span><span class="default_value">'idm'</span></em>, <em class="sig-param"><span class="n">out_mol</span><span class="o">=</span><span class="default_value">'mol'</span></em>, <em class="sig-param"><span class="n">keep_props</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">decode</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/load.html#file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.load.file" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="npfc.load.file">
+<span class="sig-prename descclassname"><span class="pre">npfc.load.</span></span><span class="sig-name descname"><span class="pre">file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'idm'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_mol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mol'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">csv_sep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'|'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mol_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'rdkit'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'idm'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_mol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mol'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keep_props</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">decode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/load.html#file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#npfc.load.file" title="Permalink to this definition">¶</a></dt>
 <dd><p>Load a file into a DataFrame.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -213,8 +226,8 @@ uncompressed file can be kept for further use.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt id="npfc.load.pgsql">
-<code class="sig-prename descclassname">npfc.load.</code><code class="sig-name descname">pgsql</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dbname</span></em>, <em class="sig-param"><span class="n">user</span></em>, <em class="sig-param"><span class="n">psql</span></em>, <em class="sig-param"><span class="n">src_id</span></em>, <em class="sig-param"><span class="n">src_mol</span></em>, <em class="sig-param"><span class="n">mol_format</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">col_mol</span><span class="o">=</span><span class="default_value">'mol'</span></em>, <em class="sig-param"><span class="n">col_id</span><span class="o">=</span><span class="default_value">'idm'</span></em>, <em class="sig-param"><span class="n">keep_db_cols</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/load.html#pgsql"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.load.pgsql" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="npfc.load.pgsql">
+<span class="sig-prename descclassname"><span class="pre">npfc.load.</span></span><span class="sig-name descname"><span class="pre">pgsql</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dbname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">user</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">psql</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_mol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mol_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">col_mol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mol'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">col_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'idm'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keep_db_cols</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/load.html#pgsql"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#npfc.load.pgsql" title="Permalink to this definition">¶</a></dt>
 <dd><p>Load molecules from a PGSQL query.
 The col_mol will is parsed by RDKit depending on the mol_format argument.
 If no mol_format is specified, then the column is returned untouched.</p>
@@ -242,36 +255,37 @@ If no mol_format is specified, then the column is returned untouched.</p>
 </dl>
 </dd></dl>
 
-</section>
+</div>
+</div>
 
 
            </div>
            
           </div>
           <footer>
-  
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="notebook.html" class="btn btn-neutral float-right" title="Module notebook" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="fragment_combination_point.html" class="btn btn-neutral float-left" title="Module fragment_combination_point" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+        <a href="notebook.html" class="btn btn-neutral float-right" title="notebook" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="fragment_combination_point.html" class="btn btn-neutral float-left" title="fragment_combination_point" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2019, Dr. Jose-Manuel Gally
+        &#169; Copyright 2019, Dr. Jose-Manuel Gally.
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
-
         </div>
       </div>
 
@@ -279,7 +293,6 @@ If no mol_format is specified, then the column is returned untouched.</p>
 
   </div>
   
-
 
   <script type="text/javascript">
       jQuery(function () {

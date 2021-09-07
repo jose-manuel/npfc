@@ -1,43 +1,48 @@
 
 
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8" />
   
-  <title>Module filter &mdash; npfc 0.7.12-9-g00d740a2 documentation</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-
+  <title>filter &mdash; npfc 0.7.12-11-g0395543e documentation</title>
   
-  
-  
-  
-
-  
-  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
-  
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="_static/language_data.js"></script>
-    
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-
-    
 
   
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Module fragment_search" href="fragment_search.html" />
-    <link rel="prev" title="Module draw" href="draw.html" /> 
+    <link rel="next" title="fragment_search" href="fragment_search.html" />
+    <link rel="prev" title="draw" href="draw.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -61,7 +66,7 @@
             
             
               <div class="version">
-                0.7.12-9-g00d740a2
+                0.7.12-11-g0395543e
               </div>
             
           
@@ -78,6 +83,7 @@
           
         </div>
 
+        
         <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
           
             
@@ -85,26 +91,29 @@
               
             
             
-              <p><span class="caption-text">Contents:</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="duplicate.html">Module duplicate</a></li>
-<li class="toctree-l1"><a class="reference internal" href="draw.html">Module draw</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Module filter</a></li>
-<li class="toctree-l1"><a class="reference internal" href="fragment_search.html">Module fragment_search</a></li>
-<li class="toctree-l1"><a class="reference internal" href="fragment_combination.html">Module fragment_combination</a></li>
-<li class="toctree-l1"><a class="reference internal" href="fragment_combination_graph.html">Module fragment_combination_graph</a></li>
-<li class="toctree-l1"><a class="reference internal" href="fragment_combination_point.html">Module fragment_combination_point</a></li>
-<li class="toctree-l1"><a class="reference internal" href="load.html">Module load</a></li>
-<li class="toctree-l1"><a class="reference internal" href="notebook.html">Module notebook</a></li>
-<li class="toctree-l1"><a class="reference internal" href="np_score.html">Module np_score</a></li>
-<li class="toctree-l1"><a class="reference internal" href="save.html">Module save</a></li>
-<li class="toctree-l1"><a class="reference internal" href="standardize.html">Module standardize</a></li>
-<li class="toctree-l1"><a class="reference internal" href="utils.html">Module utils</a></li>
+<li class="toctree-l1"><a class="reference internal" href="duplicate.html">duplicate</a></li>
+<li class="toctree-l1"><a class="reference internal" href="draw.html">draw</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">filter</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#module-filter">Module filter</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="fragment_search.html">fragment_search</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fragment_combination.html">fragment_combination</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fragment_combination_graph.html">fragment_combination_graph</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fragment_combination_point.html">fragment_combination_point</a></li>
+<li class="toctree-l1"><a class="reference internal" href="load.html">load</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebook.html">notebook</a></li>
+<li class="toctree-l1"><a class="reference internal" href="save.html">save</a></li>
+<li class="toctree-l1"><a class="reference internal" href="standardize.html">standardize</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utils.html">utils</a></li>
 </ul>
 
             
           
         </div>
+        
       </div>
     </nav>
 
@@ -139,18 +148,20 @@
 
 
 
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="index.html">Docs</a> &raquo;</li>
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
         
-      <li>Module filter</li>
+      <li>filter</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
-            
+          
             <a href="_sources/filter.rst.txt" rel="nofollow"> View page source</a>
           
         
@@ -164,18 +175,20 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <span class="target" id="module-npfc.filter"></span><section id="module-filter">
-<h1>Module filter<a class="headerlink" href="#module-filter" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="module-npfc.filter">
+<span id="filter"></span><h1>filter<a class="headerlink" href="#module-npfc.filter" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-filter">
+<h2>Module filter<a class="headerlink" href="#module-filter" title="Permalink to this headline">¶</a></h2>
 <p>This modules contains the class Filter, which is used to filter molecules using
 molecular descriptors.</p>
 <dl class="py class">
-<dt id="npfc.filter.Filter">
-<em class="property">class </em><code class="sig-prename descclassname">npfc.filter.</code><code class="sig-name descname">Filter</code><span class="sig-paren">(</span><em class="sig-param">descriptors={'elements': &lt;function &lt;lambda&gt;&gt;</em>, <em class="sig-param">'molecular_formula': &lt;function &lt;lambda&gt;&gt;</em>, <em class="sig-param">'molecular_weight': &lt;function &lt;lambda&gt;&gt;</em>, <em class="sig-param">'num_atoms_nitrogen': &lt;function &lt;lambda&gt;&gt;</em>, <em class="sig-param">'num_atoms_oxygen': &lt;function &lt;lambda&gt;&gt;</em>, <em class="sig-param">'num_hba': &lt;function &lt;lambda&gt;&gt;</em>, <em class="sig-param">'num_hbd': &lt;function &lt;lambda&gt;&gt;</em>, <em class="sig-param">'num_heavy_atoms': &lt;function &lt;lambda&gt;&gt;</em>, <em class="sig-param">'num_rings': &lt;function &lt;lambda&gt;&gt;</em>, <em class="sig-param">'num_rings_arom': &lt;function &lt;lambda&gt;&gt;</em>, <em class="sig-param">'num_rotatable_bonds': &lt;function &lt;lambda&gt;&gt;</em>, <em class="sig-param">'ring_size_max': &lt;function &lt;lambda&gt;&gt;</em>, <em class="sig-param">'ring_size_min': &lt;function &lt;lambda&gt;&gt;</em>, <em class="sig-param">'slogp': &lt;function &lt;lambda&gt;&gt;</em>, <em class="sig-param">'tpsa': &lt;function &lt;lambda&gt;&gt;}</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/filter.html#Filter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.filter.Filter" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="npfc.filter.Filter">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">npfc.filter.</span></span><span class="sig-name descname"><span class="pre">Filter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">descriptors={'elements':</span> <span class="pre">&lt;function</span> <span class="pre">&lt;lambda&gt;&gt;</span></em>, <em class="sig-param"><span class="pre">'molecular_formula':</span> <span class="pre">&lt;function</span> <span class="pre">&lt;lambda&gt;&gt;</span></em>, <em class="sig-param"><span class="pre">'molecular_weight':</span> <span class="pre">&lt;function</span> <span class="pre">&lt;lambda&gt;&gt;</span></em>, <em class="sig-param"><span class="pre">'num_atoms_nitrogen':</span> <span class="pre">&lt;function</span> <span class="pre">&lt;lambda&gt;&gt;</span></em>, <em class="sig-param"><span class="pre">'num_atoms_oxygen':</span> <span class="pre">&lt;function</span> <span class="pre">&lt;lambda&gt;&gt;</span></em>, <em class="sig-param"><span class="pre">'num_hba':</span> <span class="pre">&lt;function</span> <span class="pre">&lt;lambda&gt;&gt;</span></em>, <em class="sig-param"><span class="pre">'num_hbd':</span> <span class="pre">&lt;function</span> <span class="pre">&lt;lambda&gt;&gt;</span></em>, <em class="sig-param"><span class="pre">'num_heavy_atoms':</span> <span class="pre">&lt;function</span> <span class="pre">&lt;lambda&gt;&gt;</span></em>, <em class="sig-param"><span class="pre">'num_rings':</span> <span class="pre">&lt;function</span> <span class="pre">&lt;lambda&gt;&gt;</span></em>, <em class="sig-param"><span class="pre">'num_rings_arom':</span> <span class="pre">&lt;function</span> <span class="pre">&lt;lambda&gt;&gt;</span></em>, <em class="sig-param"><span class="pre">'num_rotatable_bonds':</span> <span class="pre">&lt;function</span> <span class="pre">&lt;lambda&gt;&gt;</span></em>, <em class="sig-param"><span class="pre">'ring_size_max':</span> <span class="pre">&lt;function</span> <span class="pre">&lt;lambda&gt;&gt;</span></em>, <em class="sig-param"><span class="pre">'ring_size_min':</span> <span class="pre">&lt;function</span> <span class="pre">&lt;lambda&gt;&gt;</span></em>, <em class="sig-param"><span class="pre">'slogp':</span> <span class="pre">&lt;function</span> <span class="pre">&lt;lambda&gt;&gt;</span></em>, <em class="sig-param"><span class="pre">'tpsa':</span> <span class="pre">&lt;function</span> <span class="pre">&lt;lambda&gt;&gt;}</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/filter.html#Filter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#npfc.filter.Filter" title="Permalink to this definition">¶</a></dt>
 <dd><p>A class for filtering molecules based on molecular descriptors.</p>
 <p>Create a Filter object.</p>
 <dl class="py method">
-<dt id="npfc.filter.Filter.compute_descriptors">
-<code class="sig-name descname">compute_descriptors</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mol</span></em>, <em class="sig-param"><span class="n">descriptors</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/filter.html#Filter.compute_descriptors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.filter.Filter.compute_descriptors" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="npfc.filter.Filter.compute_descriptors">
+<span class="sig-name descname"><span class="pre">compute_descriptors</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">descriptors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/filter.html#Filter.compute_descriptors"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#npfc.filter.Filter.compute_descriptors" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute descriptors. A subset of descriptors can be computed if a list
 of descriptor names is provided. To get an idea of what descriptors can be computed,
 the method get_possible_descriptors can be used.</p>
@@ -196,8 +209,8 @@ the method get_possible_descriptors can be used.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="npfc.filter.Filter.filter_mol">
-<code class="sig-name descname">filter_mol</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mol</span></em>, <em class="sig-param"><span class="n">expr</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/filter.html#Filter.filter_mol"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.filter.Filter.filter_mol" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="npfc.filter.Filter.filter_mol">
+<span class="sig-name descname"><span class="pre">filter_mol</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expr</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/filter.html#Filter.filter_mol"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#npfc.filter.Filter.filter_mol" title="Permalink to this definition">¶</a></dt>
 <dd><p>Filter a molecule based on an expression.
 Two types of expressions are currently supported:</p>
 <blockquote>
@@ -239,8 +252,8 @@ Two types of expressions are currently supported:</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="npfc.filter.Filter.get_possible_descriptors">
-<code class="sig-name descname">get_possible_descriptors</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/filter.html#Filter.get_possible_descriptors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.filter.Filter.get_possible_descriptors" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="npfc.filter.Filter.get_possible_descriptors">
+<span class="sig-name descname"><span class="pre">get_possible_descriptors</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/filter.html#Filter.get_possible_descriptors"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#npfc.filter.Filter.get_possible_descriptors" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a list of all descriptors that can be computed using this module.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type</dt>
@@ -255,86 +268,87 @@ Two types of expressions are currently supported:</p>
 </dd></dl>
 
 <dl class="py function">
-<dt id="npfc.filter.count_violations_fragment_like">
-<code class="sig-prename descclassname">npfc.filter.</code><code class="sig-name descname">count_violations_fragment_like</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">molecular_weight</span></em>, <em class="sig-param"><span class="n">slogp</span></em>, <em class="sig-param"><span class="n">num_hba</span></em>, <em class="sig-param"><span class="n">num_hbd</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/filter.html#count_violations_fragment_like"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.filter.count_violations_fragment_like" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="npfc.filter.count_violations_fragment_like">
+<span class="sig-prename descclassname"><span class="pre">npfc.filter.</span></span><span class="sig-name descname"><span class="pre">count_violations_fragment_like</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">molecular_weight</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slogp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_hba</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_hbd</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/filter.html#count_violations_fragment_like"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#npfc.filter.count_violations_fragment_like" title="Permalink to this definition">¶</a></dt>
 <dd><p>Congreve, M., Carr, R., Murray, C., Jhoti, H., 2003. A “Rule of Three” for fragment-based lead discovery?
 Drug Discovery Today 8, 876–877. doi:10.1016/S1359-6446(03)02831-9</p>
 </dd></dl>
 
 <dl class="py function">
-<dt id="npfc.filter.count_violations_fragment_like_ext">
-<code class="sig-prename descclassname">npfc.filter.</code><code class="sig-name descname">count_violations_fragment_like_ext</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">num_fragment_like_violations</span></em>, <em class="sig-param"><span class="n">tpsa</span></em>, <em class="sig-param"><span class="n">num_rotatable_bonds</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/filter.html#count_violations_fragment_like_ext"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.filter.count_violations_fragment_like_ext" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="npfc.filter.count_violations_fragment_like_ext">
+<span class="sig-prename descclassname"><span class="pre">npfc.filter.</span></span><span class="sig-name descname"><span class="pre">count_violations_fragment_like_ext</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_fragment_like_violations</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tpsa</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_rotatable_bonds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/filter.html#count_violations_fragment_like_ext"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#npfc.filter.count_violations_fragment_like_ext" title="Permalink to this definition">¶</a></dt>
 <dd><p>Congreve, M., Carr, R., Murray, C., Jhoti, H., 2003.
 A “Rule of Three” for fragment-based lead discovery? Drug Discovery Today 8, 876–877.
 doi:10.1016/S1359-6446(03)02831-9</p>
 </dd></dl>
 
 <dl class="py function">
-<dt id="npfc.filter.count_violations_lead_like">
-<code class="sig-prename descclassname">npfc.filter.</code><code class="sig-name descname">count_violations_lead_like</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">molecular_weight</span></em>, <em class="sig-param"><span class="n">slogp</span></em>, <em class="sig-param"><span class="n">num_rotatable_bonds</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/filter.html#count_violations_lead_like"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.filter.count_violations_lead_like" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="npfc.filter.count_violations_lead_like">
+<span class="sig-prename descclassname"><span class="pre">npfc.filter.</span></span><span class="sig-name descname"><span class="pre">count_violations_lead_like</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">molecular_weight</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slogp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_rotatable_bonds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/filter.html#count_violations_lead_like"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#npfc.filter.count_violations_lead_like" title="Permalink to this definition">¶</a></dt>
 <dd><p><a class="reference external" href="http://zinc.docking.org/browse/subsets/">http://zinc.docking.org/browse/subsets/</a>
 Teague, Davis, Leeson, Oprea, Angew Chem Int Ed Engl. 1999 Dec 16;38(24):3743-3748.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt id="npfc.filter.count_violations_lipinski">
-<code class="sig-prename descclassname">npfc.filter.</code><code class="sig-name descname">count_violations_lipinski</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">molecular_weight</span></em>, <em class="sig-param"><span class="n">slogp</span></em>, <em class="sig-param"><span class="n">num_hbd</span></em>, <em class="sig-param"><span class="n">num_hba</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/filter.html#count_violations_lipinski"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.filter.count_violations_lipinski" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="npfc.filter.count_violations_lipinski">
+<span class="sig-prename descclassname"><span class="pre">npfc.filter.</span></span><span class="sig-name descname"><span class="pre">count_violations_lipinski</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">molecular_weight</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slogp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_hbd</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_hba</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/filter.html#count_violations_lipinski"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#npfc.filter.count_violations_lipinski" title="Permalink to this definition">¶</a></dt>
 <dd><p>Lipinski, J Pharmacol Toxicol Methods. 2000 Jul-Aug;44(1):235-49.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt id="npfc.filter.count_violations_ppi_like">
-<code class="sig-prename descclassname">npfc.filter.</code><code class="sig-name descname">count_violations_ppi_like</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">molecular_weight</span></em>, <em class="sig-param"><span class="n">slogp</span></em>, <em class="sig-param"><span class="n">num_hba</span></em>, <em class="sig-param"><span class="n">num_rings</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/filter.html#count_violations_ppi_like"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.filter.count_violations_ppi_like" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="npfc.filter.count_violations_ppi_like">
+<span class="sig-prename descclassname"><span class="pre">npfc.filter.</span></span><span class="sig-name descname"><span class="pre">count_violations_ppi_like</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">molecular_weight</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slogp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_hba</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_rings</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/filter.html#count_violations_ppi_like"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#npfc.filter.count_violations_ppi_like" title="Permalink to this definition">¶</a></dt>
 <dd><p>Hamon, V., Bourgeas, R., Ducrot, P., Theret, I., Xuereb, L., Basse, M.J., Brunel, J.M., Combes, S., Morelli, X., Roche, P., 2013.
 2P2IHUNTER: a tool for filtering orthosteric protein–protein interaction modulators via a dedicated support vector machine.
 Journal of The Royal Society Interface 11. doi:10.1098/rsif.2013.0860</p>
 </dd></dl>
 
 <dl class="py function">
-<dt id="npfc.filter.count_violations_veber">
-<code class="sig-prename descclassname">npfc.filter.</code><code class="sig-name descname">count_violations_veber</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">num_rotatable_bonds</span></em>, <em class="sig-param"><span class="n">tpsa</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/filter.html#count_violations_veber"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.filter.count_violations_veber" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="npfc.filter.count_violations_veber">
+<span class="sig-prename descclassname"><span class="pre">npfc.filter.</span></span><span class="sig-name descname"><span class="pre">count_violations_veber</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_rotatable_bonds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tpsa</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/filter.html#count_violations_veber"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#npfc.filter.count_violations_veber" title="Permalink to this definition">¶</a></dt>
 <dd><p>Veber DF, Johnson SR, Cheng HY, Smith BR, Ward KW, Kopple KD (June 2002).
 “Molecular properties that influence the oral bioavailability of drug candidates”.
 J. Med. Chem. 45 (12): 2615–23.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt id="npfc.filter.get_min_max_ring_sizes">
-<code class="sig-prename descclassname">npfc.filter.</code><code class="sig-name descname">get_min_max_ring_sizes</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mol</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/filter.html#get_min_max_ring_sizes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#npfc.filter.get_min_max_ring_sizes" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="npfc.filter.get_min_max_ring_sizes">
+<span class="sig-prename descclassname"><span class="pre">npfc.filter.</span></span><span class="sig-name descname"><span class="pre">get_min_max_ring_sizes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mol</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/filter.html#get_min_max_ring_sizes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#npfc.filter.get_min_max_ring_sizes" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a tuple wih (minimum, maximum) ring sizes of the input molecule.
 In case the molecule is linear, (0, 0) is returned.</p>
 </dd></dl>
 
-</section>
+</div>
+</div>
 
 
            </div>
            
           </div>
           <footer>
-  
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="fragment_search.html" class="btn btn-neutral float-right" title="Module fragment_search" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="draw.html" class="btn btn-neutral float-left" title="Module draw" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+        <a href="fragment_search.html" class="btn btn-neutral float-right" title="fragment_search" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="draw.html" class="btn btn-neutral float-left" title="draw" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2019, Dr. Jose-Manuel Gally
+        &#169; Copyright 2019, Dr. Jose-Manuel Gally.
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
-
         </div>
       </div>
 
@@ -342,7 +356,6 @@ In case the molecule is linear, (0, 0) is returned.</p>
 
   </div>
   
-
 
   <script type="text/javascript">
       jQuery(function () {
