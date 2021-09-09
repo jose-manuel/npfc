@@ -1,9 +1,0 @@
-{
-    "WD": "fct/crms_dnp_chembl_zinc/data/01_fragments",
-    "root_dir": "fc/01_fragments/crms",
-    "prep_subdir" : "prep",
-    "prefix": "crms",
-    "config_file": "fc/01_fragments/crms/test_fragments_crms.json",
-    "commercial_ref" : "fc/02_commercial/zinc/data/prep/04_dedupl/zinc_refs.hdf",
-    "color": "gray"
-}

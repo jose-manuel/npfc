@@ -175,7 +175,7 @@ def file(input_file: str,
         if col in df.columns:
             df[col] = df[col].astype(str)
 
-    logging.debug("Excerpt of the data as extracted with load.file function\n\n%s\n", df.head(3))
+    logging.debug("First 3 rows loaded:\n\n%s\n", df.head(3))
 
     return df
 

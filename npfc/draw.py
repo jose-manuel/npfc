@@ -369,16 +369,35 @@ def compress_parallel_edges(G):
     return nx.from_pandas_edgelist(df_edges, source="source", target="target", edge_attr=['idm', 'idcfg', 'label', 'title'])  # simple graph because no more parallel edges
 
 
-def fcg(G, colormap, WD_img='/home/gally/Projects/NPFC/data/fragments/crms/data/prep/report/depict', output_file=None, size=(400, 400)):
-    """A very Q&D function to draw FCGs.
-    It loads a PNG image (with transparent background) for each fragment from within the specified folder.
+def fcg(G, colormap=None, WD_img: str = None, output_file: str = None, size: tuple = (400, 400), print_title: bool = True):
+    """A function to represent Fragment Combination Graphs.
 
-    Caution!!! If the images are not transparent, the node color will NOT be displayed!!!
+    Currently, this function has limitations for showing fragments into the nodes:
 
-    To convert PNG images to transparent:
+    1. Individual fragment images have to be generated beforehand and saved into the WD_img directory
+    2. Fragment images must be in PNG format
+    3. Fragment image files have to comply the naming scheme: "fragment_id.png"
+    4. Fragment image backgrounds must be transparent (otherwise the node color will not be visible)
 
+    I am currently looking for a nicer and more portable solution, but I admit I am a bit stuck.
+    To compute individual round PNG images of the fragments (and match criteria 1-3), one can use the code below:
+
+    >>> # create a directory with individual fragment images (round, png)
+    >>> mols_draw input_file output_dir
+
+    Currently the generated PNG images are not transparent, so they have to be edited with ImageMagick:
+
+    >>> # make all PNG files in output dir transparent (from bash)
+    >>> cd output_dir
     >>> for f in *png; do echo $f; convert $f -transparent white $f; done
 
+    :param G: a Graph (NetworkX), generated with the fragment_combination_graph module
+    :param colormap: a matching ColorMap object, generated alongside the graph. If none is provided, the nodes will colored in white.
+    :param WD_img: a working directory where suitable (see above) frament images are located. If none is provided, fragments will not be displayed in the graph nodes.
+    :param size: the size of the canvas for the drawing
+    :param print_title: print the FCG identifier (molecule_id:fcg_id) below the graph
+
+    :return: a drawing of the fragment combination graph
     """
     # preprocess nx G
     G = compress_parallel_edges(G)
@@ -392,19 +411,17 @@ def fcg(G, colormap, WD_img='/home/gally/Projects/NPFC/data/fragments/crms/data/
     A.graph_attr['forcelabels'] = 'true'
     A.graph_attr['nodesep'] = '2'
     A.graph_attr['dpi'] = '1200'
-    A.graph_attr['label'] = "\n\n" + list(G.edges(data=True))[0][2]['title']
     A.graph_attr['fontsize'] = 25
+
+    if print_title:
+        A.graph_attr['label'] = "\n\n" + list(G.edges(data=True))[0][2]['title']
 
     # init node/attribute mapping
     node_labels = G.nodes()
-    d_colors = colormap.fragments
 
     # configure node attributes
     for nl in node_labels:
         n = A.get_node(nl)
-        image = f"{WD_img}/{nl}.png"
-        n.attr['image'] = image
-        n.attr['fillcolor'] = matplotlib.colors.to_hex(d_colors[nl][0])
         n.attr['color'] = 'black'
         n.attr['style'] = 'filled'
         n.attr['imagescale'] = True
@@ -412,10 +429,20 @@ def fcg(G, colormap, WD_img='/home/gally/Projects/NPFC/data/fragments/crms/data/
         n.attr['shape'] = 'circle'
         n.attr['labeldistance'] = 1
         n.attr['penwidth'] = 1
-        n.attr['label'] = "\n\n\n\n\n" + nl
         n.attr['height'] = 2
         n.attr['width'] = 2
         n.attr['fontsize'] = 20
+        #  embed fragment images, if available
+        if WD_img is not None:
+            n.attr['image'] = f"{WD_img}/{nl}.png"
+            n.attr['label'] = "\n\n\n\n\n" + nl
+        else:
+            n.attr['label'] = nl
+        # colormap
+        if colormap is None:
+            n.attr['fillcolor'] = "white"
+        else:
+            n.attr['fillcolor'] = matplotlib.colors.to_hex(colormap.fragments[nl][0])
 
     # configure edge attributes
     for nxe, e in zip(sorted(G.edges(data=True), key=lambda x: (x[0], x[1])), A.edges()):
@@ -425,71 +452,10 @@ def fcg(G, colormap, WD_img='/home/gally/Projects/NPFC/data/fragments/crms/data/
 
     # setup export
     if output_file is None:
-        output_file = '/tmp/_tmp_fcg.img'
+        output_file = '/tmp/_tmp_fcg.png'
 
     # export the graph as SVG
     A.draw(output_file, format='png', prog='dot')
-
-    # read back the export
-    return Image(output_file, width=size[0], height=size[1])
-
-
-def fcg_no_img(G, colormap, output_file=None, size=(400, 400)):
-    """A very Q&D function to draw FCGs.
-    It loads a PNG image (with transparent background) for each fragment from within the specified folder.
-
-    """
-    # preprocess nx G
-    G = compress_parallel_edges(G)
-    # export from nx to Graphviz
-    A = to_agraph(G)
-
-    # configure graph attributes
-    # A.graph_attr.update(ratio="fill")
-    A.graph_attr.update(size="6, 12")
-    A.graph_attr['outputorder'] = 'edgesfirst'
-    A.graph_attr['forcelabels'] = 'true'
-    A.graph_attr['nodesep'] = '2'
-    A.graph_attr['dpi'] = '1200'
-    A.graph_attr['label'] = "\n\n" + list(G.edges(data=True))[0][2]['title']
-    A.graph_attr['fontsize'] = 25
-
-    # init node/attribute mapping
-    node_labels = G.nodes()
-    d_colors = colormap.fragments
-
-    # configure node attributes
-    for nl in node_labels:
-        n = A.get_node(nl)
-        # image = f"{WD_img}/{nl}.png"
-        # n.attr['image'] = image
-        n.attr['fillcolor'] = matplotlib.colors.to_hex(d_colors[nl][0])
-        n.attr['color'] = 'black'
-        n.attr['style'] = 'filled'
-        n.attr['imagescale'] = True
-        n.attr['fixedsize'] = True
-        n.attr['shape'] = 'circle'
-        n.attr['labeldistance'] = 1
-        n.attr['penwidth'] = 1
-        n.attr['label'] = "\n\n\n\n\n" + nl
-        n.attr['height'] = 2
-        n.attr['width'] = 2
-        n.attr['fontsize'] = 20
-
-    # configure edge attributes
-    for nxe, e in zip(sorted(G.edges(data=True), key=lambda x: (x[0], x[1])), A.edges()):
-        e = A.get_edge(nxe[0], nxe[1])
-        e.attr['label'] = " " + nxe[2]['label']
-        e.attr['labelfontcolor'] = 'red'
-
-    # setup export
-    if output_file is None:
-        output_file = '/tmp/_tmp_fcg.img'
-
-    # export the graph as SVG
-    A.draw(output_file, format='png', prog='dot')
-
-    print(A)
 
     # read back the export
     return Image(output_file, width=size[0], height=size[1])
@@ -640,7 +606,14 @@ def reaction(mol1: Mol, mol2: Mol, sub_img_size: tuple = (200, 200), svg: bool =
     return img
 
 
-def hilight_fragment(mol, fragment_id, palette):
+def highlight_fragment(mol, fragment_id, palette):
+    """This function is to generate an image of a fragment with a given color.
+    The whole fragment will be highlighted. It can be useful for more complex
+    reports to show the colored fragments below a molecule with a colormap.
+
+    :param mol: a molecule to highlight
+    :param fragment_id:
+    """
 
     d_aidxs = {fragment_id: [[k for k in list(range(mol.GetNumAtoms()))]]}
     return FragmentHighlight(mol, d_aidxs, palette)

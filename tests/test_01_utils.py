@@ -53,7 +53,6 @@ def test_check_arg_positive_number():
 def test_check_arg_input_file():
     """Test the parsing of arguments that should be a input file."""
     # should pass
-    utils.check_arg_input_file('tests/tmp/test_save.hdf')
     utils.check_arg_input_file('tests/tmp/test_save.sdf.gz')
     utils.check_arg_input_file('tests/tmp/test_save.csv.gz')
     # should throw a ValueError
@@ -70,7 +69,6 @@ def test_arg_output_file():
     # should pass
     utils.check_arg_output_file('tests/tmp/test_new_file.csv')
     utils.check_arg_output_file('tests/tmp/test_new_file.csv.gz')
-    utils.check_arg_output_file('tests/tmp/test_new_file.hdf')
     utils.check_arg_output_file('tests/tmp/test_new_file.sdf')
     utils.check_arg_output_file('tests/tmp/test_new_file.sdf.gz')
     # should throw a ValueError

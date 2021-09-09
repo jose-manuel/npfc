@@ -75,10 +75,7 @@ def test_save_compressed(df_mols, output_file_prefix):
 
 
 def test_save_simple(df_mols, output_file_prefix):
-    """Test several cases (shuffle, encode) for saving molecules into different formats (hdf, csv)."""
-    # hdf
-    outputs_hdf = save.file(df_mols, output_file_prefix + '.hdf')
-    assert Path(outputs_hdf[0][0]).is_file() is True and outputs_hdf[0][1] == 5
+    """Test several cases (shuffle, encode) for saving molecules into different formats (csv, sdf)."""
     # csv
     outputs_csv = save.file(df_mols, output_file_prefix + '.csv')
     assert Path(outputs_csv[0][0]).is_file() is True and outputs_csv[0][1] == 5
@@ -91,11 +88,6 @@ def test_save_chunks(df_mols, output_file_prefix):
 
     # test create chunks
     chunk_size = 2
-    # hdf
-    outputs_hdf = save.file(df_mols, output_file_prefix + '_chunks.hdf', chunk_size=chunk_size)
-    assert Path(outputs_hdf[0][0]).is_file() and outputs_hdf[0][1] == 2
-    assert Path(outputs_hdf[1][0]).is_file() and outputs_hdf[1][1] == 2
-    assert Path(outputs_hdf[2][0]).is_file() and outputs_hdf[2][1] == 1
     # csv
     outputs_csv = save.file(df_mols, output_file_prefix + '_chunks.csv', chunk_size=chunk_size)
     assert Path(outputs_csv[0][0]).is_file() and outputs_csv[0][1] == 2

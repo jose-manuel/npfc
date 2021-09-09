@@ -11,7 +11,7 @@ import time
 # data handling
 import pandas as pd
 from pandas import DataFrame
-from tables.exceptions import HDF5ExtError
+from fasteners import InterProcessLock
 # chemoinformatics
 from rdkit.Chem import MolToSmiles
 from rdkit.Chem.rdinchi import MolToInchiKey
@@ -65,7 +65,7 @@ def filter_duplicates(df: DataFrame,
     If a reference file is defined, then all passing entries of a chunk at a time are recorded in it so that further chunks molecules
     can be grouped with all previously recorded molecules.
 
-    .. note:: the more chunks there are, the larger the reference file grows. For ChEMBL, I got something around 16Go (1.8M molecules) and for ZINC >100Go (14M molecules). To improve IO performances, I switched to append mode and table format, so the file does not to be rewritten entirely for every chunk.
+    .. note:: the more chunks there are, the larger the reference file grows. For ChEMBL26, I got something around 16Go (1.8M molecules) and for ZINC >100Go (14M molecules). To improve IO performances, I switched to append mode and table format, so the file does not to be rewritten entirely for every chunk.
 
     :param df: the DataFrame with the molecules to filter for duplicates
     :param col_mol: the column name for the molecules
@@ -129,34 +129,33 @@ def filter_duplicates(df: DataFrame,
         ref_file_already_exists = False
         ref_file_could_be_created = False
         while num_attempts < max_attempts:
-            try:
-                if not Path(ref_file).is_file():
-                    init_ref_file(ref_file, group_on=group_on, col_id=col_id)
-                    ref_file_could_be_created = True
-                    break
+            if not Path(ref_file).is_file():
+                init_ref_file(ref_file, group_on=group_on, col_id=col_id)
+                ref_file_could_be_created = True
+                break
+            else:
+                ref_file_already_exists = True
+                break
+
+            if not ref_file_already_exists:
+                logging.debug("Reference file was already present")
+            else:
+                if ref_file_could_be_created:
+                    logging.debug("Reference file was created after %s attempt(s)!", num_attempts)
                 else:
-                    ref_file_already_exists = True
-                    break
-            except HDF5ExtError:
-                logging.error("Error! Init File was not found to be existing but could not be created either. Retrying in 1s...")
-                time.sleep(1)
-            finally:
-                if not ref_file_already_exists:
-                    logging.debug("Reference file was already present")
-                else:
-                    if ref_file_could_be_created:
-                        logging.debug("Reference file was created after %s attempt(s)!", num_attempts)
-                    else:
-                        logging.debug("Reference file could not be created, even after %s attempt(s)!", num_attempts)
+                    logging.debug("Reference file could not be created, even after %s attempt(s)!", num_attempts)
 
             num_attempts += 1
 
         # open it with a lock as we'll need to update it at the end
-        with save.SafeHDF5Store(ref_file) as store:
+        # open it with a lock as we'll need to update it at the end
+        lock = InterProcessLock(ref_file)  # for processes
+        with lock:
             try:
-                df_ref = store[key]
-            except KeyError:
+                df_ref = pd.read_hdf(ref_file, key=key)
+            except ValueError:
                 df_ref = pd.DataFrame({group_on: [], col_id: []})
+
             # use group_on as index for faster comparison
             df_ref.set_index(group_on, inplace=True)
             logging.debug("Number of entries in ref: %s", len(df_ref.index))

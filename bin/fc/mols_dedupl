@@ -24,7 +24,7 @@ from rdkit import RDLogger
 import npfc
 from npfc import load
 from npfc import save
-from npfc import duplicate
+from npfc import deduplicate
 from npfc import utils
 
 
@@ -45,7 +45,7 @@ def main():
     parser.add_argument('output_mols', type=str, default=None, help="Output file.")
     parser.add_argument('-g', '--group-on', type=str, default='inchikey', help="The column to use for grouping molecules. Currently two possible values: 'inchikey' or 'smiles'. If these columns are not present in the DataFrame, they are computed using the 'mol' column.")
     parser.add_argument('--recompute-group', type=bool, default=False, help="Force the computation of the grouping column even if it is found in the input DataFrame.")
-    parser.add_argument('-r', '--ref-file', type=str, default=None, help="A reference HDF file (.hdf) where kept molecules are recorded. Useful for filtering duplicate molecules accross chunks. In case of parallel processing, a lock system prevents simultaneous reading/writing. The reference file is in table format and append mode.")
+    parser.add_argument('-r', '--ref-file', type=str, default=None, help="A reference CSV file (.csv) where kept molecules are recorded. Useful for filtering duplicate molecules accross chunks. In case of parallel processing, a lock system prevents simultaneous reading/writing.")
     parser.add_argument('-d', '--dupl-file', type=str, default=None, help="A CSV file for exporting the list of duplicates. If none is defined, the user has to run this script with log level at least at DEBUG for reviewing the duplicates.")
     parser.add_argument('-s', '--syn-file', type=str, default=None, help="A CSV file for exporting the list of synonms (kept + filtered entries). If none is defined, the user has to run this script with log level at least at DEBUG for reviewing the duplicates.")
     parser.add_argument('-c', '--clear', type=bool, default=False, help="Clear the defined reference file if it already exists.")
@@ -98,7 +98,7 @@ def main():
     # IO infos
     in_format, in_compression = utils.get_file_format(args.input_mols)
     out_format, out_compression = utils.get_file_format(args.output_mols)
-    out_format, out_compression = utils.get_file_format(args.ref_file)
+    ref_format, ref_compression = utils.get_file_format(args.ref_file)
     # if out_format != "HDF":
     #     raise ValueError("ERROR! output_mols file needs to be a HDF file (.hdf).")
 
@@ -139,7 +139,6 @@ def main():
     logger.info("REF_FILE".ljust(pad) + f"{args.ref_file}")
     logger.info("DUPL_FILE".ljust(pad) + f"{args.dupl_file}")
     logger.info("SYN_FILE".ljust(pad) + f"{args.syn_file}")
-
     logger.info("LOG".ljust(pad) + f"{args.log}")
 
     # begin
@@ -164,7 +163,7 @@ def main():
         else:
             logger.warning(f"GROUP_ON COLUMN ('{args.group_on}') WAS NOT FOUND IN DATAFRAME, NEED TO COMPUTE IT")
     # filtering duplicate molecules
-    df_mols, df_dupl = duplicate.filter_duplicates(df_mols, group_on=args.group_on, ref_file=args.ref_file, get_df_dupl=True)
+    df_mols, df_dupl = deduplicate.filter_duplicates(df_mols, group_on=args.group_on, ref_file=args.ref_file, get_df_dupl=True)
 
     logger.info(f"REMAINING MOLECULES: {len(df_mols.index)}/{num_mols}")
     logger.debug(f"FILTERED MOLECULES:\n{df_dupl}\n")

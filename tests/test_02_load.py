@@ -22,11 +22,6 @@ logging.basicConfig(level=logging.INFO)
 
 
 @pytest.fixture
-def input_hdf():
-    return "tests/tmp/test_save.hdf"
-
-
-@pytest.fixture
 def input_csv():
     return "tests/tmp/test_save.csv"
 
@@ -64,14 +59,6 @@ def test_file_sdf_gz(input_sdf):
     assert isinstance(df.iloc[0]['mol'], Mol)
 
 
-def test_file_hdf(input_hdf):
-    """Read a hdf file with encoded molecules."""
-    df = load.file(input_hdf)
-    assert len(df.index) == 5
-    assert list(df.columns.values) == ['mol', 'idm', 'prop']
-    assert isinstance(df.iloc[0]['mol'], Mol)
-
-
 def test_file_csv(input_csv):
     """Read a csv file with encoded molecules."""
     # without properties
@@ -103,12 +90,6 @@ def test_count_sdf(input_sdf):
 def test_count_sdf_gz(input_sdf):
     """Count molecules in a compressed SDF file"""
     count = load.count_mols(f"{input_sdf}.gz", keep_uncompressed=True)  # keep uncompressed file in case of repeated tests
-    assert count == 5
-
-
-def test_count_hdf(input_hdf):
-    """Count molecules in a HDF file"""
-    count = load.count_mols(input_hdf)
     assert count == 5
 
 

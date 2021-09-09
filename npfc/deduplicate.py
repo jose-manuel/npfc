@@ -1,0 +1,174 @@
+"""
+Module deduplicate
+===================
+This modules is used to identify duplicate molecules within and accross multiple files.
+"""
+
+# standard
+import logging
+from pathlib import Path
+import time
+# data handling
+import pandas as pd
+from pandas import DataFrame
+from fasteners import InterProcessLock
+# chemoinformatics
+from rdkit.Chem import MolToSmiles
+from rdkit.Chem.rdinchi import MolToInchiKey
+# docs
+from typing import Union
+from typing import Tuple
+# dev
+from npfc import save
+# from npfc import save  # use of df.to_hdf with append and table modes for now
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ CLASSES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
+def init_ref_file(ref_file: str, group_on: str, col_id: str, force_init: bool = False) -> bool:
+    """Initiate an empty reference file for identifying duplicates, with a lock system.
+
+    :param ref_file: the reference file location
+    :param group_on: the column name for grouping entries
+    :param col_id: the column id for tracking kept entries
+    :param force_init: force the creation of an empty reference file, even if it alreadys exists (i.e. debugging)
+    :return: True if the reference file could be initialized, False otherwise.
+    """
+    p = Path(ref_file)
+    if p.is_file():
+        if force_init:
+            p.unlink()
+            logging.debug("Reference file already existing at '%s', reinitializing it.", ref_file)
+        else:
+            logging.debug("Reference file already existing at '%s', leaving it as it is.", ref_file)
+            return True
+
+    lock = InterProcessLock(ref_file)  # for processes
+    with lock:
+        df_ref = pd.DataFrame({group_on: [], col_id: []})
+        df_ref.to_csv(ref_file, sep='|', index=False)
+        logging.debug("Created new ref_file at '%s'", ref_file)
+
+    # check if file could initialized
+    if Path(ref_file).is_file():
+        return True
+    else:
+        logging.critical("Could not create a new ref_file at '%s'", ref_file)
+        return False
+
+
+def filter_duplicates(df: DataFrame,
+                      group_on: str = "inchikey",
+                      col_id: str = "idm",
+                      col_mol: str = "mol",
+                      ref_file: str = None,
+                      get_df_dupl: bool = False,
+                      max_attempts: int = 5) -> Union[DataFrame, Tuple]:
+    """Filter out duplicate molecules from a DataFrame.
+
+    The comparison is performed by grouping entries on a column (inchikey or smiles) and the first entry of a group is kept.
+    If no reference file is defined, then duplicates are removed independently for each input chunk.
+    If a reference file is defined, then all passing entries of a chunk at a time are recorded in it so that further chunks molecules
+    can be grouped with all previously recorded molecules.
+
+    .. note:: the more chunks there are, the larger the reference file grows. For ChEMBL26, I got something around 16Go (1.8M molecules) and for ZINC >100Go (14M molecules). To improve IO performances, I switched to append mode and table format, so the file does not to be rewritten entirely for every chunk.
+
+    :param df: the DataFrame with the molecules to filter for duplicates
+    :param col_mol: the column name for the molecules
+    :param ref_file: the reference file location
+    :param group_on: the column name for grouping entries
+    :param col_id: the column id for tracking kept entries
+    :param get_df_dupl: return the filered duplicate entries alongside the kept molecules, as another DataFrame
+    :param max_attempts: in case two instances of this function runs very close in time to produce a new ref file, one will fail. This parameter gives the failing instance another attempt(s) every second until success or maximum is reached.
+    :return: either the DataFrame with kept molecules only, or a tuple of DataFrames for kept and filtered molecules.
+    """
+    # avoid pandas warnings
+    df = df.copy()  # ### this certainly is the worst way of doing this!
+
+    # check on col_id
+    if col_id not in df.columns:
+        raise ValueError(f"Error! No column {col_id} found for identifying molecules.")
+
+    # check on col_mol in case group_on is not present (needed for computing it!)
+    if group_on not in df.columns and col_mol not in df.columns:
+        raise ValueError(f"Error! No column {group_on} or {col_mol} found for grouping molecules.")
+
+    # check on group_on
+    if group_on not in ('inchikey', 'smiles'):
+        raise ValueError(f"Error! Unauthorized value for on parameter ({group_on}).")
+    # compute it if not present
+    elif group_on not in df.columns:
+        logging.warning("Column '%s' not found, so computing it.", group_on)
+        if group_on == 'inchikey':
+            df.loc[:, group_on] = df.loc[:, col_mol].map(MolToInchiKey)
+        elif group_on == 'smiles':
+            df.loc[:, group_on] = df.loc[:, col_mol].map(MolToSmiles)
+        else:
+            raise ValueError(f"Error! Expected values for group_on are: 'inchikey' or 'smiles' but got '{group_on}' instead!")
+
+    # preprocess df into df_u (unique)
+    df.set_index(group_on, inplace=True)
+    df_u = df.loc[~df.index.duplicated(keep="first")]
+
+    # filter duplicates found in the same input file
+    dupl_inchikey = []
+    dupl_idm_kept = []
+    dupl_idm_filtered = []
+    if len(df_u.index) == len(df.index):
+        logging.debug("Number of duplicate molecule found in current chunk: 0")
+    else:
+        df_dupl = df[~df[col_id].isin(df_u[col_id])]
+        logging.debug("Number of duplicate molecule found in current chunk: %s", len(df_dupl.index))
+        for i in range(len(df_dupl)):
+            row_dupl = df_dupl.iloc[i]
+            dupl_inchikey.append(row_dupl.name)
+            dupl_idm_kept.append(df_u.loc[row_dupl.name][col_id])  # this is why I have a loop
+            dupl_idm_filtered.append(row_dupl[col_id])
+    # df with entries that were removed because of another entry in the same chunk
+    df_filtered = DataFrame({'group_on': dupl_inchikey, 'idm_kept': dupl_idm_kept, 'idm_filtered': dupl_idm_filtered})
+
+    # load reference file
+
+
+    if ref_file is not None:
+        p = Path(ref_file)
+        lock = InterProcessLock(ref_file)
+
+
+        with lock:
+            # the lock creates an empty file, so we check whether the ref file is empty
+            if  p.stat().st_size == 0:
+                init_ref_file(ref_file, group_on=group_on, col_id=col_id, force_init=True)  # if it is empty, it is because it has not been initialized yet
+            df_ref = pd.read_csv(ref_file, sep='|')
+            df_ref.set_index(group_on, inplace=True)
+            logging.debug("Number of entries in ref: %s", len(df_ref.index))
+
+            # filter out already referenced compounds
+            dupl_inchikey = []
+            dupl_idm_kept = []
+            dupl_idm_filtered = []
+            df_u2 = df_u[~df_u.index.isin(df_ref.index)]
+            # reset indices (feather does not support strings as rowids...)
+            df_u2.reset_index(inplace=True)
+            df_u2[[group_on, col_id]].to_csv(ref_file, mode="a", header=False, index=False, sep='|')
+            if len(df_u2.index) == len(df_u.index):
+                logging.debug("Number of duplicate molecules found by using ref_file: 0")
+            else:
+                df_dupl = df_u[~df_u[col_id].isin(df_u2[col_id])]
+                logging.debug("Number of duplicate molecule found by using ref_file: %s", len(df_dupl.index))
+                for i in range(len(df_dupl)):
+                    row_dupl = df_dupl.iloc[i]
+                    dupl_inchikey.append(row_dupl.name)
+                    dupl_idm_kept.append(df_ref.loc[row_dupl.name][col_id])  # this is why I have a loop
+                    dupl_idm_filtered.append(row_dupl[col_id])
+
+            # return updated output in case of ref file
+            df_u = df_u2
+            df_ref.reset_index(inplace=True)
+            df_filtered = pd.concat([df_filtered, DataFrame({'group_on': dupl_inchikey, 'idm_kept': dupl_idm_kept, 'idm_filtered': dupl_idm_filtered})])
+
+    if get_df_dupl:
+        return (df_u, df_filtered)
+
+    return df_u
