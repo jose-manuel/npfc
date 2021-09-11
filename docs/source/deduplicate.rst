@@ -2,5 +2,5 @@
 duplicate
 *********
 
-.. automodule:: npfc.duplicate
+.. automodule:: npfc.deduplicate
     :members:

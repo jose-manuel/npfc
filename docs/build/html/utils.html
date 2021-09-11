@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>utils &mdash; npfc 0.7.12-11-g0395543e documentation</title>
+  <title>utils &mdash; npfc 0.7.16 documentation</title>
   
 
   
@@ -65,7 +65,7 @@
             
             
               <div class="version">
-                0.7.12-11-g0395543e
+                0.7.16
               </div>
             
           
@@ -92,7 +92,7 @@
             
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="duplicate.html">duplicate</a></li>
+<li class="toctree-l1"><a class="reference internal" href="deduplicate.html">duplicate</a></li>
 <li class="toctree-l1"><a class="reference internal" href="draw.html">draw</a></li>
 <li class="toctree-l1"><a class="reference internal" href="filter.html">filter</a></li>
 <li class="toctree-l1"><a class="reference internal" href="fragment_search.html">fragment_search</a></li>
@@ -500,6 +500,24 @@ be considered when estimating the distance between fragments.</p>
 <dt class="sig sig-object py" id="npfc.utils.raise_timeout">
 <span class="sig-prename descclassname"><span class="pre">npfc.utils.</span></span><span class="sig-name descname"><span class="pre">raise_timeout</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">signum</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frame</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/utils.html#raise_timeout"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#npfc.utils.raise_timeout" title="Permalink to this definition">¶</a></dt>
 <dd><p>Function to actually raise the TimeoutError when the time has come.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="npfc.utils.random_string">
+<span class="sig-prename descclassname"><span class="pre">npfc.utils.</span></span><span class="sig-name descname"><span class="pre">random_string</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/utils.html#random_string"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#npfc.utils.random_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to generate a random stringand of n characters and digits and
+in lower case.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>n</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>) – the number of characters in the generated string</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>a random string</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">

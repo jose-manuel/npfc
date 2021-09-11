@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Index &mdash; npfc 0.7.12-11-g0395543e documentation</title>
+  <title>Index &mdash; npfc 0.7.16 documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                0.7.12-11-g0395543e
+                0.7.16
               </div>
             
           
@@ -91,7 +91,7 @@
             
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="duplicate.html">duplicate</a></li>
+<li class="toctree-l1"><a class="reference internal" href="deduplicate.html">duplicate</a></li>
 <li class="toctree-l1"><a class="reference internal" href="draw.html">draw</a></li>
 <li class="toctree-l1"><a class="reference internal" href="filter.html">filter</a></li>
 <li class="toctree-l1"><a class="reference internal" href="fragment_search.html">fragment_search</a></li>
@@ -313,8 +313,6 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="draw.html#npfc.draw.fcg">fcg() (in module npfc.draw)</a>
 </li>
-      <li><a href="draw.html#npfc.draw.fcg_no_img">fcg_no_img() (in module npfc.draw)</a>
-</li>
       <li><a href="load.html#npfc.load.file">file() (in module npfc.load)</a>
 
       <ul>
@@ -323,14 +321,12 @@
       </ul></li>
       <li><a href="filter.html#npfc.filter.Filter">Filter (class in npfc.filter)</a>
 </li>
-      <li><a href="duplicate.html#npfc.duplicate.filter_duplicates">filter_duplicates() (in module npfc.duplicate)</a>
-</li>
       <li><a href="fragment_combination_graph.html#npfc.fragment_combination_graph.filter_edges_attributes">filter_edges_attributes() (in module npfc.fragment_combination_graph)</a>
+</li>
+      <li><a href="filter.html#npfc.filter.Filter.filter_mol">filter_mol() (npfc.filter.Filter method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="filter.html#npfc.filter.Filter.filter_mol">filter_mol() (npfc.filter.Filter method)</a>
-</li>
       <li><a href="fragment_combination_graph.html#npfc.fragment_combination_graph.filter_out_fcgs_ffs">filter_out_fcgs_ffs() (in module npfc.fragment_combination_graph)</a>
 </li>
       <li><a href="fragment_combination_graph.html#npfc.fragment_combination_graph.filter_out_fcgs_ffs_all">filter_out_fcgs_ffs_all() (in module npfc.fragment_combination_graph)</a>
@@ -395,11 +391,13 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="draw.html#npfc.draw.DepictionValidator.has_bond_crossing">has_bond_crossing() (npfc.draw.DepictionValidator method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="draw.html#npfc.draw.DepictionValidator.has_degenerated_atom_positions">has_degenerated_atom_positions() (npfc.draw.DepictionValidator method)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="fragment_combination_graph.html#npfc.fragment_combination_graph.has_only_referenced_edges">has_only_referenced_edges() (in module npfc.fragment_combination_graph)</a>
+</li>
+      <li><a href="draw.html#npfc.draw.highlight_fragment">highlight_fragment() (in module npfc.draw)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -408,10 +406,6 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="fragment_combination_point.html#npfc.fragment_combination_point.idx_to_label">idx_to_label() (in module npfc.fragment_combination_point)</a>
-</li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="duplicate.html#npfc.duplicate.init_ref_file">init_ref_file() (in module npfc.duplicate)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -424,8 +418,6 @@
 
       <ul>
         <li><a href="draw.html#module-npfc.draw">npfc.draw</a>
-</li>
-        <li><a href="duplicate.html#module-npfc.duplicate">npfc.duplicate</a>
 </li>
         <li><a href="filter.html#module-npfc.filter">npfc.filter</a>
 </li>
@@ -468,13 +460,6 @@
 </li>
       </ul></li>
       <li>
-    npfc.duplicate
-
-      <ul>
-        <li><a href="duplicate.html#module-npfc.duplicate">module</a>
-</li>
-      </ul></li>
-      <li>
     npfc.filter
 
       <ul>
@@ -502,8 +487,6 @@
         <li><a href="fragment_combination_point.html#module-npfc.fragment_combination_point">module</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     npfc.fragment_search
 
@@ -511,6 +494,8 @@
         <li><a href="fragment_search.html#module-npfc.fragment_search">module</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     npfc.load
 
@@ -567,6 +552,8 @@
       <li><a href="utils.html#npfc.utils.raise_timeout">raise_timeout() (in module npfc.utils)</a>
 </li>
       <li><a href="save.html#npfc.save.random">random() (in module npfc.save)</a>
+</li>
+      <li><a href="utils.html#npfc.utils.random_string">random_string() (in module npfc.utils)</a>
 </li>
       <li><a href="draw.html#npfc.draw.reaction">reaction() (in module npfc.draw)</a>
 </li>

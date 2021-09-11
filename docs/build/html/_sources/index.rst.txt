@@ -20,7 +20,7 @@ The execution of scripts is orchestrated via Snakemake workflows.
    :maxdepth: 2
    :caption: Contents:
 
-   duplicate
+   deduplicate
    draw
    filter
    fragment_search

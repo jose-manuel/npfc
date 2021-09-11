@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>npfc.load &mdash; npfc 0.7.12-11-g0395543e documentation</title>
+  <title>npfc.load &mdash; npfc 0.7.16 documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                0.7.12-11-g0395543e
+                0.7.16
               </div>
             
           
@@ -91,7 +91,7 @@
             
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../duplicate.html">duplicate</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../deduplicate.html">duplicate</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../draw.html">draw</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../filter.html">filter</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../fragment_search.html">fragment_search</a></li>
@@ -346,7 +346,7 @@
         <span class="k">if</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
             <span class="n">df</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
 
-    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Excerpt of the data as extracted with load.file function</span><span class="se">\n\n</span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">df</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;First 3 rows loaded:</span><span class="se">\n\n</span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">df</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span>
 
     <span class="k">return</span> <span class="n">df</span></div>
 

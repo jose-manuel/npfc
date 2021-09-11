@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>npfc.utils &mdash; npfc 0.7.12-11-g0395543e documentation</title>
+  <title>npfc.utils &mdash; npfc 0.7.16 documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                0.7.12-11-g0395543e
+                0.7.16
               </div>
             
           
@@ -91,7 +91,7 @@
             
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../duplicate.html">duplicate</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../deduplicate.html">duplicate</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../draw.html">draw</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../filter.html">filter</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../fragment_search.html">fragment_search</a></li>
@@ -181,6 +181,8 @@
 <span class="kn">import</span> <span class="nn">itertools</span>
 <span class="kn">import</span> <span class="nn">signal</span>
 <span class="kn">from</span> <span class="nn">contextlib</span> <span class="kn">import</span> <span class="n">contextmanager</span>
+<span class="kn">import</span> <span class="nn">string</span>
+<span class="kn">from</span> <span class="nn">random</span> <span class="kn">import</span> <span class="n">choice</span>
 <span class="c1"># data handling</span>
 <span class="kn">import</span> <span class="nn">pickle</span>
 <span class="kn">import</span> <span class="nn">base64</span>
@@ -624,6 +626,16 @@
     <span class="sd">&quot;&quot;&quot;Function to actually raise the TimeoutError when the time has come.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">raise</span> <span class="ne">TimeoutError</span></div>
+
+
+<div class="viewcode-block" id="random_string"><a class="viewcode-back" href="../../utils.html#npfc.utils.random_string">[docs]</a><span class="k">def</span> <span class="nf">random_string</span><span class="p">(</span><span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Function to generate a random stringand of n characters and digits and</span>
+<span class="sd">    in lower case.</span>
+
+<span class="sd">    :param n: the number of characters in the generated string</span>
+<span class="sd">    :return: a random string</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">choice</span><span class="p">(</span><span class="n">string</span><span class="o">.</span><span class="n">ascii_lowercase</span> <span class="o">+</span> <span class="n">string</span><span class="o">.</span><span class="n">digits</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">)])</span></div>
 </pre></div>
 
            </div>
