@@ -1,6 +1,6 @@
-*********
-duplicate
-*********
+***********
+deduplicate
+***********
 
 .. automodule:: npfc.deduplicate
     :members:
