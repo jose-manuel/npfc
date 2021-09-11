@@ -18,8 +18,6 @@ from rdkit.Chem.rdinchi import MolToInchiKey
 # docs
 from typing import Union
 from typing import Tuple
-# dev
-from npfc import save
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ CLASSES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #

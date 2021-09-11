@@ -3,7 +3,8 @@
 """
 Script subset_mols
 ==========================
-This script is used for subsetting a molecular file (SDf, CSV or HDF) by
+This script is used for subsetting a molecular dataset given another used as reference.
+Currently, molecules in common can only be excluded from the molecular file.
 """
 
 # standard
@@ -97,7 +98,7 @@ def main():
     synref_key = Path(args.synref).stem
     logger.info(f"LOADING SYNREF WITH KEY={synref_key}")
     d1 = datetime.now()
-    df_synref = pd.read_hdf(args.synref, decode=False)
+    df_synref = pd.read_csv(args.synref, sep='|')
     logger.info(f"NUMBER OF RECORDS IN SYNREF: {len(df_synref.index)}")
 
     # load mols

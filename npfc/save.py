@@ -18,6 +18,7 @@ from random import random
 # data science
 import pandas as pd
 from pandas import DataFrame
+from pandas import HDFStore
 # chemoinformatics
 from rdkit import Chem
 from rdkit.Chem import SDWriter
@@ -221,3 +222,35 @@ def write_sdf(df, out, molColName='ROMol', idName=None, properties=None, allNume
     writer.close()
     if close is not None:
         close()
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ CLASSES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
+class SafeHDF5Store(HDFStore):
+    """Implement safe HDFStore by obtaining file lock. Multiple writes will queue if lock is not obtained.
+
+    Edited after:
+    https://stackoverflow.com/questions/41231678/obtaining-a-exclusive-lock-when-writing-to-an-hdf5-file
+    """
+
+    def __init__(self, *args, **kwargs):
+        """Initialize and obtain file lock."""
+
+        interval = kwargs.pop('probe_interval', random())
+        self._lock = f"{args[0]}.lock"
+        while True:
+            try:
+                self._flock = os.open(self._lock, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+                break
+            except (IOError, OSError):
+                time.sleep(interval)
+
+        HDFStore.__init__(self, *args, **kwargs)
+
+    def __exit__(self, *args, **kwargs):
+        """Exit and remove file lock."""
+
+        HDFStore.__exit__(self, *args, **kwargs)
+        os.close(self._flock)
+        os.remove(self._lock)

@@ -10,6 +10,8 @@ import sys
 import itertools
 import signal
 from contextlib import contextmanager
+import string
+from random import choice
 # data handling
 import pickle
 import base64
@@ -453,3 +455,13 @@ def raise_timeout(signum, frame):
     """Function to actually raise the TimeoutError when the time has come.
     """
     raise TimeoutError
+
+
+def random_string(n: int) -> str:
+    """Function to generate a random stringand of n characters and digits and
+    in lower case.
+
+    :param n: the number of characters in the generated string
+    :return: a random string
+    """
+    return ''.join([choice(string.ascii_lowercase + string.digits) for i in range(n)])

@@ -7,7 +7,7 @@
                     "prep_subdir": "prep",
                     "frags_subdir": "frags_crms",
                     "natref_subdir": "natref_dnp",
-                    "natref_dedupl_reffile": "fc/03_natural/dnp/data/prep/04_dedupl/dnp_ref.csv",
+                    "natref_dedupl_reffile": "fc/03_natural/dnp/data/prep/04_dedupl/dnp_ref.hdf",
                     "natref_fcg_dir": "fc/03_natural/dnp/data/prep/frags_crms/08_fcg/data",
                     "pnp_attributes": "fcc",
                     "chunksize": 100,
