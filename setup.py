@@ -8,7 +8,7 @@ with open("README.rst", "r") as fh:
 
 setuptools.setup(
     name="npfc",
-    version='0.7.16',
+    version='0.7.17',
     author="Jose-Manuel Gally",
     author_email="josemanuel.gally@mpi-dortmund.mpg.de",
     description="A tool for describing Natural Product- (NP) fragments combinations and identifying pseudo-NPs.",
