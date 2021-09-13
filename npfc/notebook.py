@@ -65,11 +65,13 @@ def gallery(images: list, row_height: str = 'auto') -> str:
     ''')
 
 
-def display_image_table(imgs, max_img_per_row=4):
+def display_image_table(imgs: list, max_img_per_row: int = 4) -> str:
     """Display a table filled with images.
 
     :param imgs: an iterable containing images
     :param max_img_per_row: the maximum number of images per row
+
+    :return: the HTML code for displaying the images in a table in Jupyterlab.
     """
 
     table = """
