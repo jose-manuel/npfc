@@ -34,8 +34,10 @@ conda:
 Documentation
 =============
 
-The full documentation is available at: https://github.com/jose-manuel/npfc.
+The full documentation is available at: https://npfc.readthedocs.io/.
 It describes the API, as well as the different workflows implemented.
+Moreover, a few tutorials are being included to show how to use this library in
+some practical use. 
 
 Contribution
 ============
