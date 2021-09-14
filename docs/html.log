@@ -1,0 +1,99 @@
+Running Sphinx v4.1.2
+making output directory... done
+loading intersphinx inventory from https://docs.python.org/objects.inv...
+intersphinx inventory has moved: https://docs.python.org/objects.inv -> https://docs.python.org/3/objects.inv
+building [mo]: targets for 0 po files that are out of date
+building [html]: targets for 24 source files that are out of date
+updating environment: [new config] 24 added, 0 changed, 0 removed
+reading sources... [  4%] architecture
+reading sources... [  8%] cli
+reading sources... [ 12%] deduplicate
+reading sources... [ 16%] draw
+reading sources... [ 20%] fcc
+reading sources... [ 25%] fcg
+reading sources... [ 29%] filter
+reading sources... [ 33%] fragment_combination
+reading sources... [ 37%] fragment_combination_graph
+reading sources... [ 41%] fragment_combination_point
+reading sources... [ 45%] fragment_search
+<frozen importlib._bootstrap>:228: RuntimeWarning: to-Python converter for std::vector<unsigned long, std::allocator<unsigned long> > already registered; second conversion method ignored.
+reading sources... [ 50%] fragments
+reading sources... [ 54%] index
+reading sources... [ 58%] install
+reading sources... [ 62%] intro
+reading sources... [ 66%] load
+reading sources... [ 70%] natural_products
+reading sources... [ 75%] notebook
+reading sources... [ 79%] pnp
+reading sources... [ 83%] preparation
+reading sources... [ 87%] save
+reading sources... [ 91%] standardize
+reading sources... [ 95%] synthetic_compounds
+reading sources... [100%] utils
+
+/home/gally/Projects/NPFC/src/docs/source/architecture.rst:72: WARNING: malformed hyperlink target.
+/home/gally/Projects/NPFC/src/docs/source/architecture.rst:51: WARNING: Unknown target name: "depictionvalidator".
+/home/gally/Projects/NPFC/src/docs/source/preparation.rst:175: WARNING: malformed hyperlink target.
+/home/gally/Projects/NPFC/src/docs/source/preparation.rst:127: WARNING: Unknown target name: "depictionvalidator".
+looking for now-outdated files... none found
+pickling environment... done
+checking consistency... done
+preparing documents... done
+writing output... [  4%] architecture
+writing output... [  8%] cli
+writing output... [ 12%] deduplicate
+writing output... [ 16%] draw
+writing output... [ 20%] fcc
+writing output... [ 25%] fcg
+writing output... [ 29%] filter
+writing output... [ 33%] fragment_combination
+writing output... [ 37%] fragment_combination_graph
+writing output... [ 41%] fragment_combination_point
+writing output... [ 45%] fragment_search
+writing output... [ 50%] fragments
+writing output... [ 54%] index
+writing output... [ 58%] install
+writing output... [ 62%] intro
+writing output... [ 66%] load
+writing output... [ 70%] natural_products
+writing output... [ 75%] notebook
+writing output... [ 79%] pnp
+writing output... [ 83%] preparation
+writing output... [ 87%] save
+writing output... [ 91%] standardize
+writing output... [ 95%] synthetic_compounds
+writing output... [100%] utils
+
+generating indices... genindex py-modindex done
+highlighting module code... [  8%] npfc.deduplicate
+highlighting module code... [ 16%] npfc.draw
+highlighting module code... [ 25%] npfc.filter
+highlighting module code... [ 33%] npfc.fragment_combination
+highlighting module code... [ 41%] npfc.fragment_combination_graph
+highlighting module code... [ 50%] npfc.fragment_combination_point
+highlighting module code... [ 58%] npfc.fragment_search
+highlighting module code... [ 66%] npfc.load
+highlighting module code... [ 75%] npfc.notebook
+highlighting module code... [ 83%] npfc.save
+highlighting module code... [ 91%] npfc.standardize
+highlighting module code... [100%] npfc.utils
+
+writing additional pages... search done
+copying images... [ 10%] _images/packages_npfc.svg
+copying images... [ 20%] _images/classes_npfc.svg
+copying images... [ 30%] _images/draw_highlight.svg
+copying images... [ 40%] _images/fragment_tree.png
+copying images... [ 50%] _images/fcg_example.png
+copying images... [ 60%] _images/fcp_examples.png
+copying images... [ 70%] _images/draw_simple.png
+copying images... [ 80%] _images/draw_medium.png
+copying images... [ 90%] _images/draw_hard.png
+copying images... [100%] _images/std_deglyco_algo.svg
+
+copying static files... done
+copying extra files... done
+dumping search index in English (code: en)... done
+dumping object inventory... done
+build succeeded, 4 warnings.
+
+The HTML pages are in build/html.

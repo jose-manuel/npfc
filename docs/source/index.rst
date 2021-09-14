@@ -18,7 +18,36 @@ The execution of scripts is orchestrated via Snakemake workflows.
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+   :caption: Getting Started
+
+   Introduction<intro>
+   Installation<install>
+   Package Architecture<architecture>
+
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Examples
+
+   Preparation<preparation>
+   Fragment Combination Classification<fcc>
+   Fragment Combination Graphs<fcg>
+   Pseudo-NP Annotation<pnp>
+
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Workflows
+
+   Command Line Interface<cli>
+   Fragments<fragments>
+   Natural Products<natural_products>
+   Synthetic Compounds<synthetic_compounds>
+
+
+.. toctree::
+   :maxdepth: 2
+   :caption: API
 
    deduplicate
    draw
@@ -33,6 +62,7 @@ The execution of scripts is orchestrated via Snakemake workflows.
    standardize
    utils
 
+
 ==================
 Indices and tables
 ==================
@@ -40,22 +70,3 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-
-====================
-Package Architecture
-====================
-
-Module interactions
-********************
-
-.. image:: _images/packages_npfc.svg
-    :align: center
-
-
-Class hierarchy
-***************
-
-Right-click open in new tab to have a better view of this figure.
-
-.. image:: _images/classes_npfc.svg
-    :align: center

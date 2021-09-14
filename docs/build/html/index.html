@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Welcome to npfc’s documentation! &mdash; npfc 0.7.17 documentation</title>
+  <title>Welcome to npfc’s documentation! &mdash; npfc 0.7.18-3-g3c46a7d3 documentation</title>
   
 
   
@@ -41,7 +41,7 @@
     
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="deduplicate" href="deduplicate.html" /> 
+    <link rel="next" title="Introduction" href="intro.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -65,7 +65,7 @@
             
             
               <div class="version">
-                0.7.17
+                0.7.18-3-g3c46a7d3
               </div>
             
           
@@ -90,7 +90,27 @@
               
             
             
-              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Package Architecture</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Examples</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="preparation.html">Preparation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fcc.html">Fragment Combination Classification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fcg.html">Fragment Combination Graphs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pnp.html">Pseudo-NP Annotation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Workflows</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fragments.html">Fragments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="natural_products.html">Natural Products</a></li>
+<li class="toctree-l1"><a class="reference internal" href="synthetic_compounds.html">Synthetic Compounds</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="deduplicate.html">deduplicate</a></li>
 <li class="toctree-l1"><a class="reference internal" href="draw.html">draw</a></li>
@@ -179,7 +199,47 @@ Combination (npfc).</p>
 <p>On top of the existing modules, a set of scripts are included as well.
 The execution of scripts is orchestrated via Snakemake workflows.</p>
 <div class="toctree-wrapper compound">
-<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="install.html#pypi">PyPi</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Package Architecture</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#module-interactions">Module interactions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#class-hierarchy">Class hierarchy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="architecture.html#code-from-other-sources">Code from other sources</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Examples</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="preparation.html">Preparation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="preparation.html#load">Load</a></li>
+<li class="toctree-l2"><a class="reference internal" href="preparation.html#standardize">Standardize</a></li>
+<li class="toctree-l2"><a class="reference internal" href="preparation.html#deduplicate">Deduplicate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="preparation.html#depict">Depict</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="fcc.html">Fragment Combination Classification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fcg.html">Fragment Combination Graphs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pnp.html">Pseudo-NP Annotation</a></li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Workflows</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fragments.html">Fragments</a></li>
+<li class="toctree-l1"><a class="reference internal" href="natural_products.html">Natural Products</a></li>
+<li class="toctree-l1"><a class="reference internal" href="synthetic_compounds.html">Synthetic Compounds</a></li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">API</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="deduplicate.html">deduplicate</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="deduplicate.html#module-deduplicate">Module deduplicate</a></li>
@@ -239,16 +299,6 @@ The execution of scripts is orchestrated via Snakemake workflows.</p>
 <li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
 </ul>
 </div>
-<div class="section" id="package-architecture">
-<h2>Package Architecture<a class="headerlink" href="#package-architecture" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="module-interactions">
-<h3>Module interactions<a class="headerlink" href="#module-interactions" title="Permalink to this headline">¶</a></h3>
-<img alt="_images/packages_npfc.svg" class="align-center" src="_images/packages_npfc.svg" /></div>
-<div class="section" id="class-hierarchy">
-<h3>Class hierarchy<a class="headerlink" href="#class-hierarchy" title="Permalink to this headline">¶</a></h3>
-<p>Right-click open in new tab to have a better view of this figure.</p>
-<img alt="_images/classes_npfc.svg" class="align-center" src="_images/classes_npfc.svg" /></div>
-</div>
 </div>
 
 
@@ -257,7 +307,7 @@ The execution of scripts is orchestrated via Snakemake workflows.</p>
           </div>
           <footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="deduplicate.html" class="btn btn-neutral float-right" title="deduplicate" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="intro.html" class="btn btn-neutral float-right" title="Introduction" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

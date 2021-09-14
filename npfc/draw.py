@@ -489,32 +489,7 @@ def depict_mol(mol: Mol, methods: List[str] = ["CoordGen", "rdDepictor"], consid
     to the methods as 'Input' (lowest priority).
 
     The method used for depicting the molecule is stored as molecule property: "_2D".
-
     For CoordGen, 2D representations are automatically rescaled with a factor of 1.4.
-
-    Examples of 2D coordinates computed with listed methods (source: SDF from ChEMBL)
-
-    - Simple case
-
-    .. image:: _images/draw_simple.png
-        :align: center
-
-    Most of molecules including macrocycles are usually better rendered with CoordGen.
-
-    - Medium case
-
-    .. image:: _images/draw_medium.png
-        :align: center
-
-    In same cases, Avalon performs better than CoordGen.
-
-    - Complex Case
-
-    .. image:: _images/draw_hard.png
-        :align: center
-
-    .. note:: Avalon was however removed from the available methods as it produces mostly errors since latest RDKit update...
-
     For some molecules, none of the methods yield a "perfect score". The depiction with the lowest score is thus selected.
 
     :param mol: the input molecule
