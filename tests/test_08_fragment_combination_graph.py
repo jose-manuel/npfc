@@ -22,9 +22,9 @@ logging.basicConfig(level=logging.INFO)
 
 # fragments for testing normal fgraphs
 mol_qa = Chem.MolFromSmiles('C1CCNC1')
-mol_qb = Chem.MolFromSmiles('C1CCNC1')
-mol_qc = Chem.MolFromSmiles('C1CCNC1')
-mol_qd = Chem.MolFromSmiles('C1CCNC1')
+mol_qb = Chem.MolFromSmiles('C1CCOC1')
+mol_qc = Chem.MolFromSmiles('C1CCSC1')
+mol_qd = Chem.MolFromSmiles('C1CCCC1')
 # fragments for testing overlaps
 mol_o1 = Chem.MolFromSmiles('NC1CCCCC1')
 mol_o2 = Chem.MolFromSmiles('OC1CCCCC1')

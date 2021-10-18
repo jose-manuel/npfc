@@ -23,16 +23,18 @@ The execution of scripts is orchestrated via Snakemake workflows.
    Introduction<intro>
    Installation<install>
    Package Architecture<architecture>
+   Fragment Combination Classification
 
 
 .. toctree::
    :maxdepth: 2
-   :caption: Examples
+   :caption: Concepts and Examples
 
-   Preparation<preparation>
-   Fragment Combination Classification<fcc>
-   Fragment Combination Graphs<fcg>
-   Pseudo-NP Annotation<pnp>
+   Preparation<ex_preparation>
+   Fragment Search<ex_fragment_search>
+   Fragment Combination Classification<ex_fragment_combination>
+   Fragment Combination Graphs<ex_fragment_combination_graph>
+   Pseudo-NP Annotation<ex_pnp_annotation>
 
 
 .. toctree::

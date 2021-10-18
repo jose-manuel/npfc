@@ -369,7 +369,7 @@ def compress_parallel_edges(G):
     return nx.from_pandas_edgelist(df_edges, source="source", target="target", edge_attr=['idm', 'idcfg', 'label', 'title'])  # simple graph because no more parallel edges
 
 
-def fcg(G, colormap=None, WD_img: str = None, output_file: str = None, size: tuple = (400, 400), print_title: bool = True):
+def fcg(G, colormap=None, WD_img: str = None, output_file: str = None, size: tuple = (400, 400), title: str = '__graph__'):
     """A function to represent Fragment Combination Graphs.
 
     Currently, this function has limitations for showing fragments into the nodes:
@@ -395,7 +395,7 @@ def fcg(G, colormap=None, WD_img: str = None, output_file: str = None, size: tup
     :param colormap: a matching ColorMap object, generated alongside the graph. If none is provided, the nodes will colored in white.
     :param WD_img: a working directory where suitable (see above) frament images are located. If none is provided, fragments will not be displayed in the graph nodes.
     :param size: the size of the canvas for the drawing
-    :param print_title: print the FCG identifier (molecule_id:fcg_id) below the graph
+    :param title: add the specified title below the graph, by default molecule_id:fcg_id, or nothing if None
 
     :return: a drawing of the fragment combination graph
     """
@@ -413,8 +413,10 @@ def fcg(G, colormap=None, WD_img: str = None, output_file: str = None, size: tup
     A.graph_attr['dpi'] = '1200'
     A.graph_attr['fontsize'] = 25
 
-    if print_title:
+    if title == '__graph__':
         A.graph_attr['label'] = "\n\n" + list(G.edges(data=True))[0][2]['title']
+    elif title is not None:
+        A.graph_attr['label'] = title
 
     # init node/attribute mapping
     node_labels = G.nodes()
@@ -454,7 +456,7 @@ def fcg(G, colormap=None, WD_img: str = None, output_file: str = None, size: tup
     if output_file is None:
         output_file = '/tmp/_tmp_fcg.png'
 
-    # export the graph as SVG
+    # export the graph as PNG (cannot embed SVG...)
     A.draw(output_file, format='png', prog='dot')
 
     # read back the export
@@ -792,7 +794,7 @@ def attribute_colors_to_fragments(d_aidxs, palette, color_gradient=0.1):
     highlights = {k: [] for k in d_aidxs}
     num_colors = palette.num_colors
     j = 0  # current color index
-    k = 0  # gradient that gets incremented each time all colors have been used (makes colors darker)
+    k = 0  # gradient that gets incremented each time all colors have been used (makes colors darker/lighter than initial)
     darker = True
     # begin
     for i, fragment_id in enumerate(d_aidxs):
@@ -857,7 +859,7 @@ class FragmentHighlight:
         """
         # define palette only if necessary
         if palette is None and fragments_colors is None:
-            palette = Palette(list(draw.DEFAULT_PALETTE.values()))
+            palette = Palette(list(DEFAULT_PALETTE.values()))
         elif palette is not None and fragments_colors is not None:
             print("Warning! Palette is used only when fragments_colors are not specified.")
 

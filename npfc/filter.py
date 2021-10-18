@@ -139,6 +139,7 @@ DESCRIPTORS = {
               'num_rotatable_bonds': lambda x: rdMolDescriptors.CalcNumRotatableBonds(x),
               'num_atoms_oxygen': lambda x: len([a for a in x.GetAtoms() if a.GetAtomicNum() == 8]),
               'num_atoms_nitrogen': lambda x: len([a for a in x.GetAtoms() if a.GetAtomicNum() == 7]),
+              'fsp3': lambda x: rdMolDescriptors.CalcFractionCSP3(x),
               # custom molecular descriptors
               # ring_sizes:
               # it would have been faster to access only once RingInfo for both min and max,

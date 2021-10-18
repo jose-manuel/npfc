@@ -196,8 +196,8 @@ def write_sdf(df, out, molColName='ROMol', idName=None, properties=None, allNume
 
     if molColName in properties:
         properties.remove(molColName)
-    if idName in properties:
-        properties.remove(idName)
+    # if idName in properties:
+    #     properties.remove(idName)
     writer.SetProps(properties)
     for row in df.iterrows():
         # make a local copy I can modify

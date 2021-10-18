@@ -3,65 +3,70 @@ making output directory... done
 loading intersphinx inventory from https://docs.python.org/objects.inv...
 intersphinx inventory has moved: https://docs.python.org/objects.inv -> https://docs.python.org/3/objects.inv
 building [mo]: targets for 0 po files that are out of date
-building [html]: targets for 24 source files that are out of date
-updating environment: [new config] 24 added, 0 changed, 0 removed
-reading sources... [  4%] architecture
-reading sources... [  8%] cli
-reading sources... [ 12%] deduplicate
-reading sources... [ 16%] draw
-reading sources... [ 20%] fcc
-reading sources... [ 25%] fcg
-reading sources... [ 29%] filter
-reading sources... [ 33%] fragment_combination
-reading sources... [ 37%] fragment_combination_graph
-reading sources... [ 41%] fragment_combination_point
-reading sources... [ 45%] fragment_search
+building [html]: targets for 27 source files that are out of date
+updating environment: [new config] 27 added, 0 changed, 0 removed
+reading sources... [  3%] architecture
+reading sources... [  7%] cli
+reading sources... [ 11%] deduplicate
+reading sources... [ 14%] draw
+reading sources... [ 18%] ex_fragment_combination
+reading sources... [ 22%] ex_fragment_combination_graph
+reading sources... [ 25%] ex_fragment_search
+reading sources... [ 29%] ex_pnp_annotation
+reading sources... [ 33%] ex_preparation
+reading sources... [ 37%] fcc_fusions
+reading sources... [ 40%] filter
+reading sources... [ 44%] fragment_combination
+reading sources... [ 48%] fragment_combination_graph
+reading sources... [ 51%] fragment_combination_point
+reading sources... [ 55%] fragment_search
 <frozen importlib._bootstrap>:228: RuntimeWarning: to-Python converter for std::vector<unsigned long, std::allocator<unsigned long> > already registered; second conversion method ignored.
-reading sources... [ 50%] fragments
-reading sources... [ 54%] index
-reading sources... [ 58%] install
-reading sources... [ 62%] intro
-reading sources... [ 66%] load
-reading sources... [ 70%] natural_products
-reading sources... [ 75%] notebook
-reading sources... [ 79%] pnp
-reading sources... [ 83%] preparation
-reading sources... [ 87%] save
-reading sources... [ 91%] standardize
-reading sources... [ 95%] synthetic_compounds
+reading sources... [ 59%] fragments
+reading sources... [ 62%] index
+reading sources... [ 66%] install
+reading sources... [ 70%] intro
+reading sources... [ 74%] load
+reading sources... [ 77%] natural_products
+reading sources... [ 81%] notebook
+reading sources... [ 85%] pnp_annotation
+reading sources... [ 88%] save
+reading sources... [ 92%] standardize
+reading sources... [ 96%] synthetic_compounds
 reading sources... [100%] utils
 
-/home/gally/Projects/NPFC/src/docs/source/architecture.rst:72: WARNING: malformed hyperlink target.
-/home/gally/Projects/NPFC/src/docs/source/architecture.rst:51: WARNING: Unknown target name: "depictionvalidator".
-/home/gally/Projects/NPFC/src/docs/source/preparation.rst:175: WARNING: malformed hyperlink target.
-/home/gally/Projects/NPFC/src/docs/source/preparation.rst:127: WARNING: Unknown target name: "depictionvalidator".
+/home/gally/Projects/NPFC/src/docs/source/index.rst:19: WARNING: toctree contains reference to nonexisting document 'Fragment Combination Classification'
 looking for now-outdated files... none found
 pickling environment... done
-checking consistency... done
+checking consistency... /home/gally/Projects/NPFC/src/docs/source/fcc_fusions.rst: WARNING: document isn't included in any toctree
+/home/gally/Projects/NPFC/src/docs/source/pnp_annotation.rst: WARNING: document isn't included in any toctree
+done
 preparing documents... done
-writing output... [  4%] architecture
-writing output... [  8%] cli
-writing output... [ 12%] deduplicate
-writing output... [ 16%] draw
-writing output... [ 20%] fcc
-writing output... [ 25%] fcg
-writing output... [ 29%] filter
-writing output... [ 33%] fragment_combination
-writing output... [ 37%] fragment_combination_graph
-writing output... [ 41%] fragment_combination_point
-writing output... [ 45%] fragment_search
-writing output... [ 50%] fragments
-writing output... [ 54%] index
-writing output... [ 58%] install
-writing output... [ 62%] intro
-writing output... [ 66%] load
-writing output... [ 70%] natural_products
-writing output... [ 75%] notebook
-writing output... [ 79%] pnp
-writing output... [ 83%] preparation
-writing output... [ 87%] save
-writing output... [ 91%] standardize
-writing output... [ 95%] synthetic_compounds
+writing output... [  3%] architecture
+writing output... [  7%] cli
+writing output... [ 11%] deduplicate
+writing output... [ 14%] draw
+writing output... [ 18%] ex_fragment_combination
+writing output... [ 22%] ex_fragment_combination_graph
+writing output... [ 25%] ex_fragment_search
+writing output... [ 29%] ex_pnp_annotation
+writing output... [ 33%] ex_preparation
+writing output... [ 37%] fcc_fusions
+writing output... [ 40%] filter
+writing output... [ 44%] fragment_combination
+writing output... [ 48%] fragment_combination_graph
+writing output... [ 51%] fragment_combination_point
+writing output... [ 55%] fragment_search
+writing output... [ 59%] fragments
+writing output... [ 62%] index
+writing output... [ 66%] install
+writing output... [ 70%] intro
+writing output... [ 74%] load
+writing output... [ 77%] natural_products
+writing output... [ 81%] notebook
+writing output... [ 85%] pnp_annotation
+writing output... [ 88%] save
+writing output... [ 92%] standardize
+writing output... [ 96%] synthetic_compounds
 writing output... [100%] utils
 
 generating indices... genindex py-modindex done
@@ -79,21 +84,39 @@ highlighting module code... [ 91%] npfc.standardize
 highlighting module code... [100%] npfc.utils
 
 writing additional pages... search done
-copying images... [ 10%] _images/packages_npfc.svg
-copying images... [ 20%] _images/classes_npfc.svg
-copying images... [ 30%] _images/draw_highlight.svg
-copying images... [ 40%] _images/fragment_tree.png
-copying images... [ 50%] _images/fcg_example.png
-copying images... [ 60%] _images/fcp_examples.png
-copying images... [ 70%] _images/draw_simple.png
-copying images... [ 80%] _images/draw_medium.png
-copying images... [ 90%] _images/draw_hard.png
+copying images... [  3%] _images/packages_npfc.svg
+copying images... [  7%] _images/classes_npfc.svg
+copying images... [ 10%] _images/draw_highlight.svg
+copying images... [ 14%] _images/fcc/fusions.svg
+copying images... [ 17%] _images/fcc/cm.svg
+copying images... [ 21%] _images/fcc/connections_bipodal.svg
+copying images... [ 25%] _images/fcc/connections_tripodal.svg
+copying images... [ 28%] _images/fcc/connections_other.svg
+copying images... [ 32%] _images/fcc/ca.svg
+copying images... [ 35%] _images/fcc/cfc.svg
+copying images... [ 39%] _images/fcc/ffs.svg
+copying images... [ 42%] _images/fcc/ffo.svg
+copying images... [ 46%] _images/fcg/fcg_example.png
+copying images... [ 50%] _images/fcg/fcg_alt_sep_FCG_A.svg
+copying images... [ 53%] _images/fcg/fcg_alt_sep_FCG_A_fcg.png
+copying images... [ 57%] _images/fcg/fcg_alt_sep_FCG_B.svg
+copying images... [ 60%] _images/fcg/fcg_alt_sep_FCG_B_fcg.png
+copying images... [ 64%] _images/fcg/fcg_alt_overlap_FCG_A.svg
+copying images... [ 67%] _images/fcg/fcg_alt_overlap_FCG_A_fcg.png
+copying images... [ 71%] _images/fcg/fcg_alt_overlap_FCG_B.svg
+copying images... [ 75%] _images/fcg/fcg_alt_overlap_FCG_B_fcg.png
+copying images... [ 78%] _images/fragment_search_example.svg
+copying images... [ 82%] _images/draw_simple.png
+copying images... [ 85%] _images/draw_medium.png
+copying images... [ 89%] _images/draw_hard.png
+copying images... [ 92%] _images/fragment_tree.png
+copying images... [ 96%] _images/fcp_examples.png
 copying images... [100%] _images/std_deglyco_algo.svg
 
 copying static files... done
 copying extra files... done
 dumping search index in English (code: en)... done
 dumping object inventory... done
-build succeeded, 4 warnings.
+build succeeded, 3 warnings.
 
 The HTML pages are in build/html.

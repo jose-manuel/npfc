@@ -69,7 +69,7 @@ Models
 .. _`pyreverse`: https://github.com/PyCQA/pylint
 .. _`HDFStore`: https://stackoverflow.com/questions/41231678/obtaining-a-exclusive-lock-when-writing-to-an-hdf5-file
 .. _`Uncharger`: https://www.rdkit.org/docs/source/rdkit.Chem.MolStandardize.rdMolStandardize.html
-.. _`DepictionValidator`:https://gitlab.ebi.ac.uk/pdbe/ccdutils/blob/master/pdbeccdutils/core/depictions.py
+.. _`DepictionValidator`: https://gitlab.ebi.ac.uk/pdbe/ccdutils/blob/master/pdbeccdutils/core/depictions.py
 .. _`npscorer`: https://github.com/rdkit/rdkit/blob/master/Contrib/NP_Score
 .. _`sasscorer`: https://github.com/rdkit/rdkit/blob/master/Contrib/SA_Score
 .. _`idx_to_label`: https://stackoverflow.com/questions/2267362/how-to-convert-an-integer-to-a-string-in-any-base
