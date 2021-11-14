@@ -863,10 +863,9 @@ def get_df_fcp(WD: str) -> DataFrame:
     :return: a DF summarizing results of the fcp step
     """
     logger.info("PREP -- COMPUTING FCP RESULTS")
-    # iterate over the log files to count status
     pattern = ".*([0-9]{3})?_fcp.csv.gz"
-    chunks = _get_chunks(f"{WD}/04_fcp/data", pattern)
-    # print(f"{chunks=}")
+    chunks = _get_chunks(f"{WD}/05_fcp/data", pattern)
+    print(f"{chunks=}")
     logger.info(f"PREP -- FOUND {len(chunks):,d} CHUNKS")
 
     # parse all files
@@ -1290,7 +1289,7 @@ def parse_chunk_fcg(c):
 
     # retrieve data
     d = {}
-    df_fcg = load.file(c, decode=['_fcg', '_d_mol_frags']).sort_values(["idm", "nfrags"], ascending=True)  # df_fcg already sorted for the best examples per case
+    df_fcg = load.file(c, decode=['_fcg', '_d_mol_frags', '_frags', '_frags_u']).sort_values(["idm", "nfrags"], ascending=True)  # df_fcg already sorted for the best examples per case
     num_tot_fcg_graph = len(df_fcg.index)
 
     if num_tot_fcg_graph == 0:
@@ -1310,8 +1309,7 @@ def parse_chunk_fcg(c):
         return d
 
     df_fcg = df_fcg.rename({'_frags': 'frags', '_frags_u': 'frags_u'}, axis=1)
-    df_fcg['frags'] = df_fcg['frags'].map(list)
-    df_fcg['frags_u'] = df_fcg['frags_u'].map(list)
+    print(df_fcg[['idm', 'idfcg', 'frags', 'frags_u']])
     groups = df_fcg[['idm', 'idfcg', 'nfrags']].groupby('idm')
     num_tot_mol_graph = len(groups)
 
@@ -1338,8 +1336,6 @@ def parse_chunk_fcg(c):
     # fs analysis
 
     # initialization of a common df useful for fs analysis
-    # df_fcg['_frags'] = df_fcg['_frags'].map(lambda x: x.replace("'", '"'))
-    # df_fcg['_frags'] = df_fcg['_frags'].map(lambda x: json.loads(x))
     df_fcg['aidxs'] = df_fcg['_d_aidxs'].map(lambda x: [v for l in x.values() for v in l])  # extract all values from dict: list of tuples
     df_fcg['aidxs'] = df_fcg['aidxs'].map(lambda x: [v for l in x for v in l])   # flatten the list and identify only unique atom indices
     groups = df_fcg.groupby('idm')
@@ -1353,8 +1349,7 @@ def parse_chunk_fcg(c):
 
     # top fragments
 
-    # process fm data
-    df_fcg['frags'] = df_fcg['frags'].map(lambda x: eval(''.join(x)))  # NOT IDEAL BUT REQUIRED AS DECODE=FALSE WHEN LOADING
+    # process fsearch data
     df_fcg_top_frags = df_fcg_grouped['frags'].apply(pd.Series).reset_index().melt(id_vars='index').dropna()[['index', 'value']]  # ungroup values by frag id in list
     df_fcg_top_frags['value'] = df_fcg_top_frags['value'].map(lambda x: x.split(':')[0])
     df_fcg_top_frags = df_fcg_top_frags.groupby('value').count().reset_index().rename({'value': 'idf', 'index': 'Count'}, axis=1).sort_values('Count', ascending=False).reset_index(drop=True)  # count and sort idfs
@@ -1754,7 +1749,7 @@ if __name__ == '__main__':
                         df_prep_overview = load.file(output_csv_prep_overview)
                         df_prep_filtered = load.file(output_csv_prep_filtered)
                         df_prep_error = load.file(output_csv_prep_error)
-                        if compute_nsymgroups:
+                        if compute_nsymgroups and Path(output_csv_prep_nsymgroups).exists():
                             df_prep_nsymgroups = load.file(output_csv_prep_nsymgroups)
                     else:
                         logger.info("PREP -- COMPUTING OUTPUT CSV FILES")
@@ -2574,8 +2569,8 @@ if __name__ == '__main__':
                     # logger.info("FS - GENERATE PLOTS:".ljust(pad) + f"{d2 - d1}")
                     # logger.info("FC - PARSE OUTPUT FILES:".ljust(pad) + f"{d3 - d2}")
                     # logger.info("FC - GENERATE PLOTS:".ljust(pad) + f"{d4 - d3}")
-                    logger.info("FCG - PARSE OUTPUT FILES:".ljust(pad) + f"{d5 - d4}")
-                    logger.info("FCG - GENERATE PLOTS:".ljust(pad) + f"{d6 - d5}")
-                    logger.info("PNP - PARSE OUTPUT FILES:".ljust(pad) + f"{d7 - d6}")
-                    logger.info("PNP - GENERATE PLOTS:".ljust(pad) + f"{d8 - d7}")
+                    #logger.info("FCG - PARSE OUTPUT FILES:".ljust(pad) + f"{d5 - d4}")
+                    #logger.info("FCG - GENERATE PLOTS:".ljust(pad) + f"{d6 - d5}")
+                    #logger.info("PNP - PARSE OUTPUT FILES:".ljust(pad) + f"{d7 - d6}")
+                    #logger.info("PNP - GENERATE PLOTS:".ljust(pad) + f"{d8 - d7}")
                     logger.info("TOTAL:".ljust(pad) + f"{d8 - d0}")
