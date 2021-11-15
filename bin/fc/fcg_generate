@@ -118,7 +118,7 @@ def main():
         num_fcg_ini = len(df_fcg.index)
         # load the FS data
         logger.info("LOADING THE FRAGMENT SEARCH DATA FOR REFERENCE")
-        fs_dir = [str(x) for x in Path(input_fcc).parents[2].glob('*_fs')][0]  # generator so needs iteration, only 1 fs subfolder will be detected!
+        fs_dir = [str(x) for x in Path(args.input_fcc).parents[2].glob('*_fs')][0]  # generator so needs iteration, only 1 fs subfolder will be detected!
         print(f"{fs_dir=}")
         fs_filename = Path(args.input_fcc).name.replace('_fcc', '_fs')
         input_fs = f"{str(fs_dir)}/data/{fs_filename}"
