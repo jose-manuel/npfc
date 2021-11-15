@@ -49,7 +49,7 @@ def main():
     parser.add_argument('-f', '--filter-frags', type=str, default=None, help="List of IDs to filter out from the input fragment combinations.")
     parser.add_argument('--min-frags', type=int, default=2, help="Maximum number of fragments allowed for computing a graph. Molecules with a lower number are filtered out.")
     parser.add_argument('--max-frags', type=int, default=9999, help="Maximum number of fragments allowed for computing a graph. Molecules with a higher number are filtered out.")
-    parser.add_argument('--largest-only', type=bool, default=True, help="If true, FCGs consisting of smaller fragments that are included in larger fragments (ffs combinations) are filtered out. Warning! This will make the script look for the corresponding data at the fragment search step (_fs subfolder)")
+    parser.add_argument('--no-substruct', type=bool, default=True, help="If true, FCGs consisting of smaller fragments that are included in larger fragments (substructures, i.e. ffs combinations) are filtered out. Warning! This will make the script look for the corresponding data at the fragment search step (_fs subfolder)")
     parser.add_argument('--max-overlaps', type=int, default=5, help="Minimum number of overlapping fragment combinations for processing a molecule. Molecules with a higher number are filtered out.")
     parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
     args = parser.parse_args()
@@ -92,7 +92,7 @@ def main():
     logger.info("MAX_FRAGS".ljust(pad) + f"{args.max_frags}")
     logger.info("MAX_OVERLAPS".ljust(pad) + f"{args.max_overlaps}")
     logger.info('FILTER_FRAGS'.ljust(pad) + f"{', '.join(filter_frags)}")
-    logger.info('LARGEST_ONLY'.ljust(pad) + f"{', '.join(args.largest_only)}")
+    logger.info('NO_SUBSTRUCT'.ljust(pad) + f"{args.no_substruct}")
     logger.info("LOG".ljust(pad) + f"{args.log}")
 
     # begin
@@ -112,7 +112,7 @@ def main():
     logger.info("GENERATING FRAGMENT COMBINATION GRAPHS")
     d2 = datetime.now()
     df_fcg = fragment_combination_graph.generate(df_fcc, min_frags=args.min_frags, max_frags=args.max_frags, max_overlaps=args.max_overlaps)
-    if args.largest_only:
+    if args.no_substruct:
         logger.info("FILTERING OUT FCG THAT CONSIST OF SMALLER FRAGMENTS ALREADY FOUND IN LARGER ONES")
         # count initial number of FCG to have an estimate
         num_fcg_ini = len(df_fcg.index)
