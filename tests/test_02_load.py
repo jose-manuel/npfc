@@ -44,9 +44,8 @@ def test_file_sdf(input_sdf):
     # with properties
     df = load.file(input_sdf, keep_props=True, in_id='_Name', out_id='idm')
     assert len(df.index) == 5
-    cols = list(df.columns.values)
-    cols.sort()
-    assert cols == ['idm', 'mol', 'prop']
+    cols = sorted(list(df.columns.values))
+    assert cols == ['idm', 'idm.2', 'mol', 'prop']
     assert isinstance(df.iloc[0]['mol'], Mol)
 
 

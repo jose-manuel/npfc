@@ -47,7 +47,6 @@ def df_mols_dupl():
     df = pd.DataFrame({'mol': ['C1CCCCC1', 'C1CCCCC1', 'C1CCCCC1', 'NC1CCCCC1', 'FC1CCCCC1', '[Cl]C1CCCCC1', 'C1CCCCC1'],   # 4/7 are dupl
                        })
     df['idm'] = [f"mol_{i}" for i in range(len(df.index))]
-
     df['mol'] = df['mol'].map(Chem.MolFromSmiles)
     return df
 
