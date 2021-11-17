@@ -12,6 +12,7 @@ from more_itertools import intersperse
 import pkg_resources
 # data handling
 import json
+import pandas as pd
 from pandas import DataFrame
 # chemoinformatics
 from rdkit.Chem import AllChem as Chem
@@ -28,6 +29,7 @@ from rdkit.Chem.Scaffolds import MurckoScaffold
 from networkx import Graph
 # docs
 from typing import Union
+from typing import List
 # dev library
 from npfc.draw import depict_mol
 from npfc import utils
@@ -56,7 +58,9 @@ DEFAULT_ELEMENTS = {'H', 'B', 'C', 'N', 'O', 'F', 'P', 'S', 'Cl', 'Br', 'I'}
 #                     'filter_molecular_weight': 'molecular_weight <= 1000.0',
 #                     'filter_num_ring': 'num_ring > 0',
 #                     'filter_elements': f'elements in {", ".join(str(x) for x in DEFAULT_ELEMENTS)}',
+#                     'filter_unwanted: c1ccccc1',
 #                     }
+
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ CLASSES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
@@ -153,7 +157,7 @@ class Standardizer(Filter):
         - **extract_murcko**: return the Murcko Scaffold from the molecule
         - **clear_side_chains**: remove any exocyclic atom that is not part of a linker
         - **reset_mol**: reset the molecule by converting to and then from smiles
-
+        
     This results in new columns in the input DataFrame:
 
         - the 'mol' column: updated structure (only for the protocol)
@@ -768,7 +772,7 @@ class Standardizer(Filter):
         return (mol, 'filtered', 'timeout')
 
 
-    def run_df(self, df: DataFrame) -> tuple:
+    def run_df(self, df: DataFrame, filter_unwanted: List[str] = []) -> tuple:
         """Apply the standardization protocol on a DataFrame, with the possibility of directly filtering duplicate entries as well.
         This can be very useful as the standardization process can expose duplicate entries due to salts removal, neutralization,
         canonical tautomer enumeration, and stereochemistry centers unlabelling
@@ -778,31 +782,55 @@ class Standardizer(Filter):
 
         :param df: the input DataFrame
         :param timeout: the maximum number of seconds for processing a molecule
+        :param filter_unwanted: a list of molecules in SMILES format that should be filtered out at the end of the standardization
         :return: three DataFrames separated by status:
 
             - passed
             - filtered
             - error
 
-        .. note:: As a side effect, the output DataFrames get indexed by idm. The 'inchikey' col is not returned, but the values can be accessed using the reference file.
+        .. note:: As a side effect, the output DataFrames get indexed by idm.
 
         :param df: The DataFrame with molecules to standardize
         :param return: a tuple of 3 DataFrames: standardized, filtered and error.
         """
+        df = df.copy()  # do not modify df in place
+        # check filter_unwanted data (if any error, crash before running the protocol)
+        if len(filter_unwanted) > 0:
+            unwanted_inchikeys = [rdinchi.MolToInchiKey(Chem.MolFromSmiles(x)) for x in filter_unwanted]
+            logging.debug('Unwanted Structure List:\n\n%s\n', DataFrame({'smiles': filter_unwanted, 'inchikey': unwanted_inchikeys}))
+        
         # run standardization protocol
         df.index = df[self.col_id]
         df.loc[:, self.col_mol], df.loc[:, 'status'], df.loc[:, 'task'] = zip(*df[self.col_mol].map(self.run))
+        
         # flag eventual None molecules at the end of the pipeline for filtering out
-        df['status'] = df.apply(lambda x: x['status'] if x['mol'] is not None else 'error', axis=1)
-        df['task'] = df.apply(lambda x: x['task'] if x['mol'] is not None else 'filter_empty_final', axis=1)
-        df['mol'] = df['mol'].map(lambda x: x if x is not None else '')
+        df.loc[:, 'status'] = df.apply(lambda x: x['status'] if x['mol'] is not None else 'error', axis=1)
+        df.loc[:, 'task'] = df.apply(lambda x: x['task'] if x['mol'] is not None else 'filter_empty_final', axis=1)
+        df.loc[:, 'mol'] = df['mol'].map(lambda x: x if x is not None else '')
+        
         # do not apply filter duplicates on molecules with errors or that were already filtered for x reasons
         df_error = df[df['status'] == 'error']
         df_filtered = df[df['status'] == 'filtered']
         df = df[df['status'].str.contains('passed')]
-        df = df.copy()  # only way I found to suppress pandas warnings in a "clean" way
+        
         # compute InChiKeys
+        logging.debug('Computing InChI Keys for standardized structures')
         df.loc[:, 'inchikey'] = df.loc[:, self.col_mol].map(rdinchi.MolToInchiKey)
+        
+        # filter unwanted compounds using InChI Keys
+        if len(filter_unwanted) > 0:
+            logging.debug('Filtered out unwanted structures using InChI Keys')
+            # identify unwanted compounds
+            df_unwanted = df[df['inchikey'].isin(unwanted_inchikeys)]
+            if len(df_unwanted) > 0:
+                # remove these from passed compounds 
+                df = df[df['idm'] != df_unwanted['idm']]
+                # annotate unwanted and add them to filtered compounds
+                df.loc[:, 'task'] = 'standardize'
+                df.loc[:, 'status'] = 'filter_unwanted'
+                df_filtered = pd.concat([df_filtered, df_unwanted])
+                logging.debug('Number of structures filtered out by identity: %s', len(df_unwanted.index))
 
         # tuple of dataframes
         return (df, df_filtered, df_error)

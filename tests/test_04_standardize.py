@@ -318,3 +318,12 @@ def test_standardizer_deglycosylate_extra_tests(df_deglyco_extra_tests, standard
     for i in range(len(df_deglyco_extra_tests)):
         row = df_deglyco_extra_tests.iloc[i]
         assert Chem.MolToSmiles(standardizer.deglycosylate(row['mol'])) == row['smiles_deglyco']
+        
+        
+def test_filter_unwanted(df_fragments, standardizer):
+    df_fragments = df_fragments[df_fragments['idm'] == 'simple']
+    standardizer.protocol = {"tasks": ['extract_murcko']}
+    df_passed, df_filtered, df_error = standardizer.run_df(df_fragments, filter_unwanted=['c1ccccc1'])
+    assert len(df_passed) == 0
+    assert len(df_filtered) == 1
+    assert len(df_error) == 0
