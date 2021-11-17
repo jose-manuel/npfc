@@ -40,7 +40,6 @@ setuptools.setup(
     'twine >= 3.4',
     'pytest >= 6.2',
     'wheel >= 0.36',
-    'fasteners >= 0.16',
     ],
     ## the extra requirements below were installed when typing: pip install -e .[dev]
     # extra_require={"dev": ['isort >= 4.3',

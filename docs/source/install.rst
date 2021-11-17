@@ -21,6 +21,6 @@ In your Python environment, run:
 As a work-around for now, we suggest to create a conda environment and install
 the npfc package inside of it:
 
->>> conda create -n npfc_env python pytables
+>>> conda create -n npfc_env python pytables graphviz
 >>> conda activate npfc_env
 >>> pip install npfc
