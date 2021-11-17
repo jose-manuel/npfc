@@ -45,6 +45,7 @@ def test_filter_compute_descriptors(filter, mol):
     # all descriptors
     result = filter.compute_descriptors(mol)
     assert sorted(list(result.keys())) == ['elements',
+                                           'fsp3',
                                            'molecular_formula',
                                            'molecular_weight',
                                            'num_atoms_nitrogen',
