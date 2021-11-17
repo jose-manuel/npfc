@@ -30,7 +30,8 @@ def main():
 
     # init
     d0 = datetime.now()
-    description = """Script is used for annotating Pseudo Natural Products (PNP).
+    description = """Script is used for annotating Pseudo Natural Products (PNP) and
+    Natural-Products-Like sructures (NLP).
 
     It takes two inputs:
         - the fcg file with the molecules to annotate by comparing fragment fcgs (graphs)
@@ -43,7 +44,7 @@ def main():
 
     Example:
 
-        >>> annotate_pnp file_fcg.csv.gz file_fcg.csv.gz
+        >>> fcg_annotate_pnp file_fcg.csv.gz dir_natref_fcg file_pnp.csv.gz
 
     """
 
@@ -55,6 +56,7 @@ def main():
     parser.add_argument('-d', '--data', type=str, default='fcc,fcp_1,fcp_2', help="Graph edge attributes to consider for annotating pnps (no space, separated with ',').")
     parser.add_argument('-s', '--symmetry', type=bool, default=True, help="Consider symmetry when comparing FCPs. If activated, the suffixes ('1a,2') are removed ('1,2') so equivalent FCPs are considered the same.")
     parser.add_argument('-l', '--list-pnp-mols', type=str, default=None, help="Output file with the list of molecules labelled as PNP or not. It is useful to avoid loading the whole dataset just to count the proportion of PNP/non-PNP molecules.")
+    parser.add_argument('--subset', type=str, default='pnp', help="Either 'pnp', 'npl' or 'all' to export either only pnp, only npl or all molecules to FCG output.")
     parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
     args = parser.parse_args()
 
@@ -78,6 +80,9 @@ def main():
         data = tuple([x.strip() for x in data.split(',')])
     else:
         data = tuple([data])
+    args.subset = args.subset.lower()
+    if args.subset not in ['all', 'pnp', 'npl']:
+        raise ValueError('ERROR! SUBSET IS NONE OF "all", "pnp" OR "npl!" ({args.subset})')
 
     # get the list of reference files
     p = Path(args.ref_dir)
@@ -104,6 +109,7 @@ def main():
     logger.info("LIST_PNP_MOLS".ljust(pad) + f"{args.list_pnp_mols}")
     logger.info("PNP_ATTRIBUTES".ljust(pad) + f"{', '.join(data)}")
     logger.info("SYMMETRY".ljust(pad) + f"{args.symmetry}")
+    logger.info("SUBSET".ljust(pad) + f"{args.subset}")
     logger.info("LOG".ljust(pad) + f"{args.log}")
     d1 = datetime.now()
 
@@ -153,22 +159,34 @@ def main():
     d3 = datetime.now()
     df_pnp = fragment_combination_graph.annotate_pnp(df_fcg, df_fcg_ref, data=data, consider_symmetry=args.symmetry)
 
-    # saving results
-    logger.info("SAVING RESULTS")
-    d4 = datetime.now()
-    logger.info(f"SAVING PNP RESULTS AT '{args.output_fcg}'")
-    save.file(df_pnp, args.output_fcg, encode=True)
-
     logger.info("EXPORTING PNP LISTS")
-    d5 = datetime.now()
+    d4 = datetime.now()
     df_pnp_list = df_pnp[['idm', 'idfcg', 'pnp_fcg', 'pnp_mol', '_pnp_ref']]
     if args.list_pnp_mols is not None:
         save.file(df_pnp_list, args.list_pnp_mols)
-    logger.info("NUMBER OF PNP MOLS".ljust(pad) + f"{len(df_pnp_list[df_pnp_list['pnp_mol']]):,}")
+    num_pnp_mols = len(df_pnp_list[df_pnp_list['pnp_mol']])
+    num_npl_mols = len(df_pnp_list[~df_pnp_list['pnp_mol']])
+    num_tot_mols = num_pnp_mols + num_npl_mols
+    logger.info("NUMBER OF PNP MOLS".ljust(pad) + f"{num_pnp_mols:,}")
+    logger.info("NUMBER OF NPL MOLS".ljust(pad) + f"{num_npl_mols:,}")
+    logger.info("TOTAL NUMBER OF MOLS".ljust(pad) + f"{num_tot_mols:,}")
 
-    # df_pnp_examples = df_pnp[df_pnp['pnp_mol'] == True].head(3)
 
-    logger.info("NUMBER OF NON-PNP MOLS".ljust(pad) + f"{len(df_pnp_list[~df_pnp_list['pnp_mol']]):,}")
+    # saving results
+    logger.info("EXPORTING FCG OUTPUT FILE")
+    d5 = datetime.now()
+    if args.subset == 'pnp':
+        df_pnp = df_pnp[df_pnp['pnp_mol'] == True]
+        logger.info(f"EXPORTING ONLY PNP MOLECULES TO FCG OUTPUT: {num_pnp_mols:,} ({num_pnp_mols/num_tot_mols:.2%})...")
+    elif args.subset == 'npl':
+        df_pnp = df_pnp[df_pnp['pnp_mol'] == False]
+        logger.info(f"EXPORTING ONLY NPL MOLECULES TO FCG OUTPUT: {num_npl_mols:,} ({num_npl_mols/num_tot_mols:.2%})...")
+    else:
+        logger.info(f"EXPORTING ALL MOLECULES TO FCG OUTPUT: {num_tot_mols:,} ({num_tot_mols/num_tot_mols:.2%})...")
+
+
+    logger.info(f"SAVING PNP RESULTS AT '{args.output_fcg}'")
+    save.file(df_pnp, args.output_fcg, encode=True)
 
     # end
     d6 = datetime.now()
@@ -177,8 +195,8 @@ def main():
     logger.info("COMPUTATIONAL TIME: LOADING INPUT FRAGMENT COMBINATION GRAPHS".ljust(pad * 2) + f"{d2-d1}")
     logger.info("COMPUTATIONAL TIME: LOADING REFERENCE FRAGMENT COMBINATION GRAPHS".ljust(pad * 2) + f"{d3-d2}")
     logger.info("COMPUTATIONAL TIME: ANNOTATING FRAGMENT COMBINATION GRAPHS".ljust(pad * 2) + f"{d4-d3}")
-    logger.info("COMPUTATIONAL TIME: SAVING ANNOTATED FRAGMENT COMBINATION GRAPHS".ljust(pad * 2) + f"{d5-d4}")
-    logger.info("COMPUTATIONAL TIME: EXPORTING PNP LISTS".ljust(pad * 2) + f"{d6-d5}")
+    logger.info("COMPUTATIONAL TIME: EXPORTING PNP LISTS".ljust(pad * 2) + f"{d5-d4}")
+    logger.info("COMPUTATIONAL TIME: SAVING ANNOTATED FRAGMENT COMBINATION GRAPHS".ljust(pad * 2) + f"{d6-d5}")
     logger.info("COMPUTATIONAL TIME: TOTAL".ljust(pad * 2) + f"{d6-d0}")
     logger.info("END")
 
