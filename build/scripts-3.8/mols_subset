@@ -3,7 +3,8 @@
 """
 Script subset_mols
 ==========================
-This script is used for subsetting a molecular file (SDf, CSV or HDF) by
+This script is used for subsetting a molecular dataset given another used as reference.
+Currently, molecules in common can only be excluded from the molecular file.
 """
 
 # standard

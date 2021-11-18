@@ -29,26 +29,28 @@ try:
 except KeyError:
     prefix = ''
 input_file = config['input_file']
+
 # additional
 frags_file = config['frags_file']  # fragment file to use for substructure search
 frags_subdir = config['frags_subdir']
 natref_dedupl_reffile = config['natref_dedupl_reffile']
 natref_fcg_dir = config['natref_fcg_dir']
 chunksize = config['chunksize']  # maximum number of molecules per chunk
-tautomer = config['tautomer']
+tautomer = config.get('tautomer', False)
+
 # specific to synthetic
 natref_subdir = config['natref_subdir']  # WD for defining natural compounds, subdir with same frags is also searched for pnp annotation
+
 # by default consider fcc for pnp attributes, if one wants to only compare pairs of fragments, provide empty string in config file instead
-try:
-    pnp_attributes = config['pnp_attributes']
-except KeyError:
-    pnp_attributes = 'fcc'
+pnp_attributes = config.get('pnp_attributes', 'fcc')
+
 # preprocess subdir
-try:
-    prep_subdir = config['prep_subdir']
-except KeyError:
-    prep_subdir = 'prep'
-# from master script
+prep_subdir = config.get('prep_subdir', 'prep')
+
+# export pnp subset
+pnp_subset = config.get('pnp_subset', 'all')
+
+# from master script (always defined)
 num_chunks = config['num_chunks']
 
 # protocol for standardizing molecules
@@ -183,7 +185,7 @@ rule PNP:
         fgraphs = "{WD}" + f"/{prep_subdir}/{natref_subdir}/{frags_subdir}" + "/10_pnp/data/{prefix}_{cid}_pnp.csv.gz",
         list_pnps = "{WD}" + f"/{prep_subdir}/{natref_subdir}/{frags_subdir}" + "/10_pnp/log/{prefix}_{cid}_list_pnp.csv.gz"
     log: "{WD}" + f"/{prep_subdir}/{natref_subdir}/{frags_subdir}" + "/10_pnp/log/{prefix}_{cid}_pnp.log"
-    shell: "fcg_annotate_pnp {input} {natref_fcg_dir} {output.fgraphs} -l {output.list_pnps} -d '" + pnp_attributes + "' >{log} 2>&1"
+    shell: "fcg_annotate_pnp {input} {natref_fcg_dir} {output.fgraphs} -l {output.list_pnps} -d '" + pnp_attributes + "' --subset " + pnp_subset  + " >{log} 2>&1"
 
 
 rule FCG:

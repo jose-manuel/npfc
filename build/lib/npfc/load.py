@@ -36,59 +36,6 @@ CONVERTERS = {'molblock': lambda x: Chem.MolFromMolBlock(x),
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 
-def pgsql(dbname: str,
-          user: str,
-          psql: str,
-          src_id: str,
-          src_mol: str,
-          mol_format: str = None,
-          col_mol: str = 'mol',
-          col_id: str = 'idm',
-          keep_db_cols: bool = False) -> DataFrame:
-    """Load molecules from a PGSQL query.
-    The col_mol will is parsed by RDKit depending on the mol_format argument.
-    If no mol_format is specified, then the column is returned untouched.
-
-    .. note:: For this function to work, you need to be able to log into the target database without prompt. Tested only with ChEMBL24 with default ports.
-
-    :param dbname: the input postgres database name
-    :param user: the user name for logging into database
-    :param pgsql: the posgresql statement to execute
-    :param mol_format: the molecular format to use to parse the molecules. If none is specified then no parsing is performed. Currently only molblock and smiles are allowed
-    :param col_mol: the column with the molecules to parse
-    :param keep_db_cols: keep src_id and src_mol columns in output DataFrame. This does not impact any other column extracted from the psql query
-    :return: a DataFrame with Mol objects
-    """
-    logging.debug("Retrieving data from dbname=%s wiht user=%s with psql:\n%s\nwith src_id=%s, src_mol=%s, col_mol=%s, col_id=%s, keep_db_cols=%s", dbname, user, psql, src_id, src_mol, col_mol, col_id, keep_db_cols)
-    if mol_format not in ('molblock', 'smiles', None):
-        raise ValueError(f"Format '{mol_format}' is currently not supported. Please use either 'molblock' or 'sdf'.")
-    if src_id is None:
-        raise ValueError("src_id needs to be defined but values None.")
-    # establish connection
-    conn = psycopg2.connect(dbname=dbname, user=user)
-    cur = conn.cursor()
-    # execute query
-    cur.execute(psql)
-    # generate DataFrame
-    df = DataFrame(cur.fetchall())
-    # apply table column names to DataFrame
-    df.columns = [c[0] for c in cur.description]
-    # check for columns
-    if mol_format is not None:
-        if src_mol not in df.columns:
-            raise ValueError(f"src_mol '%s' could not be found in pgsql query results.\nAvailable columns are: %s", src_mol, list(df.columns.values))
-        # convert mol_col to RDKit
-        df[col_mol] = df[src_mol].map(CONVERTERS[mol_format])
-
-    # cleaning up
-    if col_id != src_id:
-        df[col_id] = df[src_id]
-    if not keep_db_cols:
-        df.drop([src_id, src_mol], axis=1, inplace=True)
-
-    return df
-
-
 def file(input_file: str,
          in_id: str = 'idm',
          in_mol: str = 'mol',
@@ -111,6 +58,8 @@ def file(input_file: str,
     :param keep_props: keep all properties found in the input file. If False, then only out_id and out_mol are kept.
     :param decode: decode base64 strings into objects. Columns with encoded objects are labelled with a leading '_'. For molecules, reserved names are 'mol' and 'mol_frag'.
     :return: a DataFrame
+    
+    ..warning:: if a 'idm' property exists in the input file but the user picks another property for in_id, the pre-existing 'idm' will be renamed into 'idm_2'. 
     """
     # check arguments
     utils.check_arg_input_file(input_file)
@@ -130,6 +79,11 @@ def file(input_file: str,
         df = _from_csv(input_file, csv_sep=csv_sep, compression=compression)
 
     # process data
+    
+    # in case in_id is different than default but some column with the same name as out_id already exists
+    if in_id != out_id and out_id in df.columns:
+        df.rename({out_id: f"{out_id}.2"}, axis=1, inplace=True)
+        logging.debug('in_id=%s, out_id=%s, but out_id already present. Renaming existing out_id into %s', in_id, out_id, f"{out_id}.2.")
 
     # out_id
     if out_id is None and in_id is not None:
@@ -160,8 +114,8 @@ def file(input_file: str,
         for col in ('mol', 'mol_frag', 'mol_frag_1', 'mol_frag_2', 'mol_rdkit'):
             if col in df.columns:
                 logging.debug("Decoding column='%s'", col)
-                # df[col] = df[col].map(utils.decode_mol_smiles)
                 df[col] = df[col].map(utils.decode_mol)
+
         # other objects are labelled with leading '_'
         for col in df.columns:
             if col.startswith('_') and col != '_Name':

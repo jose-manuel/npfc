@@ -56,6 +56,7 @@ def main():
     parser.add_argument('--osep', type=str, default='|', help="Separator to use in case the input file is a csv.")
     parser.add_argument('-f', '--filter-frags', type=str, default=None, help="List of IDs to filter out from the input fragment combinations.")
     parser.add_argument('-t', '--tautomer', type=str, default=None, help="Consider tautomers for molecules during fragment search.")
+    parser.add_argument('--fcp', type=str, default='_fcp_labels', help="Column name in the fragments DataFrame to use for labelling fragment connection points. If an empty string '' is provided, these will not be registered.")
     parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
     args = parser.parse_args()
 
@@ -130,6 +131,7 @@ def main():
     logger.info("OSEP".ljust(pad) + f"{args.osep}")
     logger.info('FILTER_FRAGS'.ljust(pad) + f"{', '.join(filter_frags)}")
     logger.info("TAUTOMER".ljust(pad) + f"{args.tautomer}")
+    logger.info("FCP".ljust(pad) + f"{args.fcp}")
     logger.info("LOG".ljust(pad) + f"{args.log}")
 
     # begin
@@ -148,7 +150,6 @@ def main():
                         csv_sep=args.msep,
                         decode=args.mdecode,
                         )
-    df_mols.index = df_mols[args.mid]
     num_failed = df_mols['mol'].isna().sum()
     logger.info(f"LOADED {len(df_mols):,} RECORDS WITH {num_failed:,} FAILURE(S)")
 
@@ -163,9 +164,11 @@ def main():
                          csv_sep=args.fsep,
                          decode=args.fdecode,
                          )
-    df_frags.index = df_frags[args.fid]
     num_failed = df_frags['mol'].isna().sum()
     logger.info(f"LOADED {len(df_frags):,} RECORDS WITH {num_failed:,} FAILURE(S)")
+
+    if args.fcp != '' and args.fcp not in df_frags.columns:
+        raise ValueError(f"ERROR! FCP LABELS ARE SPECIFIED BUT COLUMN COULD NOT BE FOUND IN FRAGMENTS DATAFRAME!\n({args.fcp} NOT IN ', '.join({df_frags.columns}))")
 
     # eventually filter out some fragments
     if len(filter_frags) > 0:
@@ -176,7 +179,7 @@ def main():
     # fragment search (substructure search)
     logger.info("FRAGMENT SEARCH")
     d3 = datetime.now()
-    df_aidxf = fragment_search.get_fragment_hits(df_mols, df_frags, tautomer=args.tautomer)
+    df_aidxf = fragment_search.get_fragment_hits(df_mols, df_frags, tautomer=args.tautomer, fcp_labels=args.fcp)
     logger.info(f"FOUND {len(df_aidxf.index):,} FRAGMENT HITS")
 
     # save results
