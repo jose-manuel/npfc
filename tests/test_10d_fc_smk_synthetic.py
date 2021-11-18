@@ -40,7 +40,7 @@ def test_run():
     output_files = [f"tests/tmp/fc/04_synthetic/chembl/data/prep/natref_dnp/frags_crms/10_pnp/data/chembl_{str(cid+1).zfill(3)}_pnp.csv.gz" for cid in range(2)]
     output_svg = 'tests/tmp/fc/04_synthetic/chembl/synthetic_chembl_tasktree.svg'
     # run protocol
-    command_smk = 'run_protocol_fc synthetic -c fc/04_synthetic/chembl/test_synthetic_chembl_natrefdnp_fragscrms.json'
+    command_smk = 'run_protocol_fc synthetic -c fc/04_synthetic/chembl/test_synthetic_chembl_natrefdnp_fragscrms.json > fc/04_synthetic/chembl/test_synthetic_chembl_natrefdnp_fragscrms.log 2>&1'
     subprocess.run(command_smk, shell=True, check=True, cwd='tests/tmp')
     assert Path(output_svg).exists()
     assert all([Path(f).exists() for f in output_files])

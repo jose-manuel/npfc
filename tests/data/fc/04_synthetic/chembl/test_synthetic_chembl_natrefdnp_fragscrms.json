@@ -11,5 +11,6 @@
                     "natref_fcg_dir": "fc/03_natural/coconut/data/prep/frags_crms/08_fcg/data",
                     "pnp_attributes": "fcc",
                     "chunksize": 100,
-                    "protocol_std" : "fc/04_synthetic/chembl/test_synthetic_chembl_std.json"
+                    "protocol_std" : "fc/04_synthetic/chembl/test_synthetic_chembl_std.json",
+                    "pnp_subset": "pnp"
 }
