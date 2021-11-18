@@ -191,9 +191,17 @@ def main():
     logger.info("PROTOCOL:")
     s = standardize.Standardizer(protocol=args.protocol, timeout=args.timeout)
     [logger.info(f"TASK #{str(i+1).zfill(2)} {task}") for i, task in enumerate(s._protocol['tasks'])]
-    [logger.info(f"OPTION {opt}".ljust(pad) + f"{value}") for opt, value in s._protocol.items() if opt != 'tasks']
+    [logger.info(f"OPTION {opt}".ljust(pad) + f"{value}") for opt, value in s._protocol.items() if opt not in ('tasks', 'filter_unwanted')]
     logger.info("TIMEOUT FOR ABOVE TASKS".ljust(pad) + f"{args.timeout} SEC")
-
+    
+    # unwanted molecules
+    unwanted = s._protocol.get('filter_unwanted', [])
+    if unwanted != []:
+        unwanted = unwanted.replace(' ', '').split(',')
+        logger.info('UNWANTED MOLECULE(S):\n' + '\n'.join(unwanted) + '\n')
+    else:
+        logger.info('NO UNWANTED MOLECULE DEFINED.')
+    
     # load mols
     d1 = datetime.now()
     logger.info("LOADING MOLECULES")
@@ -204,7 +212,7 @@ def main():
     # standardize molecules
     d2 = datetime.now()
     logger.info("RUN STANDARDIZATION")
-    df_passed, df_filtered, df_error = s.run_df(df_mols)
+    df_passed, df_filtered, df_error = s.run_df(df_mols, filter_unwanted=unwanted)
     logger.info("RESULTS:")
     num_passed = len(df_passed.index)
     num_filtered = len(df_filtered.index)

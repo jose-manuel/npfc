@@ -816,7 +816,7 @@ def get_dfs_prep(WD: str) -> Tuple[DataFrame]:
     num_dedupl_dupl = df_dedupl_dupl['Count'].sum()
     df_std_filtered = pd.concat([df_std_filtered, df_dedupl_dupl], sort=True)
     # count even unoccurred cases in df_std_filtered
-    filters = ['empty', 'num_heavy_atoms', 'molecular_weight', 'num_rings', 'elements', 'timeout', 'duplicate']
+    filters = ['empty', 'num_heavy_atoms', 'molecular_weight', 'num_rings', 'elements', 'timeout', 'unwanted', 'duplicate']
     df_std_filtered.set_index('Category', inplace=True)
     df_std_filtered = df_std_filtered.reindex(filters)
     df_std_filtered.reset_index(inplace=True)

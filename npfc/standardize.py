@@ -797,7 +797,15 @@ class Standardizer(Filter):
         df = df.copy()  # do not modify df in place
         # check filter_unwanted data (if any error, crash before running the protocol)
         if len(filter_unwanted) > 0:
-            unwanted_inchikeys = [rdinchi.MolToInchiKey(Chem.MolFromSmiles(x)) for x in filter_unwanted]
+            unwanted_molecules = [Chem.MolFromSmiles(x) for x in filter_unwanted]
+            num_errors = 0
+            for i, m in enumerate(unwanted_molecules):
+                if m is None:
+                    logging.error('Error in unwanted structure #%s! (%s)', i, filter_unwanted[i])
+                    num_errors += 1
+            if num_errors > 0:
+                raise ValueError('Some errors were found in the unwanted molecules, aborting standardization!')
+            unwanted_inchikeys = [rdinchi.MolToInchiKey(x) for x in unwanted_molecules]
             logging.debug('Unwanted Structure List:\n\n%s\n', DataFrame({'smiles': filter_unwanted, 'inchikey': unwanted_inchikeys}))
         
         # run standardization protocol
@@ -825,7 +833,7 @@ class Standardizer(Filter):
             df_unwanted = df[df['inchikey'].isin(unwanted_inchikeys)]
             if len(df_unwanted) > 0:
                 # remove these from passed compounds 
-                df = df[df['idm'] != df_unwanted['idm']]
+                df = df[~df['idm'].isin(df_unwanted['idm'])]
                 # annotate unwanted and add them to filtered compounds
                 df.loc[:, 'task'] = 'standardize'
                 df.loc[:, 'status'] = 'filter_unwanted'
