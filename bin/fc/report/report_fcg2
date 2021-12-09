@@ -229,70 +229,6 @@ def save_barplot(df: DataFrame,
     return figure
 
 
-# def save_distplot(vals: list,
-#                   output_plot: str,
-#                   title: str,
-#                   color: str,
-#                   x_label: str = None,
-#                   y_label: str = None,
-#                   rotate_x: int = 0,
-#                   fig_size: Tuple[int] = (24, 12),
-#                   ):
-#     """This function helps for computing automated distplot using seaborn.
-#     It sets up somewhat standardized figure output for a harmonized rendering.
-#
-#     :param vals: a list of values to plot
-#     :param output_plot: the output plot full file name
-#     :param x_label: the name to display on the plot for x-axis
-#     :param y_label: the name to display on the plot for y-axis
-#     :param rotate_x: rotate the x-axis ticks anticlock-wise
-#     :param color: color to use for bars, theoritically could also be a list of colors
-#     :param fig_size: tuple of integers defining the plot dimensions (x, y)
-#     :return: the figure in searborn format
-#     """
-#     # detect format from file extension
-#     format = Path(output_plot).suffix[1:].lower()
-#     if format != 'svg' and format != 'png':
-#         raise ValueError(f"ERROR! UNKNOWN PLOT FORMAT! ('{format}')")
-#     logging.debug(f"FORMAT FOR PLOT: '{format}'")
-#
-#     # delete existing file for preventing stacking of plots
-#     p = Path(output_plot)
-#     if p.exists():
-#         p.unlink()
-#
-#     # general style for plotting
-#     # sns.set(rc={'figure.figsize': fig_size})
-#     plt.figure(figsize=fig_size)
-#     sns.set_style('whitegrid', {'axes.edgecolor': '0.2'})
-#     sns.set_context("paper", font_scale=2)
-#
-#     # distplot
-#     fig, ax = plt.subplots(figsize=fig_size)
-#     ax = sns.distplot(vals, color=color, ax=ax, kde=False)
-#     # fix xticks that would contain floats instead of ints
-#     ax.margins(0, 0)
-#     ax.set_title(title, fontsize=24, y=1.02)
-#     ax.tick_params(labelsize=20)
-#     ax.tick_params(axis='x', rotation=rotate_x)
-#     # ax.set_xticklabels(df[x_name])
-#     ax.set_xlabel(x_label, fontsize=25, labelpad=20)
-#     ax.set_ylabel(y_label, fontsize=25, labelpad=20)
-#
-#     # adjust overlapping text annotations (percentages with axes, etc.)
-#     texts = [x for x in ax.texts]
-#     adjust_text(texts)
-#
-#     # save
-#     figure = ax.get_figure()
-#     figure.subplots_adjust(bottom=0.2)
-#     figure.savefig(output_plot, format=format, dpi=600)
-#     plt.clf()
-#     plt.close()
-#
-#     return figure
-
-
 def save_lineplot(df: DataFrame,
                   output_plot: str,
                   x_name: str,
@@ -621,42 +557,6 @@ def compute_mol_coverage_without_side_chains(mol, l_aidxs):
     return [len(all_atoms), len(frags), len(frags) / len(all_atoms)]
 
 
-# def compute_mol_coverage_without_side_chains(mol, l_aidxs):
-#     """Compute the molecule coverage (fragment ratio) without considering
-#     side chains.
-#     Return a tuple:
-#     - number of atoms in molecule without considering side chains
-#     - molecule coverage by fragments when considering only those
-#
-#     """
-#     rings = mol.GetRingInfo().AtomRings()
-#     rings = utils.fuse_rings(rings)
-#     ring_atoms = set([item for sublist in rings for item in sublist])
-#
-#     linker_atoms = []
-#     for i in range(len(rings)):
-#         ring1 = rings[i]
-#         for j in range(i+1, len(rings)):
-#             ring2 = rings[j]
-#             # shortest path between the two rings that do not include the current rings themselves
-#             shortest_path = [x for x in Chem.GetShortestPath(mol, ring1[0], ring2[0]) if x not in ring1 + ring2]
-#             linker_atoms += [x for x in shortest_path if x not in list(ring_atoms) + linker_atoms]
-#
-#     # define side chains as atoms not part of linkers and rings
-#     all_atoms = list(range(len(mol.GetAtoms())))
-#     side_chain_atoms = [x for x in all_atoms if x not in list(ring_atoms) + linker_atoms]
-#
-#     # fragments
-#     frags = list(set(l_aidxs))
-#
-#     # remove side chain from the equation
-#     frags = [x for x in frags if x not in side_chain_atoms]
-#     all_atoms = [x for x in all_atoms if x not in side_chain_atoms]
-#     mol_cov = len(list(set(frags))) / len(all_atoms)
-#
-#     return (len(all_atoms), mol_cov)
-
-
 def parse_chunk_fcg(c):
 
     # retrieve data
@@ -682,7 +582,7 @@ def parse_chunk_fcg(c):
 
     df_fcg = df_fcg.rename({'_frags': 'frags', '_frags_u': 'frags_u'}, axis=1)
     df_fcg['frags'] = df_fcg['frags'].map(list)
-    df_fcg['frags_u'] = df_fcg['frags_u'].map(list)
+    df_fcg['frags_u'] = df_fcg['frags'].map(lambda x: list(set(x)))
     groups = df_fcg[['idm', 'idfcg', 'nfrags']].groupby('idm')
     num_tot_mol_graph = len(groups)
 
@@ -709,8 +609,6 @@ def parse_chunk_fcg(c):
     # fs analysis
 
     # initialization of a common df useful for fs analysis
-    # df_fcg['_frags'] = df_fcg['_frags'].map(lambda x: x.replace("'", '"'))
-    # df_fcg['_frags'] = df_fcg['_frags'].map(lambda x: json.loads(x))
     df_fcg['aidxs'] = df_fcg['_d_aidxs'].map(lambda x: [v for l in x.values() for v in l])  # extract all values from dict: list of tuples
     df_fcg['aidxs'] = df_fcg['aidxs'].map(lambda x: [v for l in x for v in l])   # flatten the list and identify only unique atom indices
 
@@ -848,7 +746,7 @@ def get_df_fcg(WD: Path) -> DataFrame:
     # fcg_frag_ratio
     logger.info("FCG -- INVESTIGATING FOR THE RATIO OF FRAGMENT PER MOLECULE")
     df_fcg_frag_ratio = pd.concat(dfs_fcg_frag_ratio).reset_index(drop=True)
-    logger.info(f"FCG -- RESULTS FOR THE RATIO OF FRAGMENT PER MOLECULE\n\n{df_fcg_frag_ratio}\n")
+    logger.info(f"FCG -- RESULTS FOR THE RATIO OF FRAGMENT PER MOLECULE\n\n{df_fcg_frag_ratio}\n")  # only a subset will be printed by pandas if many entries
 
     # fcg_nhits_u
     logger.info("FCG -- INVESTIGATING THE NUMBER OF UNIQUE FRAGMENT HITS PER MOLECULE")
@@ -1091,14 +989,14 @@ output_plot_files = [output_plot_fcg_nfragpermol, output_plot_fcg_nfragpermol_u,
 
 
 if args.regenplots:
+    logger.info('REMOVING EXISTING OUTPUT PLOT FILES...')
     for x in output_plot_files:
         if Path(x).exists(): Path(x).unlink()
 
 if args.clear:
+    logger.info('REMOVING EXISTING OUTPUT PLOT AND CSV FILES...')
     for x in output_plot_files + output_csv_files:
         if Path(x).exists(): Path(x).unlink()
-else:
-    print("not clearing")
 
 if all([Path(x).exists() for x in output_plot_files]):
     logger.info("FCG -- ALL OUTPUT PLOT FILES ARE ALREADY AVAILABLE, NOTHING TO DO!")

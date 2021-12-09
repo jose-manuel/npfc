@@ -55,14 +55,14 @@ def main():
     parser.add_argument('--ofrag', type=str, default='mol_frag', help="Molecule column for csv or hdf files.")
     parser.add_argument('--osep', type=str, default='|', help="Separator to use in case the input file is a csv.")
     parser.add_argument('-f', '--filter-frags', type=str, default=None, help="List of IDs to filter out from the input fragment combinations.")
-    parser.add_argument('-t', '--tautomer', type=str, default=None, help="Consider tautomers for molecules during fragment search.")
+    parser.add_argument('-t', '--tautomer', type=bool, default=False, help="Consider tautomers for molecules during fragment search.")
     parser.add_argument('--fcp', type=str, default='_fcp_labels', help="Column name in the fragments DataFrame to use for labelling fragment connection points. If an empty string '' is provided, these will not be registered.")
     parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
     args = parser.parse_args()
 
     # logging
     logger = utils._configure_logger(args.log)
-    logger.info("RUNNING STANDARDIZE_MOLS")
+    logger.info("RUNNING FRAGS_SEARCH")
     warnings.filterwarnings('ignore', category=pd.io.pytables.PerformanceWarning)  # if None is returned instead of a molecule, do not complain about mixed types
     pad = 40
     lg = RDLogger.logger()

@@ -1,9 +1,9 @@
 #!python
 
 """
-Script map_frags
+Script fcg_generate
 ==========================
-This script is used for generating fragment maps from fragment combination classifications.
+This script is used for generating fragment combination graphs from fragment combination classifications.
 """
 
 # standard
@@ -11,6 +11,7 @@ import warnings
 import sys
 from datetime import datetime
 import pandas as pd
+from pathlib import Path
 import argparse
 # chemoinformatics
 import rdkit
@@ -22,6 +23,7 @@ from npfc import save
 from npfc import utils
 # disable SettingWithCopyWarning warnings
 pd.options.mode.chained_assignment = None  # default='warn'
+
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
@@ -36,35 +38,36 @@ def main():
 
     Example:
 
-        >>> map_frags file_fcc.csv.gz file_map.csv.gz
+        >>> fcg_generate file_fcc.csv.gz file_fcg.csv.gz
 
     """
 
     # parameters CLI
     parser = argparse.ArgumentParser(description=description, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('input_fcc', type=str, default=None, help="Input file for fragment combinations.")
-    parser.add_argument('output_map', type=str, default=None, help="Output file basename. It gets appended with the type of output being produced: raw, clean and map.")
+    parser.add_argument('output_fcg', type=str, default=None, help="Output file basename. It gets appended with the type of output being produced: raw, clean and fcg.")
     parser.add_argument('-f', '--filter-frags', type=str, default=None, help="List of IDs to filter out from the input fragment combinations.")
     parser.add_argument('--min-frags', type=int, default=2, help="Maximum number of fragments allowed for computing a graph. Molecules with a lower number are filtered out.")
     parser.add_argument('--max-frags', type=int, default=9999, help="Maximum number of fragments allowed for computing a graph. Molecules with a higher number are filtered out.")
+    parser.add_argument('--no-substruct', type=bool, default=True, help="If true, FCGs consisting of smaller fragments that are included in larger fragments (substructures, i.e. ffs combinations) are filtered out. Warning! This will make the script look for the corresponding data at the fragment search step (_fs subfolder)")
     parser.add_argument('--max-overlaps', type=int, default=5, help="Minimum number of overlapping fragment combinations for processing a molecule. Molecules with a higher number are filtered out.")
     parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
     args = parser.parse_args()
 
     # logging
     logger = utils._configure_logger(args.log)
-    logger.info("RUNNING FRAGMENT MAPPING")
+    logger.info("RUNNING FRAGMENT COMBINATION GRAPH GENERATION")
     warnings.filterwarnings('ignore', category=pd.io.pytables.PerformanceWarning)  # if None is returned instead of a molecule, do not complain about mixed types
     pad = 40
 
     # parse arguments
     utils.check_arg_input_file(args.input_fcc)
-    utils.check_arg_output_file(args.output_map)
+    utils.check_arg_output_file(args.output_fcg)
     utils.check_arg_positive_number(args.min_frags)
     utils.check_arg_positive_number(args.max_frags)
     utils.check_arg_positive_number(args.max_overlaps)
     fcc_format, fcc_compression = utils.get_file_format(args.input_fcc)
-    out_format, out_compression = utils.get_file_format(args.output_map)
+    out_format, out_compression = utils.get_file_format(args.output_fcg)
     filter_frags = args.filter_frags
     if args.filter_frags is None:
         filter_frags = []
@@ -82,13 +85,14 @@ def main():
     logger.info("INPUT_FCC".ljust(pad) + f"{args.input_fcc}")
     logger.info("FCC_FORMAT".ljust(pad) + f"{fcc_format}")
     logger.info("FCC_COMPRESSION".ljust(pad) + f"{fcc_compression}")
-    logger.info("OUTPUT_MAP".ljust(pad) + f"{args.output_map}")
+    logger.info("output_fcg".ljust(pad) + f"{args.output_fcg}")
     logger.info("OUT_FORMAT".ljust(pad) + f"{out_format}")
     logger.info("OUT_COMPRESSION".ljust(pad) + f"{out_compression}")
     logger.info("MIN_FRAGS".ljust(pad) + f"{args.min_frags}")
     logger.info("MAX_FRAGS".ljust(pad) + f"{args.max_frags}")
     logger.info("MAX_OVERLAPS".ljust(pad) + f"{args.max_overlaps}")
     logger.info('FILTER_FRAGS'.ljust(pad) + f"{', '.join(filter_frags)}")
+    logger.info('NO_SUBSTRUCT'.ljust(pad) + f"{args.no_substruct}")
     logger.info("LOG".ljust(pad) + f"{args.log}")
 
     # begin
@@ -104,24 +108,40 @@ def main():
         df_fcc = df_fcc[~df_fcc['idf1'].isin(filter_frags)]
         df_fcc = df_fcc[~df_fcc['idf2'].isin(filter_frags)]
 
-    # mapping fragment combinations
-    logger.info("MAPPING REMAINING FRAGMENT COMBINATIONS")
+    # generate fragment combinations graphs
+    logger.info("GENERATING FRAGMENT COMBINATION GRAPHS")
     d2 = datetime.now()
-    df_map = fragment_combination_graph.generate(df_fcc, min_frags=args.min_frags, max_frags=args.max_frags, max_overlaps=args.max_overlaps)
-    logger.info(f"COMPUTED {len(df_map.index)} FRAGMENT COMBINATION NETWORKS")
+    df_fcg = fragment_combination_graph.generate(df_fcc, min_frags=args.min_frags, max_frags=args.max_frags, max_overlaps=args.max_overlaps)
+    if args.no_substruct:
+        logger.info("FILTERING OUT FCG THAT CONSIST OF SMALLER FRAGMENTS ALREADY FOUND IN LARGER ONES")
+        # count initial number of FCG to have an estimate
+        num_fcg_ini = len(df_fcg.index)
+        # load the FS data
+        logger.info("LOADING THE FRAGMENT SEARCH DATA FOR REFERENCE")
+        fs_dir = [str(x) for x in Path(args.input_fcc).parents[2].glob('*_fs')][0]  # generator so needs iteration, only 1 fs subfolder will be detected!
+        print(f"{fs_dir=}")
+        fs_filename = Path(args.input_fcc).name.replace('_fcc', '_fs')
+        input_fs = f"{str(fs_dir)}/data/{fs_filename}"
+        logger.info("INPUT_FS = '%s'", input_fs)
+        df_fs = load.file(input_fs)
+        logger.info(f"FOUND {len(df_fs.index)} FRAGMENT HITS")
+        # apply the filter
+        df_fcg = fragment_combination_graph.filter_out_fcgs_ffs_all(df_fcg, df_fs)
+        logger.info(f"NUMBER OF FCG AFTER FILTER: {num_fcg_ini:,} -> {len(df_fcg.index):,}")
+    logger.info(f"COMPUTED {len(df_fcg.index):,} FRAGMENT COMBINATION GRAPHS")
 
-    # save map results
-    logger.info(f"SAVING MAP RESULTS AT '{args.output_map}'")
+    # save fcg results
+    logger.info(f"SAVING FCG RESULTS AT '{args.output_fcg}'")
     d3 = datetime.now()
-    save.file(df_map, args.output_map, encode=True)
+    save.file(df_fcg, args.output_fcg, encode=True)
 
     # end
     d4 = datetime.now()
     logger.info("SUMMARY")
     logger.info("COMPUTATIONAL TIME: CONFIGURING JOB".ljust(pad * 2) + f"{d1-d0}")
     logger.info("COMPUTATIONAL TIME: LOADING FRAGMENT COMBINATIONS".ljust(pad * 2) + f"{d2-d1}")
-    logger.info("COMPUTATIONAL TIME: MAPPING COMBINATIONS".ljust(pad * 2) + f"{d3-d2}")
-    logger.info("COMPUTATIONAL TIME: SAVING FRAGMENT COMBINATIONS NETWORKS".ljust(pad * 2) + f"{d4-d3}")
+    logger.info("COMPUTATIONAL TIME: GENERATION FRAGMENT COMBINATION GRAPHS".ljust(pad * 2) + f"{d3-d2}")
+    logger.info("COMPUTATIONAL TIME: SAVING FRAGMENT COMBINATIONS GRAPHS".ljust(pad * 2) + f"{d4-d3}")
     logger.info("COMPUTATIONAL TIME: TOTAL".ljust(pad * 2) + f"{d4-d0}")
     logger.info("END")
 

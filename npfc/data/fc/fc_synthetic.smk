@@ -47,9 +47,6 @@ pnp_attributes = config.get('pnp_attributes', 'fcc')
 # preprocess subdir
 prep_subdir = config.get('prep_subdir', 'prep')
 
-# export pnp subset
-pnp_subset = config.get('pnp_subset', 'all')
-
 # from master script (always defined)
 num_chunks = config['num_chunks']
 
@@ -182,10 +179,11 @@ rule PNP:
     priority: 4
     input: ancient("{WD}" + f"/{prep_subdir}/{natref_subdir}/{frags_subdir}" + "/09_fcg/data/{prefix}_{cid}_fcg.csv.gz")
     output:
-        fgraphs = "{WD}" + f"/{prep_subdir}/{natref_subdir}/{frags_subdir}" + "/10_pnp/data/{prefix}_{cid}_pnp.csv.gz",
+        pnp = "{WD}" + f"/{prep_subdir}/{natref_subdir}/{frags_subdir}" + "/10_pnp/data/{prefix}_{cid}_pnp.csv.gz",
+        npl = "{WD}" + f"/{prep_subdir}/{natref_subdir}/{frags_subdir}" + "/10_pnp/data/{prefix}_{cid}_npl.csv.gz",
         list_pnps = "{WD}" + f"/{prep_subdir}/{natref_subdir}/{frags_subdir}" + "/10_pnp/log/{prefix}_{cid}_list_pnp.csv.gz"
     log: "{WD}" + f"/{prep_subdir}/{natref_subdir}/{frags_subdir}" + "/10_pnp/log/{prefix}_{cid}_pnp.log"
-    shell: "fcg_annotate_pnp {input} {natref_fcg_dir} {output.fgraphs} -l {output.list_pnps} -d '" + pnp_attributes + "' --subset " + pnp_subset  + " >{log} 2>&1"
+    shell: "fcg_filter_pnp {input} {natref_fcg_dir} {output.pnp} -n {output.npl} -l {output.list_pnps} -d '" + pnp_attributes + "' >{log} 2>&1"
 
 
 rule FCG:

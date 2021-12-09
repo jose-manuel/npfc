@@ -171,10 +171,6 @@ def main():
         df_pnp = df[df['pnp_mol']].groupby('idm')
         df_non_pnp = df[~df['pnp_mol']].groupby('idm')
 
-
-
-
-
         # number of PNP references per FCG
         df = df[['idm', '_pnp_ref']]
         df['_pnp_ref'] = df['_pnp_ref'].map(lambda x: len(utils.decode_object(x)))

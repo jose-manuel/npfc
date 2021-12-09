@@ -8,7 +8,7 @@ with open("README.rst", "r") as fh:
 
 setuptools.setup(
     name="npfc",
-    version='0.7.18',
+    version='0.7.21',
     author="Jose-Manuel Gally",
     author_email="josemanuel.gally@mpi-dortmund.mpg.de",
     description="A tool for describing Natural Product- (NP) fragments combinations and identifying pseudo-NPs.",
@@ -76,7 +76,7 @@ setuptools.setup(
              'bin/fc/fc_classify',
              # fc fragment combination graphs
              'bin/fc/fcg_generate',
-             'bin/fc/fcg_annotate_pnp',
+             'bin/fc/fcg_filter_pnp',
              # fc molecules
              'bin/fc/mols_concat',
              'bin/fc/mols_dedupl',
@@ -89,6 +89,7 @@ setuptools.setup(
              # fc report
               'bin/fc/report/mols_count',
               'bin/fc/report/report_time',
+              'bin/fc/report/report_fcg2',
              # fc commands
              'bin/report_protocol',
              'bin/fc/run_protocol_fc',

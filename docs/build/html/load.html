@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>load &mdash; npfc 0.7.18-4-g316156a8 documentation</title>
+  <title>load &mdash; npfc 0.7.18-21-g9f79845b documentation</title>
   
 
   
@@ -66,7 +66,7 @@
             
             
               <div class="version">
-                0.7.18-4-g316156a8
+                0.7.18-21-g9f79845b
               </div>
             
           
@@ -244,36 +244,7 @@ uncompressed file can be kept for further use.</p>
 <dd class="field-odd"><p>a DataFrame</p>
 </dd>
 </dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="npfc.load.pgsql">
-<span class="sig-prename descclassname"><span class="pre">npfc.load.</span></span><span class="sig-name descname"><span class="pre">pgsql</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dbname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">user</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">psql</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_mol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mol_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">col_mol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mol'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">col_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'idm'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keep_db_cols</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/load.html#pgsql"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#npfc.load.pgsql" title="Permalink to this definition">¶</a></dt>
-<dd><p>Load molecules from a PGSQL query.
-The col_mol will is parsed by RDKit depending on the mol_format argument.
-If no mol_format is specified, then the column is returned untouched.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>For this function to work, you need to be able to log into the target database without prompt. Tested only with ChEMBL24 with default ports.</p>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>dbname</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the input postgres database name</p></li>
-<li><p><strong>user</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the user name for logging into database</p></li>
-<li><p><strong>pgsql</strong> – the posgresql statement to execute</p></li>
-<li><p><strong>mol_format</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.10)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]) – the molecular format to use to parse the molecules. If none is specified then no parsing is performed. Currently only molblock and smiles are allowed</p></li>
-<li><p><strong>col_mol</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the column with the molecules to parse</p></li>
-<li><p><strong>keep_db_cols</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>) – keep src_id and src_mol columns in output DataFrame. This does not impact any other column extracted from the psql query</p></li>
-</ul>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></p>
-</dd>
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>a DataFrame with Mol objects</p>
-</dd>
-</dl>
+<p>..warning:: if a ‘idm’ property exists in the input file but the user picks another property for in_id, the pre-existing ‘idm’ will be renamed into ‘idm_2’.</p>
 </dd></dl>
 
 </div>

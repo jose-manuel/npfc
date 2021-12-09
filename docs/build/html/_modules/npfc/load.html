@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>npfc.load &mdash; npfc 0.7.18-4-g316156a8 documentation</title>
+  <title>npfc.load &mdash; npfc 0.7.18-21-g9f79845b documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                0.7.18-4-g316156a8
+                0.7.18-21-g9f79845b
               </div>
             
           
@@ -228,59 +228,6 @@
 <span class="c1"># ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #</span>
 
 
-<div class="viewcode-block" id="pgsql"><a class="viewcode-back" href="../../load.html#npfc.load.pgsql">[docs]</a><span class="k">def</span> <span class="nf">pgsql</span><span class="p">(</span><span class="n">dbname</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-          <span class="n">user</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-          <span class="n">psql</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-          <span class="n">src_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-          <span class="n">src_mol</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-          <span class="n">mol_format</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-          <span class="n">col_mol</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;mol&#39;</span><span class="p">,</span>
-          <span class="n">col_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;idm&#39;</span><span class="p">,</span>
-          <span class="n">keep_db_cols</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataFrame</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Load molecules from a PGSQL query.</span>
-<span class="sd">    The col_mol will is parsed by RDKit depending on the mol_format argument.</span>
-<span class="sd">    If no mol_format is specified, then the column is returned untouched.</span>
-
-<span class="sd">    .. note:: For this function to work, you need to be able to log into the target database without prompt. Tested only with ChEMBL24 with default ports.</span>
-
-<span class="sd">    :param dbname: the input postgres database name</span>
-<span class="sd">    :param user: the user name for logging into database</span>
-<span class="sd">    :param pgsql: the posgresql statement to execute</span>
-<span class="sd">    :param mol_format: the molecular format to use to parse the molecules. If none is specified then no parsing is performed. Currently only molblock and smiles are allowed</span>
-<span class="sd">    :param col_mol: the column with the molecules to parse</span>
-<span class="sd">    :param keep_db_cols: keep src_id and src_mol columns in output DataFrame. This does not impact any other column extracted from the psql query</span>
-<span class="sd">    :return: a DataFrame with Mol objects</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Retrieving data from dbname=</span><span class="si">%s</span><span class="s2"> wiht user=</span><span class="si">%s</span><span class="s2"> with psql:</span><span class="se">\n</span><span class="si">%s</span><span class="se">\n</span><span class="s2">with src_id=</span><span class="si">%s</span><span class="s2">, src_mol=</span><span class="si">%s</span><span class="s2">, col_mol=</span><span class="si">%s</span><span class="s2">, col_id=</span><span class="si">%s</span><span class="s2">, keep_db_cols=</span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">dbname</span><span class="p">,</span> <span class="n">user</span><span class="p">,</span> <span class="n">psql</span><span class="p">,</span> <span class="n">src_id</span><span class="p">,</span> <span class="n">src_mol</span><span class="p">,</span> <span class="n">col_mol</span><span class="p">,</span> <span class="n">col_id</span><span class="p">,</span> <span class="n">keep_db_cols</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">mol_format</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;molblock&#39;</span><span class="p">,</span> <span class="s1">&#39;smiles&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Format &#39;</span><span class="si">{</span><span class="n">mol_format</span><span class="si">}</span><span class="s2">&#39; is currently not supported. Please use either &#39;molblock&#39; or &#39;sdf&#39;.&quot;</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">src_id</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;src_id needs to be defined but values None.&quot;</span><span class="p">)</span>
-    <span class="c1"># establish connection</span>
-    <span class="n">conn</span> <span class="o">=</span> <span class="n">psycopg2</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">dbname</span><span class="o">=</span><span class="n">dbname</span><span class="p">,</span> <span class="n">user</span><span class="o">=</span><span class="n">user</span><span class="p">)</span>
-    <span class="n">cur</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
-    <span class="c1"># execute query</span>
-    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">psql</span><span class="p">)</span>
-    <span class="c1"># generate DataFrame</span>
-    <span class="n">df</span> <span class="o">=</span> <span class="n">DataFrame</span><span class="p">(</span><span class="n">cur</span><span class="o">.</span><span class="n">fetchall</span><span class="p">())</span>
-    <span class="c1"># apply table column names to DataFrame</span>
-    <span class="n">df</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cur</span><span class="o">.</span><span class="n">description</span><span class="p">]</span>
-    <span class="c1"># check for columns</span>
-    <span class="k">if</span> <span class="n">mol_format</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">src_mol</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;src_mol &#39;%s&#39; could not be found in pgsql query results.</span><span class="se">\n</span><span class="s2">Available columns are: %s&quot;</span><span class="p">,</span> <span class="n">src_mol</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">values</span><span class="p">))</span>
-        <span class="c1"># convert mol_col to RDKit</span>
-        <span class="n">df</span><span class="p">[</span><span class="n">col_mol</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">src_mol</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">CONVERTERS</span><span class="p">[</span><span class="n">mol_format</span><span class="p">])</span>
-
-    <span class="c1"># cleaning up</span>
-    <span class="k">if</span> <span class="n">col_id</span> <span class="o">!=</span> <span class="n">src_id</span><span class="p">:</span>
-        <span class="n">df</span><span class="p">[</span><span class="n">col_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">src_id</span><span class="p">]</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">keep_db_cols</span><span class="p">:</span>
-        <span class="n">df</span><span class="o">.</span><span class="n">drop</span><span class="p">([</span><span class="n">src_id</span><span class="p">,</span> <span class="n">src_mol</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
-    <span class="k">return</span> <span class="n">df</span></div>
-
-
 <div class="viewcode-block" id="file"><a class="viewcode-back" href="../../load.html#npfc.load.file">[docs]</a><span class="k">def</span> <span class="nf">file</span><span class="p">(</span><span class="n">input_file</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
          <span class="n">in_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;idm&#39;</span><span class="p">,</span>
          <span class="n">in_mol</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;mol&#39;</span><span class="p">,</span>
@@ -303,6 +250,8 @@
 <span class="sd">    :param keep_props: keep all properties found in the input file. If False, then only out_id and out_mol are kept.</span>
 <span class="sd">    :param decode: decode base64 strings into objects. Columns with encoded objects are labelled with a leading &#39;_&#39;. For molecules, reserved names are &#39;mol&#39; and &#39;mol_frag&#39;.</span>
 <span class="sd">    :return: a DataFrame</span>
+<span class="sd">    </span>
+<span class="sd">    ..warning:: if a &#39;idm&#39; property exists in the input file but the user picks another property for in_id, the pre-existing &#39;idm&#39; will be renamed into &#39;idm_2&#39;. </span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># check arguments</span>
     <span class="n">utils</span><span class="o">.</span><span class="n">check_arg_input_file</span><span class="p">(</span><span class="n">input_file</span><span class="p">)</span>
@@ -322,6 +271,11 @@
         <span class="n">df</span> <span class="o">=</span> <span class="n">_from_csv</span><span class="p">(</span><span class="n">input_file</span><span class="p">,</span> <span class="n">csv_sep</span><span class="o">=</span><span class="n">csv_sep</span><span class="p">,</span> <span class="n">compression</span><span class="o">=</span><span class="n">compression</span><span class="p">)</span>
 
     <span class="c1"># process data</span>
+    
+    <span class="c1"># in case in_id is different than default but some column with the same name as out_id already exists</span>
+    <span class="k">if</span> <span class="n">in_id</span> <span class="o">!=</span> <span class="n">out_id</span> <span class="ow">and</span> <span class="n">out_id</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+        <span class="n">df</span><span class="o">.</span><span class="n">rename</span><span class="p">({</span><span class="n">out_id</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">out_id</span><span class="si">}</span><span class="s2">.2&quot;</span><span class="p">},</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;in_id=</span><span class="si">%s</span><span class="s1">, out_id=</span><span class="si">%s</span><span class="s1">, but out_id already present. Renaming existing out_id into </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">in_id</span><span class="p">,</span> <span class="n">out_id</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">out_id</span><span class="si">}</span><span class="s2">.2.&quot;</span><span class="p">)</span>
 
     <span class="c1"># out_id</span>
     <span class="k">if</span> <span class="n">out_id</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">in_id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -352,8 +306,8 @@
         <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;mol&#39;</span><span class="p">,</span> <span class="s1">&#39;mol_frag&#39;</span><span class="p">,</span> <span class="s1">&#39;mol_frag_1&#39;</span><span class="p">,</span> <span class="s1">&#39;mol_frag_2&#39;</span><span class="p">,</span> <span class="s1">&#39;mol_rdkit&#39;</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
                 <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Decoding column=&#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span><span class="p">,</span> <span class="n">col</span><span class="p">)</span>
-                <span class="c1"># df[col] = df[col].map(utils.decode_mol_smiles)</span>
                 <span class="n">df</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">utils</span><span class="o">.</span><span class="n">decode_mol</span><span class="p">)</span>
+
         <span class="c1"># other objects are labelled with leading &#39;_&#39;</span>
         <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">col</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">col</span> <span class="o">!=</span> <span class="s1">&#39;_Name&#39;</span><span class="p">:</span>

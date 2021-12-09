@@ -66,12 +66,6 @@ done
 curr_version=$(git describe --tags)
 cd $WD
 
-# add changes
-git add $WD
-
-# run commitizen prompt
-npx git-cz
-
 # display current git tag
 echo -e "\nCurrent version is: '$curr_version'\n"
 
@@ -79,6 +73,12 @@ echo -e "\nCurrent version is: '$curr_version'\n"
 upgrade_version
 
 echo -e "\nCurrent version is now: '$new_version'\n"
+
+# add changes
+git add $WD
+
+# run commitizen prompt
+npx git-cz
 
 # install library
 if [[ $install = 'true' ]]; then

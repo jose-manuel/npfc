@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>standardize &mdash; npfc 0.7.18-4-g316156a8 documentation</title>
+  <title>standardize &mdash; npfc 0.7.18-21-g9f79845b documentation</title>
   
 
   
@@ -66,7 +66,7 @@
             
             
               <div class="version">
-                0.7.18-4-g316156a8
+                0.7.18-21-g9f79845b
               </div>
             
           
@@ -203,7 +203,7 @@
 <p>This modules is used to standardize molecules and molecular DataFrames.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="npfc.standardize.FullUncharger">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">npfc.standardize.</span></span><span class="sig-name descname"><span class="pre">FullUncharger</span></span><a class="reference internal" href="_modules/npfc/standardize.html#FullUncharger"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#npfc.standardize.FullUncharger" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">npfc.standardize.</span></span><span class="sig-name descname"><span class="pre">FullUncharger</span></span><a class="reference internal" href="_modules/npfc/standardize.html#FullUncharger"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#npfc.standardize.FullUncharger" title="Permalink to this definition">¶</a></dt>
 <dd><p>A class derived from rdkit.Chem.MolStandardize.charge.Uncharger, so
 instead of attempting to create zwitterions all possible charges are removed
 from the molecule.</p>
@@ -244,7 +244,7 @@ For now takes into account only charges of -2 and +2.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="npfc.standardize.Standardizer">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">npfc.standardize.</span></span><span class="sig-name descname"><span class="pre">Standardizer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">protocol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">col_mol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mol'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">col_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'idm'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">elements_medchem</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'B',</span> <span class="pre">'Br',</span> <span class="pre">'C',</span> <span class="pre">'Cl',</span> <span class="pre">'F',</span> <span class="pre">'H',</span> <span class="pre">'I',</span> <span class="pre">'N',</span> <span class="pre">'O',</span> <span class="pre">'P',</span> <span class="pre">'S'}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#Standardizer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#npfc.standardize.Standardizer" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">npfc.standardize.</span></span><span class="sig-name descname"><span class="pre">Standardizer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">protocol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">col_mol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mol'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">col_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'idm'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">elements_medchem</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">{'B',</span> <span class="pre">'Br',</span> <span class="pre">'C',</span> <span class="pre">'Cl',</span> <span class="pre">'F',</span> <span class="pre">'H',</span> <span class="pre">'I',</span> <span class="pre">'N',</span> <span class="pre">'O',</span> <span class="pre">'P',</span> <span class="pre">'S'}</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#Standardizer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#npfc.standardize.Standardizer" title="Permalink to this definition">¶</a></dt>
 <dd><p>A class for standardizing molecular structures. The standardization itself is based
 on a protocol that the user can modify.</p>
 <p>By default this protocol consists in 15 tasks applied to each molecule invidually:</p>
@@ -435,7 +435,7 @@ Molecule that exceed the timeout value are filtered with a task=’timeout’.</
 
 <dl class="py method">
 <dt class="sig sig-object py" id="npfc.standardize.Standardizer.run_df">
-<span class="sig-name descname"><span class="pre">run_df</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#Standardizer.run_df"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#npfc.standardize.Standardizer.run_df" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">run_df</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_unwanted</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/standardize.html#Standardizer.run_df"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#npfc.standardize.Standardizer.run_df" title="Permalink to this definition">¶</a></dt>
 <dd><p>Apply the standardization protocol on a DataFrame, with the possibility of directly filtering duplicate entries as well.
 This can be very useful as the standardization process can expose duplicate entries due to salts removal, neutralization,
 canonical tautomer enumeration, and stereochemistry centers unlabelling</p>
@@ -445,6 +445,7 @@ canonical tautomer enumeration, and stereochemistry centers unlabelling</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>df</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code>) – the input DataFrame</p></li>
 <li><p><strong>timeout</strong> – the maximum number of seconds for processing a molecule</p></li>
+<li><p><strong>filter_unwanted</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]) – a list of molecules in SMILES format that should be filtered out at the end of the standardization</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type</dt>
@@ -462,7 +463,7 @@ canonical tautomer enumeration, and stereochemistry centers unlabelling</p>
 </dl>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>As a side effect, the output DataFrames get indexed by idm. The ‘inchikey’ col is not returned, but the values can be accessed using the reference file.</p>
+<p>As a side effect, the output DataFrames get indexed by idm.</p>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
