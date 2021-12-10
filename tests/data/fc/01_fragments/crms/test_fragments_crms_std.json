@@ -6,6 +6,5 @@
               "clear_stereo",
               "extract_murcko",
               "reset_mol",
-              "uncharge"],
-    "filter_unwanted": "c1ccccc1,N1CCCC1"
+              "uncharge"]
 }

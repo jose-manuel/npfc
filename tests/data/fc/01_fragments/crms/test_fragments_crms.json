@@ -4,7 +4,9 @@
                     "WD": "fc/01_fragments/crms/",
                     "input_file": "fc/01_fragments/crms/data/00_raw/data/cr_test.sdf.gz",
                     "prep_subdir": "prep",
-                    "protocol_std" : "fc/01_fragments/crms/test_fragments_crms_std.json"
-
+                    "protocol_std" : "fc/01_fragments/crms/test_fragments_crms_std.json",
+                    "report_color": "gray",
+                    "report_prefix": "crms_test",
+                    "report_dataset": "CRMS Test"
 }
  

@@ -12,5 +12,8 @@
                     "pnp_attributes": "fcc",
                     "chunksize": 100,
                     "protocol_std" : "fc/04_synthetic/chembl/test_synthetic_chembl_std.json",
-                    "pnp_subset": "pnp"
+                    "report_color": "blue",
+                    "report_prefix": "chembl_test",
+                    "report_dataset": "ChEMBL Test",
+                    "tautomer": 1
 }

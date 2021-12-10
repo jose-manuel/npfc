@@ -118,8 +118,6 @@ def main():
     # default keys set to None
     config = ['molid', 'prefix', 'WD', 'input_file', 'frags_file', 'chunksize', 'natref']
     config = {k: None for k in config}
-    # special case for tautomers
-    config['tautomer'] = False
 
     # begin
     ds.append(('CONFIGURE', datetime.now()))

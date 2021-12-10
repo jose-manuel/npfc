@@ -23,6 +23,7 @@ from npfc import save
 from npfc import utils
 from npfc import fragment_search
 
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 
@@ -55,7 +56,7 @@ def main():
     parser.add_argument('--ofrag', type=str, default='mol_frag', help="Molecule column for csv or hdf files.")
     parser.add_argument('--osep', type=str, default='|', help="Separator to use in case the input file is a csv.")
     parser.add_argument('-f', '--filter-frags', type=str, default=None, help="List of IDs to filter out from the input fragment combinations.")
-    parser.add_argument('-t', '--tautomer', type=bool, default=False, help="Consider tautomers for molecules during fragment search.")
+    parser.add_argument('-t', '--tautomer', type=int, default=0, help="A boolean value to consider tautomers for molecules during fragment search.")
     parser.add_argument('--fcp', type=str, default='_fcp_labels', help="Column name in the fragments DataFrame to use for labelling fragment connection points. If an empty string '' is provided, these will not be registered.")
     parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
     args = parser.parse_args()
@@ -95,6 +96,9 @@ def main():
     else:
         filter_frags = tuple([filter_frags])
 
+    # tautomer
+    tautomer = bool(args.tautomer)
+
     # display infos
 
     # versions
@@ -130,7 +134,7 @@ def main():
     logger.info("OFRAG".ljust(pad) + f"{args.ofrag}")
     logger.info("OSEP".ljust(pad) + f"{args.osep}")
     logger.info('FILTER_FRAGS'.ljust(pad) + f"{', '.join(filter_frags)}")
-    logger.info("TAUTOMER".ljust(pad) + f"{args.tautomer}")
+    logger.info("TAUTOMER".ljust(pad) + f"{tautomer}")
     logger.info("FCP".ljust(pad) + f"{args.fcp}")
     logger.info("LOG".ljust(pad) + f"{args.log}")
 
@@ -179,7 +183,7 @@ def main():
     # fragment search (substructure search)
     logger.info("FRAGMENT SEARCH")
     d3 = datetime.now()
-    df_aidxf = fragment_search.get_fragment_hits(df_mols, df_frags, tautomer=args.tautomer, fcp_labels=args.fcp)
+    df_aidxf = fragment_search.get_fragment_hits(df_mols, df_frags, tautomer=tautomer, fcp_labels=args.fcp)
     logger.info(f"FOUND {len(df_aidxf.index):,} FRAGMENT HITS")
 
     # save results
