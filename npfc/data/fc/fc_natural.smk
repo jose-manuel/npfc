@@ -83,7 +83,6 @@ rule REPORT_PREP:
     shell: "report_prep {WD}/{prep_subdir} {WD}/{prep_subdir}/report -d '" + report_dataset + "' -c " + report_color + " -p {prefix}  2>{log}"
 
 
-
 rule REPORT_TIME_SUM:
     priority: 0
     input: expand(f"{WD}/{prep_subdir}/{frags_subdir}/report/data/{prefix}" + '_{cid}_time.csv', cid=chunk_ids)
