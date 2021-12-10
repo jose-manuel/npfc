@@ -87,9 +87,12 @@ setuptools.setup(
              'bin/fc/mols_standardize',
              'bin/fc/mols_subset',
              # fc report
-              'bin/fc/report/mols_count',
-              'bin/fc/report/report_time',
-              'bin/fc/report/report_fcg2',
+             'bin/fc/report/mols_count',
+             'bin/fc/report/report_time',
+             'bin/fc/report/report_prep',
+             'bin/fc/report/report_subset',
+             'bin/fc/report/report_fcg2',  # no dedicated steps for fs and fcc because these are intermediary results
+             'bin/fc/report/report_pnp',
              # fc commands
              'bin/report_protocol',
              'bin/fc/run_protocol_fc',
