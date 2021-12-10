@@ -90,6 +90,7 @@ setuptools.setup(
              'bin/fc/report/mols_count',
              'bin/fc/report/report_time',
              'bin/fc/report/report_prep',
+             'bin/fc/report/report_fcp',
              'bin/fc/report/report_subset',
              'bin/fc/report/report_fcg2',  # no dedicated steps for fs and fcc because these are intermediary results
              'bin/fc/report/report_pnp',

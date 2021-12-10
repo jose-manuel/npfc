@@ -396,7 +396,7 @@ def main():
     warnings.filterwarnings('ignore', category=pd.io.pytables.PerformanceWarning)  # if None is returned instead of a molecule, do not complain about mixed types
     lg = RDLogger.logger()
     lg.setLevel(RDLogger.INFO)
-    log_file = f"{args.wd_out}/report_{prefix}.log"
+    log_file = f"{args.wd_out}/report_prep_{prefix}.log"
     utils.check_arg_output_file(log_file)
     logger = utils._configure_logger(log_level=args.log, log_file=log_file, logger_name=log_file)
 
@@ -444,15 +444,15 @@ def main():
     save.file(df_prep_overview, output_csv_prep_overview)
     save.file(df_prep_filtered, output_csv_prep_filtered)
     save.file(df_prep_error, output_csv_prep_error)
+    logger.info("PREP -- OUTPUT_CSV_PREP_OVERVIEW".ljust(pad) + f"{output_csv_prep_overview}")
+    logger.info("PREP -- OUTPUT_CSV_PREP_FILTERED".ljust(pad) + f"{output_csv_prep_filtered}")
+    logger.info("PREP -- OUTPUT_CSV_PREP_ERROR".ljust(pad) + f"{output_csv_prep_error}")
     d2 = datetime.now()
 
     # define plot outputs
     output_plot_prep_overview = output_csv_prep_overview.replace('.csv', f".{args.plotformat}")
     output_plot_prep_filtered = output_csv_prep_filtered.replace('.csv', f".{args.plotformat}")
     output_plot_prep_error = output_csv_prep_error.replace('.csv', f".{args.plotformat}")
-    logger.info("PREP -- OUTPUT_CSV_PREP_OVERVIEW".ljust(pad) + f"{output_csv_prep_overview}")
-    logger.info("PREP -- OUTPUT_CSV_PREP_FILTERED".ljust(pad) + f"{output_csv_prep_filtered}")
-    logger.info("PREP -- OUTPUT_CSV_PREP_ERROR".ljust(pad) + f"{output_csv_prep_error}")
     logger.info("PREP -- OUTPUT PLOT FILE SYNTAX: OUTPUT_CSV.PLOTFORMAT")
 
     # plot output_plot_prep_overview
