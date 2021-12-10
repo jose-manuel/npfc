@@ -36,7 +36,11 @@ frags_subdir = config['frags_subdir']
 natref_dedupl_reffile = config['natref_dedupl_reffile']
 natref_fcg_dir = config['natref_fcg_dir']
 chunksize = config['chunksize']  # maximum number of molecules per chunk
-tautomer = config.get('tautomer', False)
+tautomer = bool(config.get('tautomer', False))
+prep_subdir = config.get('prep_subdir', 'prep')
+report_color = config.get('report_color', 'blue')
+report_prefix = config.get('report_prefix', 'synthetic')
+report_dataset = config.get('report_dataset', 'Synthetic Data Set')
 
 # specific to synthetic
 natref_subdir = config['natref_subdir']  # WD for defining natural compounds, subdir with same frags is also searched for pnp annotation
@@ -49,6 +53,8 @@ prep_subdir = config.get('prep_subdir', 'prep')
 
 # from master script (always defined)
 num_chunks = config['num_chunks']
+
+
 
 # protocol for standardizing molecules
 fallback_default_std_mols = False
@@ -87,7 +93,20 @@ rule all:
     input:
         pnp = expand(f"{WD}/{prep_subdir}/{natref_subdir}/{frags_subdir}/10_pnp/data/{prefix}" + '_{cid}_pnp.csv.gz', cid=chunk_ids),
         count_mols = '/'.join([WD, prep_subdir, natref_subdir, frags_subdir]) + '/report/data/' + prefix + '_count_mols.csv',
-        time = WD + '/' + prep_subdir + '/' + natref_subdir + '/' + frags_subdir + '/report/data/' + prefix + '_time.csv'
+        time = WD + '/' + prep_subdir + '/' + natref_subdir + '/' + frags_subdir + '/report/data/' + prefix + '_time.csv',
+        report_prep = WD + '/' + prep_subdir + '/report/report_prep_' + prefix + '.log'
+
+
+rule REPORT_PREP:
+    priority: 0
+    input:
+        load = expand(f"{WD}/{prep_subdir}/02_load/data/{prefix}" + '_{cid}.csv.gz', cid=chunk_ids),
+        std_passed = expand(f"{WD}/{prep_subdir}/03_std/data/{prefix}" + '_{cid}_std.csv.gz', cid=chunk_ids),
+        dedupl = expand(f"{WD}/{prep_subdir}/04_dedupl/data/{prefix}" + '_{cid}_dedupl.csv.gz', cid=chunk_ids),
+        depict = expand(f"{WD}/{prep_subdir}/05_depict/data/{prefix}" + '_{cid}_depict.csv.gz', cid=chunk_ids),
+    output: "{WD}/{prep_subdir}/report/report_prep_{prefix}.log"
+    log: "{WD}/{prep_subdir}/report/report_prep_{prefix}.log"
+    shell: "report_prep {WD}/{prep_subdir} {WD}/{prep_subdir}/report -d '" + report_dataset + "' -c " + report_color + " -p {prefix}  2>{log}"
 
 
 rule REPORT_TIME_SUM:
