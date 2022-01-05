@@ -11,3 +11,4 @@ docs/build/*
 node_modules/
 **/nodes_modules/**
 bin/package-lock.json
+npfc.todo
