@@ -94,6 +94,8 @@ setuptools.setup(
              'bin/fc/report/report_subset',
              'bin/fc/report/report_fcg2',  # no dedicated steps for fs and fcc because these are intermediary results
              'bin/fc/report/report_pnp',
+             'bin/fc/report/report_fcg_chunk',
+             'bin/fc/report/report_fcg_concat',
              # fc commands
              'bin/report_protocol',
              'bin/fc/run_protocol_fc',

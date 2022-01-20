@@ -58,7 +58,7 @@ DEFAULT_ELEMENTS = {'H', 'B', 'C', 'N', 'O', 'F', 'P', 'S', 'Cl', 'Br', 'I'}
 #                     'filter_molecular_weight': 'molecular_weight <= 1000.0',
 #                     'filter_num_ring': 'num_ring > 0',
 #                     'filter_elements': f'elements in {", ".join(str(x) for x in DEFAULT_ELEMENTS)}',
-#                     'filter_unwanted: c1ccccc1',
+#                     'filter_unwanted': ['c1ccccc1'],
 #                     }
 
 
@@ -157,7 +157,7 @@ class Standardizer(Filter):
         - **extract_murcko**: return the Murcko Scaffold from the molecule
         - **clear_side_chains**: remove any exocyclic atom that is not part of a linker
         - **reset_mol**: reset the molecule by converting to and then from smiles
-        
+
     This results in new columns in the input DataFrame:
 
         - the 'mol' column: updated structure (only for the protocol)
@@ -807,32 +807,32 @@ class Standardizer(Filter):
                 raise ValueError('Some errors were found in the unwanted molecules, aborting standardization!')
             unwanted_inchikeys = [rdinchi.MolToInchiKey(x) for x in unwanted_molecules]
             logging.debug('Unwanted Structure List:\n\n%s\n', DataFrame({'smiles': filter_unwanted, 'inchikey': unwanted_inchikeys}))
-        
+
         # run standardization protocol
         df.index = df[self.col_id]
         df.loc[:, self.col_mol], df.loc[:, 'status'], df.loc[:, 'task'] = zip(*df[self.col_mol].map(self.run))
-        
+
         # flag eventual None molecules at the end of the pipeline for filtering out
         df.loc[:, 'status'] = df.apply(lambda x: x['status'] if x['mol'] is not None else 'error', axis=1)
         df.loc[:, 'task'] = df.apply(lambda x: x['task'] if x['mol'] is not None else 'filter_empty_final', axis=1)
         df.loc[:, 'mol'] = df['mol'].map(lambda x: x if x is not None else '')
-        
+
         # do not apply filter duplicates on molecules with errors or that were already filtered for x reasons
         df_error = df[df['status'] == 'error']
         df_filtered = df[df['status'] == 'filtered']
         df = df[df['status'].str.contains('passed')]
-        
+
         # compute InChiKeys
         logging.debug('Computing InChI Keys for standardized structures')
         df.loc[:, 'inchikey'] = df.loc[:, self.col_mol].map(rdinchi.MolToInchiKey)
-        
+
         # filter unwanted compounds using InChI Keys
         if len(filter_unwanted) > 0:
             logging.debug('Filtered out unwanted structures using InChI Keys')
             # identify unwanted compounds
             df_unwanted = df[df['inchikey'].isin(unwanted_inchikeys)]
             if len(df_unwanted) > 0:
-                # remove these from passed compounds 
+                # remove these from passed compounds
                 df = df[~df['idm'].isin(df_unwanted['idm'])]
                 # annotate unwanted and add them to filtered compounds
                 df.loc[:, 'task'] = 'standardize'

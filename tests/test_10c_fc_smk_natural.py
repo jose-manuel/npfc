@@ -42,11 +42,13 @@ def test_run():
     output_files = [f"tests/tmp/fc/03_natural/coconut/data/prep/frags_crms/08_fcg/data/coconut_{str(cid+1).zfill(3)}_fcg.csv.gz" for cid in range(1)]
     output_svg = 'tests/tmp/fc/03_natural/coconut/natural_coconut_tasktree.svg'
     report_count = 'tests/tmp/fc/03_natural/coconut/data/prep/frags_crms/report/data/coconut_count_mols.csv'
+
     # run protocol
     command_smk = 'run_protocol_fc natural -c fc/03_natural/coconut/test_natural_coconut_fragscrms.json > fc/03_natural/coconut/test_natural_coconut_fragscrms.log 2>&1'
     subprocess.run(command_smk, shell=True, check=True, cwd='tests/tmp')
     assert Path(output_svg).exists()
     assert all([Path(f).exists() for f in output_files])
+
     # check number of entries/molecules
     df = pd.read_csv(report_count, sep='|')
     df = df[df['subset'] == 'total']
@@ -55,6 +57,7 @@ def test_run():
     assert df.iloc[0]['06_fs_num_mols'] == 17 and df.iloc[0]['06_fs_num_entries'] == 55 # fragment search
     assert df.iloc[0]['07_fcc_num_mols'] == 14 and df.iloc[0]['07_fcc_num_entries'] == 70 # fragment combination
     assert df.iloc[0]['08_fcg_num_mols'] == 12 and df.iloc[0]['08_fcg_num_entries'] == 12 # final
+
     # display counts on the terminal
     df = df.T.reset_index()
     name_last_col = [c for c in df.columns][-1]

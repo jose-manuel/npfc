@@ -1,12 +1,12 @@
-2021-12-10 10:56:17,595 -- INFO -- RUNNING NPFC PROTOCOL
-2021-12-10 10:56:17,596 -- INFO --             LIBRARY VERSIONS            
-2021-12-10 10:56:17,596 -- INFO -- rdkit                                   2021.09.2
-2021-12-10 10:56:17,596 -- INFO -- pandas                                  1.3.4
-2021-12-10 10:56:17,596 -- INFO -- npfc                                    0.7.21
-2021-12-10 10:56:17,596 -- INFO --                ARGUMENTS                
-2021-12-10 10:56:17,596 -- INFO -- PROTOCOL                                natural
-2021-12-10 10:56:17,596 -- INFO -- CONFIG                                  fc/03_natural/coconut/test_natural_coconut_fragscrms.json
-2021-12-10 10:56:17,596 -- INFO -- CLUSTERCONFIG                           None
-2021-12-10 10:56:17,596 -- INFO -- JOBS                                    6
-2021-12-10 10:56:17,596 -- INFO -- BEGIN
-2021-12-10 10:56:17,596 -- INFO -- PARSING SPECIFIED CONFIG FILE
+2022-01-07 15:56:36,366 -- INFO -- RUNNING NPFC PROTOCOL
+2022-01-07 15:56:36,366 -- INFO --             LIBRARY VERSIONS            
+2022-01-07 15:56:36,366 -- INFO -- rdkit                                   2021.09.2
+2022-01-07 15:56:36,367 -- INFO -- pandas                                  1.3.4
+2022-01-07 15:56:36,367 -- INFO -- npfc                                    0.7.21
+2022-01-07 15:56:36,367 -- INFO --                ARGUMENTS                
+2022-01-07 15:56:36,367 -- INFO -- PROTOCOL                                fragments
+2022-01-07 15:56:36,367 -- INFO -- CONFIG                                  fc/01_fragments/crms/test_fragments_crms.json
+2022-01-07 15:56:36,367 -- INFO -- CLUSTERCONFIG                           None
+2022-01-07 15:56:36,367 -- INFO -- JOBS                                    6
+2022-01-07 15:56:36,367 -- INFO -- BEGIN
+2022-01-07 15:56:36,367 -- INFO -- PARSING SPECIFIED CONFIG FILE

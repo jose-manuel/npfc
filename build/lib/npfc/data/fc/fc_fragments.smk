@@ -43,6 +43,10 @@ if WD.endswith('/'):
     WD = WD[:-1]
 WD += '/data'
 
+report_color = config.get('report_color', 'gray')
+report_prefix = config.get('report_prefix', 'fragments')
+report_dataset = config.get('report_dataset', 'Fragment Data Set')
+
 # fall back to default std configuration in case either missing from JSON file or empty string
 if fallback_default_std_frags:
     config_std_frags = pkg_resources.resource_filename('npfc', 'data/std_fragments.json')
@@ -55,7 +59,29 @@ rule all:
     input:
         mols = WD + '/' + prep_subdir + "/05_fcp/data/" + prefix + "_fcp.csv.gz",  # rule all does not accept wildcards
         count_mols = WD + '/' + prep_subdir + '/report/data/' + prefix + '_count_mols.csv',
-        time = WD + '/' + prep_subdir + '/report/data/' + prefix + '_time.csv'
+        time = WD + '/' + prep_subdir + '/report/data/' + prefix + '_time.csv',
+        report_prep = WD + '/' + prep_subdir + '/report/report_prep_' + prefix +  '.log',
+        report_fcp = WD + '/' + prep_subdir + '/05_fcp/report/report_fcp_' + prefix +  '.log'
+
+rule REPORT_FCP:
+    priority: 100
+    input:
+        fcp = "{WD}/{prep_subdir}/05_fcp/data/{prefix}_fcp.csv.gz"
+    output: "{WD}/{prep_subdir}/05_fcp/report/report_fcp_{prefix}.log"
+    log: "{WD}/{prep_subdir}/05_fcp/report/report_fcp_{prefix}.log"
+    shell: "report_fcp {WD}/{prep_subdir}/05_fcp/data {WD}/{prep_subdir}/05_fcp/report -d '" + report_dataset + "' -c " + report_color + " -p {prefix}  2>{log}"
+
+
+rule REPORT_PREP:
+    priority: 100
+    input:
+        load = "{WD}/{prep_subdir}/01_load/data/{prefix}.csv.gz",
+        std_passed = "{WD}/{prep_subdir}/02_std/data/{prefix}_std.csv.gz",
+        dedupl = "{WD}/{prep_subdir}/03_dedupl/data/{prefix}_dedupl.csv.gz",
+        depict = "{WD}/{prep_subdir}/04_depict/data/{prefix}_depict.csv.gz"
+    output: "{WD}/{prep_subdir}/report/report_prep_{prefix}.log"
+    log: "{WD}/{prep_subdir}/report/report_prep_{prefix}.log"
+    shell: "report_prep {WD}/{prep_subdir} {WD}/{prep_subdir}/report -d '" + report_dataset + "' -c " + report_color + " -p {prefix}  2>{log}"
 
 
 rule REPORT_TIME:

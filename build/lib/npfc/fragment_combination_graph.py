@@ -645,7 +645,7 @@ def filter_out_fcgs_ffs(df2, d):
     # print("FCGs to remove:")
     # display(to_remove)
 
-    return df2[~df2['idfcg'].isin(to_remove)]
+    return df2[~df2['idfcg'].isin(to_remove)].rename({'frags': '_frags'}, axis=1)
 
 
 def filter_out_fcgs_ffs_all(df_fcg, df_fs):

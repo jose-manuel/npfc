@@ -95,7 +95,32 @@ rule all:
         count_mols = '/'.join([WD, prep_subdir, natref_subdir, frags_subdir]) + '/report/data/' + prefix + '_count_mols.csv',
         time = WD + '/' + prep_subdir + '/' + natref_subdir + '/' + frags_subdir + '/report/data/' + prefix + '_time.csv',
         report_prep = WD + '/' + prep_subdir + '/report/report_prep_' + prefix + '.log',
-        report_subset = WD + '/' + prep_subdir + '/' + natref_subdir + '/report/report_subset_' + prefix + '.log'
+        report_subset = WD + '/' + prep_subdir + '/' + natref_subdir + '/report/report_subset_' + prefix + '.log',
+        report_fcg = WD + '/' + prep_subdir + '/' + natref_subdir + '/' + frags_subdir + '/10_pnp/report/report_fcg_' + prefix + '.log'
+
+
+rule REPORT_FCG_CONCAT:
+    priority: 0
+    input: expand(f"{WD}/{prep_subdir}/{natref_subdir}/{frags_subdir}/10_pnp/report/data/{prefix}" + '_{cid}_pnp_counts.csv', cid=chunk_ids),
+    output: f"{WD}/{prep_subdir}/{natref_subdir}/{frags_subdir}/10_pnp/report/report_fcg_{prefix}.log"
+    log: f"{WD}/{prep_subdir}/{natref_subdir}/{frags_subdir}/10_pnp/report/report_fcg_{prefix}.log"
+    shell: f"report_fcg_concat {WD}/{prep_subdir}/{natref_subdir}/{frags_subdir}/10_pnp/report/data {WD}/{prep_subdir}/{natref_subdir}/{frags_subdir}/10_pnp/report -s pnp -c " + report_color + " --prefix {prefix} -d '" + report_dataset + "' 2>{log}"
+
+rule REPORT_FCG_CHUNK:
+    priority: 0
+    input: "{WD}/{prep_subdir}/{natref_subdir}/{frags_subdir}/10_pnp/data/{prefix}_{cid}_pnp.csv.gz"
+    output:
+        counts = "{WD}/{prep_subdir}/{natref_subdir}/{frags_subdir}/10_pnp/report/data/{prefix}_{cid}_pnp_counts.csv",
+        nfcgpermol = "{WD}/{prep_subdir}/{natref_subdir}/{frags_subdir}/10_pnp/report/data/{prefix}_{cid}_pnp_nfcgpermol.csv",
+        nhits = "{WD}/{prep_subdir}/{natref_subdir}/{frags_subdir}/10_pnp/report/data/{prefix}_{cid}_pnp_nhits.csv",
+        nhits_u = "{WD}/{prep_subdir}/{natref_subdir}/{frags_subdir}/10_pnp/report/data/{prefix}_{cid}_pnp_nhits_u.csv",
+        topfrags = "{WD}/{prep_subdir}/{natref_subdir}/{frags_subdir}/10_pnp/report/data/{prefix}_{cid}_pnp_topfrags.csv",
+        topfrags_u = "{WD}/{prep_subdir}/{natref_subdir}/{frags_subdir}/10_pnp/report/data/{prefix}_{cid}_pnp_topfrags_u.csv",
+        fragratio = "{WD}/{prep_subdir}/{natref_subdir}/{frags_subdir}/10_pnp/report/data/{prefix}_{cid}_pnp_fragratio.csv",
+        fcc = "{WD}/{prep_subdir}/{natref_subdir}/{frags_subdir}/10_pnp/report/data/{prefix}_{cid}_pnp_fcc.csv",
+        fc = "{WD}/{prep_subdir}/{natref_subdir}/{frags_subdir}/10_pnp/report/data/{prefix}_{cid}_pnp_fc.csv"
+    shell: "report_fcg_chunk {input} " + f"{WD}/{prep_subdir}/{natref_subdir}/{frags_subdir}/10_pnp/report/data"
+
 
 
 rule REPORT_SUBSET:

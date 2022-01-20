@@ -36,7 +36,11 @@ frags_subdir = config['frags_subdir']
 natref_dedupl_reffile = config['natref_dedupl_reffile']
 natref_fcg_dir = config['natref_fcg_dir']
 chunksize = config['chunksize']  # maximum number of molecules per chunk
-tautomer = config.get('tautomer', False)
+tautomer = config.get('tautomer', 0)
+prep_subdir = config.get('prep_subdir', 'prep')
+report_color = config.get('report_color', 'blue')
+report_prefix = config.get('report_prefix', 'synthetic')
+report_dataset = config.get('report_dataset', 'Synthetic Data Set')
 
 # specific to synthetic
 natref_subdir = config['natref_subdir']  # WD for defining natural compounds, subdir with same frags is also searched for pnp annotation
@@ -47,11 +51,10 @@ pnp_attributes = config.get('pnp_attributes', 'fcc')
 # preprocess subdir
 prep_subdir = config.get('prep_subdir', 'prep')
 
-# export pnp subset
-pnp_subset = config.get('pnp_subset', 'all')
-
 # from master script (always defined)
 num_chunks = config['num_chunks']
+
+
 
 # protocol for standardizing molecules
 fallback_default_std_mols = False
@@ -90,7 +93,54 @@ rule all:
     input:
         pnp = expand(f"{WD}/{prep_subdir}/{natref_subdir}/{frags_subdir}/10_pnp/data/{prefix}" + '_{cid}_pnp.csv.gz', cid=chunk_ids),
         count_mols = '/'.join([WD, prep_subdir, natref_subdir, frags_subdir]) + '/report/data/' + prefix + '_count_mols.csv',
-        time = WD + '/' + prep_subdir + '/' + natref_subdir + '/' + frags_subdir + '/report/data/' + prefix + '_time.csv'
+        time = WD + '/' + prep_subdir + '/' + natref_subdir + '/' + frags_subdir + '/report/data/' + prefix + '_time.csv',
+        report_prep = WD + '/' + prep_subdir + '/report/report_prep_' + prefix + '.log',
+        report_subset = WD + '/' + prep_subdir + '/' + natref_subdir + '/report/report_subset_' + prefix + '.log',
+        report_fcg = WD + '/' + prep_subdir + '/' + natref_subdir + '/' + frags_subdir + '/10_pnp/report/report_fcg_' + prefix + '.log'
+
+
+rule REPORT_FCG_CONCAT:
+    priority: 0
+    input: expand(f"{WD}/{prep_subdir}/{natref_subdir}/{frags_subdir}/10_pnp/report/data/{prefix}" + '_{cid}_pnp_counts.csv', cid=chunk_ids),
+    output: f"{WD}/{prep_subdir}/{natref_subdir}/{frags_subdir}/10_pnp/report/report_fcg_{prefix}.log"
+    log: f"{WD}/{prep_subdir}/{natref_subdir}/{frags_subdir}/10_pnp/report/report_fcg_{prefix}.log"
+    shell: f"report_fcg_concat {WD}/{prep_subdir}/{natref_subdir}/{frags_subdir}/10_pnp/report/data {WD}/{prep_subdir}/{natref_subdir}/{frags_subdir}/10_pnp/report -s pnp -c " + report_color + " --prefix {prefix} -d '" + report_dataset + "' 2>{log}"
+
+rule REPORT_FCG_CHUNK:
+    priority: 0
+    input: "{WD}/{prep_subdir}/{natref_subdir}/{frags_subdir}/10_pnp/data/{prefix}_{cid}_pnp.csv.gz"
+    output:
+        counts = "{WD}/{prep_subdir}/{natref_subdir}/{frags_subdir}/10_pnp/report/data/{prefix}_{cid}_pnp_counts.csv",
+        nfcgpermol = "{WD}/{prep_subdir}/{natref_subdir}/{frags_subdir}/10_pnp/report/data/{prefix}_{cid}_pnp_nfcgpermol.csv",
+        nhits = "{WD}/{prep_subdir}/{natref_subdir}/{frags_subdir}/10_pnp/report/data/{prefix}_{cid}_pnp_nhits.csv",
+        nhits_u = "{WD}/{prep_subdir}/{natref_subdir}/{frags_subdir}/10_pnp/report/data/{prefix}_{cid}_pnp_nhits_u.csv",
+        topfrags = "{WD}/{prep_subdir}/{natref_subdir}/{frags_subdir}/10_pnp/report/data/{prefix}_{cid}_pnp_topfrags.csv",
+        topfrags_u = "{WD}/{prep_subdir}/{natref_subdir}/{frags_subdir}/10_pnp/report/data/{prefix}_{cid}_pnp_topfrags_u.csv",
+        fragratio = "{WD}/{prep_subdir}/{natref_subdir}/{frags_subdir}/10_pnp/report/data/{prefix}_{cid}_pnp_fragratio.csv",
+        fcc = "{WD}/{prep_subdir}/{natref_subdir}/{frags_subdir}/10_pnp/report/data/{prefix}_{cid}_pnp_fcc.csv",
+        fc = "{WD}/{prep_subdir}/{natref_subdir}/{frags_subdir}/10_pnp/report/data/{prefix}_{cid}_pnp_fc.csv"
+    shell: "report_fcg_chunk {input} " + f"{WD}/{prep_subdir}/{natref_subdir}/{frags_subdir}/10_pnp/report/data"
+
+
+
+rule REPORT_SUBSET:
+    priority: 0
+    input: expand(f"{WD}/{prep_subdir}/{natref_subdir}/06_subset/data/{prefix}" + '_{cid}_subset.csv.gz', cid=chunk_ids)
+    output: "{WD}/{prep_subdir}/{natref_subdir}/report/report_subset_{prefix}.log"
+    log: "{WD}/{prep_subdir}/{natref_subdir}/report/report_subset_{prefix}.log"
+    shell: "report_subset {WD}/{prep_subdir}/{natref_subdir}/06_subset/log {WD}/{prep_subdir}/{natref_subdir}/report -d '" + f"{report_dataset}\nReference NP Dataset: {natref_subdir.replace('natref_', '')}" + "' -c " + report_color + " -p {prefix}  2>{log}"
+
+
+rule REPORT_PREP:
+    priority: 0
+    input:
+        load = expand(f"{WD}/{prep_subdir}/02_load/data/{prefix}" + '_{cid}.csv.gz', cid=chunk_ids),
+        std_passed = expand(f"{WD}/{prep_subdir}/03_std/data/{prefix}" + '_{cid}_std.csv.gz', cid=chunk_ids),
+        dedupl = expand(f"{WD}/{prep_subdir}/04_dedupl/data/{prefix}" + '_{cid}_dedupl.csv.gz', cid=chunk_ids),
+        depict = expand(f"{WD}/{prep_subdir}/05_depict/data/{prefix}" + '_{cid}_depict.csv.gz', cid=chunk_ids),
+    output: "{WD}/{prep_subdir}/report/report_prep_{prefix}.log"
+    log: "{WD}/{prep_subdir}/report/report_prep_{prefix}.log"
+    shell: "report_prep {WD}/{prep_subdir} {WD}/{prep_subdir}/report -d '" + report_dataset + "' -c " + report_color + " -p {prefix}  2>{log}"
 
 
 rule REPORT_TIME_SUM:
@@ -182,10 +232,11 @@ rule PNP:
     priority: 4
     input: ancient("{WD}" + f"/{prep_subdir}/{natref_subdir}/{frags_subdir}" + "/09_fcg/data/{prefix}_{cid}_fcg.csv.gz")
     output:
-        fgraphs = "{WD}" + f"/{prep_subdir}/{natref_subdir}/{frags_subdir}" + "/10_pnp/data/{prefix}_{cid}_pnp.csv.gz",
+        pnp = "{WD}" + f"/{prep_subdir}/{natref_subdir}/{frags_subdir}" + "/10_pnp/data/{prefix}_{cid}_pnp.csv.gz",
+        npl = "{WD}" + f"/{prep_subdir}/{natref_subdir}/{frags_subdir}" + "/10_pnp/data/{prefix}_{cid}_npl.csv.gz",
         list_pnps = "{WD}" + f"/{prep_subdir}/{natref_subdir}/{frags_subdir}" + "/10_pnp/log/{prefix}_{cid}_list_pnp.csv.gz"
     log: "{WD}" + f"/{prep_subdir}/{natref_subdir}/{frags_subdir}" + "/10_pnp/log/{prefix}_{cid}_pnp.log"
-    shell: "fcg_annotate_pnp {input} {natref_fcg_dir} {output.fgraphs} -l {output.list_pnps} -d '" + pnp_attributes + "' --subset " + pnp_subset  + " >{log} 2>&1"
+    shell: "fcg_filter_pnp {input} {natref_fcg_dir} {output.pnp} -n {output.npl} -l {output.list_pnps} -d '" + pnp_attributes + "' >{log} 2>&1"
 
 
 rule FCG:

@@ -71,6 +71,14 @@ rule all:
         report_prep = WD + '/' + prep_subdir + '/report/report_prep_' + prefix + '.log'
 
 
+rule REPORT_FCG_CHUNK:
+    priority: 0
+    input: ancient("{WD}" + f"/{prep_subdir}/{frags_subdir}" + "/08_fcg/data/{prefix}_{cid}_fcg.csv.gz")
+    output:
+        "{WD}" + f"/{prep_subdir}/{frags_subdir}" + "/08_fcg/report/data/{prefix}_{cid}"
+    log:
+
+
 rule REPORT_PREP:
     priority: 0
     input:
