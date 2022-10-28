@@ -188,7 +188,7 @@ def main():
         file_mplstyle = resource_filename('npfc', 'data/report.mplstyle')
     else:
         file_mplstyle = args.mplstyle
-    utils.check_arg_config_file(file_mplstyle)
+    utils.check_arg_input_config(file_mplstyle)
 
     # determine color
     color_identified = False

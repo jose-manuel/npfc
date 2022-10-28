@@ -111,7 +111,7 @@ def main():
     if args.protocol is None:
         logger.warning("USING DEFAULT STANDARDIZATION PROTOCOL")
         args.protocol = pkg_resources.resource_filename('npfc', 'data/std_mols.json')
-    utils.check_arg_config_file(args.protocol)
+    utils.check_arg_input_config(args.protocol)
 
     # in infos
     in_format, in_compression = utils.get_file_format(args.input_mols)

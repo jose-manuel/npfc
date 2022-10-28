@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
 """
-Script filter_dupl_mols
-==========================
-This script is used for filtering out duplicated molecules.
+Script mols_chunk
+==================
+This script is used for splitting up a file (CSV, HDF, SDF) into one or several chunks.
 """
 
 # standard
@@ -24,7 +24,6 @@ from rdkit import RDLogger
 import npfc
 from npfc import load
 from npfc import save
-from npfc import deduplicate
 from npfc import utils
 
 
@@ -35,20 +34,33 @@ def main():
 
     # init
     d0 = datetime.now()
-    description = """
+    description = """mols_chunk
+    A script for splitting up an input file into one or several chunks.
+
+    Chunks will be appended with a suffix of syntax xxx_001.yyy, xxx_002.yyy, etc.
+
+    The number of leading zeros is currently hard-coded to 3, so larger input files 
+    with suffix numbers over 999 will not be sorted accordingly (only a display issue).
+
+    A hard-coded file will be generated in the snakemake workflows "natural" and "synthetic",
+    which indicates how many mols are present in the input mols file as well as how many chunks
+    should be computed. This file will be located at:
+    
+    f"{config['WD']}/data/00_raw/data/{config['prefix']}_num_mols.json"
+
     """
 
     # parameters CLI
 
     parser = argparse.ArgumentParser(description=description, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('input_mols', type=str, default=None, help="Input file.")
-    parser.add_argument('output_mols', type=str, default=None, help="Output file.")
-    parser.add_argument('-g', '--group-on', type=str, default='inchikey', help="The column to use for grouping molecules. Currently two possible values: 'inchikey' or 'smiles'. If these columns are not present in the DataFrame, they are computed using the 'mol' column.")
-    parser.add_argument('--recompute-group', type=utils.parse_argparse_boolstring, default=False, help="Force the computation of the grouping column even if it is found in the input DataFrame.")
+    parser.add_argument('output_folder', type=str, default=None, help="Output folder.")
+    parser.add_argument('-n', '--num-mols', type=int, default=5000, help="Maximum number of molecules per chunk.")
+    parser.add_argument('-f', type=bool, default=False, help="Force the script to ignore (and recompute) any existing count file in the input 00_raw/data subfolder.")
     parser.add_argument('-r', '--ref-file', type=str, default=None, help="A reference CSV file (.csv) where kept molecules are recorded. Useful for filtering duplicate molecules accross chunks. In case of parallel processing, a lock system prevents simultaneous reading/writing.")
     parser.add_argument('-d', '--dupl-file', type=str, default=None, help="A CSV file for exporting the list of duplicates. If none is defined, the user has to run this script with log level at least at DEBUG for reviewing the duplicates.")
     parser.add_argument('-s', '--syn-file', type=str, default=None, help="A CSV file for exporting the list of synonms (kept + filtered entries). If none is defined, the user has to run this script with log level at least at DEBUG for reviewing the duplicates.")
-    parser.add_argument('-c', '--clear', type=utils.parse_argparse_boolstring, default=False, help="Clear the defined reference file if it already exists.")
+    parser.add_argument('-c', '--clear', type=bool, default=False, help="Clear the defined reference file if it already exists.")
     parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
 
     args = parser.parse_args()
