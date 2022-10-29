@@ -97,7 +97,7 @@ rule REPORT_TIME:
     shell: "report_time {WD}/{prep_subdir} '{prefix}*' {output} -p {prep_subdir} 2>{log}"
 
 
-rule COUNT_MOLS:
+rule REPORT_COUNT:
     priority: 100
     input:
         load = "{WD}/{prep_subdir}/01_load/data/{prefix}.csv.gz",
@@ -107,7 +107,7 @@ rule COUNT_MOLS:
         fcp = "{WD}/{prep_subdir}/05_fcp/data/{prefix}_fcp.csv.gz"
     output: "{WD}/{prep_subdir}/report/data/{prefix}_count_mols.csv"
     log: "{WD}/{prep_subdir}/report/log/{prefix}_count_mols.log"
-    shell: "mols_count {WD}/{prep_subdir} {prefix}* {output} 2>{log}"
+    shell: "report_mols_count {WD}/{prep_subdir} {prefix}* {output} 2>{log}"
 
 
 rule FCP:

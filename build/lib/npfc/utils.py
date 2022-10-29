@@ -225,7 +225,7 @@ def check_arg_output_dir(output_dir: str) -> bool:
     return True
 
 
-def check_arg_config_file(config_file: str) -> bool:
+def check_arg_input_config(config_file: str) -> bool:
     """Return True of the config_file exists, raise an error otherwise.
 
     :param input_file: the input file

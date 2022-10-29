@@ -47,4 +47,4 @@ Usage
 >>> df_frags.index = list(df_frags['idm'])
 >>>
 >>> # run the fragment search
->>> df_fs = fragment_search.get_fragment_hits(df_mols, df_frags)
+>>> df_fhits = fragment_search.get_fragment_hits(df_mols, df_frags)

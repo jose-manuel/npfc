@@ -225,7 +225,7 @@ def check_arg_output_dir(output_dir: str) -> bool:
     return True
 
 
-def check_arg_config_file(config_file: str) -> bool:
+def check_arg_input_config(config_file: str) -> bool:
     """Return True of the config_file exists, raise an error otherwise.
 
     :param input_file: the input file
@@ -239,6 +239,31 @@ def check_arg_config_file(config_file: str) -> bool:
 
     return True
 
+
+
+def check_arg_output_config(output_config: str, create_parent_dir: bool = True) -> bool:
+    """Return True of the output_config has the expected format (deduced from the file extension).
+
+    If the parent directory of the output file does not exist, it has to either be created or fail the check.
+
+    :param output_config: the output config file
+    :param create_parent_dir: create the output file's parent folder in case it does not exist
+    """
+    # output_format
+    path_output_config = Path(output_config)
+    if path_output_config.suffixes not in EXTS_CONFIG:
+        raise ValueError(f"Error! Unexpected value '{path_output_config.suffixes}' for output format.")
+
+    # create_parent_dir
+    output_dir = path_output_config.resolve().parent
+    if not output_dir.is_dir():
+        if create_parent_dir:
+            logging.warning(f"Output_dir could not be found at '{output_dir}', attempting to create it.")
+            output_dir.mkdir(parents=True, exist_ok=True)
+        else:
+            raise ValueError(f"Error! Output_dir could not be found at '{output_dir}'.")
+
+    return True
 
 def _configure_logger(log_level: str, logger_name: str = None, log_file: str = None, reset_handlers: bool = True) -> logging:
     """Configure the logging in a centralized way. This is useful for scripts mostly.

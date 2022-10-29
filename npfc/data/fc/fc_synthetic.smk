@@ -185,7 +185,7 @@ rule REPORT_TIME:
     shell: "report_time {WD}/{prep_subdir} '{prefix}_{wildcards.cid}*' {output} -p {prep_subdir} -n {natref_subdir} -f {frags_subdir} 2>{log}"
 
 
-rule COUNT_MOLS_SUM:
+rule REPORT_COUNT_SUM:
     priority: 2
     input: expand('/'.join([WD, prep_subdir, natref_subdir, frags_subdir, "report/data", prefix]) + '_{cid}_count_mols.csv', cid=chunk_ids)
     output: '/'.join([WD, prep_subdir, natref_subdir, frags_subdir]) + '/report/data/' + prefix + '_count_mols.csv'
@@ -210,7 +210,7 @@ rule COUNT_MOLS_SUM:
             [Path(f).unlink() for f in input_files]
 
 
-rule COUNT_MOLS:
+rule REPORT_COUNT:
     priority: 3
     input:
         chunk = "{WD}/{prep_subdir}/01_chunk/data/{prefix}_{cid}.sdf.gz",
@@ -225,7 +225,7 @@ rule COUNT_MOLS:
         pnp = "{WD}/{prep_subdir}/" + natref_subdir + "/" + frags_subdir + "/10_pnp/data/{prefix}_{cid}_pnp.csv.gz"
     output: "{WD}/{prep_subdir}/" + natref_subdir + "/" + frags_subdir + "/report/data/{prefix}_{cid}_count_mols.csv"
     log: "{WD}/{prep_subdir}/" + natref_subdir + "/" + frags_subdir + "/report/log/{prefix}_{cid}_count_mols.log"
-    shell: "mols_count {WD}/{prep_subdir} {prefix}_{wildcards.cid}* {output} 2>{log}"
+    shell: "report_mols_count {WD}/{prep_subdir} {prefix}_{wildcards.cid}* {output} 2>{log}"
 
 
 rule PNP:

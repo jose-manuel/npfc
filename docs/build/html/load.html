@@ -1,77 +1,38 @@
-
-
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
-  
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
-  <title>load &mdash; npfc 0.7.20-8-g41f9432a documentation</title>
-  
-
-  
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-
-  
-  
-
-  
-  
-
-  
-
-  
+  <title>load &mdash; npfc current documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
-    
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-
-    
+    <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="notebook" href="notebook.html" />
     <link rel="prev" title="fragment_combination_point" href="fragment_combination_point.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
-
-          
             <a href="index.html" class="icon icon-home"> npfc
-          
-
-          
           </a>
-
-          
-            
-            
               <div class="version">
-                0.7.20-8-g41f9432a
+                current
               </div>
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -79,18 +40,7 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
@@ -131,89 +81,52 @@
 <li class="toctree-l1"><a class="reference internal" href="utils.html">utils</a></li>
 </ul>
 
-            
-          
         </div>
-        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">npfc</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
       <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-        
       <li>load</li>
-    
-    
       <li class="wy-breadcrumbs-aside">
-        
-          
             <a href="_sources/load.rst.txt" rel="nofollow"> View page source</a>
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
-  <div class="section" id="module-npfc.load">
-<span id="load"></span><h1>load<a class="headerlink" href="#module-npfc.load" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="module-load">
-<h2>Module load<a class="headerlink" href="#module-load" title="Permalink to this headline">¶</a></h2>
+             
+  <section id="module-npfc.load">
+<span id="load"></span><h1>load<a class="headerlink" href="#module-npfc.load" title="Permalink to this heading"></a></h1>
+<section id="module-load">
+<h2>Module load<a class="headerlink" href="#module-load" title="Permalink to this heading"></a></h2>
 <p>A module containing the Loader class, used for storing DataFrames with molecules
 on disk.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="npfc.load.count_mols">
-<span class="sig-prename descclassname"><span class="pre">npfc.load.</span></span><span class="sig-name descname"><span class="pre">count_mols</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keep_uncompressed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/load.html#count_mols"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#npfc.load.count_mols" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">npfc.load.</span></span><span class="sig-name descname"><span class="pre">count_mols</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keep_uncompressed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hdf_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">csv_header</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">engine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'unix'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/load.html#count_mols"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#npfc.load.count_mols" title="Permalink to this definition"></a></dt>
 <dd><p>Count the number of molecules found in a text file.
 In case the file is compressed (gzip), it is uncompressed first. The resulting
 uncompressed file can be kept for further use.</p>
+<p>No grouping is performed, so duplicate molecules will be counted as well.</p>
 <p>#### this function failed to the ZINC (9,902,598)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>input_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the input file</p></li>
-<li><p><strong>keep_uncompressed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>) – if the input file is compressed (gzip), do not remove the uncompressed file when finished</p></li>
+<li><p><strong>input_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the input file</p></li>
+<li><p><strong>keep_uncompressed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>) – if the input file is compressed (gzip), do not remove the uncompressed file when finished</p></li>
+<li><p><strong>hdf_key</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.11)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]) – specify the key to access data for HDF input. By default, the filename is used.</p></li>
+<li><p><strong>csv_header</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>) – specifiy whether the CSV input file contains headers or not, so that an extra line is not counted.</p></li>
+<li><p><strong>engine</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – either ‘unix’ or ‘python’. By default, UNIX commands (grep for SDF format, wc for CSV for format) are used within Python for maximum efficiency and pure Python code is used as fall-back only. If set to python, then UNIX commands will not be performed.</p></li>
 </ul>
 </dd>
 </dl>
@@ -221,20 +134,20 @@ uncompressed file can be kept for further use.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="npfc.load.file">
-<span class="sig-prename descclassname"><span class="pre">npfc.load.</span></span><span class="sig-name descname"><span class="pre">file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'idm'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_mol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mol'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">csv_sep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'|'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mol_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'rdkit'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'idm'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_mol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mol'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keep_props</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">decode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/load.html#file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#npfc.load.file" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">npfc.load.</span></span><span class="sig-name descname"><span class="pre">file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'idm'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_mol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mol'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">csv_sep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'|'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mol_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'rdkit'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'idm'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_mol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mol'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keep_props</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">decode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/load.html#file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#npfc.load.file" title="Permalink to this definition"></a></dt>
 <dd><p>Load a file into a DataFrame.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>input_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the input file to load</p></li>
-<li><p><strong>in_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the column/property to use for molecule ids</p></li>
-<li><p><strong>in_mol</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the column to use for molecules (irrerlevant for SDF)</p></li>
-<li><p><strong>csv_sep</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the column separator to use for parsing the input file (CSV)</p></li>
-<li><p><strong>mol_format</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the input format for molecules</p></li>
-<li><p><strong>out_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the column name used for storing molecule ids</p></li>
-<li><p><strong>out_mol</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the column name used for storing molecules</p></li>
-<li><p><strong>keep_props</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>) – keep all properties found in the input file. If False, then only out_id and out_mol are kept.</p></li>
-<li><p><strong>decode</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Union" title="(in Python v3.10)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]]) – decode base64 strings into objects. Columns with encoded objects are labelled with a leading ‘_’. For molecules, reserved names are ‘mol’ and ‘mol_frag’.</p></li>
+<li><p><strong>input_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the input file to load</p></li>
+<li><p><strong>in_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the column/property to use for molecule ids</p></li>
+<li><p><strong>in_mol</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the column to use for molecules (irrerlevant for SDF)</p></li>
+<li><p><strong>csv_sep</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the column separator to use for parsing the input file (CSV)</p></li>
+<li><p><strong>mol_format</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the input format for molecules</p></li>
+<li><p><strong>out_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the column name used for storing molecule ids</p></li>
+<li><p><strong>out_mol</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – the column name used for storing molecules</p></li>
+<li><p><strong>keep_props</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>) – keep all properties found in the input file. If False, then only out_id and out_mol are kept.</p></li>
+<li><p><strong>decode</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Union" title="(in Python v3.11)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Union</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]]) – decode base64 strings into objects. Columns with encoded objects are labelled with a leading ‘_’. For molecules, reserved names are ‘mol’ and ‘mol_frag’.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type</dt>
@@ -247,55 +160,38 @@ uncompressed file can be kept for further use.</p>
 <p>..warning:: if a ‘idm’ property exists in the input file but the user picks another property for in_id, the pre-existing ‘idm’ will be renamed into ‘idm_2’.</p>
 </dd></dl>
 
-</div>
-</div>
+</section>
+</section>
 
 
            </div>
-           
           </div>
-          <footer>
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="notebook.html" class="btn btn-neutral float-right" title="notebook" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="fragment_combination_point.html" class="btn btn-neutral float-left" title="fragment_combination_point" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="notebook.html" class="btn btn-neutral float-right" title="notebook" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &#169; Copyright 2019, Dr. Jose-Manuel Gally.
-
-    </p>
+    <p>&#169; Copyright 2019, Dr. Jose-Manuel Gally.</p>
   </div>
-    
-    
-    
-    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
-    
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>

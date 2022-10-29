@@ -36,6 +36,7 @@ setuptools.setup(
     'pytest >= 6.2',
     'sphinx >= 3.0',
     'sphinx-autodoc-typehints >= 1.10',
+    'recommonmark ',
     'sphinx_rtd_theme >= 0.4',
     'twine >= 3.4',
     'pytest >= 6.2',
@@ -79,6 +80,7 @@ setuptools.setup(
              'bin/fc/fcg_filter_pnp',
              # fc molecules
              'bin/fc/mols_concat',
+             'bin/fc/mols_count',
              'bin/fc/mols_dedupl',
              'bin/fc/mols_draw',
              'bin/fc/mols_depict',
@@ -87,7 +89,7 @@ setuptools.setup(
              'bin/fc/mols_standardize',
              'bin/fc/mols_subset',
              # fc report
-             'bin/fc/report/mols_count',
+             'bin/fc/report/report_mols_count',
              'bin/fc/report/report_time',
              'bin/fc/report/report_prep',
              'bin/fc/report/report_fcp',

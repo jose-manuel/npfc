@@ -103,11 +103,11 @@ def test_count_sdf_gz(input_sdf):
 
 def test_count_csv(input_csv):
     """Count molecules in a CSV file"""
-    count = load.count_mols(input_csv) - 1  # do not count header line
+    count = load.count_mols(input_csv)  # headers not counted
     assert count == 5
 
 
 def test_count_csv_gz(input_csv):
     """Count molecules in a compressed CSV file"""
-    count = load.count_mols(f"{input_csv}.gz", keep_uncompressed=True) - 1
+    count = load.count_mols(f"{input_csv}.gz", keep_uncompressed=True)  # headers not counted
     assert count == 5

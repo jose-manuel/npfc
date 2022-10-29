@@ -89,11 +89,11 @@ def test_arg_config_file():
                     "tasks": ["sanitize", "filter_molecular_weight"],
                     "filter_molecular_weight": "100.0 <= molecular_weight <= 1000.0"\n}''')
     # should pass
-    utils.check_arg_config_file(json_config)
+    utils.check_arg_input_config(json_config)
     # should throw a ValueError
     error = False
     try:
-        utils.check_arg_config_file('tests/tmp/test.csv')
+        utils.check_arg_input_config('tests/tmp/test.csv')
     except ValueError:
         error = True
     assert error is True

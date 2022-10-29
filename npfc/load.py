@@ -15,6 +15,7 @@ import subprocess
 import psycopg2
 import pandas as pd
 from pandas import DataFrame
+import h5py
 # chemoinformatics
 from rdkit import Chem
 # docs
@@ -73,8 +74,6 @@ def file(input_file: str,
         decode = False
     elif format == 'HDF':
         df = _from_hdf(input_file)
-    elif format == "FEATHER":
-        df = pd.read_feather(input_file)
     else:  # has to be CSV
         df = _from_csv(input_file, csv_sep=csv_sep, compression=compression)
 
@@ -92,6 +91,7 @@ def file(input_file: str,
         df.rename({in_id: out_id}, axis=1, inplace=True)
 
     # out_mol
+    logging.debug('in_mol=%s, out_mol=%s', in_mol, out_mol)
     if out_mol is None and in_mol is not None:
         out_mol = in_mol
     elif out_mol != in_mol and in_mol in df.columns:
@@ -181,17 +181,25 @@ def _from_csv(input_csv: str, csv_sep: str = '|', compression: str = None):
         return pd.read_csv(input_csv, sep=csv_sep, compression=compression)
 
 
-def count_mols(input_file: str, keep_uncompressed: bool = False):
+def count_mols(input_file: str,
+               keep_uncompressed: bool = False,
+               hdf_key: str = None,
+               csv_header: bool = True,
+               engine: str = 'unix'):
     """Count the number of molecules found in a text file.
     In case the file is compressed (gzip), it is uncompressed first. The resulting
     uncompressed file can be kept for further use.
+
+    No grouping is performed, so duplicate molecules will be counted as well.
 
     #### this function failed to the ZINC (9,902,598)
 
     :param input_file: the input file
     :param keep_uncompressed: if the input file is compressed (gzip), do not remove the uncompressed file when finished
+    :param hdf_key: specify the key to access data for HDF input. By default, the filename is used. 
+    :param csv_header: specifiy whether the CSV input file contains headers or not, so that an extra line is not counted.
+    :param engine: either 'unix' or 'python'. By default, UNIX commands (grep for SDF format, wc for CSV for format) are used within Python for maximum efficiency and pure Python code is used as fall-back only. If set to python, then UNIX commands will not be performed.
     """
-
     utils.check_arg_input_file(input_file)
     format, compression = utils.get_file_format(input_file)
     logging.debug("input_file='%s' (format: %s, compression: %s)", input_file, format, compression)
@@ -205,18 +213,61 @@ def count_mols(input_file: str, keep_uncompressed: bool = False):
         input_file = uncompressed_file
 
     # count mols
-    if format == 'SDF':
-        # look for the '$$$$' pattern in the SDF file
-        result = subprocess.check_output(f"grep -c '$$$$' {input_file}", shell=True).decode('utf-8').strip()
-    elif format == 'HDF':
-        # get the size of the dataframe
-        result = len(file(input_file, decode=False).index)
+    if engine == 'unix':
+        fall_back = False
     else:
-        # any text-based file with 1 molecule per row (csv, smiles, inchi, etc.)
-        result = subprocess.check_output(f"wc -l {input_file}", shell=True).decode('utf-8').split()[0].strip()
+        fall_back = True
+
+    if format == 'SDF':
+        # try to use a very fast LINUX command first, and if not available then switch to slower Python code
+        if not fall_back:
+            try:
+                # look for the '$$$$' pattern in the SDF file
+                logging.debug("Using UNIX command grep to count molecules in SDF input file.")
+                result = subprocess.check_output(f"grep -c '$$$$' {input_file}", shell=True).decode('utf-8').strip()
+            except KeyError:
+                fall_back = True
+                logging.debug("Counting mols with linux grep command failed, switching to pure-Python method.")
+        if fall_back:
+            logging.debug("Using Python code to count molecules in SDF input file.")
+            result = 0
+            rows = (row for row in open(input_file, 'r'))
+            for row in rows:
+                if row.strip() == "$$$$":
+                    result += 1
+
+    elif format == 'HDF':
+        # no alternative UNIX commands for HDF files, only Python
+        if hdf_key is None:
+            hdf_key = Path(input_file).stem
+        # get the size of a dataframe
+        result = h5py.File(input_file, 'r')[hdf_key]['axis1'].shape[0]  # data is not loaded, so very fast and no memory usage
+
+    elif format == 'CSV':
+        # try to use a very fast LINUX command first, and if not available then switch to slower Python code
+        if not fall_back:
+            try:
+                # any text-based file with 1 molecule per row (csv, smiles, inchi, etc.)
+                result = subprocess.check_output(f"wc -l {input_file}", shell=True).decode('utf-8').split()[0].strip()
+            except:
+                fall_back = True
+                logging.debug("Counting mols with linux wc command failed, switching to pure-Python method.")
+        if fall_back:
+            logging.debug("Using UNIX command wc to count molecules in CSV input file.")
+            result = 0
+            rows = (row for row in open(input_file))
+            for row in rows:
+                result += 1
+    else:
+        raise ValueError(f"Error! Input file format is not valid ('{input_file}' is neither SDF, HDF or CSV, with or without .gz suffix).")
+
+    logging.debug('FALL_BACK: %s', fall_back)
 
     # read count
     count = int(result)
+    # for CSV only, substract the header line that was counted in the beginning of the file
+    if format == 'CSV' and csv_header:
+        count -= 1
 
     # remove uncompressed file
     if compression and not keep_uncompressed:

@@ -9,5 +9,6 @@
                     "protocol_std" : "fc/03_natural/coconut/test_natural_coconut_std.json",
                     "report_color": "green",
                     "report_prefix": "coconut_test",
-                    "report_dataset": "COCONUT Test"
+                    "report_dataset": "COCONUT Test",
+		            "tautomer": 0
 }
