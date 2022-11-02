@@ -1,0 +1,19 @@
+{
+                    "prefix": "chembl",
+                    "molid": "chembl_id",
+                    "WD": "fc/04_synthetic/chembl/",
+                    "input_file": "fc/04_synthetic/chembl/data/00_raw/data/chembl_test.sdf.gz",
+                    "frags_file": "fc/01_fragments/crms/data/prep/05_fcp/data/crms_fcp.csv.gz",
+                    "prep_subdir": "prep",
+                    "frags_subdir": "frags_crms",
+                    "natref_subdir": "natref_coconut",
+                    "natref_dedupl_reffile": "fc/03_natural/coconut/data/prep/04_dedupl/coconut_ref.hdf",
+                    "natref_fcg_dir": "fc/03_natural/coconut/data/prep/frags_crms/08_fcg/data",
+                    "pnp_attributes": "fcc",
+                    "chunksize": 100,
+                    "protocol_std" : "fc/04_synthetic/chembl/test_synthetic_chembl_std.json",
+                    "report_color": "blue",
+                    "report_prefix": "chembl_test",
+                    "report_dataset": "ChEMBL Test",
+                    "tautomer": 0
+}

@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Welcome to npfc’s documentation! &mdash; npfc current-2-gf9669e1f documentation</title>
+  <title>Welcome to npfc’s documentation! &mdash; npfc current-3-gb0607ed1 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -16,6 +16,7 @@
         <script src="_static/underscore.js"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -30,7 +31,7 @@
             <a href="#" class="icon icon-home"> npfc
           </a>
               <div class="version">
-                current-2-gf9669e1f
+                current-3-gb0607ed1
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -113,7 +114,8 @@ The execution of scripts is orchestrated via Snakemake workflows.</p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="install.html#pypi">PyPi</a></li>
+<li class="toctree-l2"><a class="reference internal" href="install.html#conda-environment-setup">Conda environment setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="install.html#install-the-npfc-package">Install the NPFC package</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="architecture.html">Package Architecture</a><ul>
@@ -160,9 +162,24 @@ The execution of scripts is orchestrated via Snakemake workflows.</p>
 <p class="caption" role="heading"><span class="caption-text">Workflows</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="cli.html">Command Line Interface</a></li>
-<li class="toctree-l1"><a class="reference internal" href="fragments.html">Fragments</a></li>
-<li class="toctree-l1"><a class="reference internal" href="natural_products.html">Natural Products</a></li>
-<li class="toctree-l1"><a class="reference internal" href="synthetic_compounds.html">Synthetic Compounds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fragments.html">Fragments</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="fragments.html#the-workflow">The workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fragments.html#running-the-workflow">Running the workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fragments.html#folder-tree">Folder tree</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="natural_products.html">Natural Products</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="natural_products.html#the-workflow">The workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="natural_products.html#running-the-workflow">Running the workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="natural_products.html#folder-tree">Folder tree</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="synthetic_compounds.html">Synthetic Compounds</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="synthetic_compounds.html#the-workflow">The workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="synthetic_compounds.html#running-the-workflow">Running the workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="synthetic_compounds.html#folder-tree">Folder tree</a></li>
+</ul>
+</li>
 </ul>
 </div>
 <div class="toctree-wrapper compound">
@@ -170,26 +187,65 @@ The execution of scripts is orchestrated via Snakemake workflows.</p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="deduplicate.html">deduplicate</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="deduplicate.html#module-deduplicate">Module deduplicate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="deduplicate.html#npfc.deduplicate.filter_duplicates"><code class="docutils literal notranslate"><span class="pre">filter_duplicates()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="deduplicate.html#npfc.deduplicate.init_ref_file"><code class="docutils literal notranslate"><span class="pre">init_ref_file()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="draw.html">draw</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="draw.html#module-draw">Module draw</a></li>
+<li class="toctree-l2"><a class="reference internal" href="draw.html#npfc.draw.ColorMap"><code class="docutils literal notranslate"><span class="pre">ColorMap</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="draw.html#npfc.draw.DepictionValidator"><code class="docutils literal notranslate"><span class="pre">DepictionValidator</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="draw.html#npfc.draw.FragmentHighlight"><code class="docutils literal notranslate"><span class="pre">FragmentHighlight</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="draw.html#npfc.draw.compress_parallel_edges"><code class="docutils literal notranslate"><span class="pre">compress_parallel_edges()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="draw.html#npfc.draw.depict_mol"><code class="docutils literal notranslate"><span class="pre">depict_mol()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="draw.html#npfc.draw.fcg"><code class="docutils literal notranslate"><span class="pre">fcg()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="draw.html#npfc.draw.get_d_aidxs_for_rings"><code class="docutils literal notranslate"><span class="pre">get_d_aidxs_for_rings()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="draw.html#npfc.draw.graph"><code class="docutils literal notranslate"><span class="pre">graph()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="draw.html#npfc.draw.highlight_fragment"><code class="docutils literal notranslate"><span class="pre">highlight_fragment()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="draw.html#npfc.draw.mol"><code class="docutils literal notranslate"><span class="pre">mol()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="draw.html#npfc.draw.mols"><code class="docutils literal notranslate"><span class="pre">mols()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="draw.html#npfc.draw.reaction"><code class="docutils literal notranslate"><span class="pre">reaction()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="draw.html#npfc.draw.rescale"><code class="docutils literal notranslate"><span class="pre">rescale()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="filter.html">filter</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="filter.html#module-filter">Module filter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="filter.html#npfc.filter.Filter"><code class="docutils literal notranslate"><span class="pre">Filter</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="filter.html#npfc.filter.count_violations_fragment_like"><code class="docutils literal notranslate"><span class="pre">count_violations_fragment_like()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="filter.html#npfc.filter.count_violations_fragment_like_ext"><code class="docutils literal notranslate"><span class="pre">count_violations_fragment_like_ext()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="filter.html#npfc.filter.count_violations_lead_like"><code class="docutils literal notranslate"><span class="pre">count_violations_lead_like()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="filter.html#npfc.filter.count_violations_lipinski"><code class="docutils literal notranslate"><span class="pre">count_violations_lipinski()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="filter.html#npfc.filter.count_violations_ppi_like"><code class="docutils literal notranslate"><span class="pre">count_violations_ppi_like()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="filter.html#npfc.filter.count_violations_veber"><code class="docutils literal notranslate"><span class="pre">count_violations_veber()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="filter.html#npfc.filter.get_min_max_ring_sizes"><code class="docutils literal notranslate"><span class="pre">get_min_max_ring_sizes()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="fragment_search.html">fragment_search</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="fragment_search.html#module-fragment-search">Module fragment_search</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fragment_search.html#npfc.fragment_search.get_fragment_hits"><code class="docutils literal notranslate"><span class="pre">get_fragment_hits()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="fragment_combination.html">fragment_combination</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="fragment_combination.html#module-fragment-combination">Module fragment_combination</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fragment_combination.html#npfc.fragment_combination.classify"><code class="docutils literal notranslate"><span class="pre">classify()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="fragment_combination.html#npfc.fragment_combination.classify_df"><code class="docutils literal notranslate"><span class="pre">classify_df()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="fragment_combination.html#npfc.fragment_combination.get_fragment_combination_categories"><code class="docutils literal notranslate"><span class="pre">get_fragment_combination_categories()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="fragment_combination.html#npfc.fragment_combination.get_rings_between_two_fragments"><code class="docutils literal notranslate"><span class="pre">get_rings_between_two_fragments()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="fragment_combination.html#npfc.fragment_combination.get_shortest_path_between_frags"><code class="docutils literal notranslate"><span class="pre">get_shortest_path_between_frags()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="fragment_combination_graph.html">fragment_combination_graph</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="fragment_combination_graph.html#module-fragment-combination-graph">Module fragment_combination_graph</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fragment_combination_graph.html#npfc.fragment_combination_graph.annotate_pnp"><code class="docutils literal notranslate"><span class="pre">annotate_pnp()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="fragment_combination_graph.html#npfc.fragment_combination_graph.filter_edges_attributes"><code class="docutils literal notranslate"><span class="pre">filter_edges_attributes()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="fragment_combination_graph.html#npfc.fragment_combination_graph.filter_out_fcgs_ffs"><code class="docutils literal notranslate"><span class="pre">filter_out_fcgs_ffs()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="fragment_combination_graph.html#npfc.fragment_combination_graph.filter_out_fcgs_ffs_all"><code class="docutils literal notranslate"><span class="pre">filter_out_fcgs_ffs_all()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="fragment_combination_graph.html#npfc.fragment_combination_graph.generate"><code class="docutils literal notranslate"><span class="pre">generate()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="fragment_combination_graph.html#npfc.fragment_combination_graph.get_pnp_references"><code class="docutils literal notranslate"><span class="pre">get_pnp_references()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="fragment_combination_graph.html#npfc.fragment_combination_graph.get_ref_aidxs"><code class="docutils literal notranslate"><span class="pre">get_ref_aidxs()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="fragment_combination_graph.html#npfc.fragment_combination_graph.get_varying_d_aidxs"><code class="docutils literal notranslate"><span class="pre">get_varying_d_aidxs()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="fragment_combination_graph.html#npfc.fragment_combination_graph.has_only_referenced_edges"><code class="docutils literal notranslate"><span class="pre">has_only_referenced_edges()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="fragment_combination_graph.html#npfc.fragment_combination_graph.regroup_edges_from_fcgs"><code class="docutils literal notranslate"><span class="pre">regroup_edges_from_fcgs()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="fragment_combination_point.html">fragment_combination_point</a><ul>
@@ -198,22 +254,54 @@ The execution of scripts is orchestrated via Snakemake workflows.</p>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="load.html">load</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="load.html#module-load">Module load</a></li>
+<li class="toctree-l2"><a class="reference internal" href="load.html#npfc.load.count_mols"><code class="docutils literal notranslate"><span class="pre">count_mols()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="load.html#npfc.load.file"><code class="docutils literal notranslate"><span class="pre">file()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="notebook.html">notebook</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="notebook.html#module-notebook">Module notebook</a></li>
+<li class="toctree-l2"><a class="reference internal" href="notebook.html#npfc.notebook.display_image_table"><code class="docutils literal notranslate"><span class="pre">display_image_table()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="notebook.html#npfc.notebook.gallery"><code class="docutils literal notranslate"><span class="pre">gallery()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="save.html">save</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="save.html#module-save">Module save</a></li>
+<li class="toctree-l2"><a class="reference internal" href="save.html#npfc.save.SafeHDF5Store"><code class="docutils literal notranslate"><span class="pre">SafeHDF5Store</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="save.html#npfc.save.file"><code class="docutils literal notranslate"><span class="pre">file()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="save.html#npfc.save.random"><code class="docutils literal notranslate"><span class="pre">random()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="save.html#npfc.save.write_sdf"><code class="docutils literal notranslate"><span class="pre">write_sdf()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="standardize.html">standardize</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="standardize.html#module-standardize">Module standardize</a></li>
+<li class="toctree-l2"><a class="reference internal" href="standardize.html#npfc.standardize.FullUncharger"><code class="docutils literal notranslate"><span class="pre">FullUncharger</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="standardize.html#npfc.standardize.Standardizer"><code class="docutils literal notranslate"><span class="pre">Standardizer</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="utils.html">utils</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="utils.html#module-utils">Module utils</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#npfc.utils.check_arg_bool"><code class="docutils literal notranslate"><span class="pre">check_arg_bool()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#npfc.utils.check_arg_input_config"><code class="docutils literal notranslate"><span class="pre">check_arg_input_config()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#npfc.utils.check_arg_input_dir"><code class="docutils literal notranslate"><span class="pre">check_arg_input_dir()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#npfc.utils.check_arg_input_file"><code class="docutils literal notranslate"><span class="pre">check_arg_input_file()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#npfc.utils.check_arg_output_config"><code class="docutils literal notranslate"><span class="pre">check_arg_output_config()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#npfc.utils.check_arg_output_dir"><code class="docutils literal notranslate"><span class="pre">check_arg_output_dir()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#npfc.utils.check_arg_output_file"><code class="docutils literal notranslate"><span class="pre">check_arg_output_file()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#npfc.utils.check_arg_output_plot"><code class="docutils literal notranslate"><span class="pre">check_arg_output_plot()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#npfc.utils.check_arg_positive_number"><code class="docutils literal notranslate"><span class="pre">check_arg_positive_number()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#npfc.utils.decode_mol"><code class="docutils literal notranslate"><span class="pre">decode_mol()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#npfc.utils.decode_mol_smiles"><code class="docutils literal notranslate"><span class="pre">decode_mol_smiles()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#npfc.utils.decode_object"><code class="docutils literal notranslate"><span class="pre">decode_object()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#npfc.utils.encode_mol"><code class="docutils literal notranslate"><span class="pre">encode_mol()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#npfc.utils.encode_mol_smiles"><code class="docutils literal notranslate"><span class="pre">encode_mol_smiles()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#npfc.utils.encode_object"><code class="docutils literal notranslate"><span class="pre">encode_object()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#npfc.utils.fuse_rings"><code class="docutils literal notranslate"><span class="pre">fuse_rings()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#npfc.utils.get_file_format"><code class="docutils literal notranslate"><span class="pre">get_file_format()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#npfc.utils.get_shortest_path_between_frags"><code class="docutils literal notranslate"><span class="pre">get_shortest_path_between_frags()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#npfc.utils.parse_argparse_boolstring"><code class="docutils literal notranslate"><span class="pre">parse_argparse_boolstring()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#npfc.utils.raise_timeout"><code class="docutils literal notranslate"><span class="pre">raise_timeout()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#npfc.utils.random_string"><code class="docutils literal notranslate"><span class="pre">random_string()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html#npfc.utils.timeout"><code class="docutils literal notranslate"><span class="pre">timeout()</span></code></a></li>
 </ul>
 </li>
 </ul>

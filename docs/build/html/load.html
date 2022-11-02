@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>load &mdash; npfc current-2-gf9669e1f documentation</title>
+  <title>load &mdash; npfc current-3-gb0607ed1 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -16,6 +16,7 @@
         <script src="_static/underscore.js"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -31,7 +32,7 @@
             <a href="index.html" class="icon icon-home"> npfc
           </a>
               <div class="version">
-                current-2-gf9669e1f
+                current-3-gb0607ed1
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -73,6 +74,8 @@
 <li class="toctree-l1"><a class="reference internal" href="fragment_combination_point.html">fragment_combination_point</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">load</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#module-load">Module load</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#npfc.load.count_mols"><code class="docutils literal notranslate"><span class="pre">count_mols()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#npfc.load.file"><code class="docutils literal notranslate"><span class="pre">file()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="notebook.html">notebook</a></li>
@@ -111,6 +114,7 @@
 <h2>Module load<a class="headerlink" href="#module-load" title="Permalink to this heading"></a></h2>
 <p>A module containing the Loader class, used for storing DataFrames with molecules
 on disk.</p>
+</section>
 <dl class="py function">
 <dt class="sig sig-object py" id="npfc.load.count_mols">
 <span class="sig-prename descclassname"><span class="pre">npfc.load.</span></span><span class="sig-name descname"><span class="pre">count_mols</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keep_uncompressed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hdf_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">csv_header</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">engine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'unix'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/load.html#count_mols"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#npfc.load.count_mols" title="Permalink to this definition"></a></dt>
@@ -160,7 +164,6 @@ uncompressed file can be kept for further use.</p>
 <p>..warning:: if a ‘idm’ property exists in the input file but the user picks another property for in_id, the pre-existing ‘idm’ will be renamed into ‘idm_2’.</p>
 </dd></dl>
 
-</section>
 </section>
 
 

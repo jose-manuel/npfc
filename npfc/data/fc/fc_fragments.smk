@@ -69,7 +69,7 @@ rule REPORT_FCP:
     input:
         fcp = "{WD}/{prep_subdir}/05_fcp/data/{prefix}_fcp.csv.gz"
     output: "{WD}/{prep_subdir}/report/data/{prefix}_fcp_nsymgroups.csv"
-    log: "{WD}/{prep_subdir}/05_fcp/report/report_fcp_{prefix}.log"
+    log: "{WD}/{prep_subdir}/report/log/report_fcp_{prefix}.log"
     shell: "report_fcp {WD}/{prep_subdir}/05_fcp/data {WD}/{prep_subdir}/report -d '" + report_dataset + "' -c " + report_color + " -p {prefix}  2>{log}"
 
 

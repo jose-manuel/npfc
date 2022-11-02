@@ -1,0 +1,11 @@
+{
+    "tasks": ["filter_empty",
+              "clear_mixtures",
+              "sanitize",
+              "clear_isotopes",
+              "clear_stereo",
+              "extract_murcko",
+              "reset_mol",
+              "uncharge"],
+    "filter_unwanted": "Oc1ccccc1"
+}

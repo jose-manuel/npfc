@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>filter &mdash; npfc current-2-gf9669e1f documentation</title>
+  <title>filter &mdash; npfc current-3-gb0607ed1 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -16,6 +16,7 @@
         <script src="_static/underscore.js"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -31,7 +32,7 @@
             <a href="index.html" class="icon icon-home"> npfc
           </a>
               <div class="version">
-                current-2-gf9669e1f
+                current-3-gb0607ed1
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -68,6 +69,19 @@
 <li class="toctree-l1"><a class="reference internal" href="draw.html">draw</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">filter</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#module-filter">Module filter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#npfc.filter.Filter"><code class="docutils literal notranslate"><span class="pre">Filter</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#npfc.filter.Filter.compute_descriptors"><code class="docutils literal notranslate"><span class="pre">Filter.compute_descriptors()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#npfc.filter.Filter.filter_mol"><code class="docutils literal notranslate"><span class="pre">Filter.filter_mol()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#npfc.filter.Filter.get_possible_descriptors"><code class="docutils literal notranslate"><span class="pre">Filter.get_possible_descriptors()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#npfc.filter.count_violations_fragment_like"><code class="docutils literal notranslate"><span class="pre">count_violations_fragment_like()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#npfc.filter.count_violations_fragment_like_ext"><code class="docutils literal notranslate"><span class="pre">count_violations_fragment_like_ext()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#npfc.filter.count_violations_lead_like"><code class="docutils literal notranslate"><span class="pre">count_violations_lead_like()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#npfc.filter.count_violations_lipinski"><code class="docutils literal notranslate"><span class="pre">count_violations_lipinski()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#npfc.filter.count_violations_ppi_like"><code class="docutils literal notranslate"><span class="pre">count_violations_ppi_like()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#npfc.filter.count_violations_veber"><code class="docutils literal notranslate"><span class="pre">count_violations_veber()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#npfc.filter.get_min_max_ring_sizes"><code class="docutils literal notranslate"><span class="pre">get_min_max_ring_sizes()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="fragment_search.html">fragment_search</a></li>
@@ -111,6 +125,7 @@
 <h2>Module filter<a class="headerlink" href="#module-filter" title="Permalink to this heading"></a></h2>
 <p>This modules contains the class Filter, which is used to filter molecules using
 molecular descriptors.</p>
+</section>
 <dl class="py class">
 <dt class="sig sig-object py" id="npfc.filter.Filter">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">npfc.filter.</span></span><span class="sig-name descname"><span class="pre">Filter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">descriptors={'elements':</span> <span class="pre">&lt;function</span> <span class="pre">&lt;lambda&gt;&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">'fsp3':</span> <span class="pre">&lt;function</span> <span class="pre">&lt;lambda&gt;&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">'molecular_formula':</span> <span class="pre">&lt;function</span> <span class="pre">&lt;lambda&gt;&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">'molecular_weight':</span> <span class="pre">&lt;function</span> <span class="pre">&lt;lambda&gt;&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">'num_atoms_nitrogen':</span> <span class="pre">&lt;function</span> <span class="pre">&lt;lambda&gt;&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">'num_atoms_oxygen':</span> <span class="pre">&lt;function</span> <span class="pre">&lt;lambda&gt;&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">'num_hba':</span> <span class="pre">&lt;function</span> <span class="pre">&lt;lambda&gt;&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">'num_hbd':</span> <span class="pre">&lt;function</span> <span class="pre">&lt;lambda&gt;&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">'num_heavy_atoms':</span> <span class="pre">&lt;function</span> <span class="pre">&lt;lambda&gt;&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">'num_rings':</span> <span class="pre">&lt;function</span> <span class="pre">&lt;lambda&gt;&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">'num_rings_arom':</span> <span class="pre">&lt;function</span> <span class="pre">&lt;lambda&gt;&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">'num_rotatable_bonds':</span> <span class="pre">&lt;function</span> <span class="pre">&lt;lambda&gt;&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">'ring_size_max':</span> <span class="pre">&lt;function</span> <span class="pre">&lt;lambda&gt;&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">'ring_size_min':</span> <span class="pre">&lt;function</span> <span class="pre">&lt;lambda&gt;&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">'slogp':</span> <span class="pre">&lt;function</span> <span class="pre">&lt;lambda&gt;&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">'tpsa':</span> <span class="pre">&lt;function</span> <span class="pre">&lt;lambda&gt;&gt;}</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/filter.html#Filter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#npfc.filter.Filter" title="Permalink to this definition"></a></dt>
@@ -248,7 +263,6 @@ J. Med. Chem. 45 (12): 2615–23.</p>
 In case the molecule is linear, (0, 0) is returned.</p>
 </dd></dl>
 
-</section>
 </section>
 
 

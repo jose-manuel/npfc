@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>save &mdash; npfc current-2-gf9669e1f documentation</title>
+  <title>save &mdash; npfc current-3-gb0607ed1 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -16,6 +16,7 @@
         <script src="_static/underscore.js"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -31,7 +32,7 @@
             <a href="index.html" class="icon icon-home"> npfc
           </a>
               <div class="version">
-                current-2-gf9669e1f
+                current-3-gb0607ed1
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -75,6 +76,10 @@
 <li class="toctree-l1"><a class="reference internal" href="notebook.html">notebook</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">save</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#module-save">Module save</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#npfc.save.SafeHDF5Store"><code class="docutils literal notranslate"><span class="pre">SafeHDF5Store</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#npfc.save.file"><code class="docutils literal notranslate"><span class="pre">file()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#npfc.save.random"><code class="docutils literal notranslate"><span class="pre">random()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#npfc.save.write_sdf"><code class="docutils literal notranslate"><span class="pre">write_sdf()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="standardize.html">standardize</a></li>
@@ -111,6 +116,7 @@
 <h2>Module save<a class="headerlink" href="#module-save" title="Permalink to this heading"></a></h2>
 <p>A module containing the Saver class, used for storing DataFrames with molecules
 on disk.</p>
+</section>
 <dl class="py class">
 <dt class="sig sig-object py" id="npfc.save.SafeHDF5Store">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">npfc.save.</span></span><span class="sig-name descname"><span class="pre">SafeHDF5Store</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/npfc/save.html#SafeHDF5Store"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#npfc.save.SafeHDF5Store" title="Permalink to this definition"></a></dt>
@@ -162,7 +168,6 @@ User has to make sure that correct data type is assigned to column.
 “RowID” to use the dataframe row key as title.</p>
 </dd></dl>
 
-</section>
 </section>
 
 
