@@ -5,9 +5,8 @@ set -eu # exit on error, unknown var or failed pipe
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ DISCLAIMER ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 
-# This script is used for efficiently splitting up a SDF into SDF chunks.
-# It does not parse molecules, just split the text defining them at every '$$$$'.
-# It is also memory efficient and can thus be applied on very large files.
+# This script is used for efficiently concatenating SDF chunks into a single SDF.
+# It does not parse molecules, just extract the text when archived.
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #

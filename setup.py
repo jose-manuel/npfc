@@ -72,12 +72,12 @@ setuptools.setup(
              'bin/fc/frags_annotate_fcp',
              'bin/fc/frags_search',
               # fc fragment hits
-             'bin/fc/fs_filter_fhits',  # rename into fhits_filter
+             'bin/fc/fhits_filter',  # rename into fhits_filter
              # fc fragment combinations
              'bin/fc/fc_classify',
              # fc fragment combination graphs
              'bin/fc/fcg_generate',
-             'bin/fc/fcg_filter_pnp',
+             'bin/fc/fcg_annotate_pnp',
              # fc molecules
              'bin/fc/mols_concat',
              'bin/fc/mols_count',

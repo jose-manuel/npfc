@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """
-Script annotate_pnp
+Script fcg_annotate_pnp
 ==========================
 This script is used for annotating Pseudo Natural Products (PNP).
 """
@@ -47,10 +47,10 @@ def main():
     Example:
 
         >>> # export only PNPs
-        >>> fcg_filter_pnp file_fcg.csv.gz dir_natref_fcg file_pnp.csv.gz
+        >>> fcg_annotate_pnp file_fcg.csv.gz dir_natref_fcg file_pnp.csv.gz
         >>>
         >>> # export PNPs and NPLs
-        >>> fcg_filter_pnp file_fcg.csv.gz dir_natref_fcg file_pnp.csv.gz -n file_npl.csv.gz
+        >>> fcg_annotate_pnp file_fcg.csv.gz dir_natref_fcg file_pnp.csv.gz -n file_npl.csv.gz
 
     """
 

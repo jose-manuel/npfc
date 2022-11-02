@@ -206,27 +206,30 @@ def main():
     d1 = datetime.now()
 
     # define csv outputs
-    output_csv_fcp_nsymgroups = f"{wd_out}/{prefix}_fcp_nsymgroups.csv"
+    output_csv_fcp_nsymgroups = f"{wd_out}/data/{prefix}_fcp_nsymgroups.csv"
     save.file(df_fcp_nsymgroups, output_csv_fcp_nsymgroups)
     logger.info("FCP -- OUTPUT_CSV_FCP_NSYMGROUPS".ljust(pad) + f"{output_csv_fcp_nsymgroups}")
     d2 = datetime.now()
 
-    # define plot outputs
-    output_plot_fcp_nsymgroups = output_csv_fcp_nsymgroups.replace('.csv', f".{args.plotformat}")
-    logger.info("FCP -- OUTPUT PLOT FILE SYNTAX: OUTPUT_CSV.PLOTFORMAT")
+    if not args.csv:
+        Path(f"{wd_out}/plot").mkdir(exist_ok=True)
 
-    # plot output_plot_fcp_nsymgroups
-    logger.info("FCP -- OUTPUT_PLOT_FCP_NSYMGROUPS".ljust(pad) + "COMPUTING...")
-    report.save_barplot(df_fcp_nsymgroups,
-                 output_plot_fcp_nsymgroups,
-                 'NumSymGroups',
-                 'Count',
-                 f"Number of Symmetry Groups in {dataset}",
-                 x_label='NumSymGroups',
-                 y_label='Count',
-                 color=color,
-                 perc_labels='Perc_Mols',
-                 )
+        # define plot outputs
+        output_plot_fcp_nsymgroups = f"{wd_out}/plot/{prefix}_fcp_nsymgroups.{args.plotformat}"
+        logger.info("FCP -- OUTPUT PLOT FILE SYNTAX: OUTPUT_CSV.PLOTFORMAT")
+
+        # plot output_plot_fcp_nsymgroups
+        logger.info("FCP -- OUTPUT_PLOT_FCP_NSYMGROUPS".ljust(pad) + "COMPUTING...")
+        report.save_barplot(df_fcp_nsymgroups,
+                    output_plot_fcp_nsymgroups,
+                    'NumSymGroups',
+                    'Count',
+                    f"Number of Symmetry Groups in {dataset}",
+                    x_label='NumSymGroups',
+                    y_label='Count',
+                    color=color,
+                    perc_labels='Perc_Mols',
+                    )
 
     d3 = datetime.now()
 

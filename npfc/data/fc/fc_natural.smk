@@ -65,19 +65,28 @@ if fallback_default_std_mols:
 
 rule all:
     input:
-        expand(f"{WD}/{prep_subdir}/{frags_subdir}/08_fcg/data/{prefix}" + '_{cid}_fcg.csv.gz', cid=chunk_ids),
+        data_final = expand(f"{WD}/{prep_subdir}/{frags_subdir}/08_fcg/data/{prefix}" + '_{cid}_fcg.csv.gz', cid=chunk_ids),
         count_mols = '/'.join([WD, prep_subdir, frags_subdir]) + '/report/data/' + prefix + '_count_mols.csv',
         report_time = WD + '/' + prep_subdir + '/' + frags_subdir + '/report/data/' + prefix + '_time.csv',
-        report_prep = WD + '/' + prep_subdir + '/report/report_prep_' + prefix + '.log'
+        report_prep = WD + '/' + prep_subdir + '/report/data/' + prefix + '_prep_overview.csv',
+        report_chunk_logs = expand(f"{WD}/{prep_subdir}/{frags_subdir}/report/data/08_fcg/{prefix}" + '_{cid}_fcg_counts.csv', cid=chunk_ids),
+        fcg_nfcgpermol = f"{WD}/{prep_subdir}/{frags_subdir}" + f"/report/data/{prefix}_fcg_nfcgpermol.csv"
+
+
+rule REPORT_FCG_CONCAT:
+    priority: 0
+    input: expand(f"{WD}/{prep_subdir}/{frags_subdir}/report/data/08_fcg/{prefix}" + '_{cid}_fcg_counts.csv', cid=chunk_ids)
+    output: "{WD}" + f"/{prep_subdir}/{frags_subdir}" + f"/report/data/{prefix}_fcg_nfcgpermol.csv",
+    log: "{WD}" + f"/{prep_subdir}/{frags_subdir}/report/log/report_fcg_{prefix}.log"
+    shell: f"report_fcg_concat  {WD}/{prep_subdir}/{frags_subdir}/report/data/08_fcg " + "{WD}" + f"/{prep_subdir}/{frags_subdir}/report -d '" + report_dataset + "' -c " + report_color + " -p {prefix}  2>{log}"
 
 
 rule REPORT_FCG_CHUNK:
     priority: 0
     input: ancient("{WD}" + f"/{prep_subdir}/{frags_subdir}" + "/08_fcg/data/{prefix}_{cid}_fcg.csv.gz")
-    output:
-        "{WD}" + f"/{prep_subdir}/{frags_subdir}" + "/08_fcg/report/data/{prefix}_{cid}"
-    log:
-
+    output: "{WD}" + f"/{prep_subdir}/{frags_subdir}" + "/report/data/08_fcg/{prefix}_{cid}_fcg_counts.csv"
+    log: "{WD}" + f"/{prep_subdir}/{frags_subdir}" + "/report/data/08_fcg/{prefix}_{cid}.log"
+    shell: "report_fcg_chunk {input} " + "{WD}" + f"/{prep_subdir}/{frags_subdir}/report/data/08_fcg " +  "2>{log}"
 
 rule REPORT_PREP:
     priority: 0
@@ -86,8 +95,8 @@ rule REPORT_PREP:
         std_passed = expand(f"{WD}/{prep_subdir}/03_std/data/{prefix}" + '_{cid}_std.csv.gz', cid=chunk_ids),
         dedupl = expand(f"{WD}/{prep_subdir}/04_dedupl/data/{prefix}" + '_{cid}_dedupl.csv.gz', cid=chunk_ids),
         depict = expand(f"{WD}/{prep_subdir}/05_depict/data/{prefix}" + '_{cid}_depict.csv.gz', cid=chunk_ids),
-    output: "{WD}/{prep_subdir}/report/report_prep_{prefix}.log"
-    log: "{WD}/{prep_subdir}/report/report_prep_{prefix}.log"
+    output: "{WD}/{prep_subdir}/report/data/{prefix}_prep_overview.csv"
+    log: "{WD}/{prep_subdir}/report/log/report_prep_{prefix}.log"
     shell: "report_prep {WD}/{prep_subdir} {WD}/{prep_subdir}/report -d '" + report_dataset + "' -c " + report_color + " -p {prefix}  2>{log}"
 
 

@@ -23,8 +23,6 @@ The execution of scripts is orchestrated via Snakemake workflows.
    Introduction<intro>
    Installation<install>
    Package Architecture<architecture>
-   Fragment Combination Classification
-
 
 .. toctree::
    :maxdepth: 2
