@@ -1,0 +1,14 @@
+{
+                    "prefix": "coconut",
+                    "molid": "coconut_id",
+                    "WD": "fc/03_natural/coconut/",
+                    "input_file": "fc/03_natural/coconut/data/00_raw/data/COCONUT_DB_test.sdf.gz",
+                    "frags_file": "fc/01_fragments/crms/data/prep/05_fcp/data/crms_fcp.csv.gz",
+                    "frags_subdir" : "frags_crms",
+                    "chunksize": 30,
+                    "protocol_std" : "fc/03_natural/coconut/test_natural_coconut_std.json",
+                    "report_color": "green",
+                    "report_prefix": "coconut_test",
+                    "report_dataset": "COCONUT Test",
+		            "tautomer": 0
+}

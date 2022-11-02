@@ -88,6 +88,7 @@ rule REPORT_FCG_CHUNK:
     log: "{WD}" + f"/{prep_subdir}/{frags_subdir}" + "/report/data/08_fcg/{prefix}_{cid}.log"
     shell: "report_fcg_chunk {input} " + "{WD}" + f"/{prep_subdir}/{frags_subdir}/report/data/08_fcg " +  "2>{log}"
 
+
 rule REPORT_PREP:
     priority: 0
     input:

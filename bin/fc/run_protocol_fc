@@ -207,7 +207,7 @@ def main():
 
     # determine environment
     if args.clusterconfig is None:
-        smk_command += f"-j {args.jobs} "
+        smk_command += f"-c {args.jobs} "
     else:
         smk_command += '-j 100 --cluster-config ' + args.clusterconfig + ' --cluster "sbatch -A {cluster.account} -p {cluster.partition} -n {cluster.n}  -t {cluster.time} --oversubscribe" '
 
