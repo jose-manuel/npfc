@@ -209,28 +209,32 @@ def main():
     d1 = datetime.now()
 
     # define csv outputs
-    output_csv_subset_subset = f"{wd_out}/{prefix}_subset_subset.csv"
+    output_csv_subset_subset = f"{wd_out}/data/{prefix}_subset_subset.csv"
     save.file(df_sub_subset, output_csv_subset_subset)
     logger.info("SUBSET -- OUTPUT_CSV_SUBSET_SUBSET".ljust(pad) + f"{output_csv_subset_subset}")
     d2 = datetime.now()
 
-    # define plot outputs
-    output_plot_subset_subset = output_csv_subset_subset.replace('.csv', f".{args.plotformat}")
-    logger.info("SUBSET -- OUTPUT PLOT FILE SYNTAX: OUTPUT_CSV.PLOTFORMAT")
 
-    # plot output_plot_subset_subset
-    logger.info("SUBSET -- OUTPUT_PLOT_SUBSET_SUBSET".ljust(pad) + "COMPUTING...")
-    report.save_barplot(df_sub_subset,
-                 output_plot_subset_subset,
-                 'Category',
-                 'Count',
-                 f"Creating a Synthetic Subset of {dataset}",
-                 x_label='Category',
-                 y_label='Count',
-                 color=color,
-                 perc_labels='Perc_Status',
-                 fig_size=(12, 12),
-                 )
+    if not args.csv:
+        Path(f"{args.wd_out}/plot").mkdir(exist_ok=True)
+
+        # define plot outputs
+        output_plot_subset_subset = f"{wd_out}/plot/{prefix}_subset_subset.{args.plotformat}"
+        logger.info("SUBSET -- OUTPUT_PLOT_SUBSET_SUBSET".ljust(pad) + f"{output_plot_subset_subset}")
+
+        # plot output_plot_subset_subset
+        logger.info("SUBSET -- OUTPUT_PLOT_SUBSET_SUBSET".ljust(pad) + "COMPUTING...")
+        report.save_barplot(df_sub_subset,
+                    output_plot_subset_subset,
+                    'Category',
+                    'Count',
+                    f"Creating a Synthetic Subset of {dataset}",
+                    x_label='Category',
+                    y_label='Count',
+                    color=color,
+                    perc_labels='Perc_Status',
+                    fig_size=(12, 12),
+                    )
     d3 = datetime.now()
 
     # end

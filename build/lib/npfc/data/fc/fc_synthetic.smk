@@ -94,40 +94,62 @@ rule all:
         pnp = expand(f"{WD}/{prep_subdir}/{natref_subdir}/{frags_subdir}/10_pnp/data/{prefix}" + '_{cid}_pnp.csv.gz', cid=chunk_ids),
         count_mols = '/'.join([WD, prep_subdir, natref_subdir, frags_subdir]) + '/report/data/' + prefix + '_count_mols.csv',
         time = WD + '/' + prep_subdir + '/' + natref_subdir + '/' + frags_subdir + '/report/data/' + prefix + '_time.csv',
-        report_prep = WD + '/' + prep_subdir + '/report/report_prep_' + prefix + '.log',
-        report_subset = WD + '/' + prep_subdir + '/' + natref_subdir + '/report/report_subset_' + prefix + '.log',
-        report_fcg = WD + '/' + prep_subdir + '/' + natref_subdir + '/' + frags_subdir + '/10_pnp/report/report_fcg_' + prefix + '.log'
+        report_prep = WD + '/' + prep_subdir + '/report/data/' + prefix + '_prep_overview.csv',
+        report_subset = WD + '/' + prep_subdir + '/' + natref_subdir + '/report/data/' + prefix + '_subset_subset.csv',
+        report_fcg_pnp = f"{WD}/{prep_subdir}/{natref_subdir}/{frags_subdir}" + f"/report/data/{prefix}_fcg_pnp_nfcgpermol.csv",
+        report_fcg_npl = f"{WD}/{prep_subdir}/{natref_subdir}/{frags_subdir}" + f"/report/data/{prefix}_fcg_npl_nfcgpermol.csv",
+        report_pnp = f"{WD}/{prep_subdir}/{natref_subdir}/{frags_subdir}" + f"/report/data/{prefix}_pnp_ratio.csv"
 
 
-rule REPORT_FCG_CONCAT:
+rule REPORT_PNP:
     priority: 0
-    input: expand(f"{WD}/{prep_subdir}/{natref_subdir}/{frags_subdir}/10_pnp/report/data/{prefix}" + '_{cid}_pnp_counts.csv', cid=chunk_ids),
-    output: f"{WD}/{prep_subdir}/{natref_subdir}/{frags_subdir}/10_pnp/report/report_fcg_{prefix}.log"
-    log: f"{WD}/{prep_subdir}/{natref_subdir}/{frags_subdir}/10_pnp/report/report_fcg_{prefix}.log"
-    shell: f"report_fcg_concat {WD}/{prep_subdir}/{natref_subdir}/{frags_subdir}/10_pnp/report/data {WD}/{prep_subdir}/{natref_subdir}/{frags_subdir}/10_pnp/report -s pnp -c " + report_color + " --prefix {prefix} -d '" + report_dataset + "' 2>{log}"
+    input: 
+        expand(f"{WD}/{prep_subdir}/{natref_subdir}/{frags_subdir}/10_pnp/data/{prefix}" + '_{cid}_pnp.csv.gz', cid=chunk_ids),
+        expand(f"{WD}/{prep_subdir}/{natref_subdir}/{frags_subdir}/10_pnp/data/{prefix}" + '_{cid}_npl.csv.gz', cid=chunk_ids),
+    output: "{WD}" + f"/{prep_subdir}/{natref_subdir}/{frags_subdir}" + f"/report/data/{prefix}_pnp_ratio.csv"
+    log:  "{WD}" + f"/{prep_subdir}/{natref_subdir}/{frags_subdir}/report/log/report_pnp_{prefix}.log"
+    shell: f"report_pnp  {WD}/{prep_subdir}/{natref_subdir}/{frags_subdir}/10_pnp/data " + "{WD}" + f"/{prep_subdir}/{natref_subdir}/{frags_subdir}/report -d '" + report_dataset + "' -c " + report_color + " -p {prefix}   2>{log}"
 
-rule REPORT_FCG_CHUNK:
+
+rule REPORT_FCG_CONCAT_NPL:
     priority: 0
-    input: "{WD}/{prep_subdir}/{natref_subdir}/{frags_subdir}/10_pnp/data/{prefix}_{cid}_pnp.csv.gz"
-    output:
-        counts = "{WD}/{prep_subdir}/{natref_subdir}/{frags_subdir}/10_pnp/report/data/{prefix}_{cid}_pnp_counts.csv",
-        nfcgpermol = "{WD}/{prep_subdir}/{natref_subdir}/{frags_subdir}/10_pnp/report/data/{prefix}_{cid}_pnp_nfcgpermol.csv",
-        nhits = "{WD}/{prep_subdir}/{natref_subdir}/{frags_subdir}/10_pnp/report/data/{prefix}_{cid}_pnp_nhits.csv",
-        nhits_u = "{WD}/{prep_subdir}/{natref_subdir}/{frags_subdir}/10_pnp/report/data/{prefix}_{cid}_pnp_nhits_u.csv",
-        topfrags = "{WD}/{prep_subdir}/{natref_subdir}/{frags_subdir}/10_pnp/report/data/{prefix}_{cid}_pnp_topfrags.csv",
-        topfrags_u = "{WD}/{prep_subdir}/{natref_subdir}/{frags_subdir}/10_pnp/report/data/{prefix}_{cid}_pnp_topfrags_u.csv",
-        fragratio = "{WD}/{prep_subdir}/{natref_subdir}/{frags_subdir}/10_pnp/report/data/{prefix}_{cid}_pnp_fragratio.csv",
-        fcc = "{WD}/{prep_subdir}/{natref_subdir}/{frags_subdir}/10_pnp/report/data/{prefix}_{cid}_pnp_fcc.csv",
-        fc = "{WD}/{prep_subdir}/{natref_subdir}/{frags_subdir}/10_pnp/report/data/{prefix}_{cid}_pnp_fc.csv"
-    shell: "report_fcg_chunk {input} " + f"{WD}/{prep_subdir}/{natref_subdir}/{frags_subdir}/10_pnp/report/data"
+    input: expand(f"{WD}/{prep_subdir}/{natref_subdir}/{frags_subdir}/report/data/10_pnp/npl/{prefix}" + '_{cid}_npl_counts.csv', cid=chunk_ids)
+    output: "{WD}" + f"/{prep_subdir}/{natref_subdir}/{frags_subdir}" + f"/report/data/{prefix}_fcg_npl_nfcgpermol.csv",
+    log: "{WD}" + f"/{prep_subdir}/{natref_subdir}/{frags_subdir}/report/log/report_fcg_{prefix}_npl.log"
+    shell: f"report_fcg_concat  {WD}/{prep_subdir}/{natref_subdir}/{frags_subdir}/report/data/10_pnp/npl " + "{WD}" + f"/{prep_subdir}/{natref_subdir}/{frags_subdir}/report -d '" + report_dataset + "' -c " + report_color + " --suffix 'npl' -p {prefix}   2>{log}"
 
+
+rule REPORT_FCG_CHUNK_NPL:
+    priority: 0
+    input:  ancient("{WD}" + f"/{prep_subdir}/{natref_subdir}/{frags_subdir}" + "/10_pnp/data/{prefix}_{cid}_npl.csv.gz")
+    output: "{WD}" + f"/{prep_subdir}/{natref_subdir}/{frags_subdir}" + "/report/data/10_pnp/npl/{prefix}_{cid}_npl_counts.csv"
+    log: "{WD}" + f"/{prep_subdir}/{natref_subdir}/{frags_subdir}" + "/report/log/10_pnp/npl/report_fcg_{prefix}_{cid}_pnp.log"
+    shell: "report_fcg_chunk {input} " + "{WD}" + f"/{prep_subdir}/{natref_subdir}/{frags_subdir}/report/data/10_pnp/npl " +  "2>{log}"
+
+
+
+
+rule REPORT_FCG_CONCAT_PNP:
+    priority: 0
+    input: expand(f"{WD}/{prep_subdir}/{natref_subdir}/{frags_subdir}/report/data/10_pnp/pnp/{prefix}" + '_{cid}_pnp_counts.csv', cid=chunk_ids)
+    output: "{WD}" + f"/{prep_subdir}/{natref_subdir}/{frags_subdir}" + f"/report/data/{prefix}_fcg_pnp_nfcgpermol.csv",
+    log: "{WD}" + f"/{prep_subdir}/{natref_subdir}/{frags_subdir}/report/log/report_fcg_{prefix}_pnp.log"
+    shell: f"report_fcg_concat  {WD}/{prep_subdir}/{natref_subdir}/{frags_subdir}/report/data/10_pnp/pnp " + "{WD}" + f"/{prep_subdir}/{natref_subdir}/{frags_subdir}/report -d '" + report_dataset + "' -c " + report_color + " --suffix 'pnp' -p {prefix}   2>{log}"
+
+
+rule REPORT_FCG_CHUNK_PNP:
+    priority: 0
+    input:  ancient("{WD}" + f"/{prep_subdir}/{natref_subdir}/{frags_subdir}" + "/10_pnp/data/{prefix}_{cid}_pnp.csv.gz")
+    output: "{WD}" + f"/{prep_subdir}/{natref_subdir}/{frags_subdir}" + "/report/data/10_pnp/pnp/{prefix}_{cid}_pnp_counts.csv"
+    log: "{WD}" + f"/{prep_subdir}/{natref_subdir}/{frags_subdir}" + "/report/log/10_pnp/pnp/report_fcg_{prefix}_{cid}_pnp.log"
+    shell: "report_fcg_chunk {input} " + "{WD}" + f"/{prep_subdir}/{natref_subdir}/{frags_subdir}/report/data/10_pnp/pnp " +  "2>{log}"
 
 
 rule REPORT_SUBSET:
     priority: 0
     input: expand(f"{WD}/{prep_subdir}/{natref_subdir}/06_subset/data/{prefix}" + '_{cid}_subset.csv.gz', cid=chunk_ids)
-    output: "{WD}/{prep_subdir}/{natref_subdir}/report/report_subset_{prefix}.log"
-    log: "{WD}/{prep_subdir}/{natref_subdir}/report/report_subset_{prefix}.log"
+    output: "{WD}/{prep_subdir}/{natref_subdir}/report/data/{prefix}_subset_subset.csv"
+    log: "{WD}/{prep_subdir}/{natref_subdir}/report/log/report_subset_{prefix}.log"
     shell: "report_subset {WD}/{prep_subdir}/{natref_subdir}/06_subset/log {WD}/{prep_subdir}/{natref_subdir}/report -d '" + f"{report_dataset}\nReference NP Dataset: {natref_subdir.replace('natref_', '')}" + "' -c " + report_color + " -p {prefix}  2>{log}"
 
 
@@ -138,7 +160,7 @@ rule REPORT_PREP:
         std_passed = expand(f"{WD}/{prep_subdir}/03_std/data/{prefix}" + '_{cid}_std.csv.gz', cid=chunk_ids),
         dedupl = expand(f"{WD}/{prep_subdir}/04_dedupl/data/{prefix}" + '_{cid}_dedupl.csv.gz', cid=chunk_ids),
         depict = expand(f"{WD}/{prep_subdir}/05_depict/data/{prefix}" + '_{cid}_depict.csv.gz', cid=chunk_ids),
-    output: "{WD}/{prep_subdir}/report/report_prep_{prefix}.log"
+    output: "{WD}/{prep_subdir}/report/data/{prefix}_prep_overview.csv"
     log: "{WD}/{prep_subdir}/report/report_prep_{prefix}.log"
     shell: "report_prep {WD}/{prep_subdir} {WD}/{prep_subdir}/report -d '" + report_dataset + "' -c " + report_color + " -p {prefix}  2>{log}"
 
@@ -185,7 +207,7 @@ rule REPORT_TIME:
     shell: "report_time {WD}/{prep_subdir} '{prefix}_{wildcards.cid}*' {output} -p {prep_subdir} -n {natref_subdir} -f {frags_subdir} 2>{log}"
 
 
-rule COUNT_MOLS_SUM:
+rule REPORT_COUNT_SUM:
     priority: 2
     input: expand('/'.join([WD, prep_subdir, natref_subdir, frags_subdir, "report/data", prefix]) + '_{cid}_count_mols.csv', cid=chunk_ids)
     output: '/'.join([WD, prep_subdir, natref_subdir, frags_subdir]) + '/report/data/' + prefix + '_count_mols.csv'
@@ -210,7 +232,7 @@ rule COUNT_MOLS_SUM:
             [Path(f).unlink() for f in input_files]
 
 
-rule COUNT_MOLS:
+rule REPORT_COUNT:
     priority: 3
     input:
         chunk = "{WD}/{prep_subdir}/01_chunk/data/{prefix}_{cid}.sdf.gz",
@@ -225,7 +247,7 @@ rule COUNT_MOLS:
         pnp = "{WD}/{prep_subdir}/" + natref_subdir + "/" + frags_subdir + "/10_pnp/data/{prefix}_{cid}_pnp.csv.gz"
     output: "{WD}/{prep_subdir}/" + natref_subdir + "/" + frags_subdir + "/report/data/{prefix}_{cid}_count_mols.csv"
     log: "{WD}/{prep_subdir}/" + natref_subdir + "/" + frags_subdir + "/report/log/{prefix}_{cid}_count_mols.log"
-    shell: "mols_count {WD}/{prep_subdir} {prefix}_{wildcards.cid}* {output} 2>{log}"
+    shell: "report_mols_count {WD}/{prep_subdir} {prefix}_{wildcards.cid}* {output} 2>{log}"
 
 
 rule PNP:
@@ -236,7 +258,7 @@ rule PNP:
         npl = "{WD}" + f"/{prep_subdir}/{natref_subdir}/{frags_subdir}" + "/10_pnp/data/{prefix}_{cid}_npl.csv.gz",
         list_pnps = "{WD}" + f"/{prep_subdir}/{natref_subdir}/{frags_subdir}" + "/10_pnp/log/{prefix}_{cid}_list_pnp.csv.gz"
     log: "{WD}" + f"/{prep_subdir}/{natref_subdir}/{frags_subdir}" + "/10_pnp/log/{prefix}_{cid}_pnp.log"
-    shell: "fcg_filter_pnp {input} {natref_fcg_dir} {output.pnp} -n {output.npl} -l {output.list_pnps} -d '" + pnp_attributes + "' >{log} 2>&1"
+    shell: "fcg_annotate_pnp {input} {natref_fcg_dir} {output.pnp} -n {output.npl} -l {output.list_pnps} -d '" + pnp_attributes + "' >{log} 2>&1"
 
 
 rule FCG:

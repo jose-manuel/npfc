@@ -1,7 +1,7 @@
 #!python
 
 """
-Script annotate_pnp
+Script fcg_annotate_pnp
 ==========================
 This script is used for annotating Pseudo Natural Products (PNP).
 """
@@ -30,21 +30,27 @@ def main():
 
     # init
     d0 = datetime.now()
-    description = """Script is used for annotating Pseudo Natural Products (PNP) and
-    Natural-Products-Like sructures (NLP).
+    description = """Script is used for identifying Pseudo Natural Products (PNP
+    and Natural-Products-Like sructures (NLP).
 
-    It takes two inputs:
+    It takes two mandatory inputs:
         - the fcg file with the molecules to annotate by comparing fragment fcgs (graphs)
         - a folder that contains molecular files of natural products
 
     It creates one output:
         - the input molecular file annotated with a new column "pnp" valuing either True or False.
 
+    Additionally, NPL compounds can be saved as well, if a npl output file is specified.
+
     It uses the installed npfc libary in your favorite env manager.
 
     Example:
 
+        >>> # export only PNPs
         >>> fcg_annotate_pnp file_fcg.csv.gz dir_natref_fcg file_pnp.csv.gz
+        >>>
+        >>> # export PNPs and NPLs
+        >>> fcg_annotate_pnp file_fcg.csv.gz dir_natref_fcg file_pnp.csv.gz -n file_npl.csv.gz
 
     """
 
@@ -52,11 +58,11 @@ def main():
     parser = argparse.ArgumentParser(description=description, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('input_fcg', type=str, default=None, help="Fragment Map file to annotate")
     parser.add_argument('ref_dir', type=str, default=None, help="Directory with Fragment Map files to use as references (currently wiht syntax: <name>_fcg.csv.gz)")
-    parser.add_argument('output_fcg', type=str, default=None, help="Output file for annoated fragment graphs.")
+    parser.add_argument('output_pnp', type=str, default=None, help="Output file for annotated fragment graphs (i.e. file_pnp.csv.gz).")
+    parser.add_argument('-n', '--output_npl', type=str, default=None, help="Output file for NPL compounds (i.e. file_npl.csv.gz). NPL compounds are molecules that containing fragment connectivity completely found in NP references. (>= 1 match for each FCG)")
     parser.add_argument('-d', '--data', type=str, default='fcc,fcp_1,fcp_2', help="Graph edge attributes to consider for annotating pnps (no space, separated with ',').")
-    parser.add_argument('-s', '--symmetry', type=bool, default=True, help="Consider symmetry when comparing FCPs. If activated, the suffixes ('1a,2') are removed ('1,2') so equivalent FCPs are considered the same.")
+    parser.add_argument('-s', '--symmetry', type=utils.parse_argparse_boolstring, default=True, help="Consider symmetry when comparing FCPs. If activated, the suffixes ('1a,2') are removed ('1,2') so equivalent FCPs are considered the same.")
     parser.add_argument('-l', '--list-pnp-mols', type=str, default=None, help="Output file with the list of molecules labelled as PNP or not. It is useful to avoid loading the whole dataset just to count the proportion of PNP/non-PNP molecules.")
-    parser.add_argument('--subset', type=str, default='pnp', help="Either 'pnp', 'npl' or 'all' to export either only pnp, only npl or all molecules to FCG output.")
     parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
     args = parser.parse_args()
 
@@ -68,11 +74,13 @@ def main():
 
     # parse arguments
     utils.check_arg_input_file(args.input_fcg)
-    utils.check_arg_output_file(args.output_fcg)
+    utils.check_arg_output_file(args.output_pnp)
+    if args.output_npl is not None:
+        utils.check_arg_output_file(args.output_npl)
     if args.list_pnp_mols is not None:
         utils.check_arg_output_file(args.list_pnp_mols)
     input_format, input_compression = utils.get_file_format(args.input_fcg)
-    out_format, out_compression = utils.get_file_format(args.output_fcg)
+    out_format, out_compression = utils.get_file_format(args.output_pnp)
     data = args.data
     if data is None:
         data = []
@@ -80,9 +88,6 @@ def main():
         data = tuple([x.strip() for x in data.split(',')])
     else:
         data = tuple([data])
-    args.subset = args.subset.lower()
-    if args.subset not in ['all', 'pnp', 'npl']:
-        raise ValueError('ERROR! SUBSET IS NONE OF "all", "pnp" OR "npl!" ({args.subset})')
 
     # get the list of reference files
     p = Path(args.ref_dir)
@@ -103,13 +108,13 @@ def main():
     logger.info("INPUT_COMPRESSION".ljust(pad) + f"{input_compression}")
     logger.info("REF_DIR".ljust(pad) + f"{args.ref_dir}")
     logger.info("NUM REF_DIR".ljust(pad) + f"{len(ref_files)}")
-    logger.info("OUTPUT_MAP".ljust(pad) + f"{args.output_fcg}")
+    logger.info("OUTPUT_PNP".ljust(pad) + f"{args.output_pnp}")
+    logger.info("OUTPUT_NPL".ljust(pad) + f"{args.output_npl}")
     logger.info("OUT_FORMAT".ljust(pad) + f"{out_format}")
     logger.info("OUT_COMPRESSION".ljust(pad) + f"{out_compression}")
     logger.info("LIST_PNP_MOLS".ljust(pad) + f"{args.list_pnp_mols}")
     logger.info("PNP_ATTRIBUTES".ljust(pad) + f"{', '.join(data)}")
     logger.info("SYMMETRY".ljust(pad) + f"{args.symmetry}")
-    logger.info("SUBSET".ljust(pad) + f"{args.subset}")
     logger.info("LOG".ljust(pad) + f"{args.log}")
     d1 = datetime.now()
 
@@ -132,8 +137,8 @@ def main():
         # saving results
         logger.info("SAVING RESULTS")
         d5 = datetime.now()
-        logger.info(f"SAVING PNP RESULTS AT '{args.output_fcg}'")
-        save.file(df_fcg, args.output_fcg, encode=True)
+        logger.info(f"SAVING PNP RESULTS AT '{args.output_pnp}'")
+        save.file(df_fcg, args.output_pnp, encode=True)
         if args.list_pnp_mols is not None:
             save.file(pd.DataFrame(columns=['idm', 'idfcg', 'pnp_fcg', 'pnp_mol', '_pnp_ref']), args.list_pnp_mols)
 
@@ -173,20 +178,19 @@ def main():
 
 
     # saving results
-    logger.info("EXPORTING FCG OUTPUT FILE")
+    logger.info("EXPORTING PNP OUTPUT FILE")
     d5 = datetime.now()
-    if args.subset == 'pnp':
-        df_pnp = df_pnp[df_pnp['pnp_mol'] == True]
-        logger.info(f"EXPORTING ONLY PNP MOLECULES TO FCG OUTPUT: {num_pnp_mols:,} ({num_pnp_mols/num_tot_mols:.2%})...")
-    elif args.subset == 'npl':
-        df_pnp = df_pnp[df_pnp['pnp_mol'] == False]
-        logger.info(f"EXPORTING ONLY NPL MOLECULES TO FCG OUTPUT: {num_npl_mols:,} ({num_npl_mols/num_tot_mols:.2%})...")
-    else:
-        logger.info(f"EXPORTING ALL MOLECULES TO FCG OUTPUT: {num_tot_mols:,} ({num_tot_mols/num_tot_mols:.2%})...")
 
+    # npl, optional
+    if args.output_npl is not None:
+        df_npl = df_pnp[df_pnp['pnp_mol'] == False]
+        save.file(df_npl, args.output_npl, encode=True)
+        logger.info(f"EXPORTED {len(df_npl)} MOLECULES TO NPL OUTPUT")
 
-    logger.info(f"SAVING PNP RESULTS AT '{args.output_fcg}'")
-    save.file(df_pnp, args.output_fcg, encode=True)
+    # pnp
+    df_pnp = df_pnp[df_pnp['pnp_mol'] == True]
+    save.file(df_pnp, args.output_pnp, encode=True)
+    logger.info(f"EXPORTED {len(df_pnp)} MOLECULES TO PNP OUTPUT")
 
     # end
     d6 = datetime.now()
@@ -196,7 +200,7 @@ def main():
     logger.info("COMPUTATIONAL TIME: LOADING REFERENCE FRAGMENT COMBINATION GRAPHS".ljust(pad * 2) + f"{d3-d2}")
     logger.info("COMPUTATIONAL TIME: ANNOTATING FRAGMENT COMBINATION GRAPHS".ljust(pad * 2) + f"{d4-d3}")
     logger.info("COMPUTATIONAL TIME: EXPORTING PNP LISTS".ljust(pad * 2) + f"{d5-d4}")
-    logger.info("COMPUTATIONAL TIME: SAVING ANNOTATED FRAGMENT COMBINATION GRAPHS".ljust(pad * 2) + f"{d6-d5}")
+    logger.info("COMPUTATIONAL TIME: EXPORTING RESULTS".ljust(pad * 2) + f"{d6-d5}")
     logger.info("COMPUTATIONAL TIME: TOTAL".ljust(pad * 2) + f"{d6-d0}")
     logger.info("END")
 

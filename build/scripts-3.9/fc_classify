@@ -51,8 +51,8 @@ def main():
     parser.add_argument('input_sub', type=str, default=None, help="Input file for substructures hits.")
     parser.add_argument('output_fcc', type=str, default=None, help="Output file basename. It gets appended with the type of output being produced: raw, clean and map.")
     parser.add_argument('-c', '--cutoff', type=int, default=3, help="Threshold value on intermediary atoms between 2 fragments. Any value combination with a higher number than this value will be rejected and flagged as false positive (cfc)")
-    parser.add_argument('-e', '--exclude-exocyclic', type=bool, default=True, help="Exclude exocyclic atoms in fragments during the fragment combination classifcation (no more methyls turning connections into fusions).")
-    parser.add_argument('--keep-raw', type=bool, default=False, help="Also save raw fragment combination classification (fcc) in addition to clean fcc (without cfc false positives)")
+    parser.add_argument('-e', '--exclude-exocyclic', type=utils.parse_argparse_boolstring, default=True, help="Exclude exocyclic atoms in fragments during the fragment combination classifcation (no more methyls turning connections into fusions).")
+    parser.add_argument('--keep-raw', type=utils.parse_argparse_boolstring, default=False, help="Also save raw fragment combination classification (fcc) in addition to clean fcc (without cfc false positives)")
     parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
     args = parser.parse_args()
 

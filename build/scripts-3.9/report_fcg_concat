@@ -23,6 +23,7 @@ all, depending on the subset parameter.
 """
 
 # standard
+from multiprocessing.sharedctypes import Value
 import warnings
 import logging
 import argparse
@@ -91,10 +92,6 @@ def get_df_fcg(WD: Path, subset=None) -> DataFrame:
     pattern_counts = '.*(_[0-9]{3})?_(fcg|pnp|npl)_counts.csv(.gz)?'
     pattern_counts = subset_pattern(pattern_counts, subset)
     chunks_counts = report._get_chunks(WD, pattern_counts)
-    for c in chunks_counts:
-        print(c)
-    sys.exit(0)
-
     logger.info(f"FCG -- CONCATENATING {len(chunks_counts)} CHUNKS FOR COUNTS...")
     df_counts = pd.concat([load.file(x) for x in chunks_counts])
     num_tot_fcg_graph = df_counts['num_tot_fcg_graph'].sum()
@@ -156,7 +153,7 @@ def get_df_fcg(WD: Path, subset=None) -> DataFrame:
     pattern_fragratio = subset_pattern(pattern_fragratio, subset)
     chunks_fragratio = report._get_chunks(WD, pattern_fragratio)
     logger.info(f"FCG -- CONCATENATING {len(chunks_fragratio)} CHUNKS FOR FRAGRATIO...")
-    df_fcg_fragratio = pd.concat([load.file(x) for x in chunks_fragratio])
+    df_fcg_fragmolcov = pd.concat([load.file(x) for x in chunks_fragratio])
 
 
     # fcc categories
@@ -185,10 +182,10 @@ def get_df_fcg(WD: Path, subset=None) -> DataFrame:
     df_fcg_topfrags['idf'] = df_fcg_topfrags['idf'].astype(str)
     logger.info(f"FCG -- RESULTS FOR THE TOP FRAGMENTS\n\n{df_fcg_topfrags}\n")
 
-    # fcg_fragratio
+    # fcg_fragmolcov
     logger.info("FCG -- INVESTIGATING FOR THE RATIO OF FRAGMENT PER MOLECULE")
-    df_fcg_fragratio = df_fcg_fragratio.reset_index(drop=True)
-    logger.info(f"FCG -- RESULTS FOR THE RATIO OF FRAGMENT PER MOLECULE\n\n{df_fcg_fragratio}\n")  # only a subset will be printed by pandas if many entries
+    df_fcg_fragmolcov = df_fcg_fragmolcov.reset_index(drop=True)
+    logger.info(f"FCG -- RESULTS FOR THE RATIO OF FRAGMENT PER MOLECULE\n\n{df_fcg_fragmolcov}\n")  # only a subset will be printed by pandas if many entries
 
     # fcg_nhits_u
     logger.info("FCG -- INVESTIGATING THE NUMBER OF UNIQUE FRAGMENT HITS PER MOLECULE")
@@ -223,7 +220,7 @@ def get_df_fcg(WD: Path, subset=None) -> DataFrame:
     df_fcg_fc['Rank'] = df_fcg_fc.index + 1
     logger.info(f"FCG -- RESULT FOR THE TOP FRAGMENT COMBINATIONS\n\n{df_fcg_fc}\n")
 
-    return (df_fcg_nhits, df_fcg_nhits_u, df_fcg_fragratio, df_fcg_topfrags, df_fcg_topfrags_u, df_fcg_fcc, df_fcg_fc, df_fcg_nfcgpermol)
+    return (df_fcg_nhits, df_fcg_nhits_u, df_fcg_fragmolcov, df_fcg_topfrags, df_fcg_topfrags_u, df_fcg_fcc, df_fcg_fc, df_fcg_nfcgpermol)
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ BEGIN ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
@@ -256,9 +253,9 @@ def main():
                         ├── frags_crms
                             ├── 06_fs
                             ├── 07_fcc
-                            ├── 08_fcg
-                                ├── report
-                                    ├── data  <- folder with the FCG chunk data
+                            ├── report
+                                ├── data  
+                                    ├── 08_fcg   <- folder with the FCG chunk data
 
         - the output folder where to save the report (log, csv and plot files)
 
@@ -273,15 +270,18 @@ def main():
         >>> $ input_dir=fc/04_synthetic/chembl/data/prep/natref_dnp/frags_crms/09_fcg/report/data
         >>> $ output_dir=fc/04_synthetic/chembl/data/prep/natref_dnp/frags_crms/09_fcg/report
         >>> $ report_fcg_chunk $input_file $output_dir -d "My Data Set" --p dataset -c blue
+
+    Outputs are stored in subfolders (data for csv files and plot for svg/png files).
     """
 
     # parameters CLI
     parser = argparse.ArgumentParser(description="Compute all required files for analyzing FCC results", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('wd', type=str, default=None, help="Working directory where the data to parse is")
     parser.add_argument('wd_out', type=str, default=None, help="Output directory")
-    parser.add_argument('-s', '--subset', type=str, default=None, help="For synthetic compounds only. Specify what subset to use for analyzing the results (either 'pnp', 'npl' or leave undefined for all).")
+    parser.add_argument('-s', '--subset', type=str, default=None, help="For synthetic compounds only. Useful only when PNPs and NPLs are not split into different files. This argument specifies what subset to use for analyzing the results (either 'pnp', 'npl' or leave undefined for all).")
     parser.add_argument('-d', '--dataset', type=str, default=None, help="Dataset name for using in the csv/png outputs in the report folder.")
     parser.add_argument('-p', '--prefix', type=str, default=None, help="Prefix used for output files in the data/log folders.")
+    parser.add_argument('--suffix', type=str, default=None, help="Suffix used for output files in the data/log folders. Either None, 'pnp' or 'npl'. By default None, so complete suffix is '_fcg'. Useful to differenciate between PNPs and NPLs ('_fcg_pnp', '_fcg_npl').")
     parser.add_argument('-c', '--color', type=str, default='black', help="Color to use for plots.")
     parser.add_argument('--plotformat', type=str, default='svg', help="Format to use for plots. Possible values are 'svg' and 'png'.")
     parser.add_argument('--csv', type=str, default=False, help="Generate only CSV output files")
@@ -304,6 +304,15 @@ def main():
         prefix = Path(args.wd).name
     else:
         prefix = args.prefix
+
+    # suffix
+    if args.suffix is None:
+        suffix = 'fcg'
+    else:
+        if args.suffix in ('pnp', 'npl'):
+            suffix = f"fcg_{args.suffix}"
+        else:
+            raise ValueError('ERROR! SUFFIX NOT ALLOWED (DIFFERENT FROM "pnp" AND "npl")!')
 
     # dataset
     if args.dataset is None:
@@ -366,47 +375,51 @@ def main():
     report.print_title("REPORTING FCG", 3, pad_title)
 
     # define outputs
-    output_csv_fcg_nfragpermol = f"{args.wd_out}/{prefix}_fcg_nfragpermol.csv"
-    output_csv_fcg_nfragpermol_u = f"{args.wd_out}/{prefix}_fcg_nfragpermol_u.csv"
-    output_csv_fcg_fragmolcov = f"{args.wd_out}/{prefix}_fcg_fragmolcov.csv"
-    output_csv_fcg_top10frags = f"{args.wd_out}/{prefix}_fcg_top10frags.csv"
-    output_csv_fcg_top10frags_u = f"{args.wd_out}/{prefix}_fcg_top10frags_u.csv"
-    output_csv_fcg_fcc = f"{args.wd_out}/{prefix}_fcg_fcc.csv"
-    output_csv_fcg_top10fc = f"{args.wd_out}/{prefix}_fcg_fc.csv"
-    output_csv_fcg_nfcgpermol = f"{args.wd_out}/{prefix}_fcg_nfcgpermol.csv"
-    output_plot_fcg_nfragpermol = output_csv_fcg_nfragpermol.replace('.csv', f".{args.plotformat}")
-    output_plot_fcg_nfragpermol_zoom = output_csv_fcg_nfragpermol.replace('.csv', f"_zoom.{args.plotformat}")
-    output_plot_fcg_nfragpermol_u = output_csv_fcg_nfragpermol_u.replace('.csv', f".{args.plotformat}")
-    output_plot_fcg_nfragpermol_u_zoom = output_csv_fcg_nfragpermol_u.replace('.csv', f"_zoom.{args.plotformat}")
-    output_plot_fcg_fragmolcov = output_csv_fcg_fragmolcov.replace('.csv', f".{args.plotformat}")
-    output_plot_fcg_fragmolcov_wo_side_chain = f"{args.wd_out}/{Path(output_plot_fcg_fragmolcov).stem}_wo_side_chain.{args.plotformat}"
-    output_plot_fcg_top10frags = output_csv_fcg_top10frags.replace('.csv', f".{args.plotformat}")
-    output_plot_fcg_top10frags_u = output_csv_fcg_top10frags_u.replace('.csv', f".{args.plotformat}")
-    output_plot_fcg_fcc = output_csv_fcg_fcc.replace('.csv', f".{args.plotformat}")
-    output_plot_fcg_top10fc = output_csv_fcg_top10fc.replace('.csv', f".{args.plotformat}")
-    output_plot_fcg_nfcgpermol = output_csv_fcg_nfcgpermol.replace('.csv', f".{args.plotformat}")
-    output_plot_fcg_nfcgpermol_zoom = output_csv_fcg_nfcgpermol.replace('.csv', f"_zoom.{args.plotformat}")
-    logger.info("FCG -- OUTPUT_CSV_FCG_NFRAGPERMOL".ljust(pad) + f"{output_csv_fcg_nfragpermol}")
-    logger.info("FCG -- OUTPUT_CSV_FCG_NFRAGPERMOL_U".ljust(pad) + f"{output_csv_fcg_nfragpermol_u}")
+    # data
+    output_csv_fcg_nfcgpermol = f"{args.wd_out}/data/{prefix}_{suffix}_nfcgpermol.csv"
+    output_csv_fcg_top10frags = f"{args.wd_out}/data/{prefix}_{suffix}_top10frags.csv"
+    output_csv_fcg_top10frags_u = f"{args.wd_out}/data/{prefix}_{suffix}_top10frags_u.csv"
+    output_csv_fcg_nhits = f"{args.wd_out}/data/{prefix}_{suffix}_nhits.csv"
+    output_csv_fcg_nhits_u = f"{args.wd_out}/data/{prefix}_{suffix}_nhits_u.csv"
+    output_csv_fcg_fragmolcov = f"{args.wd_out}/data/{prefix}_{suffix}_fragmolcov.csv"
+    output_csv_fcg_fcc = f"{args.wd_out}/data/{prefix}_{suffix}_fcc.csv"
+    output_csv_fcg_fc = f"{args.wd_out}/data/{prefix}_{suffix}_fc.csv"
+
+    # plot
+    output_plot_fcg_nhits = f"{args.wd_out}/plot/{prefix}_{suffix}_nhits.{args.plotformat}"
+    output_plot_fcg_nhits_zoom = output_plot_fcg_nhits.replace(f"{args.plotformat}", f"_zoom.{args.plotformat}")
+    output_plot_fcg_nhits_u = f"{args.wd_out}/plot/{prefix}_{suffix}_fragmolcov.{args.plotformat}"
+    output_plot_fcg_nhits_u_zoom = output_plot_fcg_nhits_u.replace(f"{args.plotformat}", f"_zoom.{args.plotformat}")
+    output_plot_fcg_fragmolcov = f"{args.wd_out}/plot/{prefix}_{suffix}_fragmolcov.{args.plotformat}"
+    output_plot_fcg_fragmolcov_wo_side_chain = output_plot_fcg_fragmolcov.replace("_fcg_fragmolcov", "_fcg_fragmolcov_wo_side_chain")
+    output_plot_fcg_top10frags =  f"{args.wd_out}/plot/{prefix}_{suffix}_top10frags.{args.plotformat}"
+    output_plot_fcg_top10frags_u = f"{args.wd_out}/plot/{prefix}_{suffix}_top10frags_u.{args.plotformat}"
+    output_plot_fcg_fcc = f"{args.wd_out}/plot/{prefix}_{suffix}_fcc.{args.plotformat}"
+    output_plot_fcg_fc = f"{args.wd_out}/plot/{prefix}_{suffix}_fc.{args.plotformat}"
+    output_plot_fcg_nfcgpermol = f"{args.wd_out}/plot/{prefix}_{suffix}_nfcgpermol.{args.plotformat}"
+    output_plot_fcg_nfcgpermol_zoom = output_plot_fcg_fragmolcov.replace("_fcg_nfcgpermol", "_fcg_nfcgpermol_zoom")
+    # descirbe
+    logger.info("FCG -- OUTPUT_CSV_FCG_NFRAGPERMOL".ljust(pad) + f"{output_csv_fcg_nhits}")
+    logger.info("FCG -- OUTPUT_CSV_FCG_NFRAGPERMOL_U".ljust(pad) + f"{output_csv_fcg_nhits_u}")
     logger.info("FCG -- OUTPUT_CSV_FCG_FRAGMOLCOV".ljust(pad) + f"{output_csv_fcg_fragmolcov}")
     logger.info("FCG -- OUTPUT_CSV_FCG_TOP10FRAGS".ljust(pad) + f"{output_csv_fcg_top10frags}")
     logger.info("FCG -- OUTPUT_CSV_FCG_TOP10FRAGS_U".ljust(pad) + f"{output_csv_fcg_top10frags_u}")
     logger.info("FCG -- OUTPUT_CSV_FCG_FCC".ljust(pad) + f"{output_csv_fcg_fcc}")
-    logger.info("FCG -- OUTPUT_CSV_FCG_TOP10FC".ljust(pad) + f"{output_csv_fcg_top10fc}")
+    logger.info("FCG -- OUTPUT_CSV_FCG_TOP10FC".ljust(pad) + f"{output_csv_fcg_fc}")
     logger.info("FCG -- OUTPUT_CSV_FCG_NFRAGGRAPHPERMOL".ljust(pad) + f"{output_csv_fcg_nfcgpermol}")
     logger.info("FCG -- OUTPUT PLOT FILES HAVE THE SAME FILE NAMES AS OUTPUT CSV FILES")
     # retrieve data
-    output_csv_files = [output_csv_fcg_nfragpermol, output_csv_fcg_nfragpermol_u,
+    output_csv_files = [output_csv_fcg_nhits, output_csv_fcg_nhits_u,
                         output_csv_fcg_fragmolcov,
                         output_csv_fcg_top10frags, output_csv_fcg_top10frags_u,
-                        output_csv_fcg_fcc, output_csv_fcg_top10fc,
+                        output_csv_fcg_fcc, output_csv_fcg_fc,
                         output_csv_fcg_nfcgpermol,
                         ]
-    output_plot_files = [output_plot_fcg_nfragpermol, output_plot_fcg_nfragpermol_u,
+    output_plot_files = [output_plot_fcg_nhits, output_plot_fcg_nhits_u,
                          output_plot_fcg_fragmolcov, output_plot_fcg_fragmolcov_wo_side_chain,
-                         output_plot_fcg_nfragpermol_zoom, output_plot_fcg_nfragpermol_u_zoom,
+                         output_plot_fcg_nhits_zoom, output_plot_fcg_nhits_u_zoom,
                          output_plot_fcg_top10frags, output_plot_fcg_top10frags_u,
-                         output_plot_fcg_fcc, output_plot_fcg_top10fc,
+                         output_plot_fcg_fcc, output_plot_fcg_fc,
                          output_plot_fcg_nfcgpermol, output_plot_fcg_nfcgpermol_zoom,
                          ]
 
@@ -425,39 +438,40 @@ def main():
         logger.info("FCG -- ALL OUTPUT PLOT FILES ARE ALREADY AVAILABLE, NOTHING TO DO!")
     elif all([Path(x).exists() for x in output_csv_files]):
         logger.info("FCG -- PARSING OUTPUT CSV FILES INSTEAD OF COMPUTING THEM")
-        df_fcg_nfragpermol = load.file(output_csv_fcg_nfragpermol)
-        df_fcg_nfragpermol_u = load.file(output_csv_fcg_nfragpermol_u)
+        df_fcg_nhits = load.file(output_csv_fcg_nhits)
+        df_fcg_nhits_u = load.file(output_csv_fcg_nhits_u)
         df_fcg_fragmolcov = load.file(output_csv_fcg_fragmolcov)
         df_fcg_top10frags = load.file(output_csv_fcg_top10frags, decode=False).head(10)
         df_fcg_top10frags_u = load.file(output_csv_fcg_top10frags_u, decode=False).head(10)
         df_fcg_fcc = load.file(output_csv_fcg_fcc)
-        df_fcg_top10fc = load.file(output_csv_fcg_top10fc, decode=False).head(10)  # mol_frag_1/2 but actually smiles
+        df_fcg_fc = load.file(output_csv_fcg_fc, decode=False).head(10)  # mol_frag_1/2 but actually smiles
         df_fcg_nfcgpermol = load.file(output_csv_fcg_nfcgpermol)
     else:
         logger.info("FCG -- COMPUTING OUTPUT CSV FILES")
         dfs_fcg = get_df_fcg(args.wd, args.subset)
         for df_fcg, output_csv_fm in zip(dfs_fcg, output_csv_files):
             save.file(df_fcg, output_csv_fm, encode=False)
-        df_fcg_nfragpermol = dfs_fcg[0]
-        df_fcg_nfragpermol_u = dfs_fcg[1]
+        df_fcg_nhits = dfs_fcg[0]
+        df_fcg_nhits_u = dfs_fcg[1]
         df_fcg_fragmolcov = dfs_fcg[2]
         df_fcg_top10frags = dfs_fcg[3].head(10)
         df_fcg_top10frags_u = dfs_fcg[4].head(10)
         df_fcg_fcc = dfs_fcg[5]
-        df_fcg_top10fc = dfs_fcg[6].head(10)
+        df_fcg_fc = dfs_fcg[6].head(10)
         df_fcg_nfcgpermol = dfs_fcg[7]
     d5 = datetime.now()
 
     # skip plots if computing only CSV output files
     if not args.csv:
+        Path(f"{args.wd_out}/plot").mkdir(exist_ok=True)
 
         # plot output_plot_fs_nfragpermol_u
-        if Path(output_plot_fcg_nfragpermol).exists():
+        if Path(output_plot_fcg_nhits).exists():
             logger.info("FCG -- OUTPUT_PLOT_FCG_NFRAGPERMOL".ljust(pad) + "ALREADY DONE")
         else:
             logger.info("FCG -- OUTPUT_PLOT_FCG_NFRAGPERMOL".ljust(pad) + "COMPUTING...")
-            report.save_distplot(df_fcg_nfragpermol,
-                                 output_plot_fcg_nfragpermol,
+            report.save_distplot(df_fcg_nhits,
+                                 output_plot_fcg_nhits,
                                  'NumFrags',
                                  f"FCG - Number of Fragment Hits Per Molecule in {dataset}",
                                  color=color,
@@ -466,13 +480,13 @@ def main():
                                  fig_size=(24, 12),
                                  )
 
-        # plot output_plot_fcg_nfragpermol_zoom
-        if Path(output_plot_fcg_nfragpermol_zoom).exists():
+        # plot output_plot_fcg_nhits_zoom
+        if Path(output_plot_fcg_nhits_zoom).exists():
             logger.info("FCG -- OUTPUT_PLOT_FCG_NFRAGPERMOL_ZOOM".ljust(pad) + "ALREADY DONE")
         else:
             logger.info("FCG -- OUTPUT_PLOT_FCG_NFRAGPERMOL_ZOOM".ljust(pad) + "COMPUTING...")
-            report.save_barplot(df_fcg_nfragpermol.head(20),
-                                output_plot_fcg_nfragpermol_zoom,
+            report.save_barplot(df_fcg_nhits.head(20),
+                                output_plot_fcg_nhits_zoom,
                                 'NumFrags',
                                 'Count',
                                 f"FCG - Number of Fragment Hits Per Molecule in {dataset} (zoom)",
@@ -530,12 +544,12 @@ def main():
                                 )
 
         # plot output_plot_fs_nfragpermol_u
-        if Path(output_plot_fcg_nfragpermol_u).exists():
+        if Path(output_plot_fcg_nhits_u).exists():
             logger.info("FCG -- OUTPUT_PLOT_FCG_NFRAGPERMOL_U".ljust(pad) + "ALREADY DONE")
         else:
             logger.info("FCG -- OUTPUT_PLOT_FCG_NFRAGPERMOL_U".ljust(pad) + "COMPUTING...")
-            report.save_distplot(df_fcg_nfragpermol_u,
-                                 output_plot_fcg_nfragpermol_u,
+            report.save_distplot(df_fcg_nhits_u,
+                                 output_plot_fcg_nhits_u,
                                  'NumFrags',
                                  f"FCG - Number of Unique Fragment Hits Per Molecule in {dataset}",
                                  color=color,
@@ -544,13 +558,13 @@ def main():
                                  fig_size=(24, 12),
                                  )
 
-        # plot output_plot_fcg_nfragpermol_u_zoom
-        if Path(output_plot_fcg_nfragpermol_u_zoom).exists():
+        # plot output_plot_fcg_nhits_u_zoom
+        if Path(output_plot_fcg_nhits_u_zoom).exists():
             logger.info("FCG -- OUTPUT_PLOT_FCG_NFRAGPERMOL_U_ZOOM".ljust(pad) + "ALREADY DONE")
         else:
             logger.info("FCG -- OUTPUT_PLOT_FCG_NFRAGPERMOL_U_ZOOM".ljust(pad) + "COMPUTING...")
-            report.save_barplot(df_fcg_nfragpermol_u.head(20),
-                                output_plot_fcg_nfragpermol_u_zoom,
+            report.save_barplot(df_fcg_nhits_u.head(20),
+                                output_plot_fcg_nhits_u_zoom,
                                 'NumFrags',
                                 'Count',
                                 f"FCG - Number of Unique Fragment Hits Per Molecule in {dataset} (zoom)",
@@ -595,14 +609,14 @@ def main():
                                 perc_labels='Perc',
                                 )
 
-        # plot output_plot_fcg_top10fc
-        if Path(output_plot_fcg_top10fc).exists():
+        # plot output_plot_fcg_fc
+        if Path(output_plot_fcg_fc).exists():
             logger.info("FCG -- OUTPUT_PLOT_FC_COUNTS".ljust(pad) + "ALREADY DONE")
         else:
             logger.info("FCG -- OUTPUT_PLOT_FC_COUNTS".ljust(pad) + "COMPUTING...")  # for that one percentage labelling go crazy...!
-            df_fcg_top10fc['fc'] = df_fcg_top10fc['fc'].map(lambda x: x.replace('[', '\n').replace(']', '\n'))
-            report.save_barplot(df_fcg_top10fc,
-                                output_plot_fcg_top10fc,
+            df_fcg_fc['fc'] = df_fcg_fc['fc'].map(lambda x: x.replace('[', '\n').replace(']', '\n'))
+            report.save_barplot(df_fcg_fc,
+                                output_plot_fcg_fc,
                                 'fc',
                                 'Count',
                                 f"FCG - Top 10 Fragment Combinations by Occurence in {dataset}",

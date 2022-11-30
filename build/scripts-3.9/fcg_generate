@@ -49,7 +49,7 @@ def main():
     parser.add_argument('-f', '--filter-frags', type=str, default=None, help="List of IDs to filter out from the input fragment combinations.")
     parser.add_argument('--min-frags', type=int, default=2, help="Maximum number of fragments allowed for computing a graph. Molecules with a lower number are filtered out.")
     parser.add_argument('--max-frags', type=int, default=9999, help="Maximum number of fragments allowed for computing a graph. Molecules with a higher number are filtered out.")
-    parser.add_argument('--no-substruct', type=bool, default=True, help="If true, FCGs consisting of smaller fragments that are included in larger fragments (substructures, i.e. ffs combinations) are filtered out. Warning! This will make the script look for the corresponding data at the fragment search step (_fs subfolder)")
+    parser.add_argument('--no-substruct', type=utils.parse_argparse_boolstring, default=True, help="If true, FCGs consisting of smaller fragments that are included in larger fragments (substructures, i.e. ffs combinations) are filtered out. Warning! This will make the script look for the corresponding data at the fragment search step (_fs subfolder)")
     parser.add_argument('--max-overlaps', type=int, default=5, help="Minimum number of overlapping fragment combinations for processing a molecule. Molecules with a higher number are filtered out.")
     parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
     args = parser.parse_args()

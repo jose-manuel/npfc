@@ -96,8 +96,8 @@ rule all:
         time = WD + '/' + prep_subdir + '/' + natref_subdir + '/' + frags_subdir + '/report/data/' + prefix + '_time.csv',
         report_prep = WD + '/' + prep_subdir + '/report/data/' + prefix + '_prep_overview.csv',
         report_subset = WD + '/' + prep_subdir + '/' + natref_subdir + '/report/data/' + prefix + '_subset_subset.csv',
-        report_fcg_pnp = f"{WD}/{prep_subdir}/{natref_subdir}/{frags_subdir}" + f"/report/data/{prefix}_fcg_pnp_nfcgpermol.csv",
         report_fcg_npl = f"{WD}/{prep_subdir}/{natref_subdir}/{frags_subdir}" + f"/report/data/{prefix}_fcg_npl_nfcgpermol.csv",
+        report_fcg_pnp = f"{WD}/{prep_subdir}/{natref_subdir}/{frags_subdir}" + f"/report/data/{prefix}_fcg_pnp_nfcgpermol.csv",
         report_pnp = f"{WD}/{prep_subdir}/{natref_subdir}/{frags_subdir}" + f"/report/data/{prefix}_pnp_ratio.csv"
 
 

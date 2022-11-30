@@ -44,11 +44,11 @@ def main():
     parser.add_argument('input_mols', type=str, default=None, help="Input file.")
     parser.add_argument('output_mols', type=str, default=None, help="Output file.")
     parser.add_argument('-g', '--group-on', type=str, default='inchikey', help="The column to use for grouping molecules. Currently two possible values: 'inchikey' or 'smiles'. If these columns are not present in the DataFrame, they are computed using the 'mol' column.")
-    parser.add_argument('--recompute-group', type=bool, default=False, help="Force the computation of the grouping column even if it is found in the input DataFrame.")
+    parser.add_argument('--recompute-group', type=utils.parse_argparse_boolstring, default=False, help="Force the computation of the grouping column even if it is found in the input DataFrame.")
     parser.add_argument('-r', '--ref-file', type=str, default=None, help="A reference CSV file (.csv) where kept molecules are recorded. Useful for filtering duplicate molecules accross chunks. In case of parallel processing, a lock system prevents simultaneous reading/writing.")
     parser.add_argument('-d', '--dupl-file', type=str, default=None, help="A CSV file for exporting the list of duplicates. If none is defined, the user has to run this script with log level at least at DEBUG for reviewing the duplicates.")
     parser.add_argument('-s', '--syn-file', type=str, default=None, help="A CSV file for exporting the list of synonms (kept + filtered entries). If none is defined, the user has to run this script with log level at least at DEBUG for reviewing the duplicates.")
-    parser.add_argument('-c', '--clear', type=bool, default=False, help="Clear the defined reference file if it already exists.")
+    parser.add_argument('-c', '--clear', type=utils.parse_argparse_boolstring, default=False, help="Clear the defined reference file if it already exists.")
     parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
 
     args = parser.parse_args()

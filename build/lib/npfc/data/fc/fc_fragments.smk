@@ -60,16 +60,17 @@ rule all:
         mols = WD + '/' + prep_subdir + "/05_fcp/data/" + prefix + "_fcp.csv.gz",  # rule all does not accept wildcards
         count_mols = WD + '/' + prep_subdir + '/report/data/' + prefix + '_count_mols.csv',
         time = WD + '/' + prep_subdir + '/report/data/' + prefix + '_time.csv',
-        report_prep = WD + '/' + prep_subdir + '/report/report_prep_' + prefix +  '.log',
-        report_fcp = WD + '/' + prep_subdir + '/05_fcp/report/report_fcp_' + prefix +  '.log'
+        report_prep = WD + '/' + prep_subdir + '/report/data/' + prefix +  '_prep_overview.csv',
+        report_fcp = WD + '/' + prep_subdir + '/report/data/' + prefix +  '_fcp_nsymgroups.csv'
+
 
 rule REPORT_FCP:
     priority: 100
     input:
         fcp = "{WD}/{prep_subdir}/05_fcp/data/{prefix}_fcp.csv.gz"
-    output: "{WD}/{prep_subdir}/05_fcp/report/report_fcp_{prefix}.log"
-    log: "{WD}/{prep_subdir}/05_fcp/report/report_fcp_{prefix}.log"
-    shell: "report_fcp {WD}/{prep_subdir}/05_fcp/data {WD}/{prep_subdir}/05_fcp/report -d '" + report_dataset + "' -c " + report_color + " -p {prefix}  2>{log}"
+    output: "{WD}/{prep_subdir}/report/data/{prefix}_fcp_nsymgroups.csv"
+    log: "{WD}/{prep_subdir}/report/log/report_fcp_{prefix}.log"
+    shell: "report_fcp {WD}/{prep_subdir}/05_fcp/data {WD}/{prep_subdir}/report -d '" + report_dataset + "' -c " + report_color + " -p {prefix}  2>{log}"
 
 
 rule REPORT_PREP:
@@ -79,8 +80,8 @@ rule REPORT_PREP:
         std_passed = "{WD}/{prep_subdir}/02_std/data/{prefix}_std.csv.gz",
         dedupl = "{WD}/{prep_subdir}/03_dedupl/data/{prefix}_dedupl.csv.gz",
         depict = "{WD}/{prep_subdir}/04_depict/data/{prefix}_depict.csv.gz"
-    output: "{WD}/{prep_subdir}/report/report_prep_{prefix}.log"
-    log: "{WD}/{prep_subdir}/report/report_prep_{prefix}.log"
+    output: "{WD}/{prep_subdir}/report/data/{prefix}_prep_overview.csv"
+    log: "{WD}/{prep_subdir}/report/log/report_prep_{prefix}.log"
     shell: "report_prep {WD}/{prep_subdir} {WD}/{prep_subdir}/report -d '" + report_dataset + "' -c " + report_color + " -p {prefix}  2>{log}"
 
 
@@ -97,7 +98,7 @@ rule REPORT_TIME:
     shell: "report_time {WD}/{prep_subdir} '{prefix}*' {output} -p {prep_subdir} 2>{log}"
 
 
-rule COUNT_MOLS:
+rule REPORT_COUNT:
     priority: 100
     input:
         load = "{WD}/{prep_subdir}/01_load/data/{prefix}.csv.gz",
@@ -107,7 +108,7 @@ rule COUNT_MOLS:
         fcp = "{WD}/{prep_subdir}/05_fcp/data/{prefix}_fcp.csv.gz"
     output: "{WD}/{prep_subdir}/report/data/{prefix}_count_mols.csv"
     log: "{WD}/{prep_subdir}/report/log/{prefix}_count_mols.log"
-    shell: "mols_count {WD}/{prep_subdir} {prefix}* {output} 2>{log}"
+    shell: "report_mols_count {WD}/{prep_subdir} {prefix}* {output} 2>{log}"
 
 
 rule FCP:

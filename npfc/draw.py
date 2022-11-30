@@ -853,7 +853,7 @@ class FragmentHighlight:
         """
         :param mol: the molecule to highlight.
         :param atoms_to_highlight: a dictionary containing fragment ids as keys and molecule atom indices as values, i.e. {'frag1': [(0, 1, 2)]. 'frag2': [(2, 3, 4), (5, 6, 7)]}. If None and fragmens_colors are defined, then all atoms are highlighted (useful for coloring fragments).
-        :param fragments_colors: a dictionary attributing a color to each fragment id. Fragment ids have to match those defined in atoms_to_highlight. If a fragment id is not missing, then it will not be highlighted. If this argument is not set, the palette will be used to attribute colors to all fragments defined in atoms_to_highlight.
+        :param fragments_colors: a dictionary attributing a color to each fragment id. Fragment ids have to match those defined in atoms_to_highlight. If a fragment id is missing, then it will not be highlighted. If this argument is not set, the palette will be used to attribute colors to all fragments defined in atoms_to_highlight.
         :param palette: a Palette object used to attribute colors to fragments, when fragments_colors are not defined. If none is defined, the default palette will be used.
         :param color_gradient: recycle colors with a darker shade when all colors have been already used. Color gradient should vary between 0 (stays the same) and 1 (fully black).
         """

@@ -333,6 +333,7 @@ def main():
     parser = argparse.ArgumentParser(description="Script for extracting data from FCG chunks. The output files can then be concatenated with other chunks for reporting.", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('input_file', type=str, default=None, help="Input file (i.e. fc/04_synthetic/chembl/data/prep/natref_dnp/frags_crms/09_fcg/data/chembl_001_fcg.csv.gz)")
     parser.add_argument('output_dir', type=str, default=None, help="Output directory")
+    parser.add_argument('-s', '--suffix', type=str, default=None, help="Suffix to append for output files. By default, None so the complete suffix is '_fcg'. Useful to differenciate between PNPs ('fcg_pnp') and NPLs ('fcg_npl').")
     parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
     args = parser.parse_args()
 
@@ -342,6 +343,7 @@ def main():
     utils.check_arg_input_file(args.input_file)
     utils.check_arg_output_dir(args.output_dir)
     output_dir = Path(args.output_dir)
+
     # prefix
     prefix = Path(args.input_file).stem
     while '.' in prefix:
@@ -376,6 +378,7 @@ def main():
     logger.info("ARGUMENTS")
     logger.info("input_file".ljust(pad) + f"{args.input_file}")
     logger.info("WD_out".ljust(pad) + f"{args.output_dir}")
+    logger.info("suffix".ljust(pad) + f"{args.suffix}")
     logger.info("OUTPUT FILES")
     logger.info("output_counts".ljust(pad) + f"{output_counts}")
     logger.info("output_nfcgpermol".ljust(pad) + f"{output_nfcgpermol}")
