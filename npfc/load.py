@@ -1,33 +1,29 @@
 """
 Module load
-================
+============
 
-A module containing the Loader class, used for storing DataFrames with molecules
-on disk.
+A module for loading files in different formats into DataFrames.
 """
 
 # standard
 import logging
 import gzip
 from pathlib import Path
-import subprocess
 # data science
-import psycopg2
 import pandas as pd
 from pandas import DataFrame
-import h5py
 # chemoinformatics
 from rdkit import Chem
-# docs
-from typing import List
-from typing import Union
 # dev
 from npfc import utils
-import warnings
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ GLOBALS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
+from npfc.utils import COLUMN_IDM
+from npfc.utils import COLUMNS_MOL
+from npfc.utils import COLUMNS_ENCODED
+from npfc.utils import FORMATS_IO
 
 CONVERTERS = {'molblock': lambda x: Chem.MolFromMolBlock(x),
               'smiles': lambda x: Chem.MolFromSmiles(x),
@@ -37,112 +33,30 @@ CONVERTERS = {'molblock': lambda x: Chem.MolFromMolBlock(x),
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 
-def file(input_file: str,
-         in_id: str = 'idm',
-         in_mol: str = 'mol',
-         csv_sep: str = '|',
-         mol_format: str = 'rdkit',
-         out_id: str = 'idm',
-         out_mol: str = 'mol',
-         keep_props: bool = True,
-         decode: Union[bool, List[str]] = True,
-         ) -> DataFrame:
-    """Load a file into a DataFrame.
-
-    :param input_file: the input file to load
-    :param in_id: the column/property to use for molecule ids
-    :param in_mol: the column to use for molecules (irrerlevant for SDF)
-    :param csv_sep: the column separator to use for parsing the input file (CSV)
-    :param mol_format: the input format for molecules
-    :param out_id: the column name used for storing molecule ids
-    :param out_mol: the column name used for storing molecules
-    :param keep_props: keep all properties found in the input file. If False, then only out_id and out_mol are kept.
-    :param decode: decode base64 strings into objects. Columns with encoded objects are labelled with a leading '_'. For molecules, reserved names are 'mol' and 'mol_frag'.
-    :return: a DataFrame
-    
-    ..warning:: if a 'idm' property exists in the input file but the user picks another property for in_id, the pre-existing 'idm' will be renamed into 'idm_2'. 
+def _from_sdf(input_sdf: str, col_mol: str = 'mol'):
     """
-    # check arguments
-    utils.check_arg_input_file(input_file)
-    format, compression = utils.get_file_format(input_file)
-    logging.debug("Loading file '%s' (format=%s, compression=%s)", input_file, format, compression)
+    Parses a SDF and load molecules into a DataFrame.
+    Contrarly to PandasTools.LoadSDF function, empty molecules are not silently
+    filtered out, so their properties can be accessed for better error tracking.
 
-    # read mols
-    if format == 'SDF':
-        df = _from_sdf(input_file, compression=compression)
-        logging.debug("Decode is set to False")
-        decode = False
-    elif format == 'HDF':
-        df = _from_hdf(input_file)
-    else:  # has to be CSV
-        df = _from_csv(input_file, csv_sep=csv_sep, compression=compression)
-
-    # process data
+    :param input_sdf: input SDF
+    :param col_mol: column name with the RDKit Mol objects
+    :param compression: 
+    """
+    # determine compression
+    compression = None
+    if str(input_sdf).endswith('.gz'):
+        compression = 'gzip'
     
-    # in case in_id is different than default but some column with the same name as out_id already exists
-    if in_id != out_id and out_id in df.columns:
-        df.rename({out_id: f"{out_id}.2"}, axis=1, inplace=True)
-        logging.debug('in_id=%s, out_id=%s, but out_id already present. Renaming existing out_id into %s', in_id, out_id, f"{out_id}.2.")
-
-    # out_id
-    if out_id is None and in_id is not None:
-        out_id = in_id
-    elif out_id != in_id:
-        df.rename({in_id: out_id}, axis=1, inplace=True)
-
-    # out_mol
-    logging.debug('in_mol=%s, out_mol=%s', in_mol, out_mol)
-    if out_mol is None and in_mol is not None:
-        out_mol = in_mol
-    elif out_mol != in_mol and in_mol in df.columns:
-        df.rename({in_mol: out_mol}, axis=1, inplace=True)
-
-    # keep_props
-    if not keep_props:
-        logging.debug("Found properties: %s", ', '.join([c for c in df.columns]))
-        logging.debug("Keeping properties: %s", ', '.join([out_id, out_mol]))
-        logging.debug("Dropping properties: %s", ', '.join([c for c in df.columns if c not in (out_id, out_mol)]))
-        df.drop([c for c in df.columns if c not in (out_id, out_mol)], axis=1, inplace=True)
-
-    # mol_format
-    if out_mol in df.columns:
-        df[out_mol] = df[out_mol].map(CONVERTERS[mol_format])
-
-    # decode
-    if decode:
-        # faster way for mols
-        for col in ('mol', 'mol_frag', 'mol_frag_1', 'mol_frag_2', 'mol_rdkit'):
-            if col in df.columns:
-                logging.debug("Decoding column='%s'", col)
-                df[col] = df[col].map(utils.decode_mol)
-
-        # other objects are labelled with leading '_'
-        for col in df.columns:
-            if col.startswith('_') and col != '_Name':
-                logging.debug("Decoding column='%s'", col)
-                df[col] = df[col].map(utils.decode_object)
-
-    # consistent id comparison accross datasets
-    # columns to convert to str
-    cols_str = [out_id, 'idf1', 'idf2']
-    for col in cols_str:
-        if col in df.columns:
-            df[col] = df[col].astype(str)
-
-    logging.debug("First 3 rows loaded:\n\n%s\n", df.head(3))
-
-    return df
-
-
-def _from_sdf(input_sdf: str, col_mol: str = 'mol', compression: str = None):
+    # create two file handlers, one for mols and one for properties (raw)
     if compression is None:
         logging.debug("Read sdf from uncompressed file")
-        FH = open(input_sdf, 'rb')
-        FH_raw = open(input_sdf, 'rb')
+        FH_mols = open(input_sdf, 'rb')
+        FH_props = open(input_sdf, 'rb')
     elif compression == 'gzip':
         logging.debug("Read sdf from compressed file (%s)", compression)
-        FH = gzip.open(input_sdf)
-        FH_raw = gzip.open(input_sdf)
+        FH_mols = gzip.open(input_sdf)
+        FH_props = gzip.open(input_sdf)
     else:
         raise ValueError(f"Error! Unknown compression type for SDF: '{compression}'")
     # init
@@ -150,7 +64,7 @@ def _from_sdf(input_sdf: str, col_mol: str = 'mol', compression: str = None):
     rows = []
     row_idx = []
     # double iteration over sdf but generators so it should be ok memory-wise
-    for mol, mol_raw in zip(Chem.ForwardSDMolSupplier(FH), Chem.ForwardSDMolSupplier(FH_raw, sanitize=False)):
+    for mol, mol_raw in zip(Chem.ForwardSDMolSupplier(FH_mols), Chem.ForwardSDMolSupplier(FH_props, sanitize=False)):
         try:
             # properties
             row = dict((k, mol_raw.GetProp(k)) for k in mol_raw.GetPropNames())
@@ -167,43 +81,153 @@ def _from_sdf(input_sdf: str, col_mol: str = 'mol', compression: str = None):
             row_idx.append(i)
         i += 1
 
+    # clean-up
+    FH_mols.close()
+    FH_props.close()
+
     return DataFrame(rows, index=row_idx)
 
 
-def _from_hdf(input_hdf: str):
-    return pd.read_hdf(input_hdf, key=Path(input_hdf).stem)
+def file(input_file: str,
+         col_mol: str = None,
+         col_idm: str = None,
+         mol_format: str = 'rdkit',
+         keep_props: bool = True,
+         decode: bool = True,
+         csv_sep = '|',
+         ):
+    """Load a file into a DataFrame.
 
-
-def _from_csv(input_csv: str, csv_sep: str = '|', compression: str = None):
-    if compression is None:
-        return pd.read_csv(input_csv, sep=csv_sep)
-    elif compression == 'gzip':
-        return pd.read_csv(input_csv, sep=csv_sep, compression=compression)
-
-
-def count_mols(input_file: str,
-               keep_uncompressed: bool = False,
-               hdf_key: str = None,
-               csv_header: bool = True,
-               engine: str = 'unix'):
-    """Count the number of molecules found in a text file.
-    In case the file is compressed (gzip), it is uncompressed first. The resulting
-    uncompressed file can be kept for further use.
-
-    No grouping is performed, so duplicate molecules will be counted as well.
-
-    #### this function failed to the ZINC (9,902,598)
-
-    :param input_file: the input file
-    :param keep_uncompressed: if the input file is compressed (gzip), do not remove the uncompressed file when finished
-    :param hdf_key: specify the key to access data for HDF input. By default, the filename is used. 
-    :param csv_header: specifiy whether the CSV input file contains headers or not, so that an extra line is not counted.
-    :param engine: either 'unix' or 'python'. By default, UNIX commands (grep for SDF format, wc for CSV for format) are used within Python for maximum efficiency and pure Python code is used as fall-back only. If set to python, then UNIX commands will not be performed.
+    :param input_file: the input file to load
+    :param col_idm: the column/property to use for molecule ids. If left by default and no idm col is found, then _Name is used instead. If this property is not set, then a sequential idm will be generated (MOL_0000001, etc.).
+    :param col_mol: the column to use for molecules (irrerlevant for SDF)
+    :param csv_sep: the column separator to use for parsing the input file (CSV)
+    :param mol_format: the input format for molecules
+    :param out_id: the column name used for storing molecule ids
+    :param out_mol: the column name used for storing molecules
+    :param keep_props: keep all properties found in the input file. If False, then only out_id and out_mol are kept.
+    :param decode: decode base64 strings into objects. Columns with encoded objects are labelled with a leading '_'. For molecules, reserved names are 'mol' and 'mol_frag'.
+    :return: a DataFrame
+    
+    ..warning:: if a 'idm' property exists in the input file but the user picks another property for in_id, the pre-existing 'idm' will be renamed into 'idm.1' (and overwritten if already present). 
     """
-    utils.check_arg_input_file(input_file)
-    format, compression = utils.get_file_format(input_file)
-    logging.debug("input_file='%s' (format: %s, compression: %s)", input_file, format, compression)
+    # init
+    out_id = 'idm'
+    out_mol = 'mol'
 
+    # check arguments
+    utils.check_arg_input_file(input_file)
+    path_input_file = Path(input_file)
+    format, compression = utils.get_file_format(input_file)
+    if format not in FORMATS_IO:
+        raise ValueError("Error! Unsupported format for input file '{input_file}' ('{format}').")
+    logging.debug("Loading file '%s' (format=%s, compression=%s)", input_file, format, compression)
+    
+    # read mols
+    if format == 'SDF':
+        df = _from_sdf(input_file)
+    elif format == 'HDF':
+        df = pd.read_hdf(input_file)  #, key=path_input_file.stem)  # does not work anymore if pytables is not used?
+    elif format == 'CSV':
+        df = pd.read_csv(input_file, sep=csv_sep)
+    else:
+        raise ValueError("Error! Unsupported format for file '{input_file}' ('{format}')")
+    
+    # process data
+    # logging.debug("EXCERPT OF PARSED DATA BEFORE MODIFICATION:\n%s", df.head(3))
+
+    # automatically use idm and mol columns, when possible, until stated otherwise
+    if col_idm is None:   
+        if 'idm' in df.columns:
+            col_idm = 'idm'
+        elif format == 'SDF':
+            col_idm = '_Name'
+
+    if col_mol is None and 'mol' in df.columns:
+        col_mol = 'mol'
+    
+    # back up idm col if already existing in props but not used as idm
+    if keep_props and col_idm != out_id and out_id in df.columns:
+        df = df.rename({out_id: f"{out_id}.1"}, axis=1)
+        logging.warning("Warning! Reserved name col_idm '%s' is already present in DF, renaming it to '%s' to avoid overwriting column.", out_id, f"{out_id}.1")
+
+    # set idm/mol
+    if col_idm is not None:
+        df['idm'] = df[col_idm]
+    if 'idm' in df.columns:
+        df['idm'] = df['idm'].astype(str)  # ids should never be numbers, everything is simpler as str to compare between datasets, etc.
+    if col_mol is not None and col_mol != 'mol':
+        df['mol'] = df[col_mol]
+
+    # keep_props
+    if not keep_props:
+        df = df.drop([c for c in df.columns if c not in (out_id, out_mol)], axis=1)
+
+    # mol_format: create RDKit Mol objects for SMILEs and MolBlocks, but leave (encoded) RDKit as found 
+    if out_mol in df.columns:
+        df[out_mol] = df[out_mol].map(CONVERTERS[mol_format])  
+
+    # decode
+    if decode:
+
+        # handle mols differently becasue it is faster this way
+        # alread in Mol format for SDF files
+        cols_to_ignore = []
+        # in case of SDF, mols are already RDKit Mol objects
+        if format == 'SDF':
+            cols_to_ignore.append('mol')
+
+        # decode mols 
+        cols_to_decode = [c for c in COLUMNS_MOL if c not in cols_to_ignore and c in df.columns]
+        logging.debug("COLUMNS WITH MOLECULES TO DECODE: %s", ','.join(cols_to_decode))
+        for col in cols_to_decode:
+            df[col] = df[col].map(utils.decode_mol)
+
+        # decode other objects
+        cols_to_decode = [c for c in COLUMNS_ENCODED if c in df.columns]
+        logging.debug("COLUMNS WITH OBJECTS TO DECODE: %s", ','.join(cols_to_decode))
+        for col in cols_to_decode:
+            df[col] = df[col].map(utils.decode_object)
+        
+    logging.debug("First 3 rows loaded:\n\n%s\n", df.head(3))
+
+    return df
+
+
+def count_mols(input_file: str, buffer_size: int = 10240, keep_uncompressed: bool = False):
+    """
+    Count the number of molecules in an input file.
+    The method varies depending on the format:
+
+        - SDF: count the $$$$ pattern
+        - CSV: count the number of lines, minus 1 for column headers
+        - HDF: load file into memory using Pandas and then count number of rows
+        - PARQUET: not implemented yet
+    
+    This function is optmized for memory, so it should handle very large files, apart from HDF files.
+    
+    :param input_file: input file
+    :param buffer_size: buffer size in bytes to use for scanning the input text file (SDF and CSV). Default is 10Mb.
+    :param keep_uncompressed: in case of gzip file, leave the uncompressed file after execution
+    :return: counf of molecules
+    """
+
+    def _count_generator(reader, buffer_size):
+        """Use a generator it iterate over the raw data for larger files:
+        https://pynative.com/python-count-number-of-lines-in-file/
+        """
+        b = reader(buffer_size * buffer_size)
+        while b:
+            yield b
+            b = reader(buffer_size * buffer_size)
+
+    # check arguments
+    utils.check_arg_input_file(input_file)
+    path_input_file = Path(input_file)
+    format, compression = utils.get_file_format(input_file)
+    if format not in FORMATS_IO:
+        raise ValueError("Error! Unsupported format for input file '{input_file}' ('{format}').")
+    
     # in case of compressed file, uncompress it
     if compression == 'gzip':
         uncompressed_file = input_file.split('.gz')[0]
@@ -213,64 +237,26 @@ def count_mols(input_file: str,
         input_file = uncompressed_file
 
     # count mols
-    if engine == 'unix':
-        fall_back = False
-    else:
-        fall_back = True
+    with open(input_file, 'rb') as FH:
 
-    if format == 'SDF':
-        # try to use a very fast LINUX command first, and if not available then switch to slower Python code
-        if not fall_back:
-            try:
-                # look for the '$$$$' pattern in the SDF file
-                logging.debug("Using UNIX command grep to count molecules in SDF input file.")
-                result = subprocess.check_output(f"grep -c '$$$$' {input_file}", shell=True).decode('utf-8').strip()
-            except KeyError:
-                fall_back = True
-                logging.debug("Counting mols with linux grep command failed, switching to pure-Python method.")
-        if fall_back:
-            logging.debug("Using Python code to count molecules in SDF input file.")
-            result = 0
-            rows = (row for row in open(input_file, 'r'))
-            for row in rows:
-                if row.strip() == "$$$$":
-                    result += 1
+        # create an iterator 
+        c_generator = _count_generator(FH.raw.read, buffer_size)
 
-    elif format == 'HDF':
-        # no alternative UNIX commands for HDF files, only Python
-        if hdf_key is None:
-            hdf_key = Path(input_file).stem
-        # get the size of a dataframe
-        result = h5py.File(input_file, 'r')[hdf_key]['axis1'].shape[0]  # data is not loaded, so very fast and no memory usage
-
-    elif format == 'CSV':
-        # try to use a very fast LINUX command first, and if not available then switch to slower Python code
-        if not fall_back:
-            try:
-                # any text-based file with 1 molecule per row (csv, smiles, inchi, etc.)
-                result = subprocess.check_output(f"wc -l {input_file}", shell=True).decode('utf-8').split()[0].strip()
-            except:
-                fall_back = True
-                logging.debug("Counting mols with linux wc command failed, switching to pure-Python method.")
-        if fall_back:
-            logging.debug("Using UNIX command wc to count molecules in CSV input file.")
-            result = 0
-            rows = (row for row in open(input_file))
-            for row in rows:
-                result += 1
-    else:
-        raise ValueError(f"Error! Input file format is not valid ('{input_file}' is neither SDF, HDF or CSV, with or without .gz suffix).")
-
-    logging.debug('FALL_BACK: %s', fall_back)
-
-    # read count
-    count = int(result)
-    # for CSV only, substract the header line that was counted in the beginning of the file
-    if format == 'CSV' and csv_header:
-        count -= 1
+        # apply pattern to count molecules
+        if format == 'SDF':
+            count = sum(buffer.count(b'$$$$') for buffer in c_generator)
+        elif format == 'CSV':
+            count = sum(buffer.count(b'\n') for buffer in c_generator) - 1  # ignore headers
+        elif format == 'HDF':
+            count = len(file(input_file))
+        elif format == 'PARQUET':
+            count = -1
+            logging.warning("PARQUET FORMAT NOT IMPLEMENTED YET")
+        else:
+            raise ValueError("Error! Unsupported format for input file '{input_file}' ('{format}').")
 
     # remove uncompressed file
-    if compression and not keep_uncompressed:
+    if compression == 'gzip' and not keep_uncompressed:
         Path(uncompressed_file).unlink()
 
     return count

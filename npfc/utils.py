@@ -26,63 +26,28 @@ from typing import List
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ GLOBALS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 
-# allowed suffixes
-EXTS_INPUT = [['.sdf'], ['.sdf', '.gz'],
-              ['.csv'], ['.csv', '.gz'],
-              ['.log'],  # for loading formatted log files
-              ['.hdf'],
-              ['.pkl', '.gz'], ['.model', '.gz']  # model files for computing sa and np scores
-              ]  # , ['.feather']]  # tests with feather work but not in production, dig into that later
+EXTENSIONS_IO = [
+    ['.sdf'], ['.sdf', '.gz'],  # CTAB files
+    ['.csv'], ['.csv', '.gz'],  # delimited text files
+    ['.hdf'], ['.hf5'],
+    ['.pkl'], ['.pkl', '.gz'], ['.model'], ['.model', '.gz'],  # model files for computing sa and np scores
+    ]
+EXTENSIONS_LOG = [['.log']]
+EXTENSIONS_CONFIG = [['.json'], ['.mplstyle']]
+COLUMN_IDM = 'idm'
+COLUMNS_MOL = ['mol', 'mol_frag', 'mol_frag_1', 'mol_frag_2']
+COLUMNS_ENCODED = ['_aidxf', '_aidxf1', '_aidxf2', '_fcg', '_fcp_labels', '_fcp_labels_1', '_fcp_labels_2', 
+                   '_frags', '_frags_u', '_comb', '_comb_u', '_d_aidxs', '_colormap', '_d_mol_frags', '_d_fcp_labels',
+                   ]
 
-EXTS_CONFIG = [['.json'], ['.mplstyle']]
+FORMATS_IO = ['SDF', 'CSV', 'HDF']
 
 # types
 Number = Union[int, float]
-Output_files = List[List[Union[str, int]]]
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
-
-def get_file_format(input_file: str) -> tuple:
-    """Deduce how the file should be parsed based on its suffixes.
-
-    Only compressions for one single file with initial extension still visibile
-    work (see example below).
-
-    >>> from pathlib import Path
-    >>> from npfc import utils
-    >>> utils.get_file_format(Path('file.csv.gz').suffixes)
-    >>> # returns ('CSV', 'gzip')
-    >>> utils.get_file_format(Path('file.sdf').suffixes)
-    >>> # returns ('SDF', None)
-
-    :param suffixes: suffixes of a file
-    :return: a tuple with syntax (format, compression)
-    """
-    suffixes = Path(input_file).suffixes
-    logging.debug("Input file Suffixes are: %s", suffixes)
-    # is the file an archive?
-    if len(suffixes) > 1:
-        compression = suffixes[1]
-        logging.debug("File is an archive with compression=%s", compression)
-        # special case for gzip so .gz files can be read directly with pandas
-        if compression == '.gz':
-            compression = 'gzip'
-        else:
-            raise ValueError("Error! Unexpected value for compression suffix: '%s'.", compression)
-    else:
-        compression = None
-
-    # return format and compression
-    if suffixes[0] in ('.sdf', '.mol', '.sd'):
-        return ('SDF', compression)
-    elif suffixes[0] == '.csv':
-        return ('CSV', compression)
-    elif suffixes[0] in ('.hdf', 'hf5'):
-        return ('HDF', compression)
-    elif suffixes[0] == ".feather":
-        return ('FEATHER', compression)
 
 
 def check_arg_bool(value: bool) -> bool:
@@ -128,6 +93,52 @@ def check_arg_positive_number(value: Number) -> bool:
     return True
 
 
+def get_file_format(input_file: str) -> tuple:
+    """Deduce how the file should be parsed based on its suffixes.
+
+    For compressed files, only gzip is currently supported. 
+
+    >>> from pathlib import Path
+    >>> from npfc2 import utils
+    >>> utils.get_file_format(Path('file.csv.gz').suffixes)
+    >>> # returns ('CSV', 'gzip')
+    >>> utils.get_file_format(Path('file.sdf').suffixes)
+    >>> # returns ('SDF', None)
+
+    :param suffixes: suffixes of a file
+    :return: a tuple with syntax (format, compression)
+    """
+    # check input file
+    suffixes = Path(input_file).suffixes
+    if suffixes not in EXTENSIONS_IO:
+        raise ValueError(f"Error! Unsupported format found for input file {input_file} ({suffixes}).\n" + 
+                         f"Authorized values are:\n{', '.join(EXTENSIONS_IO)}")
+    
+    # get compression
+    try:
+        compression = suffixes[1]
+        if compression == '.gz':
+            compression = 'gzip'  # to use directly in pandas
+    except IndexError:
+        compression = None
+
+    # get format
+    format = suffixes[0]
+    if suffixes[0] in ('.sdf', '.mol', '.sd'):
+        format = 'SDF'
+    elif suffixes[0] == '.csv':
+        format = 'CSV'
+    elif suffixes[0] in ('.hdf', '.hf5'):
+        format = 'HDF'
+    elif suffixes[0] == ".parquet":
+        format = 'PARQUET'
+    else:
+        raise ValueError(f"Error! Unknown format found ({format})!")
+    
+    logging.debug("input_file '%s' with format=%s, compression=%s", input_file, format, compression)
+    return format, compression
+
+
 def check_arg_input_file(input_file: str) -> bool:
     """Return True of the input_file exists, raise an error otherwise.
 
@@ -137,7 +148,7 @@ def check_arg_input_file(input_file: str) -> bool:
     path_input_file = Path(input_file)
     if not path_input_file.is_file():
         raise ValueError(f"Error! Input file could not be found at '{input_file}'.")
-    if path_input_file.suffixes not in EXTS_INPUT:
+    if path_input_file.suffixes not in EXTENSIONS_IO:
         raise ValueError(f"Error! Unexpected '{path_input_file.suffixes}' for input format.")
 
     return True
@@ -157,6 +168,20 @@ def check_arg_input_dir(input_dir: str) -> bool:
     return True
 
 
+def check_arg_output_dir(output_dir: str) -> bool:
+    """Return True of the output_dir can exist.
+    If the parent directory of the output dir does not exist, it has to either be created or fail the check.
+    :param output_dir: the output directory
+    :param create_parent_dir: create the output file's parent folder in case it does not exist
+    """
+    # output_format
+    path_output_file = Path(output_dir)
+    if not path_output_file.is_dir():
+        path_output_file.mkdir(parents=True, exist_ok=True)
+
+    return True
+
+
 def check_arg_output_file(output_file: str, create_parent_dir: bool = True) -> bool:
     """Return True of the output_file has the expected format (deduced from the file extension).
 
@@ -167,7 +192,7 @@ def check_arg_output_file(output_file: str, create_parent_dir: bool = True) -> b
     """
     # output_format
     path_output_file = Path(output_file)
-    if path_output_file.suffixes not in EXTS_INPUT:
+    if path_output_file.suffixes not in EXTENSIONS_IO:
         raise ValueError(f"Error! Unexpected value '{path_output_file.suffixes}' for output format.")
 
     # create_parent_dir
@@ -182,10 +207,8 @@ def check_arg_output_file(output_file: str, create_parent_dir: bool = True) -> b
     return True
 
 
-def check_arg_output_plot(output_file: str, create_parent_dir: bool = True) -> bool:
-    """Return True of the output_plot has the expected format (deduced from the file extension).
-
-    Accepted extensions are: svg and png.
+def check_arg_output_log(output_file: str, create_parent_dir: bool = True) -> bool:
+    """Return True of the output_file has the expected format (deduced from the file extension).
 
     If the parent directory of the output file does not exist, it has to either be created or fail the check.
 
@@ -194,8 +217,8 @@ def check_arg_output_plot(output_file: str, create_parent_dir: bool = True) -> b
     """
     # output_format
     path_output_file = Path(output_file)
-    if path_output_file.suffixes not in [['.svg'], ['.png']]:
-        raise ValueError(f"Error! Unexpected value '{path_output_file.suffixes}' for output plot.")
+    if path_output_file.suffixes not in EXTENSIONS_LOG:
+        raise ValueError(f"Error! Unexpected value '{path_output_file.suffixes}' for output format.")
 
     # create_parent_dir
     output_dir = path_output_file.resolve().parent
@@ -209,18 +232,26 @@ def check_arg_output_plot(output_file: str, create_parent_dir: bool = True) -> b
     return True
 
 
-def check_arg_output_dir(output_dir: str) -> bool:
-    """Return True of the output_dir can exist.
+def check_arg_output_plot(output_file: str) -> bool:
+    """Return True of the output_plot has the expected format (deduced from the file extension).
 
-    If the parent directory of the output dir does not exist, it has to either be created or fail the check.
+    Accepted extensions are: svg and png.
 
-    :param output_dir: the output directory
+    If the parent directory of the output file is created, if it did not exist yet.
+
+    :param output_file: the output file
     :param create_parent_dir: create the output file's parent folder in case it does not exist
     """
     # output_format
-    path_output_file = Path(output_dir)
-    if not path_output_file.is_dir():
-        path_output_file.mkdir(parents=True, exist_ok=True)
+    path_output_file = Path(output_file)
+    if path_output_file.suffixes not in [['.svg'], ['.png']]:
+        raise ValueError(f"Error! Unexpected value '{path_output_file.suffixes}' for output plot.")
+
+    # create_parent_dir
+    output_dir = path_output_file.resolve().parent
+    if not output_dir.is_dir():
+        output_dir.mkdir(parents=True, exist_ok=True)
+
 
     return True
 
@@ -234,48 +265,27 @@ def check_arg_input_config(config_file: str) -> bool:
         path_config_file = Path(config_file)
         if not path_config_file.is_file():
             raise ValueError(f"Error! Input file could not be found at '{config_file}'.")
-        elif path_config_file.suffixes not in EXTS_CONFIG:
+        elif path_config_file.suffixes not in EXTENSIONS_CONFIG:
             raise ValueError(f"Error! Unexpected '{path_config_file.suffixes}' for config format.")
 
     return True
 
 
-
-def check_arg_output_config(output_config: str, create_parent_dir: bool = True) -> bool:
-    """Return True of the output_config has the expected format (deduced from the file extension).
-
-    If the parent directory of the output file does not exist, it has to either be created or fail the check.
-
-    :param output_config: the output config file
-    :param create_parent_dir: create the output file's parent folder in case it does not exist
-    """
-    # output_format
-    path_output_config = Path(output_config)
-    if path_output_config.suffixes not in EXTS_CONFIG:
-        raise ValueError(f"Error! Unexpected value '{path_output_config.suffixes}' for output format.")
-
-    # create_parent_dir
-    output_dir = path_output_config.resolve().parent
-    if not output_dir.is_dir():
-        if create_parent_dir:
-            logging.warning(f"Output_dir could not be found at '{output_dir}', attempting to create it.")
-            output_dir.mkdir(parents=True, exist_ok=True)
-        else:
-            raise ValueError(f"Error! Output_dir could not be found at '{output_dir}'.")
-
-    return True
-
-def _configure_logger(log_level: str, logger_name: str = None, log_file: str = None, reset_handlers: bool = True) -> logging:
+def _configure_logger(log_level: str, logger_name: str = None, log_file: str = None, reset_handlers: bool = True, mode='a') -> logging:
     """Configure the logging in a centralized way. This is useful for scripts mostly.
 
     :param log_level: the logging level to use, accepted values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.
     :param logger_name: specify a name for the logger. If none, __name__ is used. If within a loop, better speficy a logger name, as logging messages would otherwise stack.
     :param log_file: if specified, the logging messages will be written to the corresponding file, in addition to stdout.
+    :param mode: either 'a' for append, or 'w' for overwriting the log file.
     :return: a logger object that can be reset
     """
+    if mode not in ('a', 'w'):
+        raise ValueError(f"Error! Invalid mode '{mode}' not in authorized values ('a', 'w').")
     if reset_handlers:
         for handler in logging.root.handlers[:]:
             logging.root.removeHandler(handler)
+    # if no name specified, just use the module name
     if logger_name is None:
         logger_name = __name__
     # define level with DEBUG instead of logging.DEBUG or numbers
@@ -301,9 +311,10 @@ def _configure_logger(log_level: str, logger_name: str = None, log_file: str = N
     logger.addHandler(console_handler)
 
     # Creating and adding the file handler
-    file_handler = logging.FileHandler(logger_name, mode='w')
-    file_handler.setFormatter(log_format)
-    logger.addHandler(file_handler)
+    if log_file:
+        file_handler = logging.FileHandler(log_file, mode=mode)
+        file_handler.setFormatter(log_format)
+        logger.addHandler(file_handler)
 
     # avoid tons of duplicated log messages when executing code from modules
     logger.propagate = False

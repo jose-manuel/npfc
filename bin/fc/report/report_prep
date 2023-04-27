@@ -87,8 +87,8 @@ def _parse_std_chunks(chunks: List[str]) -> DataFrame:
 def parse_chunk_load(c: str):
     df = pd.read_csv(c, sep="@", header=None)
     records = df[df[0].str.contains("FAILURE")].iloc[0][0].split()
-    errors = int(records[9])
-    passed = int(df[df[0].str.contains("SAVED")].iloc[0][0].split()[6])
+    errors = int(records[11].replace(',', '')) # I really like to use thousands separator,
+    passed = int(records[8].replace(',', ''))  # this will be the end of me
 
     return (passed, errors)
 
@@ -123,7 +123,7 @@ def get_df_load(WD: str) -> DataFrame:
 
 
 def parse_chunk_std_passed(c: str):
-    return len(load.file(c, decode=False).index)
+    return len(load.file(c, decode=False))
 
 
 def get_df_std_passed(WD: str) -> DataFrame:
@@ -397,7 +397,7 @@ def main():
     lg = RDLogger.logger()
     lg.setLevel(RDLogger.INFO)
     log_file = f"{args.wd_out}/report_prep_{prefix}.log"
-    utils.check_arg_output_file(log_file)
+    utils.check_arg_output_log(log_file)
     logger = utils._configure_logger(log_level=args.log, log_file=log_file, logger_name=log_file)
 
     # display rendering

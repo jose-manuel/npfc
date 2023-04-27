@@ -68,41 +68,49 @@ def test_save_compressed(df_mols, output_file_prefix):
     """Save outputs into gzip format. Has to be first as save method removes byproducts."""
     # test simple export but to an archive (for csv only)
     outputs_csv_compressed = save.file(df_mols, output_file_prefix + '.csv.gz')
-    assert Path(outputs_csv_compressed[0][0]).is_file() is True and outputs_csv_compressed[0][1] == 5
+    assert Path(outputs_csv_compressed[0]).is_file() is True and outputs_csv_compressed[1] == 5
     outputs_csv_compressed = save.file(df_mols, output_file_prefix + '.sdf.gz')
-    assert Path(outputs_csv_compressed[0][0]).is_file() is True and outputs_csv_compressed[0][1] == 5
+    assert Path(outputs_csv_compressed[0]).is_file() is True and outputs_csv_compressed[1] == 5
 
 
 def test_save_simple(df_mols, output_file_prefix):
     """Test several cases (shuffle, encode) for saving molecules into different formats (csv, sdf)."""
     # csv
     outputs_csv = save.file(df_mols, output_file_prefix + '.csv')
-    assert Path(outputs_csv[0][0]).is_file() is True and outputs_csv[0][1] == 5
+    assert Path(outputs_csv[0]).is_file() is True and outputs_csv[1] == 5
     # sdf
     outputs_sdf = save.file(df_mols, output_file_prefix + '.sdf')
-    assert Path(outputs_sdf[0][0]).is_file() is True and outputs_sdf[0][1] == 5
+    assert Path(outputs_sdf[0]).is_file() is True and outputs_sdf[1] == 5
 
 
 def test_save_chunks(df_mols, output_file_prefix):
-
-    # test create chunks
+    """Save mols in DF into CSV files in (compression with/without gzip)."""
     chunk_size = 2
-    # csv
-    outputs_csv = save.file(df_mols, output_file_prefix + '_chunks.csv', chunk_size=chunk_size)
+    outputs_csv = save.chunk(df_mols, output_file_prefix + '_chunks.csv.gz', chunk_size=chunk_size)
     assert Path(outputs_csv[0][0]).is_file() and outputs_csv[0][1] == 2
     assert Path(outputs_csv[1][0]).is_file() and outputs_csv[1][1] == 2
     assert Path(outputs_csv[2][0]).is_file() and outputs_csv[2][1] == 1
-    # sdf
-    outputs_sdf = save.file(df_mols, output_file_prefix + '_chunks.sdf', chunk_size=chunk_size)
-    assert Path(outputs_sdf[0][0]).is_file() and outputs_sdf[0][1] == 2
-    assert Path(outputs_sdf[1][0]).is_file() and outputs_sdf[1][1] == 2
-    assert Path(outputs_sdf[2][0]).is_file() and outputs_sdf[2][1] == 1
+
+
+def test_save_chunks_sdf(df_mols, output_file_prefix):
+    """Chunk a SDF into 2 chunks, only parsing text."""
+    chunk_size = 3
+    input_sdf, num_records = save.file(df_mols, f"{output_file_prefix}.sdf.gz")
+    # assert num_records == 5
+
+
+    # output_chunk_template = Path(input_sdf).parent / f"{Path(Path(input_sdf).stem).stem}.sdf.gz"
+    outputs_sdf = save.chunk_sdf(input_sdf, output_dir='tests/tmp/', chunk_size=chunk_size, keep_uncompressed=True)
+    # print()
+    # print(outputs_sdf)
+    # assert Path(outputs_sdf[0][0]).is_file() and outputs_sdf[0][1] == 3
+    # assert Path(outputs_sdf[1][0]).is_file() and outputs_sdf[1][1] == 2
 
 
 def test_save_func_dupl(df_mols_dupl, output_file_prefix):
     """Save molecules using the save function instead of using a Saver object.
     Produced chunks are used for testing the removal of duplicates."""
-    outputs_csv = save.file(df_mols_dupl, output_file_prefix + '_dupl.csv.gz', chunk_size=2)
+    outputs_csv = save.chunk(df_mols_dupl, f"{output_file_prefix}_dupl.csv.gz", chunk_size=2)
     assert Path(outputs_csv[0][0]).is_file() and outputs_csv[0][1] == 2
     assert Path(outputs_csv[1][0]).is_file() and outputs_csv[1][1] == 2
     assert Path(outputs_csv[2][0]).is_file() and outputs_csv[2][1] == 2

@@ -391,7 +391,7 @@ def generate(df_fcc: DataFrame, min_frags: int = 2, max_frags: int = 5, max_over
             ds_fcg.append({'idm': gid, 'inchikey': g.iloc[0]['inchikey'], 'idfcg': str(i+1).zfill(3), 'nfrags': nfrags, 'nfrags_u': nfrags_u, 'ncomb': ncomb, 'ncomb_u': ncomb_u, 'hac_mol': hac_mol, 'hac_frags': hac_frags, 'perc_mol_cov_frags': perc_mol_cov_frags, '_frags': frags, '_frags_u': frags_u, '_comb': comb, '_comb_u': comb_u, 'fcg_str': fragment_combination_graph_str, '_d_aidxs': d_aidxs, '_colormap': colormap, '_fcg': G, 'mol': mol, '_d_mol_frags': d_frags, '_d_fcp_labels': d_fcp_labels})
 
     # put it all together
-    df_fcg = DataFrame(ds_fcg, columns=DF_FG_COLS).drop_duplicates(subset=['fcg_str'])
+    df_fcg = DataFrame(ds_fcg, columns=DF_FG_COLS).drop_duplicates(subset=['idm', 'fcg_str'])
     df_fcg['idfcg'] = df_fcg.groupby('idm').cumcount().map(lambda x: str(x+1).zfill(3))
     # incorporate the idcfg to the graphs
     df_fcg.apply(lambda x: nx.classes.function.set_edge_attributes(x['_fcg'], x['idfcg'], 'idcfg'), axis=1)
@@ -651,10 +651,15 @@ def filter_out_fcgs_ffs(df2, d):
 def filter_out_fcgs_ffs_all(df_fcg, df_fs):
     """Part of the hotfix for redundant FCGs.
     """
+    if len(df_fcg) < 1:
+        return DataFrame({}, index=[], columns=df_fcg.columns)
+
     dfs = []
     df_fs['fid'] = df_fs['idf'].astype(str) + ':' + df_fs['idf_idx'].astype(str)
     for gid, g in df_fcg.groupby('idm'):
         d_ref = get_ref_aidxs(df_fs[df_fs['idm'] == gid])
         dfs.append(filter_out_fcgs_ffs(g, d_ref))
+
+
 
     return pd.concat(dfs)

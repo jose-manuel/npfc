@@ -14,6 +14,8 @@ import sys
 import subprocess
 from datetime import datetime
 from math import ceil
+# workflows
+import snakemake
 import logging
 import pandas as pd
 import argparse
@@ -210,6 +212,10 @@ def main():
         smk_command += f"-c {args.jobs} "
     else:
         smk_command += '-j 100 --cluster-config ' + args.clusterconfig + ' --cluster "sbatch -A {cluster.account} -p {cluster.partition} -n {cluster.n}  -t {cluster.time} --oversubscribe" '
+
+    # snakemake change the rerun policy starting with version 7, this is to keep same behavior as previously
+    if snakemake.__version__[0] == '7':
+        smk_command += ' --rerun-triggers mtime '
 
     # arguments
     if 'fragments' in args.protocol:

@@ -53,9 +53,8 @@ def main():
     parser.add_argument('input_mols', type=str, default=None, help="Input file.")
     parser.add_argument('-o', '--output-count', type=str, default=None, help="A JSON output file where to store the mols count.")
     parser.add_argument('-f', '--force', type=utils.parse_argparse_boolstring, default=False, help="Force the script to ignore (and recompute) the specified JSON output_count file")
-    parser.add_argument('-e', '--engine', type=str, default='unix', help="Either 'python' or 'unix'. The latter is used to run UNIX commands, when available for SDF and CSV input formats. If not available, fall-back to pure-Python.")
     parser.add_argument('-u', '--keep-uncompressed', type=utils.parse_argparse_boolstring, default=False, help="In case of a compressed input file (gzip), do not delete the uncompressed temporary file after execution.")
-    parser.add_argument('-k', '--hdf-key', type=str, default=None, help="For HDF input only, by default the filename is used as key.")
+    parser.add_argument('-b', '--buffer-size', type=int, default=10240, help="Buffer size for loading the input file.")
     parser.add_argument('--csv-header', type=utils.parse_argparse_boolstring, default=True, help="For CSV input only, specifiy whether the input file has headers.")
     parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
     args = parser.parse_args()
@@ -78,23 +77,11 @@ def main():
         utils.check_arg_output_config(args.output_count)
     utils.check_arg_bool(args.force)
     utils.check_arg_bool(args.keep_uncompressed)
+    if args.buffer_size < 1:
+        raise ValueError("ERROR! BUFFER SIZE SHOULD VALUE > 0!")
     
-    # engine
-    ENGINES = ['python', 'unix']
-    if args.engine not in ENGINES:
-        raise ValueError("ERROR! ENGINE '%s' NOT FOUND IN %s", args.engine, ', '.join(ENGINES))
-
     # IO infos
     in_format, in_compression = utils.get_file_format(args.input_mols)
-
-    # hdf_key
-    if in_format == 'HDF':
-        if args.hdf_key is None:
-            hdf_key = Path(args.input_mols).stem
-        else:
-            hdf_key = args.hdf_key
-    else:
-        hdf_key = None
 
     # display infos
 
@@ -108,13 +95,11 @@ def main():
     logger.info("INPUT_MOLS".ljust(pad) + f"{args.input_mols}")
     logger.info("IN_FORMAT".ljust(pad) + f"{in_format}")
     logger.info("IN_COMPRESSION".ljust(pad) + f"{in_compression}")
-    if in_format == 'HDF':
-        logger.info("IN_HDF_KEY".ljust(pad) + f"{hdf_key}")
-    elif in_format == 'CSV':
+    logger.info("BUFFER_SIZE".ljust(pad) + f"{args.buffer_size}")
+    if in_format == 'CSV':
         logger.info("IN_CSV_HEADER".ljust(pad) + f"{args.csv_header}")
     logger.info("OUTPUT_COUNT_FILE".ljust(pad) + f"{args.output_count}")
     logger.info("FORCE".ljust(pad) + f"{args.force}")
-    logger.info("ENGINE".ljust(pad) + f"{args.engine}")
     logger.info("LOG".ljust(pad) + f"{args.log}")
 
     # begin
@@ -130,16 +115,14 @@ def main():
         # perform counting 
         num_mols = load.count_mols(args.input_mols,
                                    keep_uncompressed=args.keep_uncompressed,
-                                   hdf_key=hdf_key,
-                                   csv_header=args.csv_header,
-                                   engine=args.engine,
+                                   buffer_size=args.buffer_size,
                                    )
         logger.info("NUMBER OF MOLECULES FOUND IN INPUT FILE: %s", '{:,}'.format(num_mols))
 
-        # (over)write count file
-        if args.output_count is not None and args.force:
-            with open(args.output_count, 'w', encoding='utf-8') as FILE:
-                json.dump({'num_mols': num_mols}, FILE)
+    # (over)write count file
+    if args.output_count is not None and args.force:
+        with open(args.output_count, 'w', encoding='utf-8') as FILE:
+            json.dump({'num_mols': num_mols}, FILE)
 
     d2 = datetime.now()
 

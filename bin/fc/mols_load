@@ -41,9 +41,9 @@ def main():
     Examples:
 
         >>> # Convert a SDF into a HDF using molecule titles as molecule id
-        >>> load_mols file_in.sdf file_out.hdf --in_id _Name
+        >>> load_mols file_in.sdf file_out.hdf --col_idm _Name
         >>> # Chunk a CSV file into SDF files of 100 randomly ordered records while keeping all properties
-        >>> load_mols file_in.csv file_out.sdf -n 100 -k True -s True --in_id prop1 --in_mol mol --out_id _Name
+        >>> load_mols file_in.csv file_out.sdf -n 100 -k True -s True --col_idm prop1 --col_mol mol --col_idm _Name
     """
 
     # parameters CLI
@@ -51,18 +51,12 @@ def main():
     parser = argparse.ArgumentParser(description=description, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('input_mols', type=str, default=None, help="Input file.")
     parser.add_argument('output_mols', type=str, default=None, help="Output file. If chunking, then it is used as prefix.")
-    parser.add_argument('-n', '--nrecords', type=int, default=None, help="Maximum number of records within a chunk. None means no chunking.")
-    parser.add_argument('-s', '--shuffle', type=utils.parse_argparse_boolstring, default=False, help="Shuffle records.")
-    parser.add_argument('-k', '--keep_props', type=utils.parse_argparse_boolstring, default=False, help="Keep all properties found in the source, in addition to molid and mol columns.")
-    parser.add_argument('-e', '--encode', type=utils.parse_argparse_boolstring, default=True, help="Encode objects into base64 strings.")
-    parser.add_argument('-d', '--decode', type=utils.parse_argparse_boolstring, default=True, help="Decode objects into base64 strings.")
-    parser.add_argument('--in_id', type=str, default='idm', help="Identifier column in the source file.")
-    parser.add_argument('--in_mol', type=str, default='mol', help="Molecule column in the source file.")
-    parser.add_argument('--in_sep', type=str, default='|', help="Separator to use in case the input file is a csv.")
-    parser.add_argument('--out_id', type=str, default='idm', help="Identifier column in the output file.")
-    parser.add_argument('--out_mol', type=str, default='mol', help="Molecule column in the output file.")
-    parser.add_argument('--out_sep', type=str, default='|', help="Separator to use in case the output file is a csv.")
-    parser.add_argument('--random_seed', type=int, default=None, help="Value to specify to make shuffling reproducible.")
+    parser.add_argument('-k', '--keep_props', action='store_true', help="Keep all properties found in the source in the output, in addition to idm and mol columns.")
+    parser.add_argument('--no-encoding', action='store_true', help="Do not encode objects into base64 strings in output.")
+    parser.add_argument('--no-decoding', action='store_true', help="Do not parse encoded objects into base64 strings in input.")
+    parser.add_argument('--col-idm', type=str, default='idm', help="Identifier column in the source file, will lead to idm column in the output.")
+    parser.add_argument('--col-mol', type=str, default='mol', help="Molecule column in the source file, will lead to mol column in the output.")
+    parser.add_argument('--csv-sep', type=str, default='|', help="Separator to use in case the input file is a csv.")
     parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
     args = parser.parse_args()
 
@@ -91,15 +85,25 @@ def main():
         raise ValueError('ERROR! COULD NOT FIND ANY INPUT MOLS AT "%s"' % args.input_mols)
 
     for input_file in input_files:
-        print(f"input_file: {input_file}")
         utils.check_arg_input_file(input_file)
 
     utils.check_arg_output_file(args.output_mols)
-    utils.check_arg_positive_number(args.nrecords)
     # src infos
     in_format, in_compression = utils.get_file_format(input_files[0])  # input files are supposed to be homogeneous
     # out infos
     out_format, out_compression = utils.get_file_format(args.output_mols)
+
+    # encode
+    if args.no_encoding:
+        encode = False
+    else:
+        encode = True
+
+    # decode
+    if args.no_decoding:
+        decode = False
+    else:
+        decode = True
 
     # display infos
 
@@ -116,17 +120,13 @@ def main():
     else:
         logger.info("INPUT_FILE".ljust(pad) + f"{input_files[0]}")
     logger.info("OUTPUT_MOLS".ljust(pad) + f"{args.output_mols}")
-    logger.info("NRECORDS".ljust(pad) + f"{args.nrecords}")
-    logger.info("SHUFFLE".ljust(pad) + f"{args.shuffle}")
     logger.info("KEEP_PROPS".ljust(pad) + f"{args.keep_props}")
-    logger.info("ENCODE".ljust(pad) + f"{args.encode}")
-    logger.info("DECODE".ljust(pad) + f"{args.decode}")
-    logger.info("IN_ID".ljust(pad) + f"{args.in_id}")
-    logger.info("IN_MOL".ljust(pad) + f"{args.in_mol}")
+    logger.info("ENCODE".ljust(pad) + f"{encode}")
+    logger.info("DECODE".ljust(pad) + f"{decode}")
+    logger.info("col_idm".ljust(pad) + f"{args.col_idm}")
+    logger.info("col_mol".ljust(pad) + f"{args.col_mol}")
     logger.info("IN_FORMAT".ljust(pad) + f"{in_format}")
     logger.info("IN_COMPRESSION".ljust(pad) + f"{in_compression}")
-    logger.info("OUT_MOL".ljust(pad) + f"{args.out_mol}")
-    logger.info("OUT_ID".ljust(pad) + f"{args.out_id}")
     logger.info("OUT_FORMAT".ljust(pad) + f"{out_format}")
     logger.info("OUT_COMPRESSION".ljust(pad) + f"{out_compression}")
     logger.info("LOG".ljust(pad) + f"{args.log}")
@@ -137,49 +137,59 @@ def main():
     # load mols
     logger.info("LOADING MOLECULES")
     d1 = datetime.now()
-    df_mols = pd.concat([load.file(x,
-                                   in_id=args.in_id,
-                                   out_id=args.out_id,
-                                   in_mol=args.in_mol,
-                                   out_mol=args.out_mol,
-                                   keep_props=args.keep_props,
-                                   decode=args.decode,
-                                   csv_sep=args.in_sep
-                                   ) for x in input_files])
+    dfs = []
+    num_failed = 0
+    for input_file in input_files:
 
-    # filter out failed molecules
-    d2 = datetime.now()
-    df_failed = df_mols[df_mols['mol'].isna()]
-    num_failed = len(df_failed.index)
-    logger.info(f"LOADED {len(df_mols)} RECORDS WITH {num_failed} FAILURE(S)")
-    df_mols = df_mols[~ df_mols.index.isin(df_failed.index)]
+        # load DF_ini
+        logger.info("NOW LOADING %s", input_file)
+        df = load.file(input_file,
+                       col_idm=args.col_idm,
+                       col_mol=args.col_mol,
+                       keep_props=args.keep_props,
+                       decode=decode,
+                       csv_sep=args.csv_sep,
+                       )
+        num_tot = len(df)
+
+        # filter out failed molecules from DF_ini
+        df_failed = df[df['mol'].isna()]
+        num_failed += len(df_failed.index)
+        if num_failed > 0:
+            logger.info("RECORD IDS THAT FAILED PARSING:\n%s", ','.join(df_failed['idm']))
+            df = df[~ df.index.isin(df_failed.index)]
+        
+        # append truly loaded mols to main DF_mols
+        dfs.append(df)
+        num_loaded = len(df)
+        logger.info(f"{input_file}".ljust(int(pad * 2.2)) + f"LOADED {num_loaded:,}/{num_tot:,}")
+        logger.debug("FIRST THREE LOADED RECORDS:\n\n%s\n", df.head(3))
+
+    df_mols = pd.concat(dfs)
+    logger.info(f"IN TOTAL, LOADED {len(df_mols):,} RECORDS WITH {num_failed:,} FAILURE(S)")
 
     # save mols
-    d3 = datetime.now()
+    d2 = datetime.now()
     logger.info("SAVING MOLECULES")
-    outputs_files = save.file(df_mols,
-                              args.output_mols,
-                              col_mol=args.out_mol,
-                              col_id=args.out_id,
-                              chunk_size=args.nrecords,
-                              shuffle=args.shuffle,
-                              encode=args.encode,
-                              random_seed=args.random_seed,
-                              csv_sep=args.out_sep,
-                              )
+    output_file = save.file(df_mols,
+                            args.output_mols,
+                            # col_mol=args.col_mol,
+                            # col_idm=args.col_idm,
+                            encode=encode,
+                            csv_sep=args.csv_sep,
+                            )
+    
     # display results
-    for output in outputs_files:
-        logger.info(f"SAVED {output[1]} RECORDS AT {output[0]}")
-    d4 = datetime.now()
+    logger.info(f"SAVED {output_file[1]:,} RECORDS AT {output_file[0]}")
+    d3 = datetime.now()
 
     # end
 
     logger.info("SUMMARY")
     logger.info("COMPUTATIONAL TIME: CONFIGURING JOB".ljust(pad * 2) + f"{d1-d0}")
     logger.info("COMPUTATIONAL TIME: LOADING MOLECULES".ljust(pad * 2) + f"{d2-d1}")
-    logger.info("COMPUTATIONAL TIME: FILTERING OUT FAILED".ljust(pad * 2) + f"{d3-d2}")
-    logger.info("COMPUTATIONAL TIME: SAVING MOLECULES".ljust(pad * 2) + f"{d4-d3}")
-    logger.info("COMPUTATIONAL TIME: TOTAL".ljust(pad * 2) + f"{d4-d0}")
+    logger.info("COMPUTATIONAL TIME: SAVING MOLECULES".ljust(pad * 2) + f"{d3-d2}")
+    logger.info("COMPUTATIONAL TIME: TOTAL".ljust(pad * 2) + f"{d3-d0}")
     logger.info("END")
     sys.exit(0)
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ RUN ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #

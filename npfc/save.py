@@ -31,197 +31,384 @@ from npfc import utils
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
 
-def file(df: pd.DataFrame,
-         output_file: str,
-         shuffle: bool = False,
-         random_seed: int = None,
-         chunk_size: int = None,
-         encode: bool = True,
-         col_mol: str = 'mol',
-         col_id: str = 'idm',
-         csv_sep: str = '|'):
-    """A method for saving DataFrames with molecules to different file types.
-    This is handy way of using the Saver class without having to keep a Saver object.
+"""
+Module save
+===========
 
-    :param df: the input DataFrame
-    :param output_file: the output file
-    :param shuffle: randomize records
-    :param random_seed: a number for reproducing the shuffling
-    :param chunk_size: the maximum number of records per chunk. If this value is unset, no chunking is performed, otherwise each chunk filename gets appended with a suffix: file_XXX.ext.
-    :param encode: encode RDKit Mol objects and other objects in predefined columns as base64 strings.
-    :param col_mol: if molecules need to be encoded, then the encoding is perfomed on this column.
-    :param csv_sep: separator to use in case of csv output
-    :return: the list of output files with their number of records
+A module for saving DataFrames into files in different formats.
+"""
+
+# standard
+import logging
+import gzip
+import shutil
+import numpy as np
+from pathlib import Path
+# data science
+from pandas import DataFrame
+# chemoinformatics
+from rdkit import Chem
+from rdkit.Chem import SDWriter
+# docs
+from typing import List
+from typing import Tuple
+from typing import Union
+
+# dev
+from npfc import utils
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ GLOBALS  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
+from npfc.utils import FORMATS_IO
+from npfc.utils import COLUMNS_MOL
+from npfc.utils import COLUMNS_ENCODED
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
+def _save_sdf(df: DataFrame,
+              output_file: Union[str, Path],
+              col_mol: str,
+              col_idm: str,
+              ) -> Tuple[str, int]:
+    """
+    Save molecules in input DF as a SDF, using RDKit.
+
+    In case of the desired output file is an archive (i.e. file.sdf.gz), an uncompressed file will first
+    be written (i.e. file.sdf), which may overwrite any pre-existing file with the same path.
+
+    :param df: input DataFrame
+    :param output_file: output SDF path
+    :param col_mol: column with the RDKit Mol objects
+    :param col_idm: column with the molecule ids, if not None, info is saved as property and as molecule title
+    :return: a tuple containing the output file path and the number of saved molecules
+    """
+    def _format_value(value):
+        """
+        Helper function to format float values for export to avoid
+        awkward scientific notation or flaots without trailing 0, i.e. '7.'.
+        
+        :param value: the value to format
+        :return: the formatted value
+        """
+        # floats
+        if np.issubdtype(type(value), np.floating):
+            s = '{:f}'.format(value).rstrip("0")  # remove long trailing 0s
+            if s[-1] == ".":
+                s += "0"  # put the "0" back on if the result is something like "7."
+            return s
+        
+        # others
+        else:
+            return str(value)
+
+    # init
+    output_file = str(output_file)
+    path_output_file = Path(output_file)
+    path_output_file.parent.mkdir(parents=True, exist_ok=True)
+    format, compression = utils.get_file_format(output_file)
+
+    # check input
+    if format != 'SDF':
+        raise ValueError("Error! Input file '{input_sdf}' has a format different from 'SDF' ('{format}')")
+
+    # in case output file has to be compressed, remove the .gz from the filename for the output file for now
+    if compression == 'gzip':
+        output_archive = output_file
+        output_file = str(path_output_file.parent / path_output_file.stem)
+        path_output_file = Path(output_file)
+
+    # format properties (floats)
+    properties = [x for x in df.columns if x != col_mol]
+    for p in properties:
+        df[p] = df[p].map(_format_value)
+
+    # init writer
+    writer = SDWriter(output_file)
+    writer.SetProps(properties)
+
+    # export molecule to SDF
+    for rowid, row in df.iterrows():
+        # copy mol so it can be edited without consequence
+        mol = Chem.Mol(row[col_mol])
+        # set molecule title
+        if col_idm is not None:
+            mol.SetProp('_Name', str(row[col_idm]))
+        else:
+            mol.SetProp('_Name', '')
+        # set properties
+        for p in properties:
+            mol.SetProp(p, row[p])
+        # save mol
+        writer.write(mol)
+    
+    # end the writing of mols
+    writer.close()
+
+    # compress the now-closed output file
+    if compression == 'gzip':
+        with open(output_file, 'rb') as OUTPUT:
+            with gzip.open(output_archive, 'wb') as ARCHIVE:
+                shutil.copyfileobj(OUTPUT, ARCHIVE)
+            # delete the uncompressed file as it is only a byproduct
+            Path(output_file).unlink()
+            # consider output file to be the archive for return value 
+            output_file = output_archive
+
+    return output_file, len(df)
+
+
+def file(df: DataFrame,
+         output_file: Union[str, Path],
+         col_mol: str = 'mol',
+         col_idm: str = 'idm',
+         csv_sep: str = '|',
+         encode: bool = True,
+         ):
+    """
+    Save an input DataFrame into a single file.
+
+    :param df: input DataFrame
+    :param output_file: output file path
+    :param col_mol: for SDF format only, column with the RDKit Mol objects
+    :param col_idm: for SDF format only, column with the molecule ids, if not None, info is saved as property and as molecule title
+    :param csv_sep: for CSV format only, delimiter to use
+    :param encode: encode mols and objects into base64 strings based on predefined column names.
+    :return: a tuple containing the output file name and its number of records
     """
     # check some arguments
     utils.check_arg_output_file(output_file)
-    utils.check_arg_bool(shuffle)
-    utils.check_arg_bool(encode)
+    format, compression = utils.get_file_format(output_file)
+    if format not in FORMATS_IO:
+        raise ValueError(f"Error! Output file format is unknown ('{format}'). Authorized formats are: {', '.join(FORMATS_IO)}.")
 
-    logging.debug("Excerpt of the data as provided to file function:\n\n%s\n", df.head(5))
 
     # init
+    logging.debug("Excerpt of the data as provided to save.file function:\n\n%s\n", df.head(5))
     path_output_file = Path(output_file)
-    ext_output_file = path_output_file.suffixes
-    output_dir = path_output_file.resolve().parent
-    output_files = []
-    # for sdf, molecules cannot be encoded
-    if ext_output_file[0] == '.sdf' and encode:
-        logging.warning(f"Format is SDF, so column '{col_mol}' is not encoded.")
+
     # avoid pandas warnings
     df = df.copy()
-    # shuffle
-    if shuffle:
-        logging.debug('Shuffling rows before saving file')
-        df = df.sample(frac=1, random_state=random_seed)
+
     # encode predefined data
-    # if nothing to encode, just don't
-    if len(df.index) == 0:
-        logging.warning("DataFrame is empty, skip encoding.")
-    # in case there is stuff to encode, encode it:
-    elif encode:
-        # for SDF files, RDKit Mol objects to use for MolBlocks should not be encoded
-        if ext_output_file[0] != '.sdf' and col_mol in df.columns:
-            # df[col_mol] = df[col_mol].map(utils.encode_mol_smiles)
-            df[col_mol] = df[col_mol].map(utils.encode_mol)
-        # other RDKit Mol objects can be encoded though
-        for col in ("mol", "mol_frag", "mol_frag_1", "mol_frag_2", "mol_rdkit"):
-            if col in df.columns and col != col_mol:
-                # df[col] = df[col].map(utils.encode_mol_smiles)
-                df[col] = df[col].map(utils.encode_mol)
-        # other objects are labelled with leading '_'
-        for col in df.columns:
-            if col.startswith('_') and col != '_Name':
-                df[col] = df[col].map(utils.encode_object)
-
-    logging.debug("Excerpt of the data to save before chuking:\n\n%s\n", df.head(3))
-
-    # chunking
-    if chunk_size is None:
-        # single output
-        _save(df=df, output_file=output_file, col_mol=col_mol, col_id=col_id, suffixes=ext_output_file, key=path_output_file.stem.split('.')[0], csv_sep=csv_sep)
-        output_files.append([output_file, len(df.index)])
+    if encode:
+        cols_to_encode = [x for x in COLUMNS_ENCODED if x in df.columns]
+        cols_mol = [x for x in COLUMNS_MOL if x in df.columns]
     else:
-        # chunks
-        start = 0
-        j = 1
-        for start in range(0, len(df.index), chunk_size):
-            end = start + chunk_size
-            output_chunk = str(output_dir) + "/" + path_output_file.stem.split('.')[0] + "_" + str(j).zfill(3) + ''.join(ext_output_file)  # stem returns file.csv for file.csv.gz
-            _save(df=df.iloc[start:end], output_file=output_chunk, col_mol=col_mol, col_id=col_id, suffixes=ext_output_file, key=path_output_file.stem.split('.')[0], csv_sep=csv_sep)
-            output_files.append([output_chunk, len(df.iloc[start:end].index)])
-            j += 1
-        logging.debug("%s chunks were created", len(output_files))
+        cols_to_encode = []
+        cols_mol = []
 
-    return output_files
-
-
-def _save(df: DataFrame,
-          output_file: str,
-          col_mol: str,
-          col_id: str,
-          suffixes: List[str],
-          key: str,
-          csv_sep: str):
-    """Helper function for the save method.
-    Does the actual export to the output file and picks a format based on provided infos.
-
-    :param df: the input DataFrame
-    :param suffixes: the suffixes of the output file
-    :param key: the key for a HDF file
-    :param csv_sep: the separator for a CSV file
-    """
-    # infer from pandas.to_csv does not work as expected (no compression!)
-    # so I need to specify the compression type manually.
-    utils.check_arg_output_file(output_file)
-    out_format, out_compression = utils.get_file_format(output_file)
-    if out_format == 'CSV':
-        if out_compression == 'gzip':
-            df.to_csv(output_file, sep=csv_sep, compression=out_compression, index=False)
+    # other objects
+    for c in cols_to_encode:
+        df[c] = df[c].map(utils.encode_object)
+    
+    if format == 'SDF':
+        # encode all mols except the 'mol' column
+        if len(cols_mol) > 1:
+            cols_mol_to_encode = [x for x in cols_mol if x != col_mol]
+            logging.warning("More than 1 RDKit Mol objects columns detected, using CTAB from column '%s' and encoding the rest: %s", col_mol, ','.join(cols_mol_to_encode))
+            for c in cols_mol_to_encode:
+                df[c] = df[c].map(utils.encode_mol)
+        return _save_sdf(df, output_file, col_mol, col_idm)
+    else: # CSV/HDF
+        # RDKit Mol objects
+        for c in cols_mol:
+            print(f"save.file: encoding column {c}")
+            df[c] = df[c].map(utils.encode_mol)
+        # export to other formats
+        if format == 'CSV':
+            df.to_csv(output_file, index=False, sep=csv_sep)
+        elif format == 'HDF':
+            key = path_output_file.stem.split('.')[0]
+            df.to_hdf(output_file, key=key)
         else:
-            df.to_csv(output_file, sep=csv_sep, index=False)
-    elif out_format == 'HDF':
-        df.to_hdf(output_file, key=key)
-    elif out_format == 'SDF':
-        # write the uncompressed file
-        if out_compression == 'gzip':
-            # init
-            output_file_base = '.'.join(output_file.split('.')[:-1])
-            logging.debug("Output_file_base: %s", output_file_base)
-            # write the file uncompressed
-            write_sdf(df, output_file_base, molColName=col_mol, idName=col_id, properties=list(df.columns))
-            # compress the file
-            with open(output_file_base, 'rb') as OUTPUT:
-                with gzip.open(output_file, 'wb') as ARCHIVE:
+            raise ValueError("Error! Output file format '{format}' is not supported.")
+            
+    return (output_file, len(df))
+
+
+def chunk(df: DataFrame,
+          chunk_name_template: str,
+          chunk_size: int,
+          shuffle: bool = False,
+          random_seed: int = None,
+          col_mol: str = 'mol',
+          col_idm: str = 'idm',
+          csv_sep: str = '|',
+          encode : bool = True,
+          ) -> List[Tuple[str, int]]:
+    """
+    Save an input DataFrame into several chunks, written on disk.
+    The input data has to be converted as a whole to a DF first.
+
+    :param df: input DataFrame
+    :param chunk_name_template: path of the output file if there was only one (i.e. dir/file.csv). Is modified to add chunk IDs (i.e. dir/file_001.csv, dir/file_002.csv, etc.).
+    :param chunk_size: number of record for each chunk (last chunk might contain less)
+    :param shuffle: shuffle the records before splitting into chunks
+    :param random_seed: random seed to use for shuffling records
+    :param col_mol: for SDF format only, column with the RDKit Mol objects
+    :param col_idm: for SDF format only, column with the molecule ids, if not None, info is saved as property and as molecule title
+    :param csv_sep: for CSV format only, delimiter to use
+    :param encode: encode RDKit Mol and other predefined objects into base64 strings.
+    :return: a list of tuples containing each chunk name and its number of records
+    """
+    # check arguments
+    if not isinstance(chunk_size, int) and chunk_size < 1:
+        raise ValueError("Error! Argument chunk_size needs to be defined as a non-zero positive integer. (value was: '{chunk_size}')")
+    
+    # shuffle records to remove bias from input order 
+    if shuffle:
+        df = df.sample(frac=1, random_state=random_seed)
+
+    # init iteration
+    num_records = len(df)
+    output_chunks = []
+    start = 0
+    output_chunk_template = Path(chunk_name_template)
+    output_dir_path = output_chunk_template.parent
+    output_chunk_basename = Path(output_chunk_template.stem).stem  # 2-layer stem for cases like 'file.sdf.gz'
+    output_chunk_suffixes = output_chunk_template.suffixes
+    
+    # iteration
+    for i, start in enumerate(range(0, num_records, chunk_size)):
+        end = start + chunk_size
+        output_chunk = output_dir_path / Path(output_chunk_basename + "_" + str(i+1).zfill(3) + ''.join(output_chunk_suffixes))
+        results = file(df=df.iloc[start:end],
+                       output_file=output_chunk,
+                       col_mol=col_mol,
+                       col_idm=col_idm,
+                       csv_sep=csv_sep,
+                       encode=encode,
+                       )
+        output_chunks.append(results)
+
+    return output_chunks
+
+
+def chunk_sdf(input_sdf: str,
+              output_dir: str,
+              chunk_size: int = None,
+              prefix: str = None,
+              keep_uncompressed: bool = False,
+              ) -> List[Tuple[str, int]]:
+    """
+    Split an input SDF file into SDF chunks using memory-efficient line by line text parsing, suitable for large files.
+    Molecules are not parsed, no change is made to the molblocks.
+
+    :param input_sdf: input SDF
+    :param output_dir: 
+    :param chunk_name_template: path of the output file as if there was only one (i.e. dir/file.csv). It is modified to add chunk IDs (i.e. dir/file_001.csv, dir/file_002.csv, etc.).
+    :param chunk_size: number of record for each chunk (last chunk might contain less)
+    :param prefix: prefix to use for chunks. If left to None, the input SDF filename will be used.
+    :param keep_uncompressed: in case of gzip input, keep the uncompressed file instead of deleting it as a temp file
+    :return: a list of tuples containing each chunk name and its number of records
+
+    TODO: support for gzip outputs
+    TODO: support for gzip input
+    """
+
+    def _save_chunk(current_lines, output_dir_path, output_chunk_basename, current_chunk_idx, format, compression):
+        """Helper function for saving currently gathered text into the current uncompressed chunk."""
+        # save to uncompressed  output file
+        output_chunk = output_dir_path / Path(f"{output_chunk_basename}_{str(current_chunk_idx).zfill(3)}.{format.lower()}")
+        with open(output_chunk, 'w+') as OFH:
+            OFH.write(''.join(current_lines))
+
+        # compress the now-closed output file
+        if compression == 'gzip':
+            output_archive = f"{output_chunk}.gz"
+            with open(output_chunk, 'rb') as OUTPUT:
+                with gzip.open(output_archive, 'wb') as ARCHIVE:
                     shutil.copyfileobj(OUTPUT, ARCHIVE)
                 # delete the uncompressed file as it is only a byproduct
-                Path(output_file_base).unlink()
-        else:
-            write_sdf(df, output_file, molColName=col_mol, idName=col_id, properties=list(df.columns))
-    elif out_format == 'FEATHER':
-        df.to_feather(output_file)
+                Path(output_chunk).unlink()
+                # consider output file to be the archive for return value 
+                output_chunk = output_archive
+    
+        return output_chunk
+
+    # define I/O
+    input_dir_path = Path(input_sdf).parent
+    output_dir_path = Path(output_dir)
+    # output_chunk_basename = Path(Path(input_sdf).stem).stem
+
+    # path_chunk_template = Path(chunk_name_template)
+    # output_dir_path = path_chunk_template.parent
+    format, compression = utils.get_file_format(input_sdf)
+    path_chunk_template = output_dir_path / Path(input_sdf).name
+    # format_out, compression_out = utils.get_file_format(chunk_name_template)
+
+    # in case input file is compressed, uncompress it
+    if compression == 'gzip':
+        input_sdf_uncompressed = str(input_dir_path / Path(input_sdf).stem)
+        with open(input_sdf_uncompressed, 'wb') as FH_UNCOMPRESSED, gzip.open(input_sdf, 'rb') as FH_COMPRESSED:
+            bindata = FH_COMPRESSED.read()
+            FH_UNCOMPRESSED.write(bindata)
+        input_sdf = input_sdf_uncompressed
+
+        # in case output file has to be compressed, remove the .gz from the filename for the output file for now
+        output_archive = path_chunk_template
+        path_chunk_template = output_dir_path / path_chunk_template.stem
+
+    if prefix is None:
+        output_chunk_basename = path_chunk_template.stem
     else:
-        raise ValueError(f"Error! Cannot save DataFrame to unexpected format '{suffixes[0]}'.")
-    logging.debug("Saved %s records at '%s'.", len(df.index), output_file)
+        output_chunk_basename = prefix
 
+    # check format and compression
+    if format != 'SDF' or compression not in (None, 'gzip'):
+        raise ValueError("Error! Input SDF should be of format SDF and, if compressed, be a gzip archive.")
+    
+    # begin        
+    with open(input_sdf,'r') as FH:
 
-def write_sdf(df, out, molColName='ROMol', idName=None, properties=None, allNumeric=False):
-    """
-    Redefinition of PandasTools.WriteSDF because RDKit 2019.03.1 is incompatible with Pandas 25.1.
+        # init iteration
+        current_num_record = 0
+        current_chunk_idx = 1
+        output_chunks = []
+        current_lines = []
+        file_read = False
 
-    Write an SD file for the molecules in the dataframe. Dataframe columns can be exported as
-    SDF tags if specified in the "properties" list. "properties=list(df.columns)" would export
-    all columns.
-    The "allNumeric" flag allows to automatically include all numeric columns in the output.
-    User has to make sure that correct data type is assigned to column.
-    "idName" can be used to select a column to serve as molecule title. It can be set to
-    "RowID" to use the dataframe row key as title.
-    """
-    close = None
-    if isinstance(out, str):
-        if out.lower()[-3:] == ".gz":
-            out = gzip.open(out, "wt")
-            close = out.close
+        # iteration line by line
+        while True:
+            line = FH.readline()
 
-    writer = SDWriter(out)
-    if properties is None:
-        properties = []
-    else:
-        properties = list(properties)
-    if allNumeric:
-        properties.extend([
-          dt for dt in df.dtypes.keys()
-          if (np.issubdtype(df.dtypes[dt], np.floating) or np.issubdtype(df.dtypes[dt], np.integer))
-        ])
+            # exit when reached the end of the file
+            if not line:
+                FH.close()
+                file_read = True
+                break
+            
+            # identify end of record
+            if line.strip() == '$$$$':
+                current_num_record += 1 
 
-    if molColName in properties:
-        properties.remove(molColName)
-    # if idName in properties:
-    #     properties.remove(idName)
-    writer.SetProps(properties)
-    for row in df.iterrows():
-        # make a local copy I can modify
-        mol = Chem.Mol(row[1][molColName])
+            # append the lines to the current chunk
+            current_lines.append(line)
 
-        if idName is not None:
-            if idName == 'RowID':
-                mol.SetProp('_Name', str(row[0]))
-            else:
-                mol.SetProp('_Name', str(row[1][idName]))
-        for p in properties:
-            cell_value = row[1][p]
-            # Make sure float does not get formatted in E notation
-            if np.issubdtype(type(cell_value), np.floating):
-                s = '{:f}'.format(cell_value).rstrip("0")  # "f" will show 7.0 as 7.00000
-                if s[-1] == ".":
-                    s += "0"  # put the "0" back on if it's something like "7."
-                mol.SetProp(p, s)
-            else:
-                mol.SetProp(p, str(cell_value))
-        writer.write(mol)
-    writer.close()
-    if close is not None:
-        close()
+            # save chunk when enough records are gathered
+            if current_num_record >= chunk_size:
+                output_chunk = _save_chunk(current_lines, output_dir_path, output_chunk_basename, current_chunk_idx, format, compression)
+                output_chunks.append((output_chunk, current_num_record))
+                
+                # clean-up
+                current_lines = []
+                current_num_record = 0
+                current_chunk_idx += 1
+        
+        # saving last chunk with current records
+        if file_read and len(current_lines) > 0:
+            output_chunk = _save_chunk(current_lines, output_dir_path, output_chunk_basename, current_chunk_idx, format, compression)
+            output_chunks.append((output_chunk, current_num_record))
+            
+    # clean-up
+    if compression == 'gzip' and not keep_uncompressed:
+        Path(input_sdf).unlink()  # remove the temporary uncompressed input SDF
+
+    return output_chunks
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ CLASSES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #

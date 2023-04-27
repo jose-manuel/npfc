@@ -107,11 +107,17 @@ def main():
         logger.info(f"FILTERING FRAGMENT COMBINATIONS WITH FRAG(S): {', '.join(filter_frags)}")
         df_fcc = df_fcc[~df_fcc['idf1'].isin(filter_frags)]
         df_fcc = df_fcc[~df_fcc['idf2'].isin(filter_frags)]
+        logger.info(f"REMAINING FRAGMENT COMBINATIONS: {len(df_fcc)}:,")
 
     # generate fragment combinations graphs
     logger.info("GENERATING FRAGMENT COMBINATION GRAPHS")
     d2 = datetime.now()
-    df_fcg = fragment_combination_graph.generate(df_fcc, min_frags=args.min_frags, max_frags=args.max_frags, max_overlaps=args.max_overlaps)
+    df_fcg = fragment_combination_graph.generate(df_fcc, 
+                                                 min_frags=args.min_frags, 
+                                                 max_frags=args.max_frags, 
+                                                 max_overlaps=args.max_overlaps,
+                                                 )
+    logger.info(f"GENERATED {len(df_fcg)} FRAGMENT COMBINATION GRAPHS.")
     if args.no_substruct:
         logger.info("FILTERING OUT FCG THAT CONSIST OF SMALLER FRAGMENTS ALREADY FOUND IN LARGER ONES")
         # count initial number of FCG to have an estimate

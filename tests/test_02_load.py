@@ -37,31 +37,31 @@ def input_sdf():
 def test_file_sdf_without_props(input_sdf):
     """Read a sdf file without properties."""
     # without properties
-    df = load.file(input_sdf, keep_props=False, in_id='_Name', out_id='idm')
+    df = load.file(input_sdf, keep_props=False, col_idm='_Name')
     assert len(df.index) == 5
     assert list(df.columns.values) == ['idm', 'mol']
     assert isinstance(df.iloc[0]['mol'], Mol)
 
 def test_file_sdf_with_props_1(input_sdf):
     """Read a sdf file with properties including idm and using it for identification."""
-    df = load.file(input_sdf, keep_props=True, in_id='idm', out_id='idm')
+    df = load.file(input_sdf, keep_props=True, col_idm='idm')
     assert len(df.index) == 5
     cols = sorted(list(df.columns.values))
     assert cols == ['_Name', 'idm', 'mol', 'prop']
     assert isinstance(df.iloc[0]['mol'], Mol)
 
-def test_file_sdf_with_properties_2(input_sdf):
+def test_file_sdf_with_props_2(input_sdf):
     """Read a sdf file with properties including idm but not using it for identification."""
-    df = load.file(input_sdf, keep_props=True, in_id='_Name', out_id='idm')
+    df = load.file(input_sdf, keep_props=True, col_idm='_Name')
     assert len(df.index) == 5
     cols = sorted(list(df.columns.values))
-    assert cols == ['idm', 'idm.2', 'mol', 'prop']
+    assert cols == ['_Name', 'idm', 'idm.1', 'mol', 'prop']
     assert isinstance(df.iloc[0]['mol'], Mol)
 
 def test_file_sdf_gz(input_sdf):
     """Read a compressed sdf file."""
     # without properties
-    df = load.file(f"{input_sdf}.gz", keep_props=False, in_id='_Name', out_id='idm')
+    df = load.file(f"{input_sdf}.gz", keep_props=False, col_idm='_Name')
     assert len(df.index) == 5
     assert list(df.columns.values) == ['idm', 'mol']
     assert isinstance(df.iloc[0]['mol'], Mol)

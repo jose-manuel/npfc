@@ -243,7 +243,7 @@ rule LOAD:
     input: ancient("{WD}/{prep_subdir}/01_chunk/data/{prefix}_{cid}.sdf.gz")
     output: "{WD}/{prep_subdir}/02_load/data/{prefix}_{cid}.csv.gz"
     log: "{WD}/{prep_subdir}/02_load/log/{prefix}_{cid}_load.log"
-    shell: "mols_load {input} {output} --in_id {molid} >{log} 2>&1"
+    shell: "mols_load {input} {output} --col-idm {molid} >{log} 2>&1"
 
 
 rule CHUNK:
@@ -251,4 +251,4 @@ rule CHUNK:
     input: ancient(input_file)
     output: expand(WD + '/' + prep_subdir + '/01_chunk/data/' + prefix + '_{cid}.sdf.gz', cid=chunk_ids)
     log: WD + '/' + prep_subdir + "/01_chunk/log/" + prefix + "_chunk.log"
-    shell: "chunk_sdf -i {input} -n {chunksize} -p '{prefix}' -o {WD}/{prep_subdir}/01_chunk/data/ >{log} 2>&1"
+    shell: "mols_chunk {input} {WD}/{prep_subdir}/01_chunk/data/ -c {chunksize} -p {prefix} >{log} 2>&1"

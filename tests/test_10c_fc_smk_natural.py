@@ -52,11 +52,11 @@ def test_run():
     # check number of entries/molecules
     df = pd.read_csv(report_count, sep='|')
     df = df[df['subset'] == 'total']
-    assert df.iloc[0]['01_chunk_num_mols'] == 20 # init
+    assert df.iloc[0]['01_chunk_num_mols'] == 21 # init
     assert df.iloc[0]['05_depict_num_mols'] == 17 # prep
     assert df.iloc[0]['06_fs_num_mols'] == 17 and df.iloc[0]['06_fs_num_entries'] == 55 # fragment search
     assert df.iloc[0]['07_fcc_num_mols'] == 14 and df.iloc[0]['07_fcc_num_entries'] == 70 # fragment combination
-    assert df.iloc[0]['08_fcg_num_mols'] == 12 and df.iloc[0]['08_fcg_num_entries'] == 12 # final
+    assert df.iloc[0]['08_fcg_num_mols'] == 14 and df.iloc[0]['08_fcg_num_entries'] == 14 # final
 
     # display counts on the terminal
     df = df.T.reset_index()

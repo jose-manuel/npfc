@@ -79,6 +79,7 @@ setuptools.setup(
              'bin/fc/fcg_generate',
              'bin/fc/fcg_annotate_pnp',
              # fc molecules
+             'bin/fc/mols_chunk',
              'bin/fc/mols_concat',
              'bin/fc/mols_count',
              'bin/fc/mols_dedupl',

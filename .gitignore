@@ -13,3 +13,5 @@ node_modules/
 bin/package-lock.json
 npfc.todo
 tmp/
+notebooks/
+tasks.todo

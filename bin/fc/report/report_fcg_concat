@@ -340,7 +340,7 @@ def main():
     lg = RDLogger.logger()
     lg.setLevel(RDLogger.INFO)
     log_file = f"{args.wd_out}/report_fcg_{prefix}.log"
-    utils.check_arg_output_file(log_file)
+    utils.check_arg_output_log(log_file)
     logger = utils._configure_logger(log_level=args.log, log_file=log_file, logger_name=log_file)
 
     # display rendering

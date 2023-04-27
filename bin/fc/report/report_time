@@ -26,7 +26,15 @@ from npfc import load
 from npfc import utils
 import subprocess
 # disable SettingWithCopyWarning warnings
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ CONFIGURATION ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
+# disable SettingWithCopyWarning warnings
 pd.options.mode.chained_assignment = None  # default='warn'
+# pd.set_option('display.max_colwidth', None)
+# pd.set_option('display.max_columns', None)
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #

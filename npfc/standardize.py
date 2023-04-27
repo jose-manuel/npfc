@@ -794,6 +794,14 @@ class Standardizer(Filter):
         :param df: The DataFrame with molecules to standardize
         :param return: a tuple of 3 DataFrames: standardized, filtered and error.
         """
+        # empty input
+        if len(df) < 1:
+            cols = ['idm', 'mol', 'status', 'task']
+            df_passed = DataFrame({}, index=[], columns=cols + ['inchikey'])
+            df_filtered = DataFrame({}, index=[], columns=cols)
+            df_error = DataFrame({}, index=[], columns=cols)
+            return (df_passed, df_filtered, df_error)
+
         df = df.copy()  # do not modify df in place
         # check filter_unwanted data (if any error, crash before running the protocol)
         if len(filter_unwanted) > 0:

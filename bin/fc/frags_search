@@ -146,10 +146,8 @@ def main():
     logger.info("LOADING MOLECULES")
     d1 = datetime.now()
     df_mols = load.file(args.minput,
-                        in_id=args.mid,
-                        out_id=args.mid,
-                        in_mol=args.mmol,
-                        out_mol=args.mmol,
+                        col_idm=args.mid,
+                        col_mol=args.mmol,
                         keep_props=True,
                         csv_sep=args.msep,
                         decode=args.mdecode,
@@ -161,10 +159,8 @@ def main():
     logger.info("LOADING FRAGMENTS")
     d2 = datetime.now()
     df_frags = load.file(args.finput,
-                         in_id=args.fid,
-                         out_id=args.fid,
-                         in_mol=args.fmol,
-                         out_mol=args.fmol,
+                         col_idm=args.fid,
+                         col_mol=args.fmol,
                          csv_sep=args.fsep,
                          decode=args.fdecode,
                          )
@@ -190,7 +186,7 @@ def main():
     logger.info("SAVING RESULTS")
     d4 = datetime.now()
     outputs = save.file(df_aidxf, args.output, encode=True)
-    logger.info(f"SAVED {outputs[0][1]:,} RECORDS AT {outputs[0][0]}")
+    logger.info(f"SAVED {outputs[1]:,} RECORDS AT {outputs[0]}")
 
     # end
     d5 = datetime.now()

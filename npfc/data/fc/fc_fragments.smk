@@ -156,4 +156,4 @@ rule LOAD:
     input: input_file
     output: "{WD}/{prep_subdir}/01_load/data/{prefix}.csv.gz"
     log: "{WD}/{prep_subdir}/01_load/log/{prefix}.log"
-    shell: "mols_load {input} {output} --in_id {molid} 2>{log}"
+    shell: "mols_load {input} {output} --col-idm {molid} 2>{log}"

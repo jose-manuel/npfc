@@ -224,15 +224,15 @@ def main():
     logger.info("SAVING OUTPUTS")
     # std
     outputs = save.file(df_passed, args.output_mols_std, csv_sep=csv_sep)
-    logger.info(f"SAVED {outputs[0][1]:,} STD RECORDS AT {outputs[0][0]}")
+    logger.info(f"SAVED {outputs[1]:,} STD RECORDS AT {outputs[0]}")
     # filtered
     if args.filtered is not None:
         outputs = save.file(df_filtered, args.filtered, csv_sep=csv_sep)
-        logger.info(f"SAVED {outputs[0][1]:,} FILTERED RECORDS AT {outputs[0][0]}")
+        logger.info(f"SAVED {outputs[1]:,} FILTERED RECORDS AT {outputs[0]}")
     # error
     if args.error is not None:
         outputs = save.file(df_error, args.error, csv_sep=csv_sep)
-        logger.info(f"SAVED {outputs[0][1]:,} ERROR RECORDS AT {outputs[0][0]}")
+        logger.info(f"SAVED {outputs[1]:,} ERROR RECORDS AT {outputs[0]}")
     d4 = datetime.now()
 
     # end

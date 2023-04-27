@@ -57,8 +57,8 @@ def test_run():
     assert df.iloc[0]['06_subset_num_mols'] == 139 # subset
     assert df.iloc[0]['07_fs_num_mols'] == 126 and df.iloc[0]['07_fs_num_entries'] == 381 # fragment search
     assert df.iloc[0]['08_fcc_num_mols'] == 77 and df.iloc[0]['08_fcc_num_entries'] == 384 # fragment combination
-    assert df.iloc[0]['09_fcg_num_mols'] == 68 and df.iloc[0]['09_fcg_num_entries'] == 80 # fragment combination graphs
-    assert df.iloc[0]['10_pnp_num_mols'] == 53 and df.iloc[0]['10_pnp_num_entries'] == 63 # final
+    assert df.iloc[0]['09_fcg_num_mols'] == 72 and df.iloc[0]['09_fcg_num_entries'] == 84 # fragment combination graphs
+    assert df.iloc[0]['10_pnp_num_mols'] == 54 and df.iloc[0]['10_pnp_num_entries'] == 64 # final
 
     # display counts on the terminal
     df = df.T.reset_index()

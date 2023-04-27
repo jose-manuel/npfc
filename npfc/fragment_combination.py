@@ -161,6 +161,8 @@ def classify(mol: Mol,
 
     # get atoms in common in fragment 1 and fragment 2
     aidx_fused = aidxf1.intersection(aidxf2)
+    logging.debug("aidx1: %s", aidxf1)
+    logging.debug("aidx2: %s", aidxf2)
     logging.debug("aidx_fused: %s", aidx_fused)
     # in case of overlapping fragments in the queries, we get overlapping matches
     if aidxf1.issubset(aidxf2) or aidxf2.issubset(aidxf1):
