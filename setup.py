@@ -91,6 +91,7 @@ setuptools.setup(
              'bin/fc/mols_subset',
              # fc report
              'bin/fc/report/report_mols_count',
+             'bin/fc/report/report_mols_count_fig',
              'bin/fc/report/report_time',
              'bin/fc/report/report_prep',
              'bin/fc/report/report_fcp',

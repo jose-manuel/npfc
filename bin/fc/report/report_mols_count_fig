@@ -1,0 +1,248 @@
+#!/usr/bin/env python
+
+"""
+Script mols_count
+==========================
+This script is used for counting how many molecules are still present at the end
+of a step. It is designed to append a row per chunk to a common output file.
+"""
+import logging
+from npfc import load
+import pandas as pd
+import networkx as nx
+import pygraphviz
+import matplotlib.pyplot as plt
+import pygraphviz as pgv
+from IPython.display import SVG
+from IPython.display import HTML
+import base64
+from npfc.draw import DEFAULT_PALETTE
+import warnings
+import json
+from datetime import datetime
+import argparse
+from npfc import utils
+import npfc
+from npfc.draw import DEFAULT_PALETTE_HEX
+import sys
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~ CONFIGURATION ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
+# disable SettingWithCopyWarning warnings
+pd.options.mode.chained_assignment = None  # default='warn'
+# pd.set_option('display.max_colwidth', None)
+# pd.set_option('display.max_columns', None)
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
+# This is not clean at all and should be improved
+
+def get_df_counts(input_counts, raw_num_mols=None):
+
+    # load data
+    df_counts = load.file(input_counts)
+
+    # harmonize between frags and other pipelines with chunks
+    if 'pattern' in df_counts.columns:
+        df_counts = df_counts.rename({'pattern': 'subset'}, axis=1)
+        df_counts['subset'] = 'total'
+
+
+    # format data (use only 'total' row)
+    df_counts = df_counts[df_counts.subset == 'total'].reset_index(drop=True)
+    df_counts = df_counts.T.drop('subset').reset_index(names=['step']).rename({0: 'count'}, axis=1)
+    df_counts['idx'] = df_counts.step.map(lambda x: int(x.split('_')[0]))
+    df_counts['name'] = df_counts.step.map(lambda x: x.split('_')[1])
+    df_counts['type'] = df_counts.step.map(lambda x: x.split('_')[-1])
+    df_counts = df_counts[['idx', 'name', 'type', 'count']]
+
+    # have counts for mols and entries on the same row
+    d = {k: [] for k in ['idx' ,'name', 'count_mols', 'count_entries']}
+    for row in df_counts.itertuples(index=False):
+        if row.name not in d['name']:
+            d['name'].append(row.name)
+            d['idx'].append(row.idx)
+        if row.type == 'mols':
+            d['count_mols'].append(row.count)
+        elif row.type == 'entries':
+            d['count_entries'].append(row.count)
+    
+    # make sure rows are correctly sorted
+    df_counts = pd.DataFrame(d).sort_values(['idx', 'name'])  # make sure NPLs and then PNPs values are read
+
+    # beautify the data
+    df_counts['name'] = df_counts.name.str.upper()
+
+    # add raw file infos
+    if raw_num_mols is not None:
+        df_counts = pd.concat([pd.DataFrame({'idx': [0],
+                                             'name': 'RAW',
+                                             'count_mols': raw_num_mols,
+                                             'count_entries': raw_num_mols,
+                                             }), df_counts])
+
+    #idx	name	count_mols	count_entries
+    
+
+
+    return df_counts
+
+
+def plot_counts(df_counts, output_plot = None, pad=40, color='white', title=''):
+
+    # init the graph
+    G = pgv.AGraph(strict=False, 
+                   directed=True, 
+                   rankdir='LR', 
+                   width=2000, 
+                   height=500, 
+                   margin=1, 
+                   forcelabels=True, 
+                   label=f'<<FONT POINT-SIZE="24"><B>{title}</B><BR/><BR/><BR/><BR/></FONT>>', 
+                   labelloc='t',
+                   )
+    num_mols_total = df_counts.query('idx == 0')['count_mols'].iloc[0]
+    d_PNP_annotation = {}
+
+    # fill the graph
+    for i, row in enumerate(df_counts.itertuples(index=False)):
+
+        # format label
+        label = '<' + '<BR/>' * 2 + f'<B>{row.name}</B><BR/><BR/><B>{row.count_mols}</B><BR/><I><FONT POINT-SIZE="12">{row.count_mols/num_mols_total:.2%}</FONT></I>' + '<BR/>' * 3 + '>'
+        # print(label)
+        if row.name == 'FS' or row.name == 'FCG':
+            label = '<' + '<BR/>' * 4 + label[1:-1] + '<BR/>' * 1 + f"FHits: {row.count_entries:,}" + '<BR/>' * 3 + '>'
+        elif row.name == 'FCC':
+            label = '<' + '<BR/>' * 5 + label[1:-1] + '<BR/>' * 2 + f"FCs: {row.count_entries:,}" + '<BR/>' * 3 + '>'
+        elif row.name == 'PNP' or row.name == 'NPL':
+            d_PNP_annotation[f'{row.name}_count_mols'] = row.count_mols
+            d_PNP_annotation[f'{row.name}_count_entries'] = row.count_mols
+            continue
+
+        # add node with formatted label
+        G.add_node(i, label=label, color='black', fillcolor=color, style='filled', height=1.5, width=1.5, fixedsize=True)
+    
+        # add edges so that each step is directly linked to the previous one
+        if i > 0:
+            G.add_edge(i - 1, i)#, label=d_edge_labels[row.name])
+
+    # add a composite node for PNP/NPL
+    if d_PNP_annotation:  # if not empty
+        d_PNP_annotation['PNP_count_mols']
+        pnp_perc_mols = d_PNP_annotation["PNP_count_mols"]/num_mols_total
+        npl_perc_mols = d_PNP_annotation["NPL_count_mols"]/num_mols_total
+        label = '<<BR/><BR/><BR/><BR/><BR/>'  
+        label += f'<B>PNP</B><BR/><B>{d_PNP_annotation["PNP_count_mols"]:,}</B><BR/><I><FONT POINT-SIZE="12">{pnp_perc_mols:.2%}</FONT></I><BR/>'
+        label += '<BR/>'
+        label += f'<B>NPL</B><BR/><B>{d_PNP_annotation["NPL_count_mols"]:,}</B><BR/><I><FONT POINT-SIZE="12">{npl_perc_mols:.2%}</FONT></I><BR/>'
+        label += f'<BR/><BR/><BR/>PNP FCGs: {d_PNP_annotation["PNP_count_entries"]:,}<BR/>'
+        label += f'NPL FCGs: {d_PNP_annotation["NPL_count_entries"]:,}'
+        label += '>'
+        last_node_idx = G.number_of_nodes() - 1   # begins at 0
+        G.add_node(last_node_idx + 1, label=label, labelloc='c', color='black', fillcolor=color, style='filled', height=1.5, width=1.5, fixedsize=True)
+        G.add_edge(last_node_idx, last_node_idx + 1)#, label=d_edge_labels[row.name])
+
+
+
+    # draw
+
+    # add positions to nodes
+    G.layout('dot')
+
+    # render graph
+    warnings.simplefilter("ignore", RuntimeWarning)
+    plot = G.draw(format='svg')  # if I use the path argument here, pygraphviz truncates the annotations below the margin.
+
+    # export graph
+    if output_plot is not None:
+        with open(output_plot, 'wb') as FIG:
+            FIG.write(plot)
+    return plot
+
+
+
+def main():
+
+    # init
+    d0 = datetime.now()
+    description = """
+
+    """
+
+    # parameters CLI
+    parser = argparse.ArgumentParser(description=description, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument('input_mols_count', type=str, help="Input cout_mols file, generated by the report_mols_count script.")
+    parser.add_argument('input_raw_count', type=str, help="Input JSON file in the raw subfolder.")
+    parser.add_argument('output_plot', type=str, help="Output plot file.")
+    parser.add_argument('-c', '--color', type=str, default='white', help="Color to use for filling the nodes. Needs to be either in string or hexadecimal format.")
+    parser.add_argument('-t', '--title', default=None, type=str, help="Title on the plot")
+    parser.add_argument('--log', type=str, default='INFO', help="Specify level of logging. Possible values are: CRITICAL, ERROR, WARNING, INFO, DEBUG.")
+    args = parser.parse_args()
+
+    # logging
+    logger = utils._configure_logger(args.log)
+    logger.info("RUNNING MOLECULE COUNT FIGURE PLOT")
+    warnings.filterwarnings('ignore', category=pd.io.pytables.PerformanceWarning)  # if None is returned instead of a molecule, do not complain about mixed types
+    pad = 40
+
+    # parse arguments
+    utils.check_arg_input_file(args.input_mols_count)
+    utils.check_arg_input_config(args.input_raw_count)
+    # utils.check_arg_output_file(args.output_csv)
+    # out_format, out_compression = utils.get_file_format(args.output_csv)
+
+    color = args.color
+    if not color.startswith('#'):
+        color = DEFAULT_PALETTE_HEX.get(args.color, 'white')
+
+
+    with open(args.input_raw_count, 'r') as f:
+        raw_count_mols = json.load(f)['num_mols']
+
+    # display infos
+    logger.info("LIBRARY VERSIONS:")
+    logger.info("pandas".ljust(pad) + f"{pd.__version__}")
+    logger.info("npfc".ljust(pad) + f"{npfc.__version__}")
+    logger.info("ARGUMENTS:")
+    logger.info("INPUT_MOLS_COUNT".ljust(pad) + f"{args.input_mols_count}")
+    logger.info("INPUT_RAW_COUNT".ljust(pad) + f"{args.input_raw_count}")
+    logger.info("OUTPUT_PLOT".ljust(pad) + f"{args.output_plot}")
+    logger.info("TITLE".ljust(pad) + f"{args.title}")
+    logger.info("MOLS_COUNT_RAW".ljust(pad) + f"{raw_count_mols}")
+    logger.info("LOG".ljust(pad) + f"{args.log}")
+    d1 = datetime.now()
+
+    # begin
+    logger.info("BEGIN")
+
+    # prepare the data
+    df_counts = get_df_counts(args.input_mols_count, raw_num_mols=raw_count_mols)
+    logger.info("LOADED INPUT_MOLS_COUNT:\n{df_counts}\n\n")
+    d2 = datetime.now()
+
+    # generate and export the plot
+    plot = plot_counts(df_counts, color=color, title=args.title, output_plot=args.output_plot)
+    logger.info("GENERATED AND EXPORTED THE PLOT")
+
+    d3 = datetime.now()
+
+    # end
+    d3 = datetime.now()
+    logger.info("SUMMARY")
+    logger.info("COMPUTATIONAL TIME: CONFIGURING JOB".ljust(pad * 2) + f"{d1-d0}")
+    logger.info("COMPUTATIONAL TIME: PREPARING DATA".ljust(pad * 2) + f"{d2-d1}")
+    logger.info("COMPUTATIONAL TIME: EXPORTING PLOT".ljust(pad * 2) + f"{d3-d2}")
+    logger.info("COMPUTATIONAL TIME: TOTAL".ljust(pad * 2) + f"{d3-d0}")
+    logger.info("END")
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ MAIN ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
+if __name__ == '__main__':
+    main()
+    sys.exit(0)

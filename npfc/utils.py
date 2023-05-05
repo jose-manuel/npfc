@@ -41,6 +41,7 @@ COLUMNS_ENCODED = ['_aidxf', '_aidxf1', '_aidxf2', '_fcg', '_fcp_labels', '_fcp_
                    ]
 
 FORMATS_IO = ['SDF', 'CSV', 'HDF']
+FORMATS_CONFIG = ['JSON']
 
 # types
 Number = Union[int, float]
@@ -132,6 +133,8 @@ def get_file_format(input_file: str) -> tuple:
         format = 'HDF'
     elif suffixes[0] == ".parquet":
         format = 'PARQUET'
+    elif suffixes[0] == '.json':
+        format = 'JSON'
     else:
         raise ValueError(f"Error! Unknown format found ({format})!")
     

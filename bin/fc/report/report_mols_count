@@ -161,6 +161,11 @@ def main():
             num_rows = num_mols
         else:
             num_rows, num_mols = count_mols(input_file, args.groupby)
+
+        # NPLs are in the same step as PNP, so need to change the step to not overwrite the entry in the dict
+        if step.endswith('_pnp') and '_npl.' in Path(input_file).stem:
+            step = step.replace('pnp', 'npl')
+
         d["pattern"] = [args.pattern]
         d[f"{step}_num_mols"] = [num_mols]
         d[f"{step}_num_entries"] = [num_rows]

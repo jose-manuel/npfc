@@ -72,9 +72,26 @@ DEFAULT_PALETTE['yellow'] = (1.0, 0.9294, 0.0)
 DEFAULT_PALETTE['teal'] = (0.5725, 0.9608, 0.9882)
 DEFAULT_PALETTE['gray'] = (0.7294, 0.7294, 0.7294)
 
+# # Another default palette to use in reports
+# DEFAULT_PALETTE_255 = OrderedDict()
+# for k, v in DEFAULT_PALETTE.items():
+#     v = tuple([int(x * 255) for x in v])
+#     DEFAULT_PALETTE_255[k] = v
 
-#
-#
+
+# # nice to have the values as hexadecimals too I guess
+# def rgb255_to_hex(rgb: tuple):
+#     r, g, b = tuple(rgb)
+#     return '#{:02x}{:02x}{:02x}'.format(r, g, b)
+
+
+# DEFAULT_PALETTE_HEX = OrderedDict()
+# for k, v in DEFAULT_PALETTE_255.items():
+#     v_hex = rgb255_to_hex(v)
+#     DEFAULT_PALETTE_HEX[k] = v_hex.upper()
+
+# #
+# #
 #
 # DEFAULT_PALETTE = {'red': (1.0, 0.6, 0.6),
 #                    'green': (0.2, 1.0, 0.2),
@@ -86,10 +103,15 @@ DEFAULT_PALETTE['gray'] = (0.7294, 0.7294, 0.7294)
 #                    'gray': (0.7294, 0.7294, 0.7294),
 #                    }
 
+# nice to have the values as hexadecimals too I guess
+DEFAULT_PALETTE_HEX = {k: matplotlib.colors.to_hex(v) for k, v in DEFAULT_PALETTE.items()}
+
 # matplotlib.colors.to_rgb('#FF0000')
 # matplotlib.colors.to_hex(((1.0, 0.0, 0.0)))
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
+
+
 
 
 def get_d_aidxs_for_rings(mol: Mol, fuse_rings: bool = False) -> dict:

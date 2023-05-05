@@ -27,6 +27,7 @@ try:
 except KeyError:
     prefix = ''
 input_file = config['input_file']
+input_files_info = [x for x in Path(input_file).parent.glob('*_num_mols.json')]
 frags_file = config['frags_file']
 frags_subdir = config['frags_subdir']
 chunksize = config['chunksize']
@@ -70,13 +71,25 @@ rule all:
         report_time = WD + '/' + prep_subdir + '/' + frags_subdir + '/report/data/' + prefix + '_time.csv',
         report_prep = WD + '/' + prep_subdir + '/report/data/' + prefix + '_prep_overview.csv',
         report_chunk_logs = expand(f"{WD}/{prep_subdir}/{frags_subdir}/report/data/08_fcg/{prefix}" + '_{cid}_fcg_counts.csv', cid=chunk_ids),
-        fcg_nfcgpermol = f"{WD}/{prep_subdir}/{frags_subdir}" + f"/report/data/{prefix}_fcg_nfcgpermol.csv"
+        fcg_nfcgpermol = f"{WD}/{prep_subdir}/{frags_subdir}" + f"/report/data/{prefix}_fcg_nfcgpermol.csv",
+        report_mol_counts_fig = WD + '/' + prep_subdir + '/' + frags_subdir + '/report/plot/' + prefix + '_count_mols.svg'
+
+
+rule REPORT_COUNT_PLOT:
+    priority: 100
+    input: 
+        count_mols = WD + '/' + prep_subdir + '/' + frags_subdir + '/report/data/' + prefix + '_count_mols.csv',
+        count_raw = WD + '/00_raw/data/' + prefix + '_num_mols.json',
+        fcg = expand(f"{WD}/{prep_subdir}/{frags_subdir}/report/data/08_fcg/{prefix}" + '_{cid}_fcg_counts.csv', cid=chunk_ids)
+    output: WD + '/' + prep_subdir + '/' + frags_subdir + '/report/plot/' + prefix + '_count_mols.svg'
+    log: WD + '/' + prep_subdir + '/' + frags_subdir + '/report/plot/report_mols_count_fig_' + prefix + '.log'
+    shell: "report_mols_count_fig {input.count_mols} {input.count_raw} {output}" + f" -t 'Fragments - {prefix}' -c {report_color}"
 
 
 rule REPORT_FCG_CONCAT:
     priority: 0
     input: expand(f"{WD}/{prep_subdir}/{frags_subdir}/report/data/08_fcg/{prefix}" + '_{cid}_fcg_counts.csv', cid=chunk_ids)
-    output: "{WD}" + f"/{prep_subdir}/{frags_subdir}" + f"/report/data/{prefix}_fcg_nfcgpermol.csv",
+    output: "{WD}" + f"/{prep_subdir}/{frags_subdir}/report/data/{prefix}_fcg_nfcgpermol.csv",
     log: "{WD}" + f"/{prep_subdir}/{frags_subdir}/report/log/report_fcg_{prefix}.log"
     shell: f"report_fcg_concat  {WD}/{prep_subdir}/{frags_subdir}/report/data/08_fcg " + "{WD}" + f"/{prep_subdir}/{frags_subdir}/report -d '" + report_dataset + "' -c " + report_color + " -p {prefix}  2>{log}"
 

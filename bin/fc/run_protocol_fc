@@ -254,6 +254,20 @@ def main():
         config.update(d)
         logger.info("NUMBER OF CHUNKS:".ljust(pad) + f"{config['num_mols']:,d} / {config['chunksize']:,d} = {config['num_chunks']:,d}")
 
+    # add a JSON as well for the fragments, with only the number of mols as there is no chunking going on...(bad idea, chuking should be allowed for fragments too)
+    if protocol == 'fragments':
+        num_mols_file = f"{config['WD']}/data/00_raw/data/{config['prefix']}_num_mols.json"
+        if Path(num_mols_file).exists():
+            logger.info(f"FOUND NUM_MOLS FILE AT '{num_mols_file}'")
+            with open(num_mols_file, 'r') as FILE:
+                d = json.load(FILE)
+        else:
+            logger.info(f"DID NOT FOUND ANY NUM_MOLS FILE AT '{num_mols_file}', COMPUTING IT...")
+            num_mols = load.count_mols(config['input_file'])
+            d = {'num_mols': num_mols}
+            with open(num_mols_file, 'w+') as FILE:
+                json.dump(d, FILE)
+
     # add arguments to the smk command
     smk_command += "--config "
     for k, v in config.items():

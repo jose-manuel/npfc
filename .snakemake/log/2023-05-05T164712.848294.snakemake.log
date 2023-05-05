@@ -1,0 +1,7 @@
+Building DAG of jobs...
+MissingInputException in rule LOAD  in line 164 of /home/jose/Projects/NPFC/npfc/data/fc/fc_fragments.smk:
+Missing input files for rule LOAD:
+    output: fc/01_fragments/crms/data/prep/01_load/data/crms.csv.gz
+    wildcards: WD=fc/01_fragments/crms/data, prep_subdir=prep, prefix=crms
+    affected files:
+        fc/01_fragments/crms/data/00_raw/data/cr_test.sdf.gz

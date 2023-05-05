@@ -20,15 +20,18 @@ from npfc import utils
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ GLOBALS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
+
 from npfc.utils import COLUMN_IDM
 from npfc.utils import COLUMNS_MOL
 from npfc.utils import COLUMNS_ENCODED
 from npfc.utils import FORMATS_IO
+# from npfc.utils import FORMATS_CONFIG
 
 CONVERTERS = {'molblock': lambda x: Chem.MolFromMolBlock(x),
               'smiles': lambda x: Chem.MolFromSmiles(x),
               'rdkit': lambda x: x,  # nothing to do here, but removes the needs for more if/elif
               }
+
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
@@ -115,11 +118,13 @@ def file(input_file: str,
     out_id = 'idm'
     out_mol = 'mol'
 
-    # check arguments
-    utils.check_arg_input_file(input_file)
-    path_input_file = Path(input_file)
+    # check arguments  
+    # TODO: merge all check_arg_input files/config etc. into one function with a type parameter.
+    utils.check_arg_input_file(input_file)  
+
+    # path_input_file = Path(input_file)
     format, compression = utils.get_file_format(input_file)
-    if format not in FORMATS_IO:
+    if format not in FORMATS_IO and format not in FORM: ############
         raise ValueError("Error! Unsupported format for input file '{input_file}' ('{format}').")
     logging.debug("Loading file '%s' (format=%s, compression=%s)", input_file, format, compression)
     
