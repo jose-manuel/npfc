@@ -17,3 +17,9 @@ notebooks/
 tasks.todo
 data
 dev
+bin/fc/*.code-workspace
+
+
+
+
+
