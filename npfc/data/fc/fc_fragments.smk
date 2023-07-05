@@ -73,7 +73,7 @@ rule REPORT_COUNT_PLOT:
         fcp = "{WD}/{prep_subdir}/report/data/{prefix}_fcp_nsymgroups.csv"
     output: "{WD}/{prep_subdir}/report/plot/{prefix}_count_mols.svg"
     log: "{WD}/{prep_subdir}/report/log/report_mols_count_fig_{prefix}.log"
-    shell: "report_mols_count_fig {input.count_mols} {input.count_raw} {output}" + f" -t 'Fragments - {prefix}' -c {report_color}"
+    shell: "report_mols_count_fig {input.count_mols} {input.count_raw} {output}" + f" -t 'Number of molecules per step for Fragments - {prefix}' -c {report_color}"
 
 
 rule REPORT_FCP:

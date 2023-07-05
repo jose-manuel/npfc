@@ -83,7 +83,7 @@ rule REPORT_COUNT_PLOT:
         fcg = expand(f"{WD}/{prep_subdir}/{frags_subdir}/report/data/08_fcg/{prefix}" + '_{cid}_fcg_counts.csv', cid=chunk_ids)
     output: WD + '/' + prep_subdir + '/' + frags_subdir + '/report/plot/' + prefix + '_count_mols.svg'
     log: WD + '/' + prep_subdir + '/' + frags_subdir + '/report/plot/report_mols_count_fig_' + prefix + '.log'
-    shell: "report_mols_count_fig {input.count_mols} {input.count_raw} {output}" + f" -t 'Fragments - {prefix}' -c {report_color}"
+    shell: "report_mols_count_fig {input.count_mols} {input.count_raw} {output}" + f" -t 'Number of molecules per step for Fragments - {prefix}' -c {report_color}"
 
 
 rule REPORT_FCG_CONCAT:

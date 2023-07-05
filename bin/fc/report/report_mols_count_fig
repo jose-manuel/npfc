@@ -112,7 +112,7 @@ def plot_counts(df_counts, output_plot = None, pad=40, color='white', title=''):
     for i, row in enumerate(df_counts.itertuples(index=False)):
 
         # format label
-        label = '<' + '<BR/>' * 2 + f'<B>{row.name}</B><BR/><BR/><B>{row.count_mols}</B><BR/><I><FONT POINT-SIZE="12">{row.count_mols/num_mols_total:.2%}</FONT></I>' + '<BR/>' * 3 + '>'
+        label = '<' + '<BR/>' * 2 + f'<B>{row.name}</B><BR/><BR/><B>{row.count_mols:,}</B><BR/><I><FONT POINT-SIZE="12">{row.count_mols/num_mols_total:.2%}</FONT></I>' + '<BR/>' * 3 + '>'
         # print(label)
         if row.name == 'FS' or row.name == 'FCG':
             label = '<' + '<BR/>' * 4 + label[1:-1] + '<BR/>' * 1 + f"FHits: {row.count_entries:,}" + '<BR/>' * 3 + '>'
@@ -120,7 +120,7 @@ def plot_counts(df_counts, output_plot = None, pad=40, color='white', title=''):
             label = '<' + '<BR/>' * 5 + label[1:-1] + '<BR/>' * 2 + f"FCs: {row.count_entries:,}" + '<BR/>' * 3 + '>'
         elif row.name == 'PNP' or row.name == 'NPL':
             d_PNP_annotation[f'{row.name}_count_mols'] = row.count_mols
-            d_PNP_annotation[f'{row.name}_count_entries'] = row.count_mols
+            d_PNP_annotation[f'{row.name}_count_entries'] = row.count_entries
             continue
 
         # add node with formatted label
