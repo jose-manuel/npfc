@@ -26,6 +26,7 @@ try:
     prefix = config['prefix']
 except KeyError:
     prefix = ''
+timeout = config.get('timeout', 10)
 input_file = config['input_file']
 input_files_info = [x for x in Path(input_file).parent.glob('*_num_mols.json')]
 frags_file = config['frags_file']
@@ -248,7 +249,7 @@ rule STD:
         filtered = "{WD}/{prep_subdir}/03_std/log/{prefix}_{cid}_filtered.csv.gz",
         error = "{WD}/{prep_subdir}/03_std/log/{prefix}_{cid}_error.csv.gz"
     log: "{WD}/{prep_subdir}/03_std/log/{prefix}_{cid}_std.log"
-    shell: "mols_standardize {input} {output.std} -f {output.filtered} -e {output.error} -p " + config_std_mols + " 2>{log}"  # mols_standardize takes a dir as output
+    shell: "mols_standardize {input} {output.std} -t " + str(timeout) +  " -f {output.filtered} -e {output.error} -p " + config_std_mols + " 2>{log}"  # mols_standardize takes a dir as output
 
 
 rule LOAD:

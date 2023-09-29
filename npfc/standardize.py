@@ -192,6 +192,7 @@ class Standardizer(Filter):
         self._elements_medchem = elements_medchem
         self._col_id = col_id
         self._col_mol = col_mol
+        self._timeout = timeout
 
         if protocol is None:
             self._protocol = json.load(open(pkg_resources.resource_filename('npfc', 'data/std_mols.json'), 'r'))
@@ -259,7 +260,7 @@ class Standardizer(Filter):
             raise ValueError(f"Error! timeout should be a positive int (>1), not '{type(value)}'.")
         elif value < 1:
             raise ValueError(f"Error! timeout should be superior to 1 ({value})")
-        self._col_id = value
+        self._timeout = value
 
     @property
     def col_id(self) -> str:
@@ -755,7 +756,7 @@ class Standardizer(Filter):
         # a molecule that passed all the protocole!
         return (mol, 'passed', 'standardize')
 
-    def run(self, mol: Mol, timeout: int = 10) -> tuple:
+    def run(self, mol: Mol) -> tuple:
         """Execute the standardization protocol on a molecule.
         Molecule that exceed the timeout value are filtered with a task='timeout'.
 
@@ -765,7 +766,7 @@ class Standardizer(Filter):
         :param timeout: the maximum number of seconds for processing a molecule
         :return: a tuple containing the molecule, its status and the further task name it reached
         """
-        with utils.timeout(timeout):
+        with utils.timeout(self._timeout):
             return self._run(mol)
 
         # in case of timeout

@@ -29,6 +29,8 @@ try:
 except KeyError:
     prefix = ''
 input_file = config['input_file']
+timeout = config.get('timeout', 10)
+
 
 # additional
 frags_file = config['frags_file']  # fragment file to use for substructure search
@@ -336,7 +338,7 @@ rule STD:
         filtered = "{WD}/{prep_subdir}/03_std/log/{prefix}_{cid}_filtered.csv.gz",
         error = "{WD}/{prep_subdir}/03_std/log/{prefix}_{cid}_error.csv.gz"
     log: "{WD}/{prep_subdir}/03_std/log/{prefix}_{cid}_std.log"
-    shell: "mols_standardize {input} {output.std} -f {output.filtered} -e {output.error} -p " + config_std_mols + " 2>{log}"  # mols_standardize takes a dir as output
+    shell: "mols_standardize {input} {output.std} -t " +  str(timeout) + " -f {output.filtered} -e {output.error} -p " + config_std_mols + " 2>{log}"  # mols_standardize takes a dir as output
 
 
 rule LOAD:

@@ -24,6 +24,7 @@ try:
     prep_subdir = config['prep_subdir']
 except KeyError:
     prep_subdir = 'prep'
+timeout = config.get('timeout', 10)
 
 # protocol for standardizing fragments
 fallback_default_std_frags = False
@@ -160,7 +161,7 @@ rule STD_MURCKO:
         filtered = "{WD}/{prep_subdir}/02_std/log/{prefix}_filtered.csv.gz",
         error = "{WD}/{prep_subdir}/02_std/log/{prefix}_error.csv.gz"
     log: "{WD}/{prep_subdir}/02_std/log/{prefix}_std.log"
-    shell: "mols_standardize {input} {output.std} -f {output.filtered} -e {output.error} -p " + config_std_frags + " 2>{log}"
+    shell: "mols_standardize {input} {output.std} -t " + str(timeout) + " -f {output.filtered} -e {output.error} -p " + config_std_frags + " 2>{log}"
 
 
 rule LOAD:

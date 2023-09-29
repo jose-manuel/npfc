@@ -15,5 +15,6 @@
                     "report_color": "blue",
                     "report_prefix": "chembl_test",
                     "report_dataset": "ChEMBL Test",
-                    "tautomer": 0
+                    "tautomer": 0,
+                    "timeout": 1
 }

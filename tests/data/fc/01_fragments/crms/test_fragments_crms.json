@@ -7,6 +7,7 @@
                     "protocol_std" : "fc/01_fragments/crms/test_fragments_crms_std.json",
                     "report_color": "gray",
                     "report_prefix": "crms_test",
-                    "report_dataset": "CRMS Test"
+                    "report_dataset": "CRMS Test",
+                    "timeout": 1
 }
  

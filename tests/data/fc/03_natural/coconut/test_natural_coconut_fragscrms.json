@@ -10,5 +10,6 @@
                     "report_color": "green",
                     "report_prefix": "coconut_test",
                     "report_dataset": "COCONUT Test",
-		            "tautomer": 0
+		            "tautomer": 0,
+                    "timeout": 1
 }

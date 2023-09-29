@@ -285,7 +285,9 @@ def test_run_protocol(standardizer, mols, mols_bad):
 
 def test_standardizer_timeout(mols_timeout, standardizer):
     """Test if timeout is enforced. It is set to 10s and cannot be changed without reinstalling the library."""
-    mol, status, task = standardizer.run(mols_timeout['timeout'], timeout=1)
+    standardizer.timeout = 1
+    assert standardizer._timeout == 1
+    mol, status, task = standardizer.run(mols_timeout['timeout'])
     assert isinstance(mol, Mol) is True
     assert status == 'filtered'
     assert task == 'timeout'

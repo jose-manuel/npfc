@@ -1,3 +1,0 @@
-NameError in line 37 of /home/gally/Projects/NPFC/src/npfc/data/fc/fc.smk:
-name 'fragments' is not defined
-  File "/home/gally/Projects/NPFC/src/npfc/data/fc/fc.smk", line 37, in <module>

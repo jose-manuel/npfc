@@ -8,7 +8,7 @@ with open("README.rst", "r") as fh:
 
 setuptools.setup(
     name="npfc",
-    version='0.7.21',
+    version='0.8.0',
     author="Jose-Manuel Gally",
     author_email="josemanuel.gally@mpi-dortmund.mpg.de",
     description="A tool for describing Natural Product- (NP) fragments combinations and identifying pseudo-NPs.",
@@ -96,7 +96,6 @@ setuptools.setup(
              'bin/fc/report/report_prep',
              'bin/fc/report/report_fcp',
              'bin/fc/report/report_subset',
-             'bin/fc/report/report_fcg2',  # no dedicated steps for fs and fcc because these are intermediary results
              'bin/fc/report/report_pnp',
              'bin/fc/report/report_fcg_chunk',
              'bin/fc/report/report_fcg_concat',
