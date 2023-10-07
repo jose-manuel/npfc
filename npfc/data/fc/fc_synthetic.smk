@@ -272,7 +272,7 @@ rule PNP:
         npl = "{WD}" + f"/{prep_subdir}/{natref_subdir}/{frags_subdir}" + "/10_pnp/data/{prefix}_{cid}_npl.csv.gz",
         list_pnps = "{WD}" + f"/{prep_subdir}/{natref_subdir}/{frags_subdir}" + "/10_pnp/log/{prefix}_{cid}_list_pnp.csv.gz"
     log: "{WD}" + f"/{prep_subdir}/{natref_subdir}/{frags_subdir}" + "/10_pnp/log/{prefix}_{cid}_pnp.log"
-    shell: "fcg_annotate_pnp {input} {natref_fcg_dir} {output.pnp} -n {output.npl} -l {output.list_pnps} -d '" + pnp_attributes + "' >{log} 2>&1"
+    shell: "fcg_annotate_pnp {input} {natref_fcg_dir} {output.pnp} {output.npl} -l {output.list_pnps} -d '" + pnp_attributes + "' >{log} 2>&1"
 
 
 rule FCG:

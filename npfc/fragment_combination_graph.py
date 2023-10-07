@@ -54,7 +54,7 @@ DF_FG_COLS = ['idm',
               ]
 
 # for annotating fragment graphs with PNP
-DF_PNP_COLS = DF_FG_COLS + ['pnp_fm', 'pnp_mol']
+DF_PNP_COLS = DF_FG_COLS + ['pnp_fm', 'pnp_mol', '_pnp_ref']
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #

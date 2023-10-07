@@ -36,8 +36,8 @@ pd.options.mode.chained_assignment = None  # default='warn'
 # todo:
 # 1. iterate over each chunk
 # 2. count PNPs, NPLs
-# 3. draw n examples per chunk
-# 4. plot results
+# 3. draw n examples per chunk  # todo
+# 4. plot results  # todo
 
 
 def parse_chunk_pnp(c):
@@ -92,7 +92,11 @@ def get_dfs_pnp(WD: Path) -> DataFrame:
 
     # create a dataframe with counts
     df_pnp_ratio = pd.DataFrame({'Category': ['PNP', 'NPL'], 'Count': [num_pnp, num_npl]})
-    df_pnp_ratio['Perc'] = df_pnp_ratio['Count'].map(lambda x: f"{x/num_total:.2%}")
+    try:
+        df_pnp_ratio['Perc'] = df_pnp_ratio['Count'].map(lambda x: f"{x/num_total:.2%}")
+    except ZeroDivisionError:  # in case of empty input
+        df_pnp_ratio['Perc'] = "0.00%"
+
     logger.info(f"PNP -- RESULTS FOR LABELLING PNPs IN {num_total:,} MOLECULES:\n\n{df_pnp_ratio}\n")
 
     # Number of NP refs per FCG

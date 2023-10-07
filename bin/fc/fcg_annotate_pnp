@@ -58,8 +58,8 @@ def main():
     parser = argparse.ArgumentParser(description=description, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('input_fcg', type=str, default=None, help="Fragment Map file to annotate")
     parser.add_argument('ref_dir', type=str, default=None, help="Directory with Fragment Map files to use as references (currently wiht syntax: <name>_fcg.csv.gz)")
-    parser.add_argument('output_pnp', type=str, default=None, help="Output file for annotated fragment graphs (i.e. file_pnp.csv.gz).")
-    parser.add_argument('-n', '--output_npl', type=str, default=None, help="Output file for NPL compounds (i.e. file_npl.csv.gz). NPL compounds are molecules that containing fragment connectivity completely found in NP references. (>= 1 match for each FCG)")
+    parser.add_argument('output_pnp', type=str, default=None, help="Output file for PNP compounds (i.e. file_pnp.csv.gz).")
+    parser.add_argument('output_npl', type=str, default=None, help="Output file for NPL compounds (i.e. file_npl.csv.gz).")
     parser.add_argument('-d', '--data', type=str, default='fcc,fcp_1,fcp_2', help="Graph edge attributes to consider for annotating pnps (no space, separated with ',').")
     parser.add_argument('-s', '--symmetry', type=utils.parse_argparse_boolstring, default=True, help="Consider symmetry when comparing FCPs. If activated, the suffixes ('1a,2') are removed ('1,2') so equivalent FCPs are considered the same.")
     parser.add_argument('-l', '--list-pnp-mols', type=str, default=None, help="Output file with the list of molecules labelled as PNP or not. It is useful to avoid loading the whole dataset just to count the proportion of PNP/non-PNP molecules.")
@@ -139,6 +139,7 @@ def main():
         d5 = datetime.now()
         logger.info(f"SAVING PNP RESULTS AT '{args.output_pnp}'")
         save.file(df_fcg, args.output_pnp, encode=True)
+        save.file(df_fcg, args.output_npl, encode=True)
         if args.list_pnp_mols is not None:
             save.file(pd.DataFrame(columns=['idm', 'idfcg', 'pnp_fcg', 'pnp_mol', '_pnp_ref']), args.list_pnp_mols)
 

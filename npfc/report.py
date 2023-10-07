@@ -167,6 +167,16 @@ def save_barplot(df: DataFrame,
     sns.set_style('whitegrid', {'axes.edgecolor': '0.2'})
     sns.set_context("paper", font_scale=2)
 
+    # quick fix to prevent the pipeline to crash when an empty dataframe is provided
+    if len(df) < 1:
+        figure = plt.gcf()
+        figure.subplots_adjust(bottom=0.2)
+        figure.savefig(output_plot, format=format, dpi=600)
+        plt.clf()
+        plt.close()
+
+        return figure
+
     # barplot
     if force_order:
         ax = sns.barplot(x=df[x_name], y=df[y_name], color=color, order=df[x_name])
@@ -388,6 +398,8 @@ def save_distplot(df: DataFrame,
     :param bins: number of bins
     :return: the figure in searborn format
     """
+    print(df)
+
     # detect format from file extension
     format = Path(output_plot).suffix[1:].lower()
     if format != 'svg' and format != 'png':

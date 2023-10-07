@@ -68,6 +68,7 @@ pd.options.mode.chained_assignment = None  # default='warn'
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
 
+
 def subset_pattern(pattern: str, subset: str) -> str:
     """This helper function adapts the pattern for input chunks to the wanted
     subset. Only one subset can be specified at once.
@@ -163,20 +164,30 @@ def get_df_fcg(WD: Path, subset=None) -> DataFrame:
     logger.info("FCG -- RESULTS FOR THE NUMBER OF FRAGMENT GRAPHS PER MOLECULE")
     logger.info(f"FCG -- TOTAL NUMBER OF FRAGMENT GRAPHS: {num_tot_fcg_graph:,d}")
     logger.info(f"FCG -- TOTAL NUMBER OF MOLECULES: {num_tot_mol_graph:,d}")
-    df_fcg_nfcgpermol = df_fcg_nfcgpermol.groupby('NumFCG').sum().reset_index()
+    if len(df_fcg_nfcgpermol) > 0:
+        df_fcg_nfcgpermol = df_fcg_nfcgpermol.groupby('NumFCG').sum().reset_index()
+    else:
+        df_fcg_nfcgpermol = pd.DataFrame([[0, 1]], columns=['NumFCG', 'Count'])
     df_fcg_nfcgpermol['Perc_Mols'] = df_fcg_nfcgpermol['Count'].map(lambda x: f"{x / num_tot_mol_graph:.2%}")
     logger.info(f"FCG -- RESULTS FOR THE NUMBER OF FCG PER MOLECULE:\n\n{df_fcg_nfcgpermol}\n")
 
     # fcg_nhits
     logger.info("FCG -- INVESTIGATING FOR THE NUMBER OF FRAGMENT HITS PER MOLECULE")
-    df_fcg_nhits = df_fcg_nhits.groupby('NumFrags').sum().reset_index().sort_values('NumFrags').reset_index(drop=True)
+    if len(df_fcg_nhits) > 0:
+        df_fcg_nhits = df_fcg_nhits.groupby('NumFrags').sum().reset_index().sort_values('NumFrags').reset_index(drop=True)
+    else:
+        df_fcg_nhits = pd.DataFrame([[0, 1]], columns=['NumFrags', 'Count'])
     df_fcg_nhits['Perc_Mols'] = df_fcg_nhits['Count'].map(lambda x: f"{x / num_tot_mol_graph:.2%}")
     logger.info(f"FCG -- RESULTS FOR THE NUMBER OF FRAGMENT HITS PER MOLECULE\n\n{df_fcg_nhits}\n")
 
     # fcg_top_frags
     logger.info("FCG -- INVESTIGATING FOR THE TOP FRAGMENTS")
-    df_fcg_topfrags = df_fcg_topfrags.groupby('idf').sum().reset_index().sort_values('Count', ascending=False).reset_index(drop=True)
-    df_fcg_topfrags['Rank'] = df_fcg_topfrags.index + 1
+    if len(df_fcg_topfrags) > 0:
+        df_fcg_topfrags = df_fcg_topfrags.groupby('idf').sum().reset_index().sort_values('Count', ascending=False).reset_index(drop=True)
+        df_fcg_topfrags['Rank'] = df_fcg_topfrags.index + 1
+    else:
+        df_fcg_topfrags = pd.DataFrame([['None', 0, 0]], columns=['idf', 'Count', 'Rank'])
+    
     logger.info(f"FCG -- TOTAL NUMBER OF FRAGMENT HITS={n_fcg_nhits_tot:,}")
     df_fcg_topfrags['Perc_FHits'] = df_fcg_topfrags['Count'].map(lambda x: f"{x / n_fcg_nhits_tot:.2%}")
     df_fcg_topfrags['idf'] = df_fcg_topfrags['idf'].astype(str)
@@ -189,14 +200,20 @@ def get_df_fcg(WD: Path, subset=None) -> DataFrame:
 
     # fcg_nhits_u
     logger.info("FCG -- INVESTIGATING THE NUMBER OF UNIQUE FRAGMENT HITS PER MOLECULE")
-    df_fcg_nhits_u = df_fcg_nhits_u.groupby('NumFrags').sum().reset_index().sort_values('NumFrags').reset_index(drop=True)
+    if len(df_fcg_nhits_u) > 0:
+        df_fcg_nhits_u = df_fcg_nhits_u.groupby('NumFrags').sum().reset_index().sort_values('NumFrags').reset_index(drop=True)
+    else:
+        df_fcg_nhits_u = pd.DataFrame([[0, 1]], columns=['NumFrags', 'Count'])
     df_fcg_nhits_u['Perc_Mols'] = df_fcg_nhits_u['Count'].map(lambda x: f"{x / num_tot_mol_graph:.2%}")
     logger.info(f"FCG -- RESULTS FOR THE NUMBER OF UNIQUE FRAGMENT HITS PER MOLECULE\n\n{df_fcg_nhits_u}\n")
 
     # fcg_top_frags_u
     logger.info("FCG -- INVESTIGATING THE TOP UNIQUE FRAGMENTS")
-    df_fcg_topfrags_u = df_fcg_topfrags_u.groupby('idf').sum().reset_index().sort_values('Count', ascending=False).reset_index(drop=True)
-    df_fcg_topfrags_u['Rank'] = df_fcg_topfrags_u.index + 1
+    if len(df_fcg_topfrags_u) > 0:
+        df_fcg_topfrags_u = df_fcg_topfrags_u.groupby('idf').sum().reset_index().sort_values('Count', ascending=False).reset_index(drop=True)
+        df_fcg_topfrags_u['Rank'] = df_fcg_topfrags_u.index + 1
+    else:
+        df_fcg_topfrags_u = pd.DataFrame([['None', 0, 0]], columns=['idf', 'Count', 'Rank'])
     logger.info(f"FCG -- TOTAL NUMBER OF UNIQUE FRAGMENT HITS={n_fcg_nhits_u_tot:,}")
     df_fcg_topfrags_u['Perc_FHits'] = df_fcg_topfrags_u['Count'].map(lambda x: f"{x / n_fcg_nhits_u_tot:.2%}")
     df_fcg_topfrags_u['idf'] = df_fcg_topfrags_u['idf'].astype(str)
@@ -204,8 +221,12 @@ def get_df_fcg(WD: Path, subset=None) -> DataFrame:
 
     # fcg_fcc
     logger.info("FCG -- INVESTIGATING THE FCC COUNTS")
-    df_fcg_fcc = df_fcg_fcc.groupby('fcc').sum().T  # use transposition for sorting cols in predefined order
-    df_fcg_fcc = df_fcg_fcc[categories].T.reset_index()  # once it is all good, transpose again to get rows in expected order
+    print(df_fcg_fcc)
+    if len(df_fcg_fcc) > 0:
+        df_fcg_fcc = df_fcg_fcc.groupby('fcc').sum().T  # use transposition for sorting cols in predefined order
+        df_fcg_fcc = df_fcg_fcc[categories].T.reset_index()  # once it is all good, transpose again to get rows in expected order
+    else:
+        df_fcg_fcc = pd.DataFrame([['None', 1]], columns=['fcc', 'Count'])
     n_fcg_fcc = len(df_fcg_fcc[df_fcg_fcc['Count'] > 0])
     logger.info(f"FCG -- TOTAL NUMBER OF FRAGMENT COMBINATIONS CATEGORIES IDENTIFIED={n_fcg_fcc:,}")
     n_fcg_fc = df_fcg_fcc['Count'].sum()
@@ -215,9 +236,25 @@ def get_df_fcg(WD: Path, subset=None) -> DataFrame:
 
     # fcg_fc
     logger.info("FCG -- INVESTIGATING THE TOP FRAGMENT COMBINATIONS")
-    df_fcg_fc = df_fcg_fc.groupby(['fc', 'smiles_frag_1', 'smiles_frag_2']).sum().reset_index().sort_values('Count', ascending=False).reset_index(drop=True)
+
+    # The code block below is a quick and dirty fix. 
+    # I need to know why I can have both molfrag and smiles_frag cols mixed up when te df is empty!!!
+    cols_to_rename = {}
+    for c in df_fcg_fc:
+        if c.startswith('molfrag_'):
+            df_fcg_fc[c] = df_fcg_fc[c].map(Chem.MolToSmiles)
+            cols_to_rename[c] = c.replace('molfrag_', 'smiles_frag_')
+    if cols_to_rename:
+        df_fcg_fc = df_fcg_fc.rename(cols_to_rename, axis=1)
+    
+    print(df_fcg_fc)
+    
+    if len(df_fcg_fc) > 0:
+        df_fcg_fc = df_fcg_fc.groupby(['fc', 'smiles_frag_1', 'smiles_frag_2']).sum().reset_index().sort_values('Count', ascending=False).reset_index(drop=True)
+        df_fcg_fc['Rank'] = df_fcg_fc.index + 1
+    else:
+        df_fcg_fc = pd.DataFrame([["None", "None", 1, "None"]], columns=['smiles_frag_1', 'smiles_frag_2', 'Count', 'fc'])
     df_fcg_fc['Perc'] = df_fcg_fc['Count'].map(lambda x: f"{x / n_fcg_fc:.2%}")
-    df_fcg_fc['Rank'] = df_fcg_fc.index + 1
     logger.info(f"FCG -- RESULT FOR THE TOP FRAGMENT COMBINATIONS\n\n{df_fcg_fc}\n")
 
     return (df_fcg_nhits, df_fcg_nhits_u, df_fcg_fragmolcov, df_fcg_topfrags, df_fcg_topfrags_u, df_fcg_fcc, df_fcg_fc, df_fcg_nfcgpermol)
