@@ -26,6 +26,7 @@ from npfc import utils
 from npfc import fragment_combination
 # disable SettingWithCopyWarning warnings
 pd.options.mode.chained_assignment = None  # default='warn'
+pd.set_option('display.max_columns', None)
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ FUNCTIONS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
@@ -93,6 +94,10 @@ def main():
     logger.info("CUTOFF".ljust(pad) + f"{args.cutoff}")
     logger.info("LOG".ljust(pad) + f"{args.log}")
 
+    # logger = logging.getLogger()
+    # logger.setLevel(logging.DEBUG)
+
+
     # begin
     logger.info("BEGIN")
 
@@ -109,12 +114,12 @@ def main():
     d2 = datetime.now()
     if not args.keep_raw:
         d3 = datetime.now()
-        df_fcc = fragment_combination.classify_df(df_aidx, exclude_exocyclic=args.exclude_exocyclic)
+        df_fcc = fragment_combination.classify_df(df_aidx, exclude_exocyclic=args.exclude_exocyclic, cutoff=args.cutoff)
         logger.info(f"FOUND {len(df_fcc.index)} COMBINATIONS")
         d5 = datetime.now()
     else:
         d3 = datetime.now()
-        df_fcc = fragment_combination.classify_df(df_aidx, clear_cfc=False, exclude_exocyclic=args.exclude_exocyclic)
+        df_fcc = fragment_combination.classify_df(df_aidx, clear_cfc=False, exclude_exocyclic=args.exclude_exocyclic, cutoff=args.cutoff)
         logger.info(f"FOUND {len(df_fcc.index)} COMBINATIONS")
 
         # save raw results

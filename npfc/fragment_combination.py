@@ -79,6 +79,28 @@ def get_shortest_path_between_frags(mol: Mol, aidxf1: set, aidxf2: set) -> tuple
     return min(all_paths, key=lambda x: len(x))
 
 
+# def _exclude_exocyclic(mol: Mol, aidxf: frozenset) -> frozenset:
+#     """Exclude exocylic atoms from a list of atom indices.
+
+#     :param mol: the input molecule
+#     :param aidxf: the atom indices
+#     :return: the filtered atom indices
+#     """
+#     logging.debug("Input aidxf=%s", aidxf)
+
+#     # all ring atoms in the molecule
+#     ring_atoms = [set(x) for x in mol.GetRingInfo().AtomRings()]
+#     logging.debug("Ring atoms=%s", ring_atoms)
+
+#     # save all ring atoms that are found in the fragment, exocylic atoms are thus ignored
+#     to_keep = set()
+#     [to_keep.update(ri) for ri in ring_atoms if ri.issubset(aidxf)]
+#     logging.debug("to_keep=%s", to_keep)
+
+#     return frozenset(to_keep)
+
+
+
 def _exclude_exocyclic(mol: Mol, aidxf: frozenset) -> frozenset:
     """Exclude exocylic atoms from a list of atom indices.
 
@@ -86,13 +108,17 @@ def _exclude_exocyclic(mol: Mol, aidxf: frozenset) -> frozenset:
     :param aidxf: the atom indices
     :return: the filtered atom indices
     """
-    # all ring atoms in the molecule
-    ring_atoms = [set(x) for x in mol.GetRingInfo().AtomRings()]
-    # save all ring atoms that are found in the fragment, exocylic atoms are thus ignored
-    to_keep = set()
-    [to_keep.update(ri) for ri in ring_atoms if ri.issubset(aidxf)]
-    return frozenset(to_keep)
+    logging.debug("Input aidxf=%s", aidxf)
 
+    # all ring atoms in the molecule
+    ring_atoms = set([item for row in mol.GetRingInfo().AtomRings() for item in row])
+    logging.debug("Ring atoms=%s", ring_atoms)
+
+    # save all ring atoms that are found in the fragment, exocylic atoms are thus ignored
+    to_keep = aidxf.intersection(ring_atoms)
+    logging.debug("to_keep=%s", to_keep)
+
+    return frozenset(to_keep)
 
 def classify(mol: Mol,
              aidxf1: set,
@@ -511,6 +537,9 @@ def classify_df(df_aidxf: DataFrame,
                 molf2 = row_f2['mol_frag']
                 logging.debug("="*80)
                 logging.debug("Classifying m=%s, f1=%s:%s, f2=%s:%s", gid, idf1, idf1_idx, idf2, idf2_idx)
+                logging.debug("aidxf1=%s", aidxf1)
+                logging.debug("aidxf2=%s", aidxf2)
+
                 d_fcc = classify(mol, aidxf1, aidxf2, cutoff=cutoff, exclude_exocyclic=exclude_exocyclic)
                 if len(d_fcc['cp1']) > 0:
                     # here I need to find the corresponding cp1 but with fcp labels

@@ -310,156 +310,259 @@ def df_aidxf_macro_cbb():
 
 def test_classify_fs(df_aidxf_fs):
     """Check if fusion spiro fragment combinations are identified."""
-    df_fcc = fragment_combination.classify_df(df_aidxf_fs)
+    # no excluding exocyclic
+    df_fcc = fragment_combination.classify_df(df_aidxf_fs, exclude_exocyclic=False)
+    assert df_fcc.iloc[0]['fc'] == 'QA:0@1[fs]QB:0@1'
+    # excluding exocyclic
+    df_fcc = fragment_combination.classify_df(df_aidxf_fs, exclude_exocyclic=True)
     assert df_fcc.iloc[0]['fc'] == 'QA:0@1[fs]QB:0@1'
 
 
 def test_classify_fe(df_aidxf_fe):
     """Check if fusion edge fragment combinations are identified."""
-    df_fcc = fragment_combination.classify_df(df_aidxf_fe)
+    # no excluding exocyclic
+    df_fcc = fragment_combination.classify_df(df_aidxf_fe, exclude_exocyclic=False)
+    assert df_fcc.iloc[0]['fc'] == 'QA:0@2,3[fe]QB:0@0,5'
+    # excluding exocyclic
+    df_fcc = fragment_combination.classify_df(df_aidxf_fe, exclude_exocyclic=True)
     assert df_fcc.iloc[0]['fc'] == 'QA:0@2,3[fe]QB:0@0,5'
 
 
 def test_classify_fb(df_aidxf_fb):
     """Check if fusion edge fragment combinations are identified."""
-    df_fcc = fragment_combination.classify_df(df_aidxf_fb)
+    # no excluding exocyclic
+    df_fcc = fragment_combination.classify_df(df_aidxf_fb, exclude_exocyclic=False)
+    assert df_fcc.iloc[0]['fc'] == 'QA:0@1,2,3[fb]QB:0@0,1,5'
+    # excluding exocyclic
+    df_fcc = fragment_combination.classify_df(df_aidxf_fb, exclude_exocyclic=True)
     assert df_fcc.iloc[0]['fc'] == 'QA:0@1,2,3[fb]QB:0@0,1,5'
 
 
 def test_classify_fl(df_aidxf_fl):
     """Check if fusion edge fragment combinations are identified."""
-    df_fcc = fragment_combination.classify_df(df_aidxf_fl)
+    # no excluding exocyclic
+    df_fcc = fragment_combination.classify_df(df_aidxf_fl, exclude_exocyclic=False)
+    assert df_fcc.iloc[0]['fc'] == 'QC:0@0,1,2,3,4,7,8,9[fl]QD:0@0,1,2,3,4,8,9,10'
+    # excluding exocyclic
+    df_fcc = fragment_combination.classify_df(df_aidxf_fl, exclude_exocyclic=True)
     assert df_fcc.iloc[0]['fc'] == 'QC:0@0,1,2,3,4,7,8,9[fl]QD:0@0,1,2,3,4,8,9,10'
 
 
 def test_classify_ca(df_aidxf_ca):
     """Check if connection anulated fragment combinations are identified."""
-    df_fcc = fragment_combination.classify_df(df_aidxf_ca)
+    # no excluding exocyclic
+    df_fcc = fragment_combination.classify_df(df_aidxf_ca, exclude_exocyclic=False)
+    assert df_fcc.iloc[0]['fc'] == 'QA:0@1,2[ca]QB:0@0,5'
+    # excluding exocyclic
+    df_fcc = fragment_combination.classify_df(df_aidxf_ca, exclude_exocyclic=True)
     assert df_fcc.iloc[0]['fc'] == 'QA:0@1,2[ca]QB:0@0,5'
 
 
 def test_classify_cm1(df_aidxf_cm1):
     """Check if connection monopodal fragment combinations are identified."""
-    df_fcc = fragment_combination.classify_df(df_aidxf_cm1)
+    # no excluding exocyclic
+    df_fcc = fragment_combination.classify_df(df_aidxf_cm1, exclude_exocyclic=False)
+    assert df_fcc.iloc[0]['fc'] == 'QA:0@0[cm]QB:0@1'
+    # excluding exocyclic
+    df_fcc = fragment_combination.classify_df(df_aidxf_cm1, exclude_exocyclic=True)
     assert df_fcc.iloc[0]['fc'] == 'QA:0@0[cm]QB:0@1'
 
 
 def test_classify_cm2(df_aidxf_cm2):
     """Check if connection monopodal fragment combinations are identified."""
-    df_fcc = fragment_combination.classify_df(df_aidxf_cm2)
+    # no excluding exocyclic
+    df_fcc = fragment_combination.classify_df(df_aidxf_cm2, exclude_exocyclic=False)
+    assert df_fcc.iloc[0]['fc'] == 'QA:0@1[cm]QB:0@5'
+    # excluding exocyclic
+    df_fcc = fragment_combination.classify_df(df_aidxf_cm2, exclude_exocyclic=True)
     assert df_fcc.iloc[0]['fc'] == 'QA:0@1[cm]QB:0@5'
 
 
 def test_classify_cm3(df_aidxf_cm3):
     """Check if connection monopodal fragment combinations are identified."""
-    df_fcc = fragment_combination.classify_df(df_aidxf_cm3)
+    # no excluding exocyclic
+    df_fcc = fragment_combination.classify_df(df_aidxf_cm3, exclude_exocyclic=False)
+    assert df_fcc.iloc[0]['fc'] == 'QA:0@1[cm]QB:0@1'
+    # excluding exocyclic
+    df_fcc = fragment_combination.classify_df(df_aidxf_cm3, exclude_exocyclic=True)
     assert df_fcc.iloc[0]['fc'] == 'QA:0@1[cm]QB:0@1'
 
 
 def test_classify_cbs(df_aidxf_cbs):
     """Check if fragment combinations of type connection bipodal spiro are identified."""
-    df_fcc = fragment_combination.classify_df(df_aidxf_cbs)
+    # no excluding exocyclic
+    df_fcc = fragment_combination.classify_df(df_aidxf_cbs, exclude_exocyclic=False)
+    assert df_fcc.iloc[0]['fc'] == 'QA:0@1,2[cbs]QB:0@1'
+    # excluding exocyclic
+    df_fcc = fragment_combination.classify_df(df_aidxf_cbs, exclude_exocyclic=True)
     assert df_fcc.iloc[0]['fc'] == 'QA:0@1,2[cbs]QB:0@1'
 
 
 def test_classify_cbe(df_aidxf_cbe):
     """Check if fragment combinations of type connection bipodal edge are identified."""
-    df_fcc = fragment_combination.classify_df(df_aidxf_cbe)
+    # no excluding exocyclic
+    df_fcc = fragment_combination.classify_df(df_aidxf_cbe, exclude_exocyclic=False)
+    assert df_fcc.iloc[0]['fc'] == 'QA:0@1,2[cbe]QB:0@4,5'
+    # excluding exocyclic
+    df_fcc = fragment_combination.classify_df(df_aidxf_cbe, exclude_exocyclic=True)
     assert df_fcc.iloc[0]['fc'] == 'QA:0@1,2[cbe]QB:0@4,5'
 
 
 def test_classify_cbb(df_aidxf_cbb):
     """Check if fragment combinations of type connection bipodal bridged are identified."""
-    df_fcc = fragment_combination.classify_df(df_aidxf_cbb)
+    # no excluding exocyclic
+    df_fcc = fragment_combination.classify_df(df_aidxf_cbb, exclude_exocyclic=False)
     assert df_fcc.iloc[0]['fc'] == 'QA:0@0,1,5[cbb]QB:0@1,2'
-
+    # excluding exocyclic
+    df_fcc = fragment_combination.classify_df(df_aidxf_cbb, exclude_exocyclic=True)
+    assert df_fcc.iloc[0]['fc'] == 'QA:0@0,1,5[cbb]QB:0@1,2'
 
 
 def test_classify_cbl(df_aidxf_cbl):
     """Check if fragment combinations of type connection bipodal linker are identified."""
-    df_fcc = fragment_combination.classify_df(df_aidxf_cbl)
+    # no excluding exocyclic
+    df_fcc = fragment_combination.classify_df(df_aidxf_cbl, exclude_exocyclic=False)
+    assert df_fcc.iloc[0]['fc'] == 'QA:0@0,1,4,5[cbl]QI:0@1,2,3,5,8,9'
+    # excluding exocyclic
+    df_fcc = fragment_combination.classify_df(df_aidxf_cbl, exclude_exocyclic=True)
     assert df_fcc.iloc[0]['fc'] == 'QA:0@0,1,4,5[cbl]QI:0@1,2,3,5,8,9'
 
 
 def test_classify_cts(df_aidxf_cts):
     """Check if fragment combinations of type connection tripodal spiro are identified."""
-    df_fcc = fragment_combination.classify_df(df_aidxf_cts)
+    # no excluding exocyclic
+    df_fcc = fragment_combination.classify_df(df_aidxf_cts, exclude_exocyclic=False)
+    assert df_fcc.iloc[0]['fc'] == 'QA:0@1,2,3[cts]QB:0@0,5'
+    # excluding exocyclic
+    df_fcc = fragment_combination.classify_df(df_aidxf_cts, exclude_exocyclic=True)
     assert df_fcc.iloc[0]['fc'] == 'QA:0@1,2,3[cts]QB:0@0,5'
 
 
 def test_classify_cte(df_aidxf_cte):
     """Check if fragment combinations of type connection tripodal edge are identified."""
-    df_fcc = fragment_combination.classify_df(df_aidxf_cte)
+    # no excluding exocyclic
+    df_fcc = fragment_combination.classify_df(df_aidxf_cte, exclude_exocyclic=False)
+    assert df_fcc.iloc[0]['fc'] == 'QA:0@1,2,3[cte]QB:0@0,4,5'
+    # excluding exocyclic
+    df_fcc = fragment_combination.classify_df(df_aidxf_cte, exclude_exocyclic=True)
     assert df_fcc.iloc[0]['fc'] == 'QA:0@1,2,3[cte]QB:0@0,4,5'
 
 
 def test_classify_ctb(df_aidxf_ctb):
     """Check if fragment combinations of type connection tripodal bridged are identified."""
-    df_fcc = fragment_combination.classify_df(df_aidxf_ctb)
+    # no excluding exocyclic
+    df_fcc = fragment_combination.classify_df(df_aidxf_ctb, exclude_exocyclic=False)
+    assert df_fcc.iloc[0]['fc'] == 'QA:0@0,1,2,3[ctb]QB:0@0,4,5'
+    # excluding exocyclic
+    df_fcc = fragment_combination.classify_df(df_aidxf_ctb, exclude_exocyclic=True)
     assert df_fcc.iloc[0]['fc'] == 'QA:0@0,1,2,3[ctb]QB:0@0,4,5'
 
 
 def test_classify_ctl(df_aidxf_ctl):
     """Check if fragment combinations of type connection bipodal linker are identified."""
-    df_fcc = fragment_combination.classify_df(df_aidxf_ctl)
+    # no excluding exocyclic
+    df_fcc = fragment_combination.classify_df(df_aidxf_ctl, exclude_exocyclic=False)
+    assert df_fcc.iloc[0]['fc'] == 'QA:0@0,4,5[ctl]QI:0@1,2,3,5,7,8,9'
+    # excluding exocyclic
+    df_fcc = fragment_combination.classify_df(df_aidxf_ctl, exclude_exocyclic=True)
     assert df_fcc.iloc[0]['fc'] == 'QA:0@0,4,5[ctl]QI:0@1,2,3,5,7,8,9'
 
 
 def test_classify_cos(df_aidxf_cos):
     """Check if fragment combinations of type connection other spiro are identified."""
-    df_fcc = fragment_combination.classify_df(df_aidxf_cos)
+    # no excluding exocyclic
+    df_fcc = fragment_combination.classify_df(df_aidxf_cos, exclude_exocyclic=False)
+    assert df_fcc.iloc[0]['fc'] == 'QA:0@0,1,2,3[cos]QB:0@0,1,4,5'
+    # excluding exocyclic
+    df_fcc = fragment_combination.classify_df(df_aidxf_cos, exclude_exocyclic=True)
     assert df_fcc.iloc[0]['fc'] == 'QA:0@0,1,2,3[cos]QB:0@0,1,4,5'
 
 
 def test_classify_coe(df_aidxf_coe):
     """Check if fragment combinations of type connection other edge are identified."""
-    df_fcc = fragment_combination.classify_df(df_aidxf_coe)
+    # no excluding exocyclic
+    df_fcc = fragment_combination.classify_df(df_aidxf_coe, exclude_exocyclic=False)
+    assert df_fcc.iloc[0]['fc'] == 'QA:0@0,1,2,3[coe]QB:0@0,1,4,5'
+    # excluding exocyclic
+    df_fcc = fragment_combination.classify_df(df_aidxf_coe, exclude_exocyclic=True)
     assert df_fcc.iloc[0]['fc'] == 'QA:0@0,1,2,3[coe]QB:0@0,1,4,5'
 
 
 def test_classify_cob(df_aidxf_cob):
     """Check if fragment combinations of type connection other bridged are identified."""
-    df_fcc = fragment_combination.classify_df(df_aidxf_cob)
+    # no excluding exocyclic
+    df_fcc = fragment_combination.classify_df(df_aidxf_cob, exclude_exocyclic=False)
+    assert df_fcc.iloc[0]['fc'] == 'QA:0@0,1,2,3[cob]QB:0@0,1,2,4,5'
+    # excluding exocyclic
+    df_fcc = fragment_combination.classify_df(df_aidxf_cob, exclude_exocyclic=True)
     assert df_fcc.iloc[0]['fc'] == 'QA:0@0,1,2,3[cob]QB:0@0,1,2,4,5'
 
 
 def test_classify_col(df_aidxf_col):  # identified as cob instead of col
     """Check if fragment combinations of type connection other linker are identified."""
-    df_fcc = fragment_combination.classify_df(df_aidxf_col)
+    # no excluding exocyclic
+    df_fcc = fragment_combination.classify_df(df_aidxf_col, exclude_exocyclic=False)
+    assert df_fcc.iloc[0]['fc'] == 'QA:0@0,1,2,5[col]QI:0@1,2,3,5,7,8,9'
+    # excluding exocyclic
+    df_fcc = fragment_combination.classify_df(df_aidxf_col, exclude_exocyclic=True)
     assert df_fcc.iloc[0]['fc'] == 'QA:0@0,1,2,5[col]QI:0@1,2,3,5,7,8,9'
 
 
 def test_classify_ffs(df_aidxf_ffs):
     """Check if fragment combinations of type fusion false positive substructure are identified."""
-    df_fcc = fragment_combination.classify_df(df_aidxf_ffs)
+    # no excluding exocyclic
+    df_fcc = fragment_combination.classify_df(df_aidxf_ffs, exclude_exocyclic=False)
+    assert df_fcc.iloc[0]['fc'] == 'QA:0@0,1,2,3,4,5[ffs]QE:0@1,2,3,4,5,6'
+    # excluding exocyclic
+    df_fcc = fragment_combination.classify_df(df_aidxf_ffs, exclude_exocyclic=True)
     assert df_fcc.iloc[0]['fc'] == 'QA:0@0,1,2,3,4,5[ffs]QE:0@1,2,3,4,5,6'
 
 
 def test_classify_ffo(df_aidxf_ffo):
     """Check if fragment combinations of type fusion false positive substructure are identified."""
-    df_fcc = fragment_combination.classify_df(df_aidxf_ffo)
+    # no excluding exocyclic
+    df_fcc = fragment_combination.classify_df(df_aidxf_ffo, exclude_exocyclic=False)
+    assert df_fcc.iloc[0]['fc'] == 'QG:0@4,5,6,7,8,9[ffo]QH:0@0,1,2,3,8,9'
+    # excluding exocyclic
+    df_fcc = fragment_combination.classify_df(df_aidxf_ffo, exclude_exocyclic=True)
     assert df_fcc.iloc[0]['fc'] == 'QG:0@4,5,6,7,8,9[ffo]QH:0@0,1,2,3,8,9'
 
 
 def test_classify_cfc(df_aidxf_cfc):
     """Check if fragment combinations of type fusion false positive substructure are identified."""
-    df_fcc = fragment_combination.classify_df(df_aidxf_cfc, clear_cfc=False)
+    # no excluding exocyclic
+    df_fcc = fragment_combination.classify_df(df_aidxf_cfc, clear_cfc=False, exclude_exocyclic=False)
+    assert df_fcc.iloc[0]['fc'] == 'QA:0[cfc]QB:0'
+    # excluding exocyclic
+    df_fcc = fragment_combination.classify_df(df_aidxf_cfc, clear_cfc=False, exclude_exocyclic=True)
     assert df_fcc.iloc[0]['fc'] == 'QA:0[cfc]QB:0'
 
 
 def test_classify_cbs_in_macro(df_aidxf_macro_cbs):
     """Check if cbs fragment combinations are correctly identified in macrocycles."""
-    df_fcc = fragment_combination.classify_df(df_aidxf_macro_cbs)
+    # no excluding exocyclic
+    df_fcc = fragment_combination.classify_df(df_aidxf_macro_cbs, exclude_exocyclic=False)
+    assert df_fcc.iloc[0]['fc'] == 'QA:0@4,5[cbs]QB:0@1'
+    # excluding exocyclic
+    df_fcc = fragment_combination.classify_df(df_aidxf_macro_cbs, exclude_exocyclic=True)
     assert df_fcc.iloc[0]['fc'] == 'QA:0@4,5[cbs]QB:0@1'
 
 
 def test_classify_cbe_in_macro(df_aidxf_macro_cbe):
     """Check if cbe fragment combinations are correctly identified in macrocycles."""
-    df_fcc = fragment_combination.classify_df(df_aidxf_macro_cbe)
+    # no excluding exocyclic
+    df_fcc = fragment_combination.classify_df(df_aidxf_macro_cbe, exclude_exocyclic=False)
+    assert df_fcc.iloc[0]['fc'] == 'QA:0@4,5[cbe]QB:0@0,5'
+    # excluding exocyclic
+    df_fcc = fragment_combination.classify_df(df_aidxf_macro_cbe, exclude_exocyclic=True)
     assert df_fcc.iloc[0]['fc'] == 'QA:0@4,5[cbe]QB:0@0,5'
 
 
 def test_classify_cbb_in_macro(df_aidxf_macro_cbb):
     """Check if cbb fragment combinations are correctly identified in macrocycles."""
-    df_fcc = fragment_combination.classify_df(df_aidxf_macro_cbb)
+    # no excluding exocyclic
+    df_fcc = fragment_combination.classify_df(df_aidxf_macro_cbb, exclude_exocyclic=False)
+    assert df_fcc.iloc[0]['fc'] == 'QA:0@0,4,5[cbb]QB:0@0,1,2'
+    # excluding exocyclic
+    df_fcc = fragment_combination.classify_df(df_aidxf_macro_cbb, exclude_exocyclic=True)
     assert df_fcc.iloc[0]['fc'] == 'QA:0@0,4,5[cbb]QB:0@0,1,2'

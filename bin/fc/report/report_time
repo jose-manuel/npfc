@@ -263,11 +263,11 @@ def find_input_files(input_dir: str, pattern: str, exclude: list = ['/report/', 
 def get_time(input_log: str) -> float:
     """Parse an input log file and retrieve the computational time.
     """
-    df = pd.read_csv(input_log, sep="@", header=None)
     try:
+        df = pd.read_csv(input_log, sep="@", header=None)
         records = df[df[0].str.contains("COMPUTATIONAL TIME: TOTAL")].iloc[0][0].split()
         record = records[8]
-    except IndexError:
+    except:
         logging.error("ERROR! COULD NOT PARSE FILE '%s'" % input_log)
         raise ValueError('ABORTING EXECUTION...')
 
